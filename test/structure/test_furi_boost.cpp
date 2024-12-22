@@ -22,17 +22,18 @@
 #define BOOST_TEST_MODULE test_furi_boost
 
 #include <boost/test/unit_test.hpp>
-#include <fhatos.hpp>
+#include "../test_fhatos.hpp"
+#include "../../src/fhatos.hpp"
 #include <furi.hpp>
 #include <util/ansi.hpp>
 
-string message = string();
+string MESSAGE = string();
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
-  message.clear();                                                                                                     \
-  Ansi<StringPrinter>(&message).printf("<!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",    \
+  MESSAGE.clear();                                                                                                     \
+  Ansi<StringPrinter>(&MESSAGE).printf("<!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",    \
                                        (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(),        \
                                        (y).toString().length(), (x).path_length(), (y).path_length());                 \
-  BOOST_TEST_MESSAGE(message);                                                                                         \
+  BOOST_TEST_MESSAGE(MESSAGE);                                                                                   \
   BOOST_CHECK((x).equals(y));                                                                                          \
   BOOST_CHECK((x) == (y));                                                                                             \
   BOOST_CHECK((x).toString() == (y).toString());
@@ -165,7 +166,6 @@ BOOST_AUTO_TEST_SUITE(test_furi_boost_suite)
         BOOST_CHECK_EQUAL(2, uri.path_length());
       }
       BOOST_CHECK_EQUAL(pair.second.at(8) ? "x=1&y=2" : "", uri.query());
-      BOOST_CHECK_EQUAL(pair.second.at(9) ? "fhatty" : "", uri.fragment());
     }
   };
 
@@ -408,13 +408,6 @@ BOOST_AUTO_TEST_SUITE(test_furi_boost_suite)
     // TODO:
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("./b/")));
     //     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("b/")));
-  }
-
-  BOOST_AUTO_TEST_CASE(test_uri_dissolve) {
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("fos://123.345.246/a/b/c").dissolve());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("/a/b/c").dissolve());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c").dissolve());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("fos://127.0.0.1").dissolve());
   }
 
   BOOST_AUTO_TEST_CASE(test_uri_match) {

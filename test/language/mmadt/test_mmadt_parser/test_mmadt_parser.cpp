@@ -27,6 +27,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
+#define FOS_LOGGING INFO
 
 namespace fhatos {
   using namespace mmadt;
@@ -154,6 +155,13 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{2,noobj,noobj}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).is(gt(2))"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).count()"));
+    ////////// x.y.z
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("'a'.'b'.'c'.4"));
+    //FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("<a.b.c>.4"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("1.(2).3.(4)"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("0.(1).plus((3))"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), OBJ_PARSER("(4)"));
+    //FOS_TEST_OBJ_EQUAL(real(3.4), PROCESS("1.2.(3.4)"));
     ////////// x
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());

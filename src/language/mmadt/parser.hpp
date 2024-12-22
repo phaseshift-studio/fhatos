@@ -26,6 +26,8 @@ FhatOS: A Distributed Operating System
 using namespace peg;
 using namespace std;
 
+#define WRAP(LEFT,DEFINITION,RIGHT) cho(seq(lit((LEFT)), (DEFINITION), lit((RIGHT))),DEFINITION)
+
 namespace mmadt {
   class Tracker {
     int8_t parens = 0;
@@ -121,7 +123,7 @@ namespace mmadt {
         WS, ROOT, ARGS, CODE, COMMENT, SINGLE_COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF,
-        NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
+        NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO,
         EMPTY_BCODE, DOM_RNG, INST_SUGAR;
 #ifndef FOS_SUGARLESS_MMADT
     Definition
@@ -347,6 +349,7 @@ namespace mmadt {
         return 0 == matches ? noobj() : any_cast<Obj_p>(vs[0]);
       };
 
+
       WS <= zom(cls(" \t"));
       ROOT <= seq(zom(~COMMENT), opt(OBJ), zom(~COMMENT)), root_action;
       ////////////////////////////////////////////////////////////
@@ -384,10 +387,9 @@ namespace mmadt {
       BCODE <= cho(EMPTY_BCODE,
                    seq(INST_P, zom(cho(END, seq(opt(lit(".")), INST_SUGAR), seq(lit("."), INST_P))))),
           bcode_action;
-      BCODE_P <= cho(seq(lit("("), BCODE, lit(")")), BCODE);
-      NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
-      INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
-      PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
+      NO_CODE_PROTO <= WRAP("(", cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI), ")");
+      INST_ARG_PROTO <= WRAP("(", cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI), ")");
+      PROTO <= WRAP("(", cho(REAL, BCODE, NO_CODE_PROTO), ")");
       COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
       // TODO: stream ring theory
       DOM_RNG <= seq(~WS, FURI_NO_Q, chr('?'), FURI_NO_Q, /*opt(COEF),*/ chr('<'), chr('='), FURI_NO_Q, /*opt(COEF),*/
@@ -402,13 +404,13 @@ namespace mmadt {
       OBJ <= cho(TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
                  seq(~WS, PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
       /////////////////////////////////////////////////////////////////
-      ///////////////////////  INST SUGARS ////////////////////////////
-      /////////////////////////////////////////////////////////////////
+///////////////////////  INST SUGARS ////////////////////////////
+/////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
       INST_SUGAR <= cho(AT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT, REPEAT);
-      AT <= cho(seq(chr('@'), cho(URI, BCODE_P)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
+      AT <= cho(seq(chr('@'), cho(URI, BCODE)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
       REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
-      FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))),
+      FROM <= cho(seq(chr('*'), cho(URI, BCODE)), seq(lit("*("), cho(URI, BCODE), chr(')'))),
           from_action;
       REF <= seq(lit("->"), INST_ARG_OBJ), ref_action;
       BLOCK <= seq(lit("|"), INST_ARG_OBJ), block_action;
@@ -429,6 +431,8 @@ namespace mmadt {
       };
       FURI.predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
         try {
+          if(vs.token_to_string().empty())
+            return false;
           fURI(vs.token_to_string());
         } catch(const std::exception &e) {
           //msg = e.what();
