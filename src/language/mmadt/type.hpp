@@ -73,12 +73,14 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/at")
-          ->type_args(x(0, "var"))
+          ->type_args(x(0, "uri", ___))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
             return new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
-          })->save();
+          })
+          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
+          ->save();
 
       InstBuilder::build(MMADT_SCHEME "/block")
           // TODO: currently a "special" instruction (see inst->apply() for logic)
@@ -517,14 +519,14 @@ namespace mmadt {
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
-                  return str(lhs->str_value().append(args->arg(0)->str_value()), lhs->tid()); // , lhs->vid()
+                  return str(lhs->str_value().append(args->arg(0)->str_value()), lhs->tid(), lhs->vid());
                 else if(strcmp(op, "mult") == 0) {
                   string temp;
                   for(const char c: lhs->str_value()) {
                     temp += c;
                     temp.append(args->arg(0)->str_value());
                   }
-                  return str(temp, lhs->tid()); // , lhs->vid()
+                  return str(temp, lhs->tid(), lhs->vid());
                 } else
                   throw fError("unknown op %s\n", op);
               })
@@ -550,9 +552,9 @@ namespace mmadt {
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
-                  return vri(lhs->uri_value().extend(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                  return vri(lhs->uri_value().extend(args->arg(0)->uri_value()), lhs->tid(), lhs->vid());
                 else if(strcmp(op, "mult") == 0)
-                  return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                  return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()), lhs->tid(), lhs->vid());
                 else
                   throw fError("unknown op %s\n", op);
               })
@@ -564,14 +566,14 @@ namespace mmadt {
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                 if(strcmp(op, "plus") == 0) {
-                  const auto new_v = make_shared<Obj::LstList>();
-                  for(const auto &v: *lhs->lst_value()) {
-                    new_v->push_back(v);
+                  const auto new_lst = Obj::to_lst(lhs->tid());
+                  for(const auto &e: *lhs->lst_value()) {
+                    new_lst->lst_add(e);
                   }
-                  for(const auto &v: *args->arg(0)->lst_value()) {
-                    new_v->push_back(v);
+                  for(const auto &e: *args->at(0)->lst_value()) {
+                    new_lst->lst_add(e);
                   }
-                  return Obj::to_lst(new_v, LST_FURI);
+                  return new_lst->at(lhs->vid());
                 } else if(strcmp(op, "mult") == 0) {
                   const Obj::LstList_p lhs_v = lhs->lst_value();
                   const Obj::LstList_p rhs_v = args->arg(0)->lst_value();
@@ -586,6 +588,39 @@ namespace mmadt {
                     }
                   }
                   return Obj::to_lst(new_v, LST_FURI);
+                } else
+                  throw fError("unknown op %s\n", op);
+              })
+            ->save();
+        InstBuilder::build(string(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/").append(op).c_str())
+            ->domain_range(REC_FURI, REC_FURI)
+            ->type_args(x(0, "rhs"))
+            ->inst_f(
+              [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                if(strcmp(op, "plus") == 0) {
+                  const auto new_rec = Obj::to_rec(lhs->tid());
+                  for(const auto &[k,v]: *lhs->rec_value()) {
+                    new_rec->rec_set(k, v);
+                  }
+                  for(const auto &[k,v]: *args->arg(0)->rec_value()) {
+                    new_rec->rec_set(k, v);
+                  }
+                  return new_rec->at(lhs->vid());
+                } else if(strcmp(op, "mult") == 0) {
+                  /*const Obj::LstList_p lhs_v = lhs->lst_value();
+                  const Obj::LstList_p rhs_v = args->arg(0)->lst_value();
+                  const auto new_v = make_shared<Obj::LstList>();
+                  for(int i = 0; i < lhs_v->size(); i++) {
+                    for(int j = 0; j < rhs_v->size(); j++) {
+                      new_v->push_back(
+                        TYPE_INST_RESOLVER(
+                          lhs_v->at(i),
+                          Obj::to_inst({x(0, ___)}, id_p("mult")))
+                        ->apply(lhs_v->at(i))); // TODO: , Obj::to_inst_args{"rhs",rhs_v->at(j)}));
+                    }
+                  }*/
+                  throw fError("not implemented yet");
+                  //  return Obj::to_lst(new_v, LST_FURI);
                 } else
                   throw fError("unknown op %s\n", op);
               })

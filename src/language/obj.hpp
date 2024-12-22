@@ -721,6 +721,11 @@ namespace fhatos {
       return Obj::to_noobj();
     }
 
+    [[nodiscard]] Obj_p arg(const string &uri_key) const {
+      const Uri_p k = Obj::to_uri(uri_key);
+      return this->rec_value()->count(k) ? this->rec_value()->at(k) : Obj::to_noobj();
+    }
+
     [[nodiscard]] Obj_p arg(const Obj_p &key) const {
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
@@ -915,20 +920,20 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                   this->toString().c_str(),
-                   Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                   resolved->toString().c_str(),
-                   ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
                                     IType::MANY_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                      this->toString().c_str(),
-                      Obj::to_type(OBJS_FURI)->toString().c_str(),
-                      resolved->toString().c_str(),
-                      ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else {
           if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::ONE_TO_MANY | IType::ONE_TO_ZERO |
@@ -936,10 +941,10 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                              this->toString().c_str(),
-                              Obj::to_type(OBJ_FURI)->toString().c_str(),
-                              resolved->toString().c_str(),
-                              ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         }
       } else {
@@ -949,10 +954,10 @@ namespace fhatos {
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in range of %s [!y%s!!]",
-                          this->toString().c_str(),
-                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                          resolved->toString().c_str(),
-                          ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
@@ -1704,32 +1709,32 @@ namespace fhatos {
       return Obj::create(value, OType::INT, type_id, value_id);
     }
 
-    static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
-      return Obj::create(value, OType::REAL, furi);
+    static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &type_id = REAL_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::REAL, type_id, value_id);
     }
 
-    static Str_p to_str(const string &value, const ID_p &furi = STR_FURI) {
-      return Obj::create(value, OType::STR, furi);
+    static Str_p to_str(const string &value, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::STR, type_id, value_id);
     }
 
-    static Str_p to_str(const char *value, const ID_p &furi = STR_FURI) {
-      return Obj::create(string(value), OType::STR, furi);
+    static Str_p to_str(const char *value, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(string(value), OType::STR, type_id, value_id);
     }
 
-    static Uri_p to_uri(const fURI &value, const ID_p &furi = URI_FURI) {
-      return Obj::create(value, OType::URI, furi);
+    static Uri_p to_uri(const fURI &value, const ID_p &type_id = URI_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::URI, type_id, value_id);
     }
 
-    static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
-      return Obj::create(fURI(value), OType::URI, furi);
+    static Uri_p to_uri(const char *value, const ID_p &type_id = URI_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(fURI(value), OType::URI, type_id, value_id);
     }
 
-    static Lst_p to_lst(const ID_p &furi = LST_FURI) {
-      return Obj::create(make_shared<LstList>(), OType::LST, furi);
+    static Lst_p to_lst(const ID_p &type_id = LST_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(make_shared<LstList>(), OType::LST, type_id, value_id);
     }
 
-    static Lst_p to_lst(const LstList_p &xlst, const ID_p &furi = LST_FURI) {
-      return Obj::create(xlst, OType::LST, furi);
+    static Lst_p to_lst(const LstList_p &xlst, const ID_p &type_id = LST_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(xlst, OType::LST, type_id, value_id);
     }
 
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
@@ -1744,30 +1749,30 @@ namespace fhatos {
       return to_lst(make_shared<LstList>(xlst), furi);
     }
 
-    static Rec_p to_rec(const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      return Obj::create(make_shared<RecMap<>>(), OType::REC, type, id);
+    static Rec_p to_rec(const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(make_shared<RecMap<>>(), OType::REC, type_id, value_id);
     }
 
-    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      return Obj::create(map, OType::REC, type, id);
+    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(map, OType::REC, type_id, value_id);
     }
 
-    static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &type = REC_FURI,
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &type_id = REC_FURI,
                         const ID_p &id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
       for(const auto &[key, value]: xrec) {
         map->insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(value)));
       }
-      return to_rec(map, type, id);
+      return to_rec(map, type_id, id);
     }
 
-    static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &type = REC_FURI,
-                        const ID_p &id = nullptr) {
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &type_id = REC_FURI,
+                        const ID_p &value_id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
       for(const auto &[key, value]: xrec) {
         map->insert(make_pair(key, value));
       }
-      return to_rec(map, type, id);
+      return to_rec(map, type_id, value_id);
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const string, Obj_p>> &xrec, const ID_p &type = REC_FURI,
@@ -1914,7 +1919,9 @@ namespace fhatos {
     }
   };
 
-  [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
+  [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type_id = URI_FURI, const ID_p &value_id = nullptr) {
+    return Obj::to_uri(xuri, type_id, value_id);
+  }
 
   [[maybe_unused]] static Uri_p vri(const fURI_p &xuri, const ID_p &type_id = URI_FURI) {
     return Obj::to_uri(*xuri, type_id);
@@ -1938,12 +1945,13 @@ namespace fhatos {
     return Obj::to_int(xint, type_id, value_id);
   }
 
-  [[maybe_unused]] static Str_p str(const char *xstr, const ID_p &type_id = STR_FURI) {
-    return Obj::to_str(xstr, type_id);
+  [[maybe_unused]] static Str_p str(const char *xstr, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+    return Obj::to_str(xstr, type_id, value_id);
   }
 
-  [[maybe_unused]] static Str_p str(const string &xstr, const ID_p &type_id = STR_FURI) {
-    return Obj::to_str(xstr, type_id);
+  [[maybe_unused]] static Str_p str(const string &xstr, const ID_p &type_id = STR_FURI,
+                                    const ID_p &value_id = nullptr) {
+    return Obj::to_str(xstr, type_id, value_id);
   }
 
   [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type_id = REAL_FURI) {
@@ -2011,6 +2019,11 @@ namespace fhatos {
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
+  }
+
+  [[maybe_unused]] static Inst_p x(const string &arg_name,
+                                   const Obj_p &default_arg = noobj()) {
+    return from(Obj::to_uri(arg_name), default_arg);
   }
 
   static BCode_p ___ = Obj::to_bcode();

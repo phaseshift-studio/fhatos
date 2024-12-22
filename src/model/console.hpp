@@ -31,18 +31,7 @@
 namespace fhatos {
   class Console final : public Thread {
   public:
-    struct Settings {
-      uint8_t nest_;
-      bool ansi_;
-      string prompt_;
-      bool strict_;
-      LOG_TYPE log_;
-
-      Settings(const uint8_t nest, const bool ansi, const string &prompt, const bool strict,
-               const LOG_TYPE log) : nest_(nest), ansi_(ansi), prompt_(prompt),
-                                     strict_(strict), log_(log) {
-      }
-    };
+    using Settings = Inst_p;
 
   protected:
     string line_;
@@ -69,7 +58,7 @@ namespace fhatos {
     }
 
     void print_prompt(const bool blank = false) const {
-      const string prompt = this->settings_.prompt_;
+      const string prompt = this->settings_->apply()->rec_get("prompt")->str_value();
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
@@ -80,7 +69,7 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth + 1, to_out);
         }
-      else if(this->settings_.nest_ > depth && obj->is_lst()) {
+      else if(this->settings_->apply()->rec_get("nest")->int_value() > depth && obj->is_lst()) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
                        (obj->is_lst() ? "[" : "{") + "!!\n");
@@ -97,7 +86,7 @@ namespace fhatos {
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
                           : "") +
                        "!m" + (obj->is_lst() ? "]" : "}") + "!!\n");
-      } else if(this->settings_.nest_ > depth && obj->is_rec()) {
+      } else if(this->settings_->apply()->rec_get("nest")->int_value() > depth && obj->is_rec()) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -151,7 +140,7 @@ namespace fhatos {
         const Obj_p obj = OBJ_PARSER(line);
         LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
         string to_out;
-        this->print_result(obj->is_bcode() ? BCODE_PROCESSOR(obj) : obj, 0, &to_out);
+        this->print_result(BCODE_PROCESSOR(obj), 0, &to_out);
         this->write_stdout(str(to_out));
       } catch(const std::exception &e) {
         this->print_exception(e);
@@ -212,35 +201,12 @@ namespace fhatos {
               return noobj();
             })
             ->create()},
-          {"config", rec({{vri("nest"), jnt(settings.nest_)},
-            {vri("strict"), dool(settings.strict_)},
-            {vri("ansi"), dool(settings.ansi_)},
-            {vri("prompt"), str(settings.prompt_)},
-            {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-          })}
+          {"config", settings->clone()}
           /*{"terminal", rec({
                {vri("stdin"), vri(terminal.extend(":stdin"))},
                {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
       stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
-      /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"),
-                                            InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))->inst_f(
-                                              [this](const Obj_p &lhs, const InstArgs &args) {
-                                                const string name = Message(lhs).target().name();
-                                                if(name == "ansi")
-                                                  this->settings_.ansi_ = lhs->bool_value();
-                                                else if(name == "nest")
-                                                  this->settings_.nest_ = lhs->int_value();
-                                                else if(name == "strict")
-                                                  this->settings_.strict_ = lhs->bool_value();
-                                                else if(name == "prompt")
-                                                  this->settings_.prompt_ = lhs->str_value();
-                                                else if(name == "log") {
-                                                  this->settings_.log_ = LOG_TYPES.to_enum(
-                                                    lhs->uri_value().toString());
-                                                  Options::singleton()->log_level(this->settings_.log_);
-                                                }
-                                                return lhs;
-                                              })->type_args({x(0)})->create()));*/
+      this->settings_ = from(vri(value_id.extend("config")));
     }
 
   public:
@@ -251,21 +217,26 @@ namespace fhatos {
 
     static void *import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
+      const static Rec_p default_settings = Obj::to_rec({{vri("nest"), jnt(2)},
+        {vri("strict"), dool(false)},
+        {vri("ansi"), dool(true)},
+        {vri("prompt"), str(">")},
+        {vri("log"), vri("INFO")}});
       TYPE_SAVER(id_p(id), rec({{vri(":create"),
                                  InstBuilder::build(ID(id.extend(":create")))
                                  ->type_args(
-                                   x(0, "install_location", vri(id)),
-                                   x(1, "terminal_id", vri(Terminal::singleton()->vid())),
-                                   x(2, "config", Obj::to_rec({{vri("nest"), jnt(2)},
+                                   x("install_location", vri(id)),
+                                   x("terminal_id", vri(Terminal::singleton()->vid())),
+                                   x("config", Obj::to_rec({{vri("nest"), jnt(2)},
                                        {vri("strict"), dool(false)},
                                        {vri("ansi"), dool(true)},
                                        {vri("prompt"), str(">")},
                                        {vri("log"), vri("INFO")}})))
                                  ->inst_f([](const Obj_p &, const InstArgs &args) {
                                    ptr<Console> console = Console::create(
-                                     ID(args->arg(0)->uri_value()),
-                                     ID(args->arg(1)->uri_value()),
-                                     Settings(2, true, "!mfhatos!g>!! ", false, INFO));
+                                     ID(args->arg("install_location")->uri_value()),
+                                     ID(args->arg("terminal_id")->uri_value()),
+                                     default_settings->clone());
                                    return console;
                                  })
                                  ->create()}}, THREAD_FURI));

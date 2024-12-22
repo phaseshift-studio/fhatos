@@ -28,6 +28,7 @@
 #include <language/type.hpp>
 #include <language/mmadt/parser.hpp>
 #include <model/console.hpp>
+#include <model/io/logger.hpp>
 #include <model/terminal.hpp>
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
@@ -91,13 +92,16 @@ namespace fhatos {
             ->import(Scheduler::import())
             ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
+            /// LANGUAGE STRUCTURES
             ->mount(Heap<>::create("/type/#"))
             ->mount(Heap<>::create(FOS_SCHEME "/#"))
             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
             ->import(FhatOSCoreDriver::import())
             ->install(Type::singleton(FOS_SCHEME "/type"))
             ->import(mmadt::mmADT::import())
+            /// I/O STRUCTURES
             ->mount(Heap<>::create("/io/#"))
+            ->import(Logger2::import())
             ->install(Terminal::singleton("/io/terminal"))
             ->import(Console::import("/io/lib/console"))
             ->install(mmadt::Parser::singleton("/io/parser"))
@@ -127,14 +131,15 @@ namespace fhatos {
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap<ALLOC>::create("/console/#"))
             ->process(Console::create("/console", "/io/terminal",
-                                      Console::Settings(args_parser->option_int("--console:nest", 2),
-                                                        args_parser->option_bool("--ansi", true),
-                                                        args_parser->
-                                                        option_string("--console:prompt", "!mfhatos!g>!! "),
-                                                        args_parser->option_bool("--console:strict", false),
-                                                        LOG_TYPES.to_enum(
-                                                          args_parser->option_string("--log", "INFO")))))
-            ->eval([args_parser] { delete args_parser; });
+                                      Obj::to_rec({
+                                        {"nest", jnt(args_parser->option_int("--console:nest", 2))},
+                                        {"ansi", dool(args_parser->option_bool("--ansi", true))},
+                                        {"prompt",
+                                          str(args_parser->option_string("--console:prompt", "!mfhatos!g>!! "))},
+                                        {"strict", dool(args_parser->option_bool("--console:strict", false))},
+                                        {"log", vri(args_parser->option_string("--log", "INFO"))}
+                                      })))->
+            eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());
