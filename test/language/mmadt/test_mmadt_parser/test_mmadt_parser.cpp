@@ -147,6 +147,9 @@ namespace fhatos {
 
   void test_inst_sugar_parsing() {
     ////////// start{}
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("2.plus(1)"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{2}.plus(1)"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{2,noobj,noobj}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).is(gt(2))"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).count()"));
     ////////// x
