@@ -212,19 +212,14 @@ namespace mmadt {
       };
 
       static auto args_action = [](const SemanticValues &vs) -> InstArgs {
-        const auto args = Obj::to_inst_args();
         const Pair_p<Any, OType> proto = any_cast<Pair_p<Any, OType>>(vs[0]);
         const Obj_p args_struct = Obj::create(proto->first, proto->second, OTYPE_FURI.at(proto->second));
+        if(0 == vs.choice())
+          return args_struct;
         int counter = 0;
-        if(0 == vs.choice()) {
-          for(const auto &[k,v]: *args_struct->rec_value()) {
-            args->rec_set(k, x(counter++, k->toString().c_str(), v));
-          }
-        } else {
-          for(const auto &kv: *args_struct->lst_value()) {
-            args->rec_set(string("_").append(to_string(counter)).c_str(),
-                          x(counter, string("arg").append(to_string(counter)).c_str(), kv));
-          }
+        const auto args = Obj::to_inst_args();
+        for(const auto &kv: *args_struct->lst_value()) {
+          args->rec_value()->insert({vri(to_string(counter++).insert(0, "_")), kv});
         }
         return args;
       };
@@ -381,13 +376,13 @@ namespace mmadt {
       INT <= seq(~WS, opt(chr('-')), oom(cls("0-9")), ~WS), int_action;
       REAL <= seq(~WS, opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")), ~WS), real_action;
       STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
-      FURI <= seq(~WS, WRAP("<", tok(seq(npd(chr('_')), oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+"))))), ">"),
+      FURI <= seq(~WS, WRAP("<", tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), ">"),
                   ~WS), furi_action;
-      FURI_INLINE <= seq(~WS, WRAP("<", tok(seq(npd(chr('_')),
+      FURI_INLINE <= seq(~WS, WRAP("<", tok(seq(
                                      oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
                                      zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
                                    ">"), ~WS), furi_action;
-      FURI_NO_Q <= seq(~WS, WRAP("<", tok(seq(npd(chr('_')), oom(cls("a-zA-Z:/_.#+")),
+      FURI_NO_Q <= seq(~WS, WRAP("<", tok(seq(oom(cls("a-zA-Z:/_.#+")),
                                    zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), ">"), ~WS), furi_action;
       URI <= cho(lit("<>"), FURI_INLINE, FURI), uri_action;
       REC <= cho(lit("[=>]"), seq(lit("["), opt(seq(OBJ, lit("=>"), OBJ)),
@@ -449,17 +444,18 @@ namespace mmadt {
       BCODE.predicate = [](const SemanticValues &vs, const std::any &dt, std::string &msg) -> bool {
         return vs.size() != 1 || any_cast<Obj_p>(vs[0])->is_code();
       };
-      FURI.predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
-        try {
-          if(vs.token_to_string().empty())
-            return false;
-          fURI(vs.token_to_string());
-        } catch(const std::exception &e) {
-          //msg = e.what();
-          return false;
-        }
-        return true;
-      };
+      FURI.predicate = FURI_NO_Q.predicate = FURI_INLINE.predicate =
+                                             [](const SemanticValues &vs, const std::any &, std::string &msg) {
+                                               try {
+                                                 if(vs.token_to_string().empty() || vs.token_to_string() == "_")
+                                                   return false;
+                                                 fURI(vs.token_to_string());
+                                               } catch(const std::exception &e) {
+                                                 //msg = e.what();
+                                                 return false;
+                                               }
+                                               return true;
+                                             };
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       OBJ.enter = enter_y("obj");
       TYPE.enter = enter_y("type");

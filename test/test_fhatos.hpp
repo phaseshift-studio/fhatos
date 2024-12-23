@@ -19,8 +19,8 @@
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 
-#ifndef FOS_LOGGING
-#define FOS_LOGGING DEBUG
+#ifndef FOS_LOGGINGX
+#define FOS_LOGGING INFO
 #endif
 
 #include "../src/fhatos.hpp"

@@ -100,6 +100,48 @@ namespace mmadt {
           ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
           ->save();
 
+      InstBuilder::build(MMADT_SCHEME "/sum")
+          ->domain_range(OBJS_FURI, OBJ_FURI)
+          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/sum")
+          ->domain_range(OBJS_FURI, BOOL_FURI)
+          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+            bool sum = false;
+            for(const auto &b: *lhs->objs_value()) {
+              sum = sum || b->bool_value();
+            }
+            return dool(sum);
+          })
+          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/sum")
+          ->domain_range(OBJS_FURI, INT_FURI)
+          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+            FOS_INT_TYPE sum = 0;
+            for(const auto &i: *lhs->objs_value()) {
+              sum += i->int_value();
+            }
+            return jnt(sum);
+          })
+          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/sum")
+          ->domain_range(OBJS_FURI, STR_FURI)
+          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+            string sum;
+            for(const auto &s: *lhs->objs_value()) {
+              sum += s->str_value();
+            }
+            return str(sum);
+          })
+          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+          ->save();
+
+
       InstBuilder::build(MMADT_SCHEME "/delay")
           ->type_args(x(0, "millis", ___))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
@@ -505,9 +547,9 @@ namespace mmadt {
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
-                  return jnt(lhs->real_value() + args->arg(0)->int_value(), lhs->tid(), lhs->vid());
+                  return jnt(lhs->real_value() + args->arg(0)->real_value(), lhs->tid(), lhs->vid());
                 else if(strcmp(op, "mult") == 0)
-                  return jnt(lhs->real_value() * args->arg(0)->int_value(), lhs->tid(), lhs->vid());
+                  return jnt(lhs->real_value() * args->arg(0)->real_value(), lhs->tid(), lhs->vid());
                 else
                   throw fError("unknown op %s\n", op);
               })

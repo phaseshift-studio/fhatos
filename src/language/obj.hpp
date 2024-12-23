@@ -1453,6 +1453,23 @@ namespace fhatos {
       return s[0] == '_' && StringHelper::is_integer(s.substr(1));
     }
 
+
+    [[no_discard]] bool is_indexed_args() const {
+      if(this->is_inst())
+        return this->inst_args()->is_indexed_args();
+      if(!this->is_rec())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      int counter = 0;
+      for(const auto &[k,v]: *this->rec_value()) {
+        // LOG(INFO, "%s == %s : %i", k->uri_value().toString().c_str(), to_string(counter).insert(0,"_").c_str(),
+        //    k->uri_value().toString() == to_string(counter).insert(0,"_"));
+        if(!(k->is_uri() &&
+             k->uri_value().toString() == to_string(counter++).insert(0, "_")))
+          return false;
+      }
+      return true;
+    }
+
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////

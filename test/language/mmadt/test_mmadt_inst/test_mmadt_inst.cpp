@@ -30,6 +30,18 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
+  void test_inst_args() {
+    InstArgs args = Obj::to_inst_args();
+    TEST_ASSERT_TRUE(args->is_indexed_args());
+    args->rec_value()->insert({vri("_0"),jnt(10)});
+     TEST_ASSERT_TRUE(args->is_indexed_args());
+    args->rec_value()->insert({vri("_1"),str("eleven")});
+     TEST_ASSERT_TRUE(args->is_indexed_args());
+     args->rec_value()->insert({vri("_3"),vri("BAD")});
+    TEST_ASSERT_FALSE(args->is_indexed_args());
+    //FOS_TEST_OBJ_EQUAL(args,PROCESS("[_0=>10,_1=>'eleven',_3=>BAD]"));
+    }
+
   void test_plus_inst() {
   	// bool
     FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("true.plus(false)"));
@@ -65,6 +77,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+    FOS_RUN_TEST(test_inst_args); //
     FOS_RUN_TEST(test_plus_inst); //
     FOS_RUN_TEST(test_count_inst); //
   )
