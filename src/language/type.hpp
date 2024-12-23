@@ -89,7 +89,7 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
-        if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI))
+        if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
           return true;
         // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
         if(obj->tid()->equals(*type_id))
@@ -97,7 +97,7 @@ namespace fhatos {
         // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
         if(obj->o_type() == OType::OBJ || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
           return true;
-        if(type_id->equals(*NOOBJ_FURI) && obj->o_type() == OType::NOOBJ)
+        if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
           return true;
         // if the type is a base type and the base types match, then type check passes
         if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))

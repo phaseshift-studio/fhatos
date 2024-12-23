@@ -27,8 +27,6 @@ FhatOS: A Distributed Operating System
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
-#define FOS_LOGGING INFO
-
 namespace fhatos {
   using namespace mmadt;
 

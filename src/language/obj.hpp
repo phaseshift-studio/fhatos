@@ -570,7 +570,9 @@ namespace fhatos {
       return this->value<List_p<Obj_p>>();
     }
 
-    [[nodiscard]] Obj_p objs_value(const uint16_t index) const { return this->objs_value()->at(index); }
+    [[nodiscard]] Obj_p objs_value(const size_t index) const {
+      return (index >= this->objs_value()->size()) ? to_noobj() : this->objs_value()->at(index);
+    }
 
     [[nodiscard]] bool bool_value() const {
       if(!this->is_bool())
@@ -1140,6 +1142,7 @@ namespace fhatos {
               }
               obj_string += v->toString();
             }
+
             break;
           }
           case OType::BCODE: {
@@ -1203,20 +1206,22 @@ namespace fhatos {
          (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
-                          : string("!b").append(this->tid_->name());
+                          : string("!B").append(this->tid_->name()).append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range && true
           /*(!this->domain()->equals(*OBJ_FURI) ||
            !this->range()->equals(*OBJ_FURI))*/) {
-          typing = typing.append("?").append(this->range()->name());
+          typing = typing.append("!m?!!").append(this->range()->name());
           //if(!this->domain()->equals(*this->range()))
-          typing = typing.append("<=").append(this->domain()->name());
+          typing = typing.append("!m<=!!").append(this->domain()->name());
         }
         obj_string = this->is_base_type() && !this->is_inst()
                        ? typing.append(obj_string)
                        : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
+
+        //if(this->is_inst() && this->inst_f())
       }
       if(obj_printer->show_id && this->vid_) {
         obj_string += "!m@!b";
@@ -1451,6 +1456,11 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
+
+    auto operator()(const Obj_p &obj, const InstArgs &args) {
+      return this->apply(obj, args);
+    }
+
     Obj_p apply(const Obj_p &lhs, const InstArgs &args) {
       ROUTER_PUSH_FRAME("+", args);
       const Obj_p result = this->apply(lhs);
@@ -1458,7 +1468,7 @@ namespace fhatos {
       return result;
     }
 
-    Obj_p apply() {
+    Obj_p apply()  {
       return this->apply(Obj::to_noobj());
     }
 
@@ -1585,10 +1595,14 @@ namespace fhatos {
         return true;
       if(type_obj->is_bcode() && !this->is_bcode())
         return !type_obj->apply(this->clone())->is_noobj();
+      if(!type_obj->value_.has_value() &&
+         (type_obj->tid()->equals(*OBJ_FURI) || FURI_OTYPE.at(*type_obj->tid()) == this->otype_))
+        return true;
       if(this->o_type() != type_obj->o_type())
         return false;
       if(require_same_type_id && (*this->tid_ != *type_obj->tid_))
         return false;
+
       switch(this->o_type()) {
         case OType::NOOBJ:
           return true;
@@ -1662,9 +1676,13 @@ namespace fhatos {
       return obj;
     }
 
-    Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
+    Obj_p as(const char *furi) const {
+      return this->as(id_p(furi));
+    }
 
-    Obj_p at(const ID_p &value_id) const { return Obj::create(this->value_, this->otype_, this->tid_, value_id); }
+    Obj_p at(const ID_p &value_id) const {
+      return Obj::create(this->value_, this->otype_, this->tid_, value_id);
+    }
 
     [[nodiscard]] Inst_p next_inst(const Inst_p &current_inst) const {
       if(current_inst == nullptr)
@@ -1797,13 +1815,14 @@ namespace fhatos {
       return inst_args;
     }
 
-    static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id) {
+    static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
+                          const ID_p &value_id = nullptr) {
       return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
-                     nullptr);
+                     value_id);
     }
 
-    static Inst_p to_inst(const InstArgs &args, const ID_p &type_id) {
-      return to_inst(type_id->name(), args, nullptr, IType::ONE_TO_ONE, to_noobj(), type_id, nullptr);
+    static Inst_p to_inst(const InstArgs &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
+      return to_inst(type_id->name(), args, nullptr, IType::ONE_TO_ONE, to_noobj(), type_id, value_id);
     }
 
     static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF_p &function,
@@ -1821,7 +1840,9 @@ namespace fhatos {
       return Obj::to_bcode(make_shared<InstList>(insts), furi);
     }
 
-    static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
+    static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) {
+      return Obj::to_bcode(share<InstList>({}), furi);
+    }
 
     static Objs_p to_objs(const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
@@ -1971,7 +1992,9 @@ namespace fhatos {
 
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }
 
-  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(make_shared<List<Obj_p>>(list)); }
+  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) {
+    return Obj::to_objs(make_shared<List<Obj_p>>(list));
+  }
 
   [[maybe_unused]] static Objs_p objs(const List_p<Obj_p> &list) { return Obj::to_objs(list); }
 

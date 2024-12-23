@@ -51,32 +51,37 @@ namespace fhatos {
                                                running_(new Deque<Monad_p>()),
                                                barriers_(new Deque<Monad_p>()),
                                                halted_(new Deque<Obj_p>()) {
-      if(bcode->is_inst()) { // wrap inst in bcode TODO: remove when bcode goes away
-        this->bcode_ = Obj::to_bcode({bcode}, bcode->tid());
-      }
-      if(!this->bcode_->is_bcode())
-        throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-      this->bcode_ = Rewriter({
-        /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
-      for(const Inst_p &inst: *this->bcode_->bcode_value()) {
-        const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
-        const Obj_p seed_copy = resolved->inst_seed(resolved);
-        if(is_gather(resolved->itype())) {
-          const Monad_p m = M(seed_copy, inst);
-          this->barriers_->push_back(m);
-          LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
-        } else if(is_initial(resolved->itype())) {
-          const Monad_p m = M(noobj(), inst);
-          this->running_->push_back(m);
-          LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
+      if(!bcode->is_code()) {
+        if(!bcode->is_noobj())
+          this->halted_->push_back(bcode);
+      } else {
+        if(bcode->is_inst()) { // wrap inst in bcode TODO: remove when bcode goes away
+          this->bcode_ = Obj::to_bcode({bcode}, bcode->tid());
         }
-      }
-      // start inst forced initial TODO: remove this as it's not sound
-      if(this->running_->empty()) {
-        //const Obj_p seed_copy = Objs::to_objs();
-        const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
-        this->running_->push_back(
-          M(seed_copy, this->bcode_->bcode_value()->front()));
+        if(!this->bcode_->is_bcode())
+          throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
+        this->bcode_ = Rewriter({
+          /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+        for(const Inst_p &inst: *this->bcode_->bcode_value()) {
+          const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
+          const Obj_p seed_copy = resolved->inst_seed(resolved);
+          if(is_gather(resolved->itype())) {
+            const Monad_p m = M(seed_copy, inst);
+            this->barriers_->push_back(m);
+            LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
+          } else if(is_initial(resolved->itype())) {
+            const Monad_p m = M(noobj(), inst);
+            this->running_->push_back(m);
+            LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
+          }
+        }
+        // start inst forced initial TODO: remove this as it's not sound
+        if(this->running_->empty()) {
+          //const Obj_p seed_copy = Objs::to_objs();
+          const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
+          this->running_->push_back(
+            M(seed_copy, this->bcode_->bcode_value()->front()));
+        }
       }
     }
 
@@ -102,7 +107,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Objs_p to_objs() const {
-      Objs_p objs = Obj::to_objs();
+      const Objs_p objs = Obj::to_objs();
       Obj_p end;
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
@@ -133,9 +138,7 @@ namespace fhatos {
   public:
     static Objs_p compute(const BCode_p &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      const Objs_p results = Processor(bcode).to_objs();
-      //ROUTER_POP_FRAME();
-      return results;
+      return Processor(bcode).to_objs();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -227,7 +230,7 @@ namespace fhatos {
   };
 
   [[maybe_unused]] static void load_processor() {
-    BCODE_PROCESSOR = [](const BCode_p &bcode) {
+    BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p {
       return Processor::compute(bcode);
     };
   }

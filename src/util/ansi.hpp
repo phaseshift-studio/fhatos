@@ -549,7 +549,7 @@ namespace fhatos {
 
   template<typename PRINTER = Ansi<>>
   shared_ptr<PRINTER> printer() {
-    return Options::singleton()->printer<PRINTER>();
+    return Ansi<>::singleton(); //Options::singleton()->printer<PRINTER>();
   }
 } // namespace fhatos
 

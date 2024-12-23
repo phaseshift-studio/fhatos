@@ -68,12 +68,14 @@ namespace mmadt {
       InstBuilder::build(MMADT_SCHEME "/as")
           ->type_args(x(0, "type"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            return lhs->as(id_p(args->arg(0)->uri_value()));;
+            // TODO: weird hack for uri or obj type
+            return lhs->as(args->arg(0)->is_uri() ? id_p(args->arg(0)->uri_value()) : args->arg(0)->tid());
           })
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/at")
           ->type_args(x(0, "var"))
+          ->domain_range(OBJ_FURI, OBJ_FURI)
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;

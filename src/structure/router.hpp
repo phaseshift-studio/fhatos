@@ -48,25 +48,27 @@ namespace fhatos {
           {"resolve", to_rec({
             {"namespace", to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")}, {"math:", vri("/mmadt/ext/math")}})},
             {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})}}),
-          /*{":stop", to_inst(
-            [this](const Obj_p &, const InstArgs &) {
-              this->write(this->vid_, _noobj_);
-              this->stop();
-              return noobj();
-            }, {}, INST_FURI,
-            make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
-          {":attach", to_inst(
-            [this](const Obj_p &obj, const InstArgs &args) {
-              if(args->arg(0)->tid()->name() == "heap")
-                this->attach(make_shared<Heap<>>(obj));
-              else if(args->arg(0)->tid()->name() == "mqtt")
-                this->attach(make_shared<Mqtt>(obj));
-              return noobj();
-            }, {x(0, ___)}, INST_FURI,
-            make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
+        /*{":stop", to_inst(
+          [this](const Obj_p &, const InstArgs &) {
+            this->write(this->vid_, _noobj_);
+            this->stop();
+            return noobj();
+          }, {}, INST_FURI,
+          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
+        {":attach", to_inst(
+          [this](const Obj_p &obj, const InstArgs &args) {
+            if(args->arg(0)->tid()->name() == "heap")
+              this->attach(make_shared<Heap<>>(obj));
+            else if(args->arg(0)->tid()->name() == "mqtt")
+              this->attach(make_shared<Mqtt>(obj));
+            return noobj();
+          }, {x(0, ___)}, INST_FURI,
+          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
         OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
+      ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_ID = this->vid_;
+      ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
         THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
         LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
@@ -120,6 +122,7 @@ namespace fhatos {
         }
         return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
       };
+      ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p {
         if(THREAD_FRAME_STACK) {
           Obj_p frame_obj = THREAD_FRAME_STACK->read(furix);
@@ -128,10 +131,12 @@ namespace fhatos {
         }
         return this->read(furix);
       };
+      ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
         return obj;
       };
+      ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) { this->route_subscription(subscription); };
       LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
     }

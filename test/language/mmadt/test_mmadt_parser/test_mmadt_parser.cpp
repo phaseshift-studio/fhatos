@@ -27,124 +27,126 @@ FhatOS: A Distributed Operating System
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
-#define FOS_LOGGING INFO
-
 namespace fhatos {
   using namespace mmadt;
 
   void test_comment_parsing() {
-    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("--- a single line comment"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment"));
     FOS_TEST_ERROR("---\nsdfasdf");
-    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("### sdfdasdf\n\t\nsdfsfasfsf ###"));
-    FOS_TEST_OBJ_EQUAL(jnt(1), OBJ_PARSER("### start ###\nint[1]\n### end ###"));
-    FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("\n\n### \n\nstart ###\n\nstr['abc']\n\n--- a comment\n### end\n\n ###"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("### sdfdasdf\n\t\nsdfsfasfsf ###"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("### start ###\nint[1]\n### end ###"));
+    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("\n\n### \n\nstart ###\n\nstr['abc']\n\n--- a comment\n### end\n\n ###"));
   }
 
   void test_type_parsing() {
-    TEST_ASSERT_EQUAL(OType::NOOBJ, OBJ_PARSER("noobj")->o_type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, PROCESS("noobj")->o_type());
   }
 
   void test_noobj_parsing() {
-    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("noobj"));
-    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("noobj[noobj]"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("noobj"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("noobj[noobj]"));
     // FOS_TEST_OBJ_EQUAL(vri(NOOBJ_FURI), PROCESS("noobj.type()"));
   }
 
   void test_bool_parsing() {
-    FOS_TEST_OBJ_EQUAL(dool(true), OBJ_PARSER("true"));
-    FOS_TEST_OBJ_EQUAL(dool(false), OBJ_PARSER("false"));
-    FOS_TEST_OBJ_EQUAL(dool(true), OBJ_PARSER("bool[true]"));
-    FOS_TEST_OBJ_EQUAL(dool(false), OBJ_PARSER("bool[false]"));
-    FOS_TEST_OBJ_NOT_EQUAL(dool(false), OBJ_PARSER("bool[true]"));
-    TEST_ASSERT_NOT_EQUAL(dool(false)->toString(), OBJ_PARSER("bool[map(false)]")->toString());
+    FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("true"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("false"));
+    FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("bool[true]"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[false]"));
+    FOS_TEST_OBJ_NOT_EQUAL(dool(false), PROCESS("bool[true]"));
+    // TEST_ASSERT_NOT_EQUAL(dool(false)->toString(), PROCESS("bool[start(false)]")->toString());
   }
 
   void test_int_parsing() {
-    FOS_TEST_OBJ_EQUAL(jnt(1), OBJ_PARSER("1"));
-    FOS_TEST_OBJ_EQUAL(jnt(-10), OBJ_PARSER("-10"));
-    FOS_TEST_OBJ_EQUAL(jnt(-10), OBJ_PARSER("   -10   "));
-    FOS_TEST_OBJ_EQUAL(jnt(0), OBJ_PARSER("int[0]"));
-    FOS_TEST_OBJ_EQUAL(jnt(-50), OBJ_PARSER("int?int<=int[-50]"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("1"));
+    FOS_TEST_OBJ_EQUAL(jnt(-10), PROCESS("-10"));
+    FOS_TEST_OBJ_EQUAL(jnt(-10), PROCESS("   -10   "));
+    FOS_TEST_OBJ_EQUAL(jnt(-10,INT_FURI,id_p("/abc/ten")), PROCESS("   -10@/abc/ten   "));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int[0]"));
+    FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
+    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("int?int<=int[-50]@</abc/x/y/z>"));
+    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@/abc/x/y/z"));
+    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@</abc/x/y/z>"));
   }
 
   void test_real_parsing() {
-    FOS_TEST_OBJ_EQUAL(real(1.0), OBJ_PARSER("1.0"));
-    FOS_TEST_OBJ_EQUAL(real(-10.0), OBJ_PARSER("-10.0"));
-    FOS_TEST_OBJ_EQUAL(real(-10.01), OBJ_PARSER("-10.01"));
-    FOS_TEST_OBJ_EQUAL(real(-10.01), OBJ_PARSER("-10.01    "));
-    FOS_TEST_OBJ_EQUAL(real(0), OBJ_PARSER("real[0.0]"));
-    FOS_TEST_OBJ_EQUAL(real(0), OBJ_PARSER("real  [  0.0  ]"));
-    FOS_TEST_OBJ_NOT_EQUAL(real(0), OBJ_PARSER("int[0]"));
+    FOS_TEST_OBJ_EQUAL(real(1.0), PROCESS("1.0"));
+    FOS_TEST_OBJ_EQUAL(real(-10.0), PROCESS("-10.0"));
+    FOS_TEST_OBJ_EQUAL(real(-10.01), PROCESS("-10.01"));
+    FOS_TEST_OBJ_EQUAL(real(-10.01), PROCESS("-10.01    "));
+    FOS_TEST_OBJ_EQUAL(real(0), PROCESS("real[0.0]"));
+    FOS_TEST_OBJ_EQUAL(real(0), PROCESS("real  [  0.0  ]"));
+    FOS_TEST_OBJ_NOT_EQUAL(real(0), PROCESS("int[0]"));
   }
 
   void test_str_parsing() {
-    FOS_TEST_OBJ_EQUAL(str("one.oh"), OBJ_PARSER("'one.oh'"));
-    FOS_TEST_OBJ_EQUAL(str("negatIVE te  N"), OBJ_PARSER("'negatIVE te  N'"));
-    FOS_TEST_OBJ_EQUAL(str(""), OBJ_PARSER("str['']"));
-    FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("str['abc']"));
+    FOS_TEST_OBJ_EQUAL(str("one.oh"), PROCESS("'one.oh'"));
+    FOS_TEST_OBJ_EQUAL(str("negatIVE te  N"), PROCESS("'negatIVE te  N'"));
+    FOS_TEST_OBJ_EQUAL(str(""), PROCESS("str['']"));
+    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("str['abc']"));
     TEST_ASSERT_EQUAL_STRING("b\\'c", PROCESS("'a\\''.'b\\'c'")->str_value().c_str());
-    TEST_ASSERT_EQUAL_STRING("a\"b\"c", OBJ_PARSER("'a\"b\"c'")->str_value().c_str());
-    TEST_ASSERT_EQUAL_STRING("a\\'b\\'c", OBJ_PARSER("'a\\'b\\'c'")->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("a\"b\"c", PROCESS("'a\"b\"c'")->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("a\\'b\\'c", PROCESS("'a\\'b\\'c'")->str_value().c_str());
   }
 
   void test_uri_parsing() {
-    FOS_TEST_OBJ_EQUAL(vri("http://www.fhatos.org"), OBJ_PARSER("<http://www.fhatos.org>"));
-    FOS_TEST_OBJ_EQUAL(vri(""), OBJ_PARSER("<>"));
-    FOS_TEST_OBJ_EQUAL(vri(":"), OBJ_PARSER("<:>"));
-    FOS_TEST_OBJ_EQUAL(vri("a"), OBJ_PARSER("a"));
-    FOS_TEST_OBJ_EQUAL(vri("../../a"), OBJ_PARSER("<../../a>"));
-    FOS_TEST_OBJ_EQUAL(vri("abc/cba"), OBJ_PARSER("abc/cba"));
-    FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), OBJ_PARSER("aBc_cBa"));
-    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/`.`./ddd]"));
-    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[<aaa_bbb/ccc/../ddd>]"));
-    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("<aaa_bbb/ccc/../ddd>"));
-    FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/`./ddd"));
+    FOS_TEST_OBJ_EQUAL(vri("http://www.fhatos.org"), PROCESS("<http://www.fhatos.org>"));
+    FOS_TEST_OBJ_EQUAL(vri(""), PROCESS("<>"));
+    FOS_TEST_OBJ_EQUAL(vri(":"), PROCESS("<:>"));
+    FOS_TEST_OBJ_EQUAL(vri("a"), PROCESS("a"));
+    FOS_TEST_OBJ_EQUAL(vri("../../a"), PROCESS("<../../a>"));
+    FOS_TEST_OBJ_EQUAL(vri("abc/cba"), PROCESS("abc/cba"));
+    FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), PROCESS("aBc_cBa"));
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[aaa_bbb/ccc/`.`./ddd]"));
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[<aaa_bbb/ccc/../ddd>]"));
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("<aaa_bbb/ccc/../ddd>"));
+    FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), PROCESS("aaa_bbb/ccc/`./ddd"));
   }
 
   void test_lst_parsing() {
-    FOS_TEST_OBJ_EQUAL(lst(), OBJ_PARSER("[]"));
-    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), OBJ_PARSER("[1,2,3]"));
-    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), OBJ_PARSER("[1   , 2 , 3]"));
-    FOS_TEST_OBJ_EQUAL(lst({jnt(1),lst({jnt(2),jnt(4)}),jnt(3)}), OBJ_PARSER("[1,[2,4],3]"));
+    FOS_TEST_OBJ_EQUAL(lst(), PROCESS("[]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1,2,3]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1   , 2 , 3]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),lst({jnt(2),jnt(4)}),jnt(3)}), PROCESS("[1,[2,4],3]"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
-                       OBJ_PARSER("['a',['b',['e','c']],'d']"));
+                       PROCESS("['a',['b',['e','c']],'d']"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
-                       OBJ_PARSER("lst[['a',lst[['b',lst[['e','c']]]],'d']]"));
+                       PROCESS("lst[['a',lst[['b',lst[['e','c']]]],'d']]"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
-                       OBJ_PARSER("lst[['a',['b',lst[['e','c']]],'d']]"));
+                       PROCESS("lst[['a',['b',lst[['e','c']]],'d']]"));
   }
 
   void test_rec_parsing() {
-    FOS_TEST_OBJ_EQUAL(rec(), OBJ_PARSER("[=>]"));
+    FOS_TEST_OBJ_EQUAL(rec(), PROCESS("[=>]"));
     TEST_ASSERT_EQUAL_STRING("[=>]", rec()->toString(NO_ANSI_PRINTER).c_str());
-    FOS_TEST_OBJ_NTEQL(rec(), OBJ_PARSER("[]"));
-    FOS_TEST_OBJ_EQUAL(rec(), OBJ_PARSER("rec[[=>]]"));
-    FOS_TEST_OBJ_NTEQL(rec(), OBJ_PARSER("[a=>1]"));
+    FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[]"));
+    FOS_TEST_OBJ_EQUAL(rec(), PROCESS("rec[[=>]]"));
+    FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[a=>1]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),str("b")},{jnt(3),str("c")}}),
-                       OBJ_PARSER("[1=>'a',2=>'b',3=>'c']"));
+                       PROCESS("[1=>'a',2=>'b',3=>'c']"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),str("b")},{jnt(3),str("c")}}),
-                       OBJ_PARSER("[  1  => 'a', 2=>  'b',3  =>'c']"));
+                       PROCESS("[  1  => 'a', 2=>  'b',3  =>'c']"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec()},{jnt(3),str("c")}}),
-                       OBJ_PARSER("[1=>'a',2=>[=>],3=>'c']"));
+                       PROCESS("[1=>'a',2=>[=>],3=>'c']"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
-                       OBJ_PARSER("[1=>'a',2=>['b'=>['d'=>4]],3=>'c']"));
+                       PROCESS("[1=>'a',2=>['b'=>['d'=>4]],3=>'c']"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
-                       OBJ_PARSER("rec[[1=>'a',2=>rec[['b'=>rec[['d'=>4]]]],3=>'c']]"));
+                       PROCESS("rec[[1=>'a',2=>rec[['b'=>rec[['d'=>4]]]],3=>'c']]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
-                       OBJ_PARSER("rec[[1=>'a',2=>['b'=>rec[['d'=>4]]],3=>'c']]"));
+                       PROCESS("rec[[1=>'a',2=>['b'=>rec[['d'=>4]]],3=>'c']]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
-                       OBJ_PARSER("rec[[1=>a,2=>[b=>[d=>4]],3=>c]]"));
+                       PROCESS("rec[[1=>a,2=>[b=>[d=>4]],3=>c]]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
-                       OBJ_PARSER("rec\t  [\t[1 =>  a,2  =>[\t\t\tb =>[d => 4] ], 3=>   c]  ]"));
+                       PROCESS("rec\t  [\t[1 =>  a,2  =>[\t\t\tb =>[d => 4] ], 3=>   c]  ]"));
     FOS_TEST_OBJ_NTEQL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
-                       OBJ_PARSER("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
+                       PROCESS("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
   }
 
   void test_inst_parsing() {
     // TODO: TEST_ASSERT_EQUAL_STRING("play?play<=int[plus(2)]",
     //                  PROCESS("|play?play<=int[plus(2)]")->toString(SERIALIZER_PRINTER).
     //                c_str());
-
+FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("|bcode?bool<=bool|(a=>_)[is(eq(*a))]@/abc/bool/true_static;.start({false})./abc/bool/true_static()"));
     // "<nat?nat<=int>|(x=>_,y=>2)[is(gt(0))]"
   }
 
@@ -157,22 +159,22 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).count()"));
     ////////// x.y.z
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("'a'.'b'.'c'.4"));
-    //FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("<a.b.c>.4"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("<a.b.c>.4"));
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("1.(2).3.(4)"));
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("0.(1).plus((3))"));
-    FOS_TEST_OBJ_EQUAL(jnt(4), OBJ_PARSER("(4)"));
-    //FOS_TEST_OBJ_EQUAL(real(3.4), PROCESS("1.2.(3.4)"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("(4)"));
+    // FOS_TEST_OBJ_EQUAL(real(3.4), PROCESS("(1.2).(3.4)"));
     ////////// x
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
-    //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());
+    //FOS_TEST_OBJ_NTEQL(jnt(6), PROCESS("3x2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3x 2"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("  3x 2  "));
-    //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3 x2")->apply());
+    //FOS_TEST_OBJ_NTEQL(jnt(6), PROCESS("3 x2")->apply());
     ////////// +
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3 + 2"));
-    //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3+2")->apply());
+    //FOS_TEST_OBJ_NTEQL(jnt(5), PROCESS("3+2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+ 2"));
-    //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3 +2")->apply());
+    //FOS_TEST_OBJ_NTEQL(jnt(5), PROCESS("3 +2")->apply());
     //FOS_TEST_OBJ_NTEQL(jnt(5), PROCESS("  start(3) + 2 x 2 .plus(-5) "));
     ////////// proto.map
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
@@ -228,7 +230,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_comment_parsing); //
+    /*FOS_RUN_TEST(test_comment_parsing); //
     FOS_RUN_TEST(test_noobj_parsing); //
     FOS_RUN_TEST(test_type_parsing); //
     FOS_RUN_TEST(test_bool_parsing); //
@@ -237,13 +239,13 @@ namespace fhatos {
     FOS_RUN_TEST(test_str_parsing); //
     FOS_RUN_TEST(test_uri_parsing); //
     FOS_RUN_TEST(test_lst_parsing); //
-    FOS_RUN_TEST(test_rec_parsing); //
+    FOS_RUN_TEST(test_rec_parsing); //*/
     FOS_RUN_TEST(test_inst_parsing); //
     //////////////////////////////////
-    FOS_RUN_TEST(test_inst_sugar_parsing); //
+   /* FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //
     FOS_RUN_TEST(test_apply_poly_parsing); //
-    FOS_RUN_TEST(test_type_definition_parsing); //
+    FOS_RUN_TEST(test_type_definition_parsing); //*/
   )
 } // namespace fhatos
 

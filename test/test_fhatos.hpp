@@ -128,7 +128,7 @@ using namespace fhatos;
   }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
-  void RUN_UNITY_TESTS() {                                                                                             \
+  void RUN_UNITY_TESTS() {  \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
@@ -144,17 +144,19 @@ using namespace fhatos;
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      TEST_FAIL_MESSAGE(e.what());                                                                                             \
+      TEST_FAIL_MESSAGE(e.what());                                                                                     \
     }                                                                                                                  \
   }
 
 #ifdef NATIVE
 #define SETUP_AND_LOOP_2                                                                                               \
 int main(int argc, char ** argv) {                                                                                     \
-  auto *args_parser = new fhatos::ArgvParser();                                                                        \
+  PRINTER = Ansi<>::singleton();         \
+  Options::singleton()->printer<Ansi<>>(PRINTER); \
+  auto *args_parser = new fhatos::ArgvParser();                                                                          \
   args_parser->init(argc, argv);                                                                                       \
   fhatos::Options::singleton()->log_level(                                                                             \
-    fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING))));
+  fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING))));
 #else
 #define SETUP_AND_LOOP_2                                                                                               \
   void setup() {                                                                                                       \
@@ -163,7 +165,7 @@ int main(int argc, char ** argv) {                                              
 #endif
 
 #define SETUP_AND_LOOP()                                                                                               \
-  using namespace fhatos;                                                                                              \
+  using namespace fhatos; \
   SETUP_AND_LOOP_2                                                                                                     \
   RUN_UNITY_TESTS();                                                                                                   \
   FOS_STOP_ON_BOOT;                                                                                                    \
@@ -188,15 +190,14 @@ using namespace fhatos;
   BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))
 
 
-#define PROCESS(bcode_string) \
-  BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))->objs_value()->front()
+#define PROCESS(bcode_string) BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))->objs_value(0)
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
-    PRINTER->printf("  !rline %i!!\t", __LINE__);                                                                      \
     PRINTER->printf((format), ##__VA_ARGS__);                                                                          \
     PRINTER->println();                                                                                                \
-  }
+    PRINTER->printf("  !rline %s:%i!!\t", __FILE__, __LINE__);                                                         \
+}
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
   FOS_TEST_MESSAGE("<!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
@@ -229,7 +230,7 @@ using namespace fhatos;
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                  \
+    FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                     \
     TEST_ASSERT(true);                                                                                                 \
   }
 
@@ -237,9 +238,9 @@ using namespace fhatos;
 #define FOS_TEST_ASSERT_EXCEPTION(fn)                                                                                  \
   try {                                                                                                                \
     (fn)();                                                                                                            \
-    TEST_FAIL_MESSAGE("!rno exception occurred!!");                                                                    \
+    TEST_FAIL_MESSAGE("!rno exception occurred!!: " STR(__FILE__) ":" STR(__LINE__));                                  \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                \
+    FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                 \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
@@ -247,10 +248,8 @@ using namespace fhatos;
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
-    FOS_TEST_MESSAGE("!yTesting equality!! : %s %s %s", (objA)->toString().c_str(),                                    \
-                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
-    if (!test)                                                                                                         \
-      TEST_FAIL();                                                                                                     \
+    FOS_TEST_MESSAGE("!yTesting equality!! : %s %s %s", (objA)->toString().c_str(), test ? "==" : "!=", (objB)->toString().c_str());  \
+    if (!test) TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                         \
   }
 #define FOS_TEST_OBJ_NTEQL(objA, objB) FOS_TEST_OBJ_NOT_EQUAL((objA),(objB))
 #define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
@@ -259,7 +258,7 @@ using namespace fhatos;
     FOS_TEST_MESSAGE("!yTesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
                      test ? "==" : "!=", (objB)->toString().c_str());                                                  \
     if (test)                                                                                                          \
-      TEST_FAIL();                                                                                                     \
+     TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                   \
   }
 
 //#ifdef FOS_DEPLOY_PARSER
@@ -299,7 +298,9 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    PROCESS(monoid)->objs_value();
+    PROCESS(monoid)
+        ->
+        objs_value();
     TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
     LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());
