@@ -27,15 +27,36 @@ FhatOS: A Distributed Operating System
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
+#define FOS_LOGGING INFO
 
 namespace fhatos {
   using namespace mmadt;
 
   void test_plus_inst() {
+  	// bool
+    FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("true.plus(false)"));
+ // TODO  FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("bool[false].plus(true)"));
+    FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("false.plus(bool[true])"));
+    FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("true.plus(plus(plus(plus(_))))"));
+    FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("false.plus(plus(plus(plus(_))))"));
+    // int
     FOS_TEST_OBJ_EQUAL(objs({jnt(11),jnt(12),jnt(12),jnt(77)}), PROCESS_ALL("{1,2,2,67}.plus(10)"));
     FOS_TEST_OBJ_EQUAL(jnt(246), PROCESS("1.plus(245)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("1.plus(plus(plus(plus(plus(_)))))"));
+    // str
+    FOS_TEST_OBJ_EQUAL(objs({str("ax"),str("bx"),str("bx"),str("cdex")}), PROCESS_ALL("{'a','b','b','cde'}.plus('x')"));
+    // TODO: FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("str['1'].plus('245')"));
+    FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("'1'.plus(str['245'])"));
+    FOS_TEST_OBJ_EQUAL(str("aaaaaa"), PROCESS("'a'.plus(plus(plus(plus(plus(_)))))"));
+    // uri
+  	// TODO: FOS_TEST_OBJ_EQUAL(objs({vri("a/x"),vri("/b/x"),vri("/b/x"),vri("cd.e/x")}), PROCESS_ALL("{a,/b/,/b/,cd.e}.plus(x)"));
+    FOS_TEST_OBJ_EQUAL(objs({vri("a/x"),vri("/b/x"),vri("/b/x"),vri("cd_e/x")}), PROCESS_ALL("{a,/b/,/b/,cd_e}.plus(x)"));
+    // TODO: FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("str['1'].plus('245')"));
+    FOS_TEST_OBJ_EQUAL(vri("a1/b245"), PROCESS("a1.plus(<b245>)"));
+    FOS_TEST_OBJ_EQUAL(vri("a/a/a/a/a/a"), PROCESS("<a>.plus(plus(plus(plus(plus(_)))))"));
+    // FOS_TEST_OBJ_EQUAL(vri("/b"), PROCESS("<a>.plus(plus(plus(plus(plus(<../b>)))))"));
   }
+
 
   void test_count_inst() {
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("{1,2,2,67}.count()"));

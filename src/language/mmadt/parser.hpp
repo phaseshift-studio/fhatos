@@ -349,7 +349,6 @@ namespace mmadt {
         return 0 == matches ? noobj() : any_cast<Obj_p>(vs[0]);
       };
 
-
       WS <= zom(cls(" \t"));
       ROOT <= seq(zom(~COMMENT), opt(OBJ), zom(~COMMENT)), root_action;
       ////////////////////////////////////////////////////////////
