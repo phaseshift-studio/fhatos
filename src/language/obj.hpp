@@ -170,7 +170,12 @@ namespace fhatos {
 
   [[maybe_unused]] static bool is_initial(const IType itype) {
     return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO || itype ==
-           IType::ZERO_TO_MAYBE || itype == IType::MAYBE_TO_ONE;
+           IType::ZERO_TO_MAYBE;
+  }
+
+  [[maybe_unused]] static bool is_maybe_initial(const IType itype) {
+    return itype == IType::MAYBE_TO_ONE || itype == IType::MAYBE_TO_MAYBE || itype == IType::MAYBE_TO_MANY || itype ==
+           IType::MAYBE_TO_ZERO;
   }
 
   [[maybe_unused]] static bool is_scatter(const IType itype) {

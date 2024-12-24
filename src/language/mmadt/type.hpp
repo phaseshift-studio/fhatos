@@ -193,8 +193,8 @@ namespace mmadt {
       InstBuilder::build(MMADT_SCHEME "/from")
           //->domain_range(URI_FURI, OBJ_FURI)
           ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const Obj_p result = ROUTER_READ(args->arg(0)->uri_p_value<fURI>());
             return result->is_noobj() ? args->arg(1) : result;
           })
           ->itype_and_seed(IType::MAYBE_TO_MAYBE)

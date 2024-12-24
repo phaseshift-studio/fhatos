@@ -142,9 +142,9 @@ namespace mmadt {
       Obj_p result;
       LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
       Definition::Result ret = START.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
-      LOG(INFO, "parsing complete: %s\n", mmadt.c_str());
+      LOG(DEBUG, "parsing complete: %s\n", mmadt.c_str());
       if(ret.ret) {
-        LOG_OBJ(TRACE, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
+        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
         return result;
       } else {
         ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
@@ -309,8 +309,12 @@ namespace mmadt {
         return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("at")));
       };
       static auto from_action = [](const SemanticValues &vs) -> Inst_p {
-        const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
-        return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("from")));
+        List<Obj_p> args;
+        for(const auto &v: vs) {
+          const Pair_p<Any, OType> proto = any_cast<Pair_p<Any, OType>>(v);
+          args.push_back(Obj::create(proto->first, proto->second, OTYPE_FURI.at(proto->second)));
+        }
+        return Obj::to_inst(Obj::to_inst_args(args), id_p(*ROUTER_RESOLVE("from")));
       };
       static auto repeat_action = [](const SemanticValues &vs) -> Inst_p {
         const Obj_p bcode = any_cast<BCode_p>(vs);
@@ -364,6 +368,25 @@ namespace mmadt {
         );
       };
 
+      static auto INST_ARGS_PEG_GENERATOR = [this](const std::initializer_list<ptr<Ope>> &arg_slots,
+                                                   const bool varargs = true) -> ptr<Ope> {
+        List<ptr<Ope>> slots;
+        auto v_slots = List<ptr<Ope>>(arg_slots);
+        if(v_slots.size() > 1) {
+          for(const ptr<Ope> arg_slot: arg_slots) {
+            slots.push_back(seq(~WS, lit("("), ~WS, arg_slot, ~WS,
+                                zom(seq(~WS, lit(","), ~WS, arg_slot, ~WS, lit(")"), ~WS))));
+          }
+        }
+        if(v_slots.size() == 1 || varargs) {
+          slots.push_back(seq(~WS, lit("("), ~WS, v_slots.at(0), ~WS, lit(")"), ~WS));
+          slots.push_back(v_slots.at(0));
+        }
+        if(v_slots.empty() || varargs)
+          slots.push_back(seq(~WS, lit("("), ~WS, lit(")"), ~WS));
+        return make_shared<PrioritizedChoice>(slots);
+      };
+
       WS <= zom(cls(" \t"));
       ////////////////////// COMMENTS ///////////////////////////
       COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT);
@@ -412,7 +435,7 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
-      PROTO <= cho(REAL, BCODE, NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI); //NO_CODE_PROTO);
+      PROTO <= cho(REAL, BCODE, NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI); //NO_CODE_PROTO);
       EMPTY <= lit(""), [](const SemanticValues &vs) {
         return make_shared<Pair<Any, OType>>(Any(), OType::OBJ);
       };
@@ -421,17 +444,23 @@ namespace mmadt {
       NO_CODE_OBJ <= OBJ_PEG_GENERATOR(NO_CODE_PROTO), obj_action;
       OBJ <= OBJ_PEG_GENERATOR(PROTO), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(~WS, opt(OBJ), zom(cho(seq(lit("."), OBJ), seq(opt(lit(".")), INST_SUGAR))), ~WS), [
-          ](SemanticValues &vs) {
+      START <= seq(~WS, opt(OBJ), zom(cho(seq(lit("."), OBJ), seq(opt(lit(".")), INST_SUGAR))), ~WS),
+          [](SemanticValues &vs) {
             if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code())
               return any_cast<Obj_p>(vs[0]);
             const auto insts = make_shared<List<Inst_p>>();
             bool first = true;
             for(const auto &i: vs) {
               const Obj_p o = any_cast<Obj_p>(i);
-              insts->push_back(o->is_inst()
-                                 ? o
-                                 : Obj::to_inst({first ? Obj::to_objs({o}) : o}, id_p(first ? "start" : "map")));
+              if(!o->is_code()) {
+                insts->push_back(Obj::to_inst({first ? Obj::to_objs({o}) : o}, id_p(first ? "start" : "map")));
+              } else if(o->is_inst()) {
+                insts->push_back(o);
+              } else {
+                for(const Inst_p &inst: *o->bcode_value()) {
+                  insts->push_back(inst);
+                }
+              }
               first = false;
             }
             return Obj::to_bcode(insts);
@@ -443,11 +472,13 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
       INST_SUGAR <= cho(AT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
-      AT <= cho(seq(chr('@'), WRAP("(", cho(URI, BCODE), ")")), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
+      AT <= seq(chr('@'), WRAP("(", cho(URI, BCODE), ")")), at_action;
       // REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
-      FROM <= seq(chr('*'),WRAP("(", cho(URI,BCODE), ")")), from_action;
-      REF <= seq(lit("->"), WRAP("(", INST_ARG_OBJ, ")")), ref_action;
-      BLOCK <= seq(lit("|"), WRAP("(", INST_ARG_OBJ, ")")), block_action;
+      FROM <= seq(lit("*"), cho(WRAP("(", cho(URI, BCODE), ")"),
+                                seq(lit("("), cho(URI, BCODE), opt(seq(lit(","), INST_ARG_PROTO)),
+                                    lit(")")))), from_action;
+      REF <= seq(lit("->"), WRAP("(", OBJ, ")")), ref_action;
+      BLOCK <= seq(lit("|"), WRAP("(", OBJ, ")")), block_action;
       PASS <= seq(lit("-->"), WRAP("(", INST_ARG_OBJ, ")")), pass_action;
       MERGE <= seq(chr('>'), opt(INST_ARG_OBJ), chr('-')), merge_action;
       SPLIT <= seq(lit("-<"), WRAP("(", INST_ARG_OBJ, ")")), split_action;
@@ -464,7 +495,7 @@ namespace mmadt {
         return vs.size() != 1 || any_cast<Obj_p>(vs[0])->is_code();
       };
       FURI.predicate = FURI_NO_Q.predicate = FURI_INLINE.predicate =
-                                             [](const SemanticValues &vs, const std::any &, std::string &msg) {
+                                             [](const SemanticValues &vs, const std::any &, std::string &) {
                                                try {
                                                  if(vs.token_to_string().empty() || vs.token_to_string() == "_")
                                                    return false;

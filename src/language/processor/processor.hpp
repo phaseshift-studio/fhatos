@@ -42,29 +42,34 @@ namespace fhatos {
                                                running_(make_unique<Deque<Monad_p>>()),
                                                barriers_(make_unique<Deque<Monad_p>>()),
                                                halted_(make_unique<Deque<Obj_p>>()) {
-      if(!bcode->is_code()) {
-        if(!bcode->is_noobj())
+      if(!this->bcode_->is_code()) {
+        if(!this->bcode_->is_noobj()) {
+          // monad halts immediately on a non-bcode submission
           this->halted_->push_back(bcode);
-      } else {
-        if(bcode->is_inst()) { // wrap inst in bcode TODO: remove when bcode goes away
-          this->bcode_ = Obj::to_bcode({bcode}, bcode->tid());
         }
-        if(!this->bcode_->is_bcode())
-          throw fError("processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-        this->bcode_ = Rewriter({
-          /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+      } else {
+        // if a single inst, wrap in bcode
+        if(this->bcode_->is_inst())
+          this->bcode_ = Obj::to_bcode({this->bcode_},this->bcode_->tid());
+        // process bcode inst pipeline
+        this->bcode_ = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+        // setup global behavior around barriers, initials, and terminals
+        bool first = true;
         for(const Inst_p &inst: *this->bcode_->bcode_value()) {
           const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
           const Obj_p seed_copy = resolved->inst_seed(resolved);
           if(is_gather(resolved->itype())) {
+            // MANY_TO_??
             const Monad_p m = M(seed_copy, inst);
             this->barriers_->push_back(m);
-            LOG_OBJ(DEBUG, this, FOS_TAB_2 "creating !ybarrier!! monad: %s\n", m->toString().c_str());
-          } else if(is_initial(resolved->itype())) {
-            const Monad_p m = M(noobj(), inst);
+            LOG_OBJ(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
+          } else if(is_initial(resolved->itype()) || (first && is_maybe_initial(resolved->itype()))) {
+            // ZERO/MAYBE*-TO_??
+            const Monad_p m = M(noobj(), inst); // TODO: use seed
             this->running_->push_back(m);
-            LOG_OBJ(DEBUG, this, FOS_TAB_2 "initializing !gstart!! monad: %s\n", m->toString().c_str());
+            LOG_OBJ(DEBUG, this, FOS_TAB_2 "!ginitial!! monad created: %s\n", m->toString().c_str());
           }
+          first = false;
         }
         // start inst forced initial TODO: remove this as it's not sound
         if(this->running_->empty()) {
@@ -108,7 +113,7 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
-      LOG_OBJ(INFO, this, "%s\n", Ansi<>::singleton()->silly_print("processor shutting down",true,false).c_str());
+      LOG_OBJ(TRACE, this, "%s\n", Ansi<>::singleton()->silly_print("processor shutting down",true,false).c_str());
       return objs;
     }
 
@@ -140,7 +145,7 @@ namespace fhatos {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////// MONAD ///////////////////////////////////
+   ///////////////////////////////// MONAD ///////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
   private:
     class Monad : public enable_shared_from_this<Processor::Monad> { // OBJ as well?

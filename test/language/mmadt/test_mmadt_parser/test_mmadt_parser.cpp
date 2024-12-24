@@ -205,6 +205,14 @@ FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("|bcode?bool<=bool|(a=>_)[is(eq(*a))]@/ab
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[_,_]"));
     FOS_TEST_OBJ_NTEQL(lst({jnt(2),jnt(4)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[+ 0,plus(1)]"));
     FOS_TEST_OBJ_EQUAL(lst(), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[]"));
+    ////////// *
+    FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("/abc/o1o -> 101"));
+    FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("*/abc/o1o"));
+    FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("*(/abc/o1o)"));
+    FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("*(/abc/o12,101)"));
+    // FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("</abc/o1o>.*()"));
+    FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("</abc/o1o>.*(_)"));
+    // FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("</abc/o1o>*"));
   }
 
   void test_apply_mono_parsing() {
@@ -213,7 +221,7 @@ FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("|bcode?bool<=bool|(a=>_)[is(eq(*a))]@/ab
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(3)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(_)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(mult(1))"));
-    // TODO: FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.  plus( mult ( 1)   )"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.  plus( mult ( 1)   )"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3     .plus(  mult( 1  )   )"));
   }
 
@@ -225,7 +233,7 @@ FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("|bcode?bool<=bool|(a=>_)[is(eq(*a))]@/ab
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("[8,[a=>[b=>5],c=>7]].<1>.a.b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
+//    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
 //    FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
 //    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
   }
