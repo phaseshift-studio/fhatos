@@ -207,9 +207,10 @@ namespace fhatos {
             }
           }
           if(final_inst->is_inst()) {
-            LOG(TRACE, "merging default args into inst\n\t\t%s => %s\n",
+            LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
                 final_inst->toString().c_str(),
-                inst->toString().c_str());
+                inst->toString().c_str(),
+                ITypeDescriptions.to_chars(final_inst->itype()).c_str());
             const auto merged_args = Obj::to_inst_args();
             for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
               merged_args->rec_value()->insert({k,

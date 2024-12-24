@@ -1485,7 +1485,7 @@ namespace fhatos {
       return result;
     }
 
-    Obj_p apply()  {
+    Obj_p apply() {
       return this->apply(Obj::to_noobj());
     }
 
@@ -1569,8 +1569,10 @@ namespace fhatos {
           }
         }
         case OType::BCODE: {
+          return BCODE_PROCESSOR(this->shared_from_this()->bcode_starts(to_objs({lhs})))->none_one_all();
+          /*
           ptr<Obj> current_obj = lhs;
-          for(const Inst_p &current_inst: *this->bcode_value()) {
+           for(const Inst_p &current_inst: *this->bcode_value()) {
             LOG(TRACE, "applying %s !g=>!! %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
             if(current_inst->is_noobj())
               break;
@@ -1589,7 +1591,7 @@ namespace fhatos {
           }
           return current_obj->is_objs() && !current_obj->objs_value()->empty() && !is_gather(this->itype())
                    ? current_obj->objs_value()->front()
-                   : current_obj;
+                   : current_obj;*/
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -1911,7 +1913,7 @@ namespace fhatos {
         Inst_p r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
                            this->inst_seed_supplier(),
                            this->tid());
-        //r->vid_ = this->vid_;
+        r->vid_ = this->vid_;
         return r;
       }
       if(this->is_bcode()) {
@@ -1921,6 +1923,7 @@ namespace fhatos {
           new_insts.push_back(inst->clone());
         }
         BCode_p r = to_bcode(new_insts, type_id_clone);
+        r->vid_ = this->vid_;
         return r;
       }
       if(this->is_objs()) {

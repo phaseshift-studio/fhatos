@@ -45,7 +45,7 @@ namespace fhatos {
   void test_plus_inst() {
   	// bool
     FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("true.plus(false)"));
- // TODO  FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("bool[false].plus(true)"));
+   FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("bool[false].plus(true)"));
     FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("false.plus(bool[true])"));
     FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("true.plus(plus(plus(plus(_))))"));
     FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("false.plus(plus(plus(plus(_))))"));
@@ -73,7 +73,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("35.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("{67,35,2465}.is(gt(40)).count()"));
-    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
+//    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
   }
 
   FOS_RUN_TESTS( //

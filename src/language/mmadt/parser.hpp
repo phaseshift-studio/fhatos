@@ -122,8 +122,8 @@ namespace mmadt {
     Definition
         WS, ROOT, ARGS, ARGS_LST, ARGS_REC, CODE, COMMENT, SINGLE_COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF,
-        NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF, VALUE_ID,
+        NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO, START, EMPTY,
         EMPTY_BCODE, DOM_RNG, INST_SUGAR;
 #ifndef FOS_SUGARLESS_MMADT
     Definition
@@ -141,13 +141,15 @@ namespace mmadt {
     Obj_p parse(const string &mmadt) const {
       Obj_p result;
       LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
-      if(Definition::Result ret = ROOT.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
-        ret.ret) {
+      Definition::Result ret = START.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
+      LOG(INFO, "parsing complete: %s\n", mmadt.c_str());
+      if(ret.ret) {
         LOG_OBJ(TRACE, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
+        return result;
       } else {
         ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
+        throw fError("parse failed: %s\n", mmadt.c_str());
       }
-      return result;
     }
 
     explicit Parser(const ID &id = ID("/parser/")) : Obj(make_shared<RecMap<>>(),
@@ -281,24 +283,19 @@ namespace mmadt {
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
         switch(vs.choice()) {
-          case 0:
-          case 1: {
-            return any_cast<Obj_p>(vs[0]);
-          }
-          case 2: { // x[a]@xyz
+          case 0: { // a[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
-            const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
-            return Obj::create(v, o, type_id, vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
+            const auto [v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
+            return Obj::create(v, o, type_id,
+                               vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 3: { // a@xyz
+          case 1: { // b@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
-            return Obj::create(v, o, OTYPE_FURI.at(o),
-                               vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
+            return Obj::create(v, o, OTYPE_FURI.at(o), vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
           default: throw fError("unknown obj parse branch");
         }
       };
-      static auto comment_action = [](const SemanticValues &vs) { return noobj(); };
       //////////////////////////////////////////////////////////////////////////
       static auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
@@ -356,53 +353,53 @@ namespace mmadt {
       };
 
 #endif
-      static auto root_action = [](const SemanticValues &vs) -> Obj_p {
-        const size_t matches = vs.size();
-        if(matches > 1)
-          throw fError("only one obj is allowed (logic error)");
-        return 0 == matches ? noobj() : any_cast<Obj_p>(vs[0]);
+      static auto OBJ_PEG_GENERATOR = [this](const ptr<Ope> &obj_proto) -> ptr<Ope> {
+        return cho(
+          seq(~WS, /*zom(~COMMENT), */
+              TYPE_ID, lit("["), cho(obj_proto, EMPTY), lit("]"), opt(VALUE_ID),
+              ~WS/*, zom(~COMMENT)*/),
+          seq(~WS, /*zom(~COMMENT), */
+              obj_proto, opt(VALUE_ID), ~WS
+              /*, zom(~COMMENT)*/)
+        );
       };
 
       WS <= zom(cls(" \t"));
-      ROOT <= seq(zom(~COMMENT), opt(OBJ), zom(~COMMENT)), root_action;
-      ////////////////////////////////////////////////////////////
+      ////////////////////// COMMENTS ///////////////////////////
       COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT);
-      SINGLE_COMMENT <= seq(zom(cls("\n")), lit("---"), zom(ncls("\n")));
-      MULTI_COMMENT <= seq(zom(cls("\n")), lit("###"), zom(ncls("#")), lit("###"), zom(cls("\n")));
-      ////////////////////////////////////////////////////////////
-      TYPE <= seq(~WS, TYPE_ID, lit("[]"), ~WS), type_action;
+      SINGLE_COMMENT <= seq(~WS, lit("_oO"), zom(seq(npd(lit("Oo_")), dot())), lit("Oo_"), ~WS);
+      MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(ncls("#"), dot())), lit("###"), ~WS);
+      /////////////////// BASE CONCEPTS ///////////////////////////
+      TYPE <= seq(TYPE_ID, lit("[]")), type_action;
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;
       INT <= seq(~WS, opt(chr('-')), oom(cls("0-9")), ~WS), int_action;
       REAL <= seq(~WS, opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")), ~WS), real_action;
       STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
-      FURI <= seq(~WS, WRAP("<", tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), ">"),
-                  ~WS), furi_action;
+      FURI <= seq(~WS, WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/?_=&@.#+")))), ">"), ~WS), furi_action;
       FURI_INLINE <= seq(~WS, WRAP("<", tok(seq(
                                      oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
                                      zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
                                    ">"), ~WS), furi_action;
       FURI_NO_Q <= seq(~WS, WRAP("<", tok(seq(oom(cls("a-zA-Z:/_.#+")),
-                                   zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), ">"), ~WS), furi_action;
+                                   zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
+                                 ">"), ~WS), furi_action;
       URI <= cho(lit("<>"), FURI_INLINE, FURI), uri_action;
-      REC <= cho(lit("[=>]"), seq(lit("["), opt(seq(OBJ, lit("=>"), OBJ)),
-                                  zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit("]"))), rec_action;
-      LST <= seq(lit("["), opt(OBJ), zom(seq(lit(","), OBJ)), lit("]")), lst_action;
-      OBJS <= seq(lit("{"), opt(OBJ), zom(seq(lit(","), OBJ)), lit("}")), objs_action;
+      REC <= cho(lit("[=>]"), seq(lit("["), ~WS, opt(seq(OBJ, lit("=>"), OBJ)), ~WS,
+                                  zom(seq(lit(","), OBJ, lit("=>"), ~WS, OBJ)), ~WS, lit("]"), ~WS)), rec_action;
+      LST <= seq(~WS, lit("["), ~WS, opt(OBJ), ~WS, zom(seq(lit(","), ~WS, OBJ)), ~WS, lit("]"), ~WS), lst_action;
+      OBJS <= seq(~WS, lit("{"), ~WS, opt(OBJ), ~WS, zom(seq(lit(","), ~WS, OBJ)), ~WS, lit("}"), ~WS), objs_action;
       ARGS <= cho(ARGS_REC, ARGS_LST), args_action;
       ARGS_REC <= cho(lit("(=>)"), seq(lit("("), opt(seq(OBJ, lit("=>"), OBJ)),
                                        zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit(")"))), rec_action;
       ARGS_LST <= cho(lit("()"), seq(lit("("), opt(seq(OBJ, zom(seq(lit(","), OBJ)), lit(")"))))), lst_action;
-      INST <= seq(FURI_INLINE, ARGS, opt(seq(chr('@'), FURI))), inst_action;
+      INST <= seq(FURI_INLINE, ARGS, opt(VALUE_ID)), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
-      CODE <= seq(DOM_RNG, lit("|"), opt(ARGS), lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI))), code_action;
+      CODE <= seq(DOM_RNG, lit("|"), opt(ARGS), lit("["), PROTO, lit("]"), opt(VALUE_ID)), code_action;
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
                    seq(INST_P, zom(cho(END, seq(opt(lit(".")), INST_SUGAR), seq(lit("."), INST_P))))),
           bcode_action;
-      NO_CODE_PROTO <= WRAP("(", cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI), ")");
-      INST_ARG_PROTO <= WRAP("(", cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI), ")");
-      PROTO <= WRAP("(", cho(REAL, BCODE, NO_CODE_PROTO), ")");
       // TODO: stream ring theory
       COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
       DOM_RNG <= WRAP("<", seq(~WS,
@@ -410,33 +407,55 @@ namespace mmadt {
                         FURI_NO_Q, /*opt(COEF),*/
                         lit("<="),
                         FURI_NO_Q, /*opt(COEF),*/ ~WS), ">"), dom_rng_action;
-      TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
-      NO_CODE_OBJ <= cho(
-        TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), NO_CODE_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
-        seq(~WS, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
-      INST_ARG_OBJ <= cho(
-        TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), INST_ARG_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
-        seq(~WS, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
-      OBJ <= cho(TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
-                 seq(~WS, PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
+      TYPE_ID <= cho(DOM_RNG, FURI_INLINE, FURI), furi_action;
+      VALUE_ID <= seq(chr('@'), FURI);
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI);
+      NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
+      PROTO <= cho(REAL, BCODE, NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI); //NO_CODE_PROTO);
+      EMPTY <= lit(""), [](const SemanticValues &vs) {
+        return make_shared<Pair<Any, OType>>(Any(), OType::OBJ);
+      };
+      ////////////////////////////////////////////////////////////
+      INST_ARG_OBJ <= OBJ_PEG_GENERATOR(INST_ARG_PROTO), obj_action;
+      NO_CODE_OBJ <= OBJ_PEG_GENERATOR(NO_CODE_PROTO), obj_action;
+      OBJ <= OBJ_PEG_GENERATOR(PROTO), obj_action;
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      START <= seq(~WS, opt(OBJ), zom(cho(seq(lit("."), OBJ), seq(opt(lit(".")), INST_SUGAR))), ~WS), [
+          ](SemanticValues &vs) {
+            if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code())
+              return any_cast<Obj_p>(vs[0]);
+            const auto insts = make_shared<List<Inst_p>>();
+            bool first = true;
+            for(const auto &i: vs) {
+              const Obj_p o = any_cast<Obj_p>(i);
+              insts->push_back(o->is_inst()
+                                 ? o
+                                 : Obj::to_inst({first ? Obj::to_objs({o}) : o}, id_p(first ? "start" : "map")));
+              first = false;
+            }
+            return Obj::to_bcode(insts);
+          };
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
       /////////////////////////////////////////////////////////////////
-///////////////////////  INST SUGARS ////////////////////////////
-/////////////////////////////////////////////////////////////////
+      ///////////////////////  INST SUGARS ////////////////////////////
+      /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
       INST_SUGAR <= cho(AT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
-      AT <= cho(seq(chr('@'), cho(URI, BCODE)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
-      REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
+      AT <= cho(seq(chr('@'), WRAP("(", cho(URI, BCODE), ")")), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
+      // REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
       FROM <= seq(chr('*'),WRAP("(", cho(URI,BCODE), ")")), from_action;
-      REF <= seq(lit("->"), INST_ARG_OBJ), ref_action;
-      BLOCK <= seq(lit("|"), INST_ARG_OBJ), block_action;
-      PASS <= seq(lit("-->"), INST_ARG_OBJ), pass_action;
-      MERGE <= seq(~WS, chr('>'), opt(INST_ARG_OBJ), chr('-'), ~WS), merge_action;
-      SPLIT <= seq(lit("-<"), INST_ARG_OBJ), split_action;
-      EACH <= seq(lit("=="), INST_ARG_OBJ), each_action;
+      REF <= seq(lit("->"), WRAP("(", INST_ARG_OBJ, ")")), ref_action;
+      BLOCK <= seq(lit("|"), WRAP("(", INST_ARG_OBJ, ")")), block_action;
+      PASS <= seq(lit("-->"), WRAP("(", INST_ARG_OBJ, ")")), pass_action;
+      MERGE <= seq(chr('>'), opt(INST_ARG_OBJ), chr('-')), merge_action;
+      SPLIT <= seq(lit("-<"), WRAP("(", INST_ARG_OBJ, ")")), split_action;
+      EACH <= seq(lit("=="), WRAP("(", INST_ARG_OBJ, ")")), each_action;
       END <= lit(";"), end_action;
-      WITHIN <= seq(lit("_/"), INST_ARG_OBJ, lit("\\_")), within_action;
-      PLUS <= seq(~WS, chr('+'), chr(' '), ~WS, INST_ARG_OBJ), plus_action;
-      MULT <= seq(~WS, chr('x'), chr(' '), ~WS, INST_ARG_OBJ), mult_action;
+      WITHIN <= seq(lit("_/"), WRAP("(", INST_ARG_OBJ, ")"), lit("\\_")), within_action;
+      PLUS <= seq(~WS, chr('+'), chr(' '), ~WS, WRAP("(", INST_ARG_OBJ, ")")), plus_action;
+      MULT <= seq(~WS, chr('x'), chr(' '), ~WS, WRAP("(", INST_ARG_OBJ, ")")), mult_action;
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif
@@ -461,12 +480,19 @@ namespace mmadt {
       TYPE.enter = enter_y("type");
       PROTO.enter = enter_y("proto");
       FROM.enter = enter_y("from");
+      INT.enter = enter_y("int");
+      TYPE_ID.enter = enter_y("type_id");
+      VALUE_ID.enter = enter_y("at_id");
+      FURI_INLINE.enter = enter_y("furi_inline");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
-      ROOT.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
-      COMMENT.whitespaceOpe = ROOT.whitespaceOpe;
-      OBJ.whitespaceOpe = ROOT.whitespaceOpe;
-      NO_CODE_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
-      INST_ARG_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
+      ROOT.whitespaceOpe =
+          LST.whitespaceOpe =
+          REC.whitespaceOpe =
+          OBJS.whitespaceOpe =
+          COMMENT.whitespaceOpe =
+          OBJ.whitespaceOpe =
+          NO_CODE_OBJ.whitespaceOpe =
+          INST_ARG_OBJ.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       ROOT.enablePackratParsing = true;
       ROOT.eoi_check = true;
       /////////////////////////////////////////////////////////////////////////////////////

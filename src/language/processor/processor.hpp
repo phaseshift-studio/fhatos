@@ -19,8 +19,6 @@
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
 
-#include <utility>
-
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
 #include "../../language/rewrite/rewriter.hpp"
@@ -29,28 +27,21 @@ namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
   /////////////////////////////// PROCESSOR /////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
-
-
-  class Processor {
+  class Processor final : public Valued { // : public IDed, Typed or perhaps just full Obj`
     class Monad;
     using Monad_p = ptr<Processor::Monad>;
 
   protected:
     BCode_p bcode_;
-    Deque<Monad_p> *running_;
-    Deque<Monad_p> *barriers_;
-    Deque<Obj_p> *halted_;
+    unique_ptr<Deque<Monad_p>> running_;
+    unique_ptr<Deque<Monad_p>> barriers_;
+    unique_ptr<Deque<Obj_p>> halted_;
 
-    ~Processor() {
-      delete this->running_;
-      delete this->barriers_;
-      delete this->halted_;
-    }
-
-    explicit Processor(const BCode_p &bcode) : bcode_(bcode),
-                                               running_(new Deque<Monad_p>()),
-                                               barriers_(new Deque<Monad_p>()),
-                                               halted_(new Deque<Obj_p>()) {
+    explicit Processor(const BCode_p &bcode) : Valued(ID(to_string(rand()).insert(0, "/sys/processor/"))),
+                                               bcode_(bcode),
+                                               running_(make_unique<Deque<Monad_p>>()),
+                                               barriers_(make_unique<Deque<Monad_p>>()),
+                                               halted_(make_unique<Deque<Obj_p>>()) {
       if(!bcode->is_code()) {
         if(!bcode->is_noobj())
           this->halted_->push_back(bcode);
@@ -59,7 +50,7 @@ namespace fhatos {
           this->bcode_ = Obj::to_bcode({bcode}, bcode->tid());
         }
         if(!this->bcode_->is_bcode())
-          throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
+          throw fError("processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
         this->bcode_ = Rewriter({
           /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
         for(const Inst_p &inst: *this->bcode_->bcode_value()) {
@@ -68,11 +59,11 @@ namespace fhatos {
           if(is_gather(resolved->itype())) {
             const Monad_p m = M(seed_copy, inst);
             this->barriers_->push_back(m);
-            LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
+            LOG_OBJ(DEBUG, this, FOS_TAB_2 "creating !ybarrier!! monad: %s\n", m->toString().c_str());
           } else if(is_initial(resolved->itype())) {
             const Monad_p m = M(noobj(), inst);
             this->running_->push_back(m);
-            LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
+            LOG_OBJ(DEBUG, this, FOS_TAB_2 "initializing !gstart!! monad: %s\n", m->toString().c_str());
           }
         }
         // start inst forced initial TODO: remove this as it's not sound
@@ -83,6 +74,10 @@ namespace fhatos {
             M(seed_copy, this->bcode_->bcode_value()->front()));
         }
       }
+    }
+
+    [[nodiscard]] ID_p vid_or_tid() const {
+      return this->vid_;
     }
 
     [[nodiscard]] Monad_p M(const Obj_p &obj, const Inst_p &inst) const {
@@ -100,6 +95,7 @@ namespace fhatos {
         } else {
           const Obj_p end = this->halted_->front();
           this->halted_->pop_front();
+          LOG_OBJ(TRACE, this, FOS_TAB_2 "!ghalting!! monad at %s\n", end->toString().c_str());
           if(!end->is_noobj())
             return end;
         }
@@ -112,6 +108,7 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
+      LOG_OBJ(INFO, this, "%s\n", Ansi<>::singleton()->silly_print("processor shutting down",true,false).c_str());
       return objs;
     }
 
@@ -125,27 +122,28 @@ namespace fhatos {
         } else if(!this->barriers_->empty()) {
           const Monad_p barrier = this->barriers_->front();
           this->barriers_->pop_front();
-          LOG(DEBUG, "processing barrier: %s\n", barrier->toString().c_str());
+          LOG_OBJ(DEBUG, this, "processing barrier: %s\n", barrier->toString().c_str());
           barrier->loop();
         }
       }
-
-      LOG(TRACE, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n", this->running_->size(),
-          this->halted_->size(), this->bcode_->toString().c_str());
+      LOG_OBJ(TRACE, this, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n",
+              this->running_->size(),
+              this->halted_->size(), this->bcode_->toString().c_str());
       return this->halted_->size();
     }
 
   public:
     static Objs_p compute(const BCode_p &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      return Processor(bcode).to_objs();
+      const Obj_p objs = Processor(bcode).to_objs();
+      return objs;
     }
 
     ///////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// MONAD ///////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
   private:
-    class Monad : public enable_shared_from_this<Processor::Monad> {
+    class Monad : public enable_shared_from_this<Processor::Monad> { // OBJ as well?
     protected:
       const Processor *processor_;
       const Obj_p obj_;
@@ -161,31 +159,43 @@ namespace fhatos {
       };
 
       void loop() const {
-        const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj_, this->inst_);
-        LOG(TRACE, "monad looping %s !m=>!! %s [%s]\n",
-            this->toString().c_str(),
-            current_inst_resolved->toString().c_str(),
-            ITypeSignatures.to_chars(this->inst_->itype()).c_str());
-        if(this->inst_->is_noobj()) {
-          if(!this->obj_->is_noobj()) {
+        if(this->halted()) {
+          if(!this->dead()) {
+            LOG_OBJ(TRACE, this->processor_, "monad %s halting\n", this->toString().c_str());
             this->processor_->halted_->push_back(this->obj_);
           }
-        } else
+        } else {
+          const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj_, this->inst_);
+          LOG_OBJ(TRACE, this->processor_, "monad %s applying to resolved inst %s !m=>!! %s [!m%s!!]\n",
+                  this->toString().c_str(),
+                  this->inst_->toString().c_str(),
+                  current_inst_resolved->toString().c_str(),
+                  ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
           this->domain_loop(current_inst_resolved);
+        }
       }
 
       ///////////////////////////////////////////////////////////////////////////
 
       void domain_loop(const Inst_p &current_inst_resolved) const {
-        LOG(TRACE, FOS_TAB_2 "monad incoming to %s !m=>!! %s [%s]\n",
-            this->toString().c_str(),
-            current_inst_resolved->toString().c_str(),
-            ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+        LOG_OBJ(TRACE, this->processor_, FOS_TAB_2 "monad at !gdomain!! of %s !m=>!! %s [!m%s!m]\n",
+                this->toString().c_str(),
+                current_inst_resolved->toString().c_str(),
+                ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
         if(is_gather(current_inst_resolved->itype())) {
-          if(this->obj_->is_objs())
+          if(this->obj_->is_objs()) {
+            LOG_OBJ(TRACE, this->processor_, "barrier monad [size: %i] fetch for processing by %s [!m%s!m]\n",
+                    this->obj_->objs_value()->size(),
+                    current_inst_resolved->toString().c_str(),
+                    ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
             range_loop(current_inst_resolved->apply(this->obj_), current_inst_resolved);
-          else
+          } else {
+            LOG_OBJ(TRACE, this->processor_, "monad %s stored in barrier [size: %i] [!m%s!m]\n",
+                    this->toString().c_str(),
+                    this->processor_->barriers_->front()->obj_->objs_value()->size(),
+                    ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
             this->processor_->barriers_->front()->obj_->add_obj(this->obj_);
+          }
         } else {
           this->obj_->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
           range_loop(current_inst_resolved->apply(this->obj_), current_inst_resolved);
@@ -195,10 +205,10 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////
 
       void range_loop(const Obj_p &next_obj, const Inst_p &current_inst_resolved) const {
-        LOG(TRACE, FOS_TAB_2 "monad outgoing to %s !m=>!! %s [%s]\n",
-            this->processor_->M(next_obj,this->inst_)->toString().c_str(),
-            current_inst_resolved->toString().c_str(),
-            ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+        LOG_OBJ(TRACE, this->processor_, FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
+                this->processor_->M(next_obj,this->inst_)->toString().c_str(),
+                current_inst_resolved->toString().c_str(),
+                ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         if(is_scatter(current_inst_resolved->itype())) {
           for(const Obj_p &obj: *next_obj->objs_value()) {
@@ -207,6 +217,8 @@ namespace fhatos {
           }
         } else {
           const Monad_p m = this->processor_->M(next_obj, this->processor_->bcode_->next_inst(this->inst_));
+          LOG_OBJ(TRACE, this->processor_, "monad %s !r==!gmigrating!r==>!! %s\n", this->toString().c_str(),
+                  m->toString().c_str());
           this->processor_->running_->push_back(m);
         }
       }
@@ -231,7 +243,9 @@ namespace fhatos {
 
   [[maybe_unused]] static void load_processor() {
     BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p {
-      return Processor::compute(bcode);
+      const Objs_p objs = Processor::compute(bcode);
+      return objs;
+      //return nullptr == objs ? Obj::to_noobj() : objs;
     };
   }
 } // namespace fhatos
