@@ -54,7 +54,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("bool[true]"));
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[false]"));
     FOS_TEST_OBJ_NOT_EQUAL(dool(false), PROCESS("bool[true]"));
-    // TEST_ASSERT_NOT_EQUAL(dool(false)->toString(), PROCESS("bool[start(false)]")->toString());
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("bool[start(false)]"));
   }
 
   void test_int_parsing() {

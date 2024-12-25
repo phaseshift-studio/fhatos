@@ -64,7 +64,11 @@ namespace fhatos {
     // TODO: FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("str['1'].plus('245')"));
     FOS_TEST_OBJ_EQUAL(vri("a1/b245"), PROCESS("a1.plus(<b245>)"));
     FOS_TEST_OBJ_EQUAL(vri("a/a/a/a/a/a"), PROCESS("<a>.plus(plus(plus(plus(plus(_)))))"));
-    // FOS_TEST_OBJ_EQUAL(vri("/b"), PROCESS("<a>.plus(plus(plus(plus(plus(<../b>)))))"));
+  }
+
+  void test_mult_inst() {
+    // uri
+	FOS_TEST_OBJ_EQUAL(vri("/b"), PROCESS("<a>.mult(mult(mult(mult(mult(<../b>)))))"));
   }
 
 
@@ -73,7 +77,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("35.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("{67,35,2465}.is(gt(40)).count()"));
-//    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
   }
 
   FOS_RUN_TESTS( //

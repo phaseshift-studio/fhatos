@@ -306,7 +306,9 @@ namespace mmadt {
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return Obj::to_uri(*args->arg(0)->tid());
           })
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->save();
+
       InstBuilder::build(MMADT_SCHEME "/within")
           ->type_args(x(0, "code"))
           ->save();

@@ -152,6 +152,15 @@ namespace fhatos {
     MAYBE_TO_MAYBE = (1 << 15),
   }; // TYPE
 
+  enum class Cardinality : unsigned char {
+    ZERO = '.',
+    ONE = 'o',
+    MANY = 'O',
+    MAYBE = '?'
+  };
+
+  //Enums<Cardinality> Cardinalities = Enums<Cardinality>({{Cardinality::ZERO,"."},})
+
   inline bool operator&(IType a, IType b) {
     // Implement bitwise OR logic
     return (bool) (IType) (static_cast<std::underlying_type_t<IType>>(a) & static_cast<std::underlying_type_t<IType>>(
@@ -274,8 +283,6 @@ namespace fhatos {
     {IType::MANY_TO_ONE, "O->o (reduce)"},
     {IType::MANY_TO_MANY, "O->O (barrier)"},
   });
-  //
-
   using InstArgs = Rec_p;
   using InstF = BiFunction<Obj_p, InstArgs, Obj_p>;
   using InstF_p = ptr<BiFunction<Obj_p, InstArgs, Obj_p>>;
@@ -886,6 +893,15 @@ namespace fhatos {
                     : OBJ_FURI);
     }
 
+    [[nodiscard]] IType itype2() const {
+      if(this->is_inst())
+        return this->itype();
+      if(!this->tid_->has_query("ftype"))
+        return IType::ONE_TO_ONE;
+      const auto dom_rng = this->tid_->query_values("ftype");
+      return ITypeSignatures.to_enum(string(dom_rng[0]).append("->").append(dom_rng[1]));
+    }
+
     [[nodiscard]] ID_p range() const {
       return this->tid_->has_query("range")
                ? id_p(this->tid_->query_value("range")->c_str())
@@ -1203,22 +1219,31 @@ namespace fhatos {
         }
       }
       if(!this->is_noobj() &&
+         ////
          (this->is_type() ||
           this->is_inst() ||
           (obj_printer->show_type && this->is_code() &&
-           (!this->domain()->equals(*OBJ_FURI) || !this->range()->equals(*OBJ_FURI)))) ||
-         (obj_printer->show_type && !this->is_base_type()) ||
+           (this->itype2() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
+            equals(*OBJ_FURI)))) ||
+         ////
+         (obj_printer->show_type && this->is_base_type()) ||
+         ////
          (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
                           : string("!B").append(this->tid_->name()).append("!!");
         // TODO: remove base_type check
-        if(obj_printer->show_domain_range && true
-          /*(!this->domain()->equals(*OBJ_FURI) ||
-           !this->range()->equals(*OBJ_FURI))*/) {
-          typing = typing.append("!m?!!").append(this->range()->name());
-          //if(!this->domain()->equals(*this->range()))
-          typing = typing.append("!m<=!!").append(this->domain()->name());
+        if(obj_printer->show_domain_range &&
+          !this->is_base_type() &&
+           (this->itype2() != IType::ONE_TO_ONE ||
+            !this->domain()->equals(*OBJ_FURI) ||
+            !this->range()->equals(*OBJ_FURI))) {
+          typing = typing.append("!m?!!")
+              .append("!c").append(this->range()->name()).append("!m{!c").append(ITypeRanges.to_chars(this->itype2())).
+              append("!m}!!")
+              .append("!m<=!!")
+              .append("!c").append(this->domain()->name()).append("!m{!c").append(ITypeDomains.to_chars(this->itype2()))
+              .append("!m}!!");
         }
         obj_string = this->is_base_type() && !this->is_inst()
                        ? typing.append(obj_string)

@@ -121,8 +121,8 @@ namespace mmadt {
   private:
     Definition
         WS, ROOT, ARGS, ARGS_LST, ARGS_REC, CODE, COMMENT, SINGLE_COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
-        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF, VALUE_ID,
+        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P, SET,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, CARDINALITY, RANGE, COEF, VALUE_ID,
         NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO, START, EMPTY,
         EMPTY_BCODE, DOM_RNG, INST_SUGAR;
 #ifndef FOS_SUGARLESS_MMADT
@@ -244,13 +244,15 @@ namespace mmadt {
       };
 
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
-        /* LOG(TRACE, "!ydomain!! coefficient: %s\n",
-             (vs[4].has_value() ? any_cast<string>(vs[4]).c_str() : "<none>"));
-         LOG(TRACE, "!yrange!! coefficient: %s\n",
-             (vs[2].has_value() ? any_cast<string>(vs[2]).c_str() : "<none>"));*/
+        const auto [rf, rc] = any_cast<Pair<fURI_p, Cardinality>>(vs[1]);
+        const auto [df, dc] = any_cast<Pair<fURI_p, Cardinality>>(vs[2]);
         return furi_p(any_cast<fURI_p>(vs[0])->query({
-          {FOS_DOMAIN, any_cast<fURI_p>(vs[2])->toString()},
-          {FOS_RANGE, any_cast<fURI_p>(vs[1])->toString()}}));
+          {FOS_DOMAIN, df->toString()},
+          {"ftype",
+            to_string(static_cast<char>(rc))
+            .append("-")
+            .append(to_string(static_cast<char>(dc)))},
+          {FOS_RANGE, rf->toString()}}));
       };
 
       static auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
@@ -278,6 +280,10 @@ namespace mmadt {
 
       static auto type_action = [](const SemanticValues &vs) -> Obj_p {
         return Obj::create(Any(), OType::OBJ, id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0]))));
+      };
+
+      static auto cardinality_action = [](const SemanticValues &vs) -> Cardinality {
+        return static_cast<Cardinality>(vs.token_to_string()[0]);
       };
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
@@ -416,7 +422,7 @@ namespace mmadt {
       ARGS_REC <= cho(lit("(=>)"), seq(lit("("), opt(seq(OBJ, lit("=>"), OBJ)),
                                        zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit(")"))), rec_action;
       ARGS_LST <= cho(lit("()"), seq(lit("("), opt(seq(OBJ, zom(seq(lit(","), OBJ)), lit(")"))))), lst_action;
-      INST <= seq(FURI_INLINE, ARGS, opt(VALUE_ID)), inst_action;
+      INST <= seq(TYPE_ID, ARGS, opt(VALUE_ID)), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       CODE <= seq(DOM_RNG, lit("|"), opt(ARGS), lit("["), PROTO, lit("]"), opt(VALUE_ID)), code_action;
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
@@ -424,14 +430,29 @@ namespace mmadt {
                    seq(INST_P, zom(cho(END, seq(opt(lit(".")), INST_SUGAR), seq(lit("."), INST_P))))),
           bcode_action;
       // TODO: stream ring theory
+      CARDINALITY <= cho(chr('.'), chr('?'), chr('o'), chr('O')), cardinality_action;
       COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
-      DOM_RNG <= WRAP("<", seq(~WS,
-                        FURI_NO_Q, chr('?'),
-                        FURI_NO_Q, /*opt(COEF),*/
-                        lit("<="),
-                        FURI_NO_Q, /*opt(COEF),*/ ~WS), ">"), dom_rng_action;
-      TYPE_ID <= cho(DOM_RNG, FURI_INLINE, FURI), furi_action;
+      SET <= seq(FURI_NO_Q, opt(seq(lit("{"), CARDINALITY, lit("}")))),
+          [](const SemanticValues &vs) -> Pair<fURI_p, Cardinality> {
+            const auto furi = any_cast<fURI_p>(vs[0]);
+            const auto cardinality = 1 == vs.size() ? Cardinality::ONE : any_cast<Cardinality>(vs[1]);
+            return {furi, cardinality};
+          };
+      DOM_RNG <= WRAP("<", seq(~WS,FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/lit("<="), SET, ~WS), ">"), dom_rng_action;
+      TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE)), furi_action;
       VALUE_ID <= seq(chr('@'), FURI);
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      NOOBJ.name = "noobj";
+      BOOL.name = "bool";
+      INT.name = "int";
+      STR.name = "str";
+      URI.name = "uri";
+      LST.name = "lst";
+      REC.name = "rec";
+      TYPE_ID.name = "type_id";
+      VALUE_ID.name = "value_id";
+      DOM_RNG.name = "range<=domain";
+
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
