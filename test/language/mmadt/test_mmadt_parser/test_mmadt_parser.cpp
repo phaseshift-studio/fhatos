@@ -61,10 +61,12 @@ namespace fhatos {
 
   void test_int_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("1"));
+    // TODO: weird bug FOS_TEST_OBJ_EQUAL(Obj::create(Any(),OType::OBJ,INT_FURI), PROCESS("int[]"));
     FOS_TEST_OBJ_EQUAL(jnt(-10), PROCESS("-10"));
     FOS_TEST_OBJ_EQUAL(jnt(-10), PROCESS("   -10   "));
     FOS_TEST_OBJ_EQUAL(jnt(-10,INT_FURI,id_p("/abc/ten")), PROCESS("   -10@/abc/ten   "));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int[0]"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int   [ 0  ]"));
     FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
     FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int    [     -50 ]"));
@@ -109,11 +111,14 @@ namespace fhatos {
 
   void test_lst_parsing() {
     FOS_TEST_OBJ_EQUAL(lst(), PROCESS("[]"));
+    FOS_TEST_OBJ_EQUAL(lst(), PROCESS("lst[[]]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1,2,3]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1   , 2 , 3]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(1),lst({jnt(2),jnt(4)}),jnt(3)}), PROCESS("[1,[2,4],3]"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
                        PROCESS("['a',['b',['e','c']],'d']"));
+    FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
+                       PROCESS("['a',  ['b'  ,[  'e'  ,'c']\n\n\n],  'd'\n\t]"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
                        PROCESS("lst[['a',lst[['b',lst[['e','c']]]],'d']]"));
     FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
@@ -122,6 +127,7 @@ namespace fhatos {
 
   void test_rec_parsing() {
     FOS_TEST_OBJ_EQUAL(rec(), PROCESS("[=>]"));
+    FOS_TEST_OBJ_EQUAL(rec(), PROCESS("rec[[=>]]"));
     TEST_ASSERT_EQUAL_STRING("[=>]", rec()->toString(NO_ANSI_PRINTER).c_str());
     FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[]"));
     FOS_TEST_OBJ_EQUAL(rec(), PROCESS("rec[[=>]]"));
@@ -152,11 +158,13 @@ namespace fhatos {
     //                c_str());
     FOS_TEST_OBJ_EQUAL(dool(false),
                        PROCESS(
-                         "|bcode?bool<=bool|(a=>_)[is(eq(*a))]@/abc/bool/true_static;.start({false})./abc/bool/true_static()"
+                         "|(bool?bool<=bool|(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
+                         "false./abc/bool/true_static(a=>_).to(/abc/bool/inst_parse);\n"
+                         "*/abc/bool/inst_parse"
                        ));
-    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS(""
-                         "|bcode?bool<=noobj|(a=>_)[is(eq(*a))]@/abc/bool/true_static;."
-                         "/abc/bool/true_static(false)"));
+   // FOS_TEST_OBJ_EQUAL(dool(false), PROCESS(""
+   //                      "|bcode?bool<=noobj|(a=>_)[is(eq(*a))]@/abc/bool/true_static;."
+    //                     "/abc/bool/true_static(false)"));
     //  FOS_TEST_OBJ_EQUAL(dool(false),PROCESS(""
     //                                    "|bcode?bool<=noobj|(_)[is(eq(*_0))]@/abc/bool/true_static;."
     //                                    "/abc/bool/true_static(false)"));
@@ -271,7 +279,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_uri_parsing); //
     FOS_RUN_TEST(test_lst_parsing); //
     FOS_RUN_TEST(test_rec_parsing); //
-    // FOS_RUN_TEST(test_inst_parsing); //
+    FOS_RUN_TEST(test_inst_parsing); //
     //////////////////////////////////
     FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //

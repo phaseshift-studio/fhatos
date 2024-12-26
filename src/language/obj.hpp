@@ -284,8 +284,39 @@ namespace fhatos {
     {IType::MANY_TO_MANY, "O->O (barrier)"},
   });
   using InstArgs = Rec_p;
-  using InstF = BiFunction<Obj_p, InstArgs, Obj_p>;
-  using InstF_p = ptr<BiFunction<Obj_p, InstArgs, Obj_p>>;
+
+  struct InstF {
+    bool pure;
+    Any f;
+
+    InstF() = default;
+
+    explicit InstF(const BiFunction<const Obj_p, const InstArgs, Obj_p> &ff) : pure(false),
+                                                                               f(make_shared<BiFunction<Obj_p, InstArgs,
+                                                                                 Obj_p>>(ff)) {
+    }
+
+    InstF(const Obj_p &obj_f, const bool pure) : pure(pure), f(obj_f) {
+    }
+
+    static ptr<InstF> wrap(const Obj_p &obj) {
+      return make_shared<InstF>(obj, true);
+    }
+
+    Obj_p obj_f() {
+      if(!this->pure)
+        throw fError("inst function written in native cxx");
+      return std::any_cast<Obj_p>(this->f);
+    }
+
+    ptr<BiFunction<const Obj_p, const InstArgs, Obj_p>> cpp_f() {
+      if(this->pure)
+        throw fError("inst function written in obj");
+      return std::any_cast<ptr<BiFunction<const Obj_p, const InstArgs, Obj_p>>>(this->f);
+    }
+  };
+
+  using InstF_p = ptr<InstF>;
   using InstValue = Quad<InstArgs, InstF_p, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
@@ -334,6 +365,7 @@ namespace fhatos {
 
   static ID_p SCHEDULER_ID = nullptr;
   static ID_p ROUTER_ID = nullptr;
+
 
   struct ObjPrinter {
     bool show_id;
@@ -1251,16 +1283,12 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
-        /* if(this->is_inst() && this->inst_f()) {
-           try { // TODO: total hack! -- need a union of native and bcode impl insts
-             string body = static_cast<Obj *>(this->inst_f().get())->toString();
-             obj_string = obj_string
-                 .append("!g[!!")
-                 .append(body)
-                 .append("!g]!!");
-           } catch(std::exception e) {
-           }
-         }*/
+        if(this->is_inst() && this->inst_f() && this->inst_f()->pure) {
+          obj_string = obj_string
+              .append("!g[!!")
+              .append(this->inst_f()->obj_f()->toString())
+              .append("!g]!!");
+        }
       }
       if(obj_printer->show_id && this->vid_) {
         obj_string += "!m@!b";
@@ -1595,7 +1623,9 @@ namespace fhatos {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
-            const Obj_p result = (*inst->inst_f())(lhs, remake);
+            const Obj_p result = inst->inst_f()->pure
+                                   ? (*inst->inst_f()->obj_f())(lhs, remake)
+                                   : (*inst->inst_f()->cpp_f())(lhs, remake);
             if(!result->is_code())
               TYPE_CHECKER(result.get(), inst->range(), true);
             ROUTER_POP_FRAME();
@@ -1609,28 +1639,6 @@ namespace fhatos {
         }
         case OType::BCODE: {
           return BCODE_PROCESSOR(this->shared_from_this()->bcode_starts(to_objs({lhs})))->none_one_all();
-          /*
-          ptr<Obj> current_obj = lhs;
-           for(const Inst_p &current_inst: *this->bcode_value()) {
-            LOG(TRACE, "applying %s !g=>!! %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
-            if(current_inst->is_noobj())
-              break;
-            try {
-              current_obj = current_inst->apply(
-                current_obj->is_objs() &&
-                !current_obj->objs_value()->empty() &&
-                !is_scatter(current_inst->itype())
-                  ? current_obj->objs_value()->front()
-                  : current_obj);
-            } catch(fError &e) {
-              throw fError("%s\n\t\t!rthrown at !ybcode!! %s !g=>!! %s", e.what(),
-                           current_obj->toString().c_str(),
-                           current_inst->toString().c_str());
-            }
-          }
-          return current_obj->is_objs() && !current_obj->objs_value()->empty() && !is_gather(this->itype())
-                   ? current_obj->objs_value()->front()
-                   : current_obj;*/
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -1640,7 +1648,7 @@ namespace fhatos {
           return objs;
         }
         default:
-          throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 

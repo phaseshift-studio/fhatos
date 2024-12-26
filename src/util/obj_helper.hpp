@@ -231,15 +231,20 @@ namespace fhatos {
       return this;
     }
 
-    InstBuilder *inst_f(const InstF &inst_f) {
+    InstBuilder *inst_f(const BiFunction<const Obj_p, const InstArgs, Obj_p> &inst_f) {
       this->function_supplier_ = make_shared<InstF>(inst_f);
       return this;
     }
 
-    InstBuilder *inst_f(const List_p<Inst_p> &code) {
-      this->function_supplier_ = Obj::to_bcode(code);
+    InstBuilder *inst_f(const Obj_p &obj) {
+      this->function_supplier_ = InstF::wrap(obj);
       return this;
     }
+
+    /* InstBuilder *inst_f(const List_p<Inst_p> &code) {
+       this->function_supplier_ = make_shared<InstF>(Obj::to_bcode(code));
+       return this;
+     }*/
 
     void save(const Obj_p &root = nullptr) const {
       const Inst_p inst = this->create(nullptr, root);

@@ -71,12 +71,12 @@ namespace fhatos {
   };
 
   static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-                                                                    {NO_TARGETS, "no targets"},
-                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-                                                                    {NO_SUBSCRIPTION, "no subscription"},
-                                                                    {NO_MESSAGE, "no message"},
-                                                                    {ROUTER_ERROR, "internal router error"},
-                                                                    {MUTEX_TIMEOUT, "router timeout"}});
+    {NO_TARGETS, "no targets"},
+    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+    {NO_SUBSCRIPTION, "no subscription"},
+    {NO_MESSAGE, "no message"},
+    {ROUTER_ERROR, "internal router error"},
+    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -87,15 +87,13 @@ namespace fhatos {
   static const ID_p MESSAGE_FURI = id_p(FOS_SCHEME "/msg");
 
   struct Message final : Rec {
-    explicit Message(const Rec_p &rec) :
-      Rec(*rec) {
+    explicit Message(const Rec_p &rec) : Rec(*rec) {
     }
 
-    explicit Message(const ID &target, const Obj_p &payload, const bool retain) :
-      Rec(rmap({
-              {"target", vri(target)},
-              {"payload", payload},
-              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+    explicit Message(const ID &target, const Obj_p &payload, const bool retain) : Rec(rmap({
+        {"target", vri(target)},
+        {"payload", payload},
+        {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID target() const {
@@ -144,16 +142,14 @@ namespace fhatos {
   static const ID_p SUBSCRIPTION_FURI = id_p(FOS_SCHEME "/sub");
 
   struct Subscription final : Rec {
-    explicit Subscription(const Rec_p &rec) :
-      Rec(*rec) {
+    explicit Subscription(const Rec_p &rec) : Rec(*rec) {
     }
 
-    explicit Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) :
-      Rec(rmap({
-              {"source", vri(source)},
-              {"pattern", vri(pattern)},
-              {":on_recv", on_recv}
-          }), OType::REC, SUBSCRIPTION_FURI) {
+    explicit Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) : Rec(rmap({
+        {"source", vri(source)},
+        {"pattern", vri(pattern)},
+        {":on_recv", on_recv}
+      }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID source() const {
@@ -175,7 +171,9 @@ namespace fhatos {
     }
 
     Obj_p process_message(const Message_p &message) const {
-      return (*this->inst_f())(message->payload(),{message});//, {message});
+      return inst_f()->pure
+               ? (*inst_f()->obj_f())(message->payload(), Obj::to_inst_args({message}))
+               : (*inst_f()->cpp_f())(message->payload(), Obj::to_inst_args({message}));
     }
 
     static Subscription_p create(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {

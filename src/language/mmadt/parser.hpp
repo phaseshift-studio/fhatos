@@ -122,7 +122,7 @@ namespace mmadt {
   private:
     Definition
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
-        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_X, NO_MATCH,
+        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_OBJ, NO_MATCH,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SET, OBJS, OBJ, TYPE_ID,
         CARDINALITY, COEF, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
@@ -157,53 +157,45 @@ namespace mmadt {
                                                          OType::REC,
                                                          REC_FURI,
                                                          id_p(id)) {
-      static auto noobj_action = [](const SemanticValues &) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(nullptr, OType::NOOBJ);
+      static auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> {
+        return {nullptr, OType::NOOBJ};
       };
-      static auto bool_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.choice() == 0, OType::BOOL);
+      static auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {vs.choice() == 0, OType::BOOL};
       };
-      static auto int_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.token_to_number<FOS_INT_TYPE>(), OType::INT);
+      static auto int_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {vs.token_to_number<FOS_INT_TYPE>(), OType::INT};
       };
-      static auto real_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.token_to_number<FOS_REAL_TYPE>(), OType::REAL);
+      static auto real_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {vs.token_to_number<FOS_REAL_TYPE>(), OType::REAL};
       };
-      static auto str_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.token_to_string(), OType::STR);
+      static auto str_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {vs.token_to_string(), OType::STR};
       };
-      static auto uri_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.choice() == 0 ? fURI("") : *any_cast<fURI_p>(vs[0]), OType::URI);
+      static auto uri_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {vs.choice() == 0 ? fURI("") : *any_cast<fURI_p>(vs[0]), OType::URI};
       };
-      static auto lst_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        const auto list = make_shared<List<Obj_p>>();
-        for(const auto &v: vs) {
-          list->push_back(any_cast<Obj_p>(v));
-        }
-        return make_shared<Pair<Any, OType>>(list, OType::LST);
+      static auto lst_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {make_shared<List<Obj_p>>(vs.transform<Obj_p>()), OType::LST};
       };
 
-      static auto rec_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
+      static auto rec_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         const auto map = make_shared<Obj::RecMap<>>();
         if(1 == vs.choice()) {
           for(int i = 0; i < vs.size(); i = i + 2) {
             map->insert(make_pair<Obj_p, Obj_p>(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1])));
           }
         }
-        return make_shared<Pair<Any, OType>>(map, OType::REC);
+        return {map, OType::REC};
       };
 
-      static auto objs_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        const auto list = make_shared<List<Obj_p>>();
-        for(const auto &v: vs) {
-          list->push_back(any_cast<Obj_p>(v));
-        }
-        return make_shared<Pair<Any, OType>>(list, OType::OBJS);
+      static auto objs_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+        return {make_shared<List<Obj_p>>(vs.transform<Obj_p>()), OType::OBJS};
       };
 
       static auto args_action = [](const SemanticValues &vs) -> InstArgs {
-        const Pair_p<Any, OType> proto = any_cast<Pair_p<Any, OType>>(vs[0]);
-        const Obj_p args_struct = Obj::create(proto->first, proto->second, OTYPE_FURI.at(proto->second));
+        const auto [v, o] = any_cast<Pair<Any, OType>>(vs[0]);
+        const Obj_p args_struct = Obj::create(v, o, OTYPE_FURI.at(o));
         if(0 == vs.choice())
           return args_struct;
         int counter = 0;
@@ -260,21 +252,22 @@ namespace mmadt {
 
           case 1: { // a[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
-            const auto [v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
+            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id,
                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 2: { // a|(c)[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto args = any_cast<InstArgs>(vs[1]);
-            const auto [v,o] = *any_cast<Pair_p<Any, OType>>(vs[2]);
+            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            return Obj::to_inst(InstValue(args, body, IType::ONE_TO_ONE, noobj()), type_id, value_id);
+            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), IType::ONE_TO_ONE, noobj()),
+                                type_id, value_id);
             // TODO: deduce itype from type_id
           }
           case 3: { // b@xyz
-            const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
+            const auto &[v,o] = any_cast<Pair<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o), vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
 
@@ -338,20 +331,17 @@ namespace mmadt {
 #endif
 
       static auto start_action = [](const SemanticValues &vs) {
-        if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) {
-          //this->first = false;
+        if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
-        }
         const auto insts = make_shared<List<Inst_p>>();
         bool first = true;
-        for(const auto &i: vs) {
-          const Obj_p o = any_cast<Obj_p>(i);
-          if(!o->is_code()) {
-            insts->push_back(Obj::to_inst({first ? Obj::to_objs({o}) : o}, id_p(first ? "start" : "map")));
-          } else if(o->is_inst()) {
-            insts->push_back(o);
+        for(const auto &obj: vs.transform<Obj_p>()) {
+          if(!obj->is_code()) {
+            insts->push_back(Obj::to_inst({first ? Obj::to_objs({obj}) : obj}, id_p(first ? "start" : "map")));
+          } else if(obj->is_inst()) {
+            insts->push_back(obj);
           } else {
-            for(const Inst_p &inst: *o->bcode_value()) {
+            for(const Inst_p &inst: *obj->bcode_value()) {
               insts->push_back(inst);
             }
           }
@@ -360,9 +350,9 @@ namespace mmadt {
         return Obj::to_bcode(insts);
       };
 
-      static auto start_x_action = [](const SemanticValues &vs) {
+      static auto start_obj_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         const auto obj = start_action(vs);
-        return make_shared<Pair<Any, OType>>(obj->value_, obj->o_type());
+        return {obj->value_, obj->o_type()};
       };
 
       WS <= zom(cls(" \t\n"));
@@ -391,6 +381,7 @@ namespace mmadt {
       URI <= cho(lit("<>"), FURI_INLINE, FURI), uri_action;
       LST <= cho(lit("[]"), seq(lit("["), START,
                                 zom(seq(lit(","), START)), lit("]"))), lst_action;
+      LST.error_message = "typed polys are type wrapped polys: lst[[]] not lst[]";
       REC <= cho(lit("[=>]"), seq(lit("["), START, lit("=>"), START,
                                   zom(seq(lit(","), START, lit("=>"), START)), lit("]"))), rec_action;
       OBJS <= seq(lit("{"), START, zom(seq(lit(","), START)), lit("}")), objs_action;
@@ -428,21 +419,21 @@ namespace mmadt {
       DOM_RNG.name = "range<=domain";
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
-      EMPTY <= lit(""), [](const SemanticValues &) {
-        return make_shared<Pair<Any, OType>>(Any(), OType::OBJ);
+      EMPTY <= seq(lit(""), npd(chr(']'))), [](const SemanticValues &) -> Pair<Any, OType> {
+        return {Any(), OType::OBJ};
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START_X <= START, start_x_action;
       OBJ <= cho(
         seq(INST), // a(b)@xyz
-        seq(TYPE_ID, lit("["), cho(START_X, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
-        seq(TYPE_ID, lit("|"), ARGS, lit("["), cho(START_X, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
+        seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
+        seq(TYPE_ID, lit("|"), ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
         seq(PROTO, opt(VALUE_ID)) // b@xyz
       ), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(opt(OBJ), zom(cho(seq(lit("."), OBJ), seq(opt(lit(".")), SUGAR_INST)))), start_action;
+      START <= seq(opt(OBJ), zom(cho(seq(END, START), seq(lit("."), OBJ), seq(SUGAR_INST)))), start_action;  // (END,OBJ) => ; next...
+      START_OBJ <= START, start_obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,7 +468,7 @@ namespace mmadt {
             try {
               if(vs.token_to_string().empty() || vs.token_to_string() == "_")
                 return false;
-              fURI(vs.token_to_string());
+              fURI(vs.token_to_string()); // bad: using exception handling for branching
             } catch(const std::exception &e) {
               //msg = e.what();
               return false;
