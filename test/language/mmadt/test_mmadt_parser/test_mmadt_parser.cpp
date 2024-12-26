@@ -55,7 +55,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[false]"));
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[   false]"));
     FOS_TEST_OBJ_NOT_EQUAL(dool(false), PROCESS("bool[true]"));
-    // TODO: FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("bool[start(false)]"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("bool[start(false)]"));
     FOS_TEST_ERROR("< bool >[false]");
   }
 
@@ -249,7 +249,7 @@ namespace fhatos {
 
   void test_type_definition_parsing() {
     const ID_p nat = id_p("/abc/nat");
-    // FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("(/abc/nat -> |/abc/nat?/abc/nat<=int[is(gt(0))]); /abc/nat[5]"));
+    FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("/abc/nat -> |/abc/nat?/abc/nat<=int[is(gt(0))]; /abc/nat[5]"));
   }
 
   FOS_RUN_TESTS( //
@@ -268,7 +268,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //
     FOS_RUN_TEST(test_apply_poly_parsing); //
-    FOS_RUN_TEST(test_type_definition_parsing); //
+    //FOS_RUN_TEST(test_type_definition_parsing); //
   )
 } // namespace fhatos
 

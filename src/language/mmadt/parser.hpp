@@ -122,7 +122,7 @@ namespace mmadt {
   private:
     Definition
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
-        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG,
+        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_X,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SET, OBJS, OBJ, TYPE_ID,
         CARDINALITY, COEF, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
@@ -325,6 +325,7 @@ namespace mmadt {
       };
 
 #endif
+
       static auto start_action = [](const SemanticValues &vs) {
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) {
           //this->first = false;
@@ -346,6 +347,11 @@ namespace mmadt {
           first = false;
         }
         return Obj::to_bcode(insts);
+      };
+
+      static auto start_x_action = [](const SemanticValues &vs) {
+        const auto obj = start_action(vs);
+        return make_shared<Pair<Any,OType>>(obj->value_,obj->o_type());
       };
 
       WS <= zom(cls(" \t\n"));
@@ -415,9 +421,10 @@ namespace mmadt {
         return make_shared<Pair<Any, OType>>(Any(), OType::OBJ);
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      START_X <= START, start_x_action;
       OBJ <= cho(
         seq(INST), // a(b)@xyz
-        seq(TYPE_ID, lit("["), cho(PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
+        seq(TYPE_ID, lit("["), cho(START_X, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
         seq(PROTO, opt(VALUE_ID)) // b@xyz
       ), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

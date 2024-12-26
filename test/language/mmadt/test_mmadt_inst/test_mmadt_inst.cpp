@@ -39,7 +39,7 @@ namespace fhatos {
      TEST_ASSERT_TRUE(args->is_indexed_args());
      args->rec_value()->insert({vri("_3"),vri("BAD")});
     TEST_ASSERT_FALSE(args->is_indexed_args());
-    //FOS_TEST_OBJ_EQUAL(args,PROCESS("[_0=>10,_1=>'eleven',_3=>BAD]"));
+    //TODO: FOS_TEST_OBJ_EQUAL(args,PROCESS("[_0=>10,_1=>'eleven',_3=>BAD]"));
     }
 
   void test_plus_inst() {
