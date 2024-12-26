@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <exception>
 #include <format>
+#include <string>
 
 #define FOS_ERROR_MESSAGE_SIZE 500
 
@@ -33,11 +34,12 @@ namespace fhatos {
   ///////////////////////
   class fError : public std::exception {
   protected:
-    std::unique_ptr<const char*> message_;
+    std::unique_ptr<const char *> message_;
 
+  public:
     template<typename... Args>
     explicit fError(const std::string_view &format, const Args... args) : message_{
-      std::make_unique<const char*>(strdup(std::vformat(format, std::make_format_args(args...).c_str())))
+      std::make_unique<const char *>(strdup(std::vformat(format, std::make_format_args(args...).c_str())))
     };
 
     template<typename... Args>
@@ -48,6 +50,7 @@ namespace fhatos {
     [[nodiscard]] virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
       return *this->_message;
     }
+
     ////////////////////////////////
 #else
 

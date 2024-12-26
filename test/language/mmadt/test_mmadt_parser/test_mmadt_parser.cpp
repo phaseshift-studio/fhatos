@@ -154,11 +154,11 @@ namespace fhatos {
 
   void test_inst_parsing() {
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
-    FOS_TEST_OBJ_EQUAL(jnt(66),PROCESS("1./abc/temp_inst()"));
+    FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst()"));
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
-    FOS_TEST_OBJ_EQUAL(jnt(68),PROCESS("2./abc/temp_inst(a=>66)"));
+    FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(a=>66)"));
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
-    FOS_TEST_OBJ_EQUAL(jnt(70),PROCESS("3./abc/temp_inst(67)"));
+    FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
 
     /*
     FOS_TEST_OBJ_EQUAL(jnt(66),PROCESS(
@@ -178,8 +178,8 @@ namespace fhatos {
                          "false./abc/bool/true_static(a=>_).to(/abc/bool/inst_parse);\n"
                          "*/abc/bool/inst_parse"
                        ));
-   // FOS_TEST_OBJ_EQUAL(dool(false), PROCESS(""
-   //                      "|bcode?bool<=noobj|(a=>_)[is(eq(*a))]@/abc/bool/true_static;."
+    // FOS_TEST_OBJ_EQUAL(dool(false), PROCESS(""
+    //                      "|bcode?bool<=noobj|(a=>_)[is(eq(*a))]@/abc/bool/true_static;."
     //                     "/abc/bool/true_static(false)"));
     //  FOS_TEST_OBJ_EQUAL(dool(false),PROCESS(""
     //                                    "|bcode?bool<=noobj|(_)[is(eq(*_0))]@/abc/bool/true_static;."
@@ -251,6 +251,12 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*(_)"));
     // TODO: maybe not though: FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>*"));
+    FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
+                         "</abc/star_1> -> /abc/star_2;"
+                         "/abc/star_2 -> </abc/star_3>;"
+                         "/abc/star_3 -> /abc/star_4;"
+                         "/abc/star_4 -> 123456;"
+                         "****/abc/star_1"));
   }
 
   void test_apply_mono_parsing() {

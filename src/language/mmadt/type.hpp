@@ -19,11 +19,10 @@
 #ifndef mmadt_types_hpp
 #define mmadt_types_hpp
 
-#include <assert.h>
-
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
 #include "../../language/type.hpp"
+#include <string>
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 100
@@ -101,6 +100,30 @@ namespace mmadt {
           })
           ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
           ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/drop")
+          ->type_args(x(0, "obj", ___))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            return args->arg(0)->apply(lhs);
+          })
+          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
+          ->save();
+
+      /*InstBuilder::build(MMADT_SCHEME "/lift")
+          ->type_args(x(0, "obj", ___))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const InstList_p next_insts = make_shared<List<Inst_p>>();
+            for(const Inst_p &next_inst: *args->arg(0)->bcode_value()) {
+              auto next_args = Obj::to_inst_args();
+              for(const auto &[k,v]: next_inst->inst_args()->rec_value()) {
+                next_args->rec_value()->insert({k, v});
+              }
+              next_insts->push_back(
+                Obj::to_inst(next_inst->inst_op(), next_args, next_inst->inst_f(), next_inst->itype(), next_inst->inst_seed_supplier()));
+            }
+            return Obj::to_bcode(next_insts);
+          })
+          ->save();*/
 
       InstBuilder::build(MMADT_SCHEME "/sum")
           ->domain_range(OBJS_FURI, OBJ_FURI)
@@ -642,7 +665,7 @@ namespace mmadt {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(
         std::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
-                             MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
+                    MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
     }
 
     static void *import() {

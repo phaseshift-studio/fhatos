@@ -129,7 +129,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
     Definition
         EMPTY_BCODE, AT, REPEAT, END, FROM, REF, PASS,
-        MULT, PLUS, BLOCK, WITHIN, MERGE,
+        MULT, PLUS, BLOCK, WITHIN, MERGE, DROP,
         SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
@@ -282,27 +282,15 @@ namespace mmadt {
       };
       //////////////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      static auto at_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("at")));
-      };
-      static auto from_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("from")));
-      };
-      static auto repeat_action = [](const SemanticValues &vs) -> Inst_p {
-        const Obj_p bcode = any_cast<BCode_p>(vs);
-        return Obj::to_bcode({Obj::to_inst({bcode}, id_p("repeat"))});
-      };
-      static auto block_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("block")));
-      };
-      static auto ref_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("to_inv")));
+
+      static const auto SUGAR_GENERATOR = [this](Definition &definition, const string &sugar, const string &opcode) {
+        definition <= seq(lit(sugar.c_str()), WRAQ("(", OBJ, START, ")")),
+            [opcode](const SemanticValues &vs) -> Inst_p const {
+              return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE(opcode)));
+            };
       };
       static auto within_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("within")));
-      };
-      static auto each_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("each")));
       };
       static auto end_action = [](const SemanticValues &) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args(), id_p(*ROUTER_RESOLVE("end")));
@@ -311,22 +299,11 @@ namespace mmadt {
         return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
                             id_p(*ROUTER_RESOLVE("merge")));
       };
-      static auto split_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("split")));
-      };
-
       static auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
                             id_p(*ROUTER_RESOLVE("to_inv")));
       };
 
-      static auto plus_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("plus")));
-      };
-
-      static auto mult_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("mult")));
-      };
 
 #endif
 
@@ -432,7 +409,8 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(opt(OBJ), zom(cho(seq(END, START), seq(lit("."), OBJ), seq(SUGAR_INST)))), start_action;  // (END,OBJ) => ; next...
+      START <= seq(opt(OBJ), zom(cho(seq(END, START), seq(lit("."), OBJ), seq(SUGAR_INST)))), start_action;
+      // (END,OBJ) => ; next...
       START_OBJ <= START, start_obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -445,18 +423,29 @@ namespace mmadt {
       SUGAR_INST <= cho(AT, PLUS, MULT, WITHIN, EMPTY_BCODE, FROM, PASS, REF,
                         BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
-      AT <= seq(lit("@"), WRAQ("(", OBJ, START, ")")), at_action;
-      FROM <= seq(lit("*"), WRAQ("(", OBJ, START, ")")), from_action;
-      REF <= seq(lit("->"), WRAQ("(", OBJ, START, ")")), ref_action;
-      BLOCK <= seq(lit("|"), WRAQ("(", OBJ, START, ")")), block_action;
+      SUGAR_GENERATOR(AT, "@", "at");
+      SUGAR_GENERATOR(DROP, "v", "drop");
+      SUGAR_GENERATOR(FROM, "*", "from");
+      SUGAR_GENERATOR(REF, "->", "to_inv");
+      SUGAR_GENERATOR(BLOCK, "|", "block");
+      SUGAR_GENERATOR(SPLIT, "-<", "split");
+      SUGAR_GENERATOR(EACH, "==", "each");
+      SUGAR_GENERATOR(PLUS, "+", "plus");
+      SUGAR_GENERATOR(MULT, "x", "mult");
+
+      /*  AT <= seq(lit("@"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("at");
+        DROP <= seq(lit("/|"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("drop");
+        FROM <= seq(lit("*"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("from");
+        REF <= seq(lit("->"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("ref");
+        BLOCK <= seq(lit("|"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("block");*/
       PASS <= seq(lit("-->"), WRAQ("(", OBJ, START, ")")), pass_action;
       MERGE <= seq(chr('>'), opt(OBJ), chr('-')), merge_action;
-      SPLIT <= seq(lit("-<"), WRAQ("(", OBJ, START, ")")), split_action;
-      EACH <= seq(lit("=="), WRAQ("(", OBJ, START, ")")), each_action;
+      /* SPLIT <= seq(lit("-<"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("split");
+       EACH <= seq(lit("=="), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("each");*/
       END <= lit(";"), end_action;
       WITHIN <= seq(lit("_/"), START, lit("\\_")), within_action;
-      PLUS <= seq(lit("+ "), ~WS, WRAQ("(", OBJ, START, ")")), plus_action;
-      MULT <= seq(lit("x "), ~WS, WRAQ("(", OBJ, START, ")")), mult_action;
+      /* PLUS <= seq(lit("+ "), ~WS, WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("plus");
+       MULT <= seq(lit("x "), ~WS, WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("mult");*/
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif
