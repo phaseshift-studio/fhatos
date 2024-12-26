@@ -1234,7 +1234,7 @@ namespace fhatos {
                           : string("!B").append(this->tid_->name()).append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
-          !this->is_base_type() &&
+           !this->is_base_type() &&
            (this->itype2() != IType::ONE_TO_ONE ||
             !this->domain()->equals(*OBJ_FURI) ||
             !this->range()->equals(*OBJ_FURI))) {
@@ -1866,6 +1866,11 @@ namespace fhatos {
 
     static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
                           const ID_p &value_id = nullptr) {
+      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
+                     value_id);
+    }
+
+    static Inst_p to_inst(const List<Obj_p> &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
       return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
                      value_id);
     }
