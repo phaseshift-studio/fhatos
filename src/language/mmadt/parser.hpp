@@ -122,7 +122,7 @@ namespace mmadt {
   private:
     Definition
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
-        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_X,
+        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_X, NO_MATCH,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SET, OBJS, OBJ, TYPE_ID,
         CARDINALITY, COEF, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
@@ -257,16 +257,27 @@ namespace mmadt {
           case 0: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);
           }
+
           case 1: { // a[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto [v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id,
                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 2: { // b@xyz
+          case 2: { // a|(c)[b]@xyz
+            const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            const auto args = any_cast<InstArgs>(vs[1]);
+            const auto [v,o] = *any_cast<Pair_p<Any, OType>>(vs[2]);
+            const Obj_p body = Obj::create(v, o, type_id);
+            const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
+            return Obj::to_inst(InstValue(args, body, IType::ONE_TO_ONE, noobj()), type_id, value_id);
+            // TODO: deduce itype from type_id
+          }
+          case 3: { // b@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o), vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
+
           default: throw fError("unknown obj parse branch");
         }
       };
@@ -351,7 +362,7 @@ namespace mmadt {
 
       static auto start_x_action = [](const SemanticValues &vs) {
         const auto obj = start_action(vs);
-        return make_shared<Pair<Any,OType>>(obj->value_,obj->o_type());
+        return make_shared<Pair<Any, OType>>(obj->value_, obj->o_type());
       };
 
       WS <= zom(cls(" \t\n"));
@@ -425,6 +436,7 @@ namespace mmadt {
       OBJ <= cho(
         seq(INST), // a(b)@xyz
         seq(TYPE_ID, lit("["), cho(START_X, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
+        seq(TYPE_ID, lit("|"), ARGS, lit("["), cho(START_X, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
         seq(PROTO, opt(VALUE_ID)) // b@xyz
       ), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

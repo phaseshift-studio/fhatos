@@ -1231,7 +1231,7 @@ namespace fhatos {
          (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
-                          : string("!B").append(this->tid_->name()).append("!!");
+                          : string("!B").append(this->is_bcode() ? "!!" : this->tid_->name()).append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            !this->is_base_type() &&
@@ -1251,7 +1251,16 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
-        //if(this->is_inst() && this->inst_f())
+        /* if(this->is_inst() && this->inst_f()) {
+           try { // TODO: total hack! -- need a union of native and bcode impl insts
+             string body = static_cast<Obj *>(this->inst_f().get())->toString();
+             obj_string = obj_string
+                 .append("!g[!!")
+                 .append(body)
+                 .append("!g]!!");
+           } catch(std::exception e) {
+           }
+         }*/
       }
       if(obj_printer->show_id && this->vid_) {
         obj_string += "!m@!b";
