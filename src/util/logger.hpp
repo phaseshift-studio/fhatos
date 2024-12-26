@@ -24,45 +24,38 @@
 
 namespace fhatos {
   inline auto stdout_mutex = std::mutex();
+
   enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
+
   static const auto LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
-                                                            {TRACE, "TRACE"},
-                                                            {DEBUG, "DEBUG"},
-                                                            {INFO, "INFO"},
-                                                            {WARN, "WARN"},
-                                                            {ERROR, "ERROR"},
-                                                            {NONE, "NONE"}});
+    {TRACE, "TRACE"},
+    {DEBUG, "DEBUG"},
+    {INFO, "INFO"},
+    {WARN, "WARN"},
+    {ERROR, "ERROR"},
+    {NONE, "NONE"}});
 
   class Logger {
   public:
-    static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-
-      if (static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
+    template<typename... Args>
+    static void MAIN_LOG(const LOG_TYPE type, const char *format, const Args... args) {
+      if(static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
         return;
-      va_list arg;
-      va_start(arg, format);
-      char *buffer;
-      const size_t length = vasprintf(&buffer, format, arg);
-      va_end(arg);
-      if (format[strlen(format) - 1] == '\n')
-        buffer[length - 1] = '\n';
-      buffer[length] = '\0';
       // control garbled concurrent writes (destructor releases lock)
       std::lock_guard<std::mutex> lock(stdout_mutex);
-      if (type == NONE)
+      if(type == NONE)
         printer<>()->print("");
-      else if (type == ERROR)
+      else if(type == ERROR)
         printer<>()->print("!r[ERROR]!! ");
-      else if (type == WARN)
+      else if(type == WARN)
         printer<>()->print("!y[WARN] !! ");
-      else if (type == INFO)
+      else if(type == INFO)
         printer<>()->print("!g[INFO] !! ");
-      else if (type == DEBUG)
+      else if(type == DEBUG)
         printer<>()->print("!y[DEBUG]!! ");
-      else if (type == TRACE)
+      else if(type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
-      printer<>()->print(buffer);
-      free(buffer);
+      printer<>()->print(std::vformat(format, std::make_format_args(args...)).c_str());
     }
   };
 } // namespace fhatos

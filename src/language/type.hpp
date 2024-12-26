@@ -73,7 +73,7 @@ namespace fhatos {
                       type_id->toString().c_str(),
                       type_id->toString().c_str());
             } else {
-              LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
+              LOG_OBJ(INFO, this, "!b{} !ytype!! !b!-{}!! overwritten\n",
                       type_id->toString().c_str(), current->toString().c_str());
             }
           }
@@ -110,13 +110,13 @@ namespace fhatos {
           if(throw_on_fail) {
             static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
             p->show_type = false;
-            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
+            throw fError("!g[!b{}!g]!! {} is !rnot!! a !b{}!! as defined by {}", this->vid()->toString().c_str(),
                          obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
           }
           return false;
         }
         if(throw_on_fail)
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+          throw fError("!g[!b{}!g] !b{}!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
         return false;
       };
@@ -126,7 +126,7 @@ namespace fhatos {
         const ID_p resolved_type_id = id_p(*ROUTER_RESOLVE(fURI(*type_id)));
         const Obj_p type_def = ROUTER_READ(type_id);
         if(type_def->is_noobj()) {
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+          throw fError("!g[!b{}!g] !b{}!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
         }
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping ??
@@ -135,7 +135,7 @@ namespace fhatos {
                                   ? obj
                                   : type_def->apply(obj);
         if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI) && !resolved_type_id->equals(*OBJ_FURI))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!",
+          throw fError("!g[!b{}!g]!! {} is not a !b{}!!",
                        Type::singleton()->vid()->toString().c_str(),
                        obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
@@ -144,7 +144,7 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
-        LOG_OBJ(DEBUG, lhs, " !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString().c_str());
+        LOG_OBJ(DEBUG, lhs, " !yresolving!! !yinst!! {} [!gSTART!!]\n", inst->toString().c_str());
         if(inst->is_noobj())
           return inst;
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
@@ -155,7 +155,7 @@ namespace fhatos {
             Inst_p maybe;
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid()) {
-              LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
+              LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b{}!!\n", inst_type_id->toString().c_str());
               if(derivation_tree)
                 derivation_tree->emplace_back(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
               maybe = ROUTER_READ(id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id)));
@@ -164,7 +164,7 @@ namespace fhatos {
             }
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
-            LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
+            LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b{}!!\n", inst_type_id->toString().c_str());
             if(derivation_tree)
               derivation_tree->emplace_back(current_obj->tid()->equals(*OBJ_FURI)
                                               ? fURI(*inst_type_id)
@@ -195,19 +195,19 @@ namespace fhatos {
               int counter = 0;
               for(const auto &id: derivation_tree) {
                 counter = inst->tid()->equals(id) ? 1 : counter + 1;
-                error_message.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
+                error_message.append(std::format("\t!m{}>" FURI_WRAP "\n",
                                                           StringHelper::repeat(counter, "--").c_str(),
                                                           id.toString().c_str()));
               }
               error_message = error_message.empty() ? "" : error_message.substr(0, error_message.size() - 1);
               // remove trailing \n
-              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
+              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n{}", lhs->tid()->toString().c_str(),
                            inst->tid()->toString().c_str(), error_message.c_str());
               ////////////////////////////////////////////////////////////////////////////////
             }
           }
           if(final_inst->is_inst()) {
-            LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
+            LOG(TRACE, "merging resolved inst into provide inst\n\t\t{} => {} [!m{}!!]\n",
                 final_inst->toString().c_str(),
                 inst->toString().c_str(),
                 ITypeDescriptions.to_chars(final_inst->itype()).c_str());
@@ -239,7 +239,7 @@ namespace fhatos {
         } else {
           final_inst = inst;
         }
-        LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
+        LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! {} [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;
       };
     }

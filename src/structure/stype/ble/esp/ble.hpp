@@ -50,7 +50,7 @@ namespace fhatos {
       Computed::setup();
       BLEDevice::init(this->pattern_->toString().c_str());
       const BLEUUID service_uuid =
-          BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
+          BLEUUID::fromString(std::format("0x{}", this->pattern_->toString().c_str()));
       this->server_ = BLEDevice::createServer();
 
       this->service_ = this->server_->createService(service_uuid);
@@ -68,7 +68,7 @@ namespace fhatos {
              IdObjPairs_p list = make_shared<IdObjPairs>();
              BLECharacteristic *c = this->service_->getCharacteristic(furi->toString());
              if (c) {
-               LOG_STRUCTURE(DEBUG, this, "Reading BLE characteristic: %s\n", c->toString().c_str());
+               LOG_STRUCTURE(DEBUG, this, "Reading BLE characteristic: {}\n", c->toString().c_str());
                const string v = c->getValue();
                const Obj_p obj = Obj::deserialize(
                    ptr<Pair<uint32_t, fbyte *>>((new Pair<uint32_t, fbyte *>(v.length(), (fbyte *) v.c_str()))));
@@ -83,7 +83,7 @@ namespace fhatos {
                  furi->toString(), BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
              c->setValue(string((char *) obj->serialize()->second));
              // c->setBroadcastProperty(true);
-             LOG_STRUCTURE(DEBUG, this, "Writing BLE characteristic: %s\n", c->toString().c_str());
+             LOG_STRUCTURE(DEBUG, this, "Writing BLE characteristic: {}\n", c->toString().c_str());
              return List<Pair<ID_p, Obj_p>>();
            }});
     }

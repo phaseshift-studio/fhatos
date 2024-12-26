@@ -64,7 +64,7 @@ namespace fhatos {
 
     explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
       if (this->exists()) {
-        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());
+        LOG_STRUCTURE(INFO, this, "reusing existing connection to {}\n", settings.broker_.c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
       } else if (this->settings_.broker_.empty()) {
         LOG_STRUCTURE(WARN, this, "mqtt disabled as no broker address provided\n");
@@ -81,7 +81,7 @@ namespace fhatos {
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
           const Message_p message = Message::create(ID(topic), payload, retained);
-          LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
+          LOG_STRUCTURE(TRACE, this, "recieved message {}\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for (const Subscription_p &sub: *matches) {
@@ -96,14 +96,14 @@ namespace fhatos {
     virtual void loop() override {
       BaseMqtt::loop();
       if (!MQTT_CONNECTION->connected()) {
-        LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
+        LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r{}!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
         if (!MQTT_CONNECTION->connect(this->settings_.client_.c_str())) {
           Process::current_process()->delay(5000);
         }
       }
       if (!MQTT_CONNECTION->loop()) {
-        LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r%s!!\n",
+        LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r{}!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
       }
     }
@@ -159,7 +159,7 @@ namespace fhatos {
           if (!pass) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
-            LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n", this->settings_.broker_.c_str());
+            LOG_STRUCTURE(WARN, this, "!b{} !yconnection!! retry\n", this->settings_.broker_.c_str());
             Process::current_process()->delay(5000);
           }
           if (MQTT_CONNECTION->connected()) {
@@ -168,7 +168,7 @@ namespace fhatos {
           }
         }
       } catch (const fError &e) {
-        LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "unable to connect to !b{}!!: {}\n", this->settings_.broker_.c_str(), e.what());
       }
     }
   };

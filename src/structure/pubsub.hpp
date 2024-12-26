@@ -30,24 +30,24 @@ namespace fhatos {
 #define TRANSIENT false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",            \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!{}!m][!b{}!m]=!gsubscribe!m=>[!b{}!m]!! | !m[onRecv:!!{}!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       (subscription)->source().toString().c_str(), (subscription)->pattern().toString().c_str(),                           \
       (subscription)->on_recv()->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!{}!m][!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),   \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
+  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!{}!m][!b{}!m]=!gpublish!m[retain:{}]!b=>!m[!b{}!m]!!\n",                      \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       ((message).payload()->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                       \
       ((message).target().toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
   LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
       (((subscription).pattern().equals((message).target()))                                                               \
-           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!!\n"                                         \
-           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!!\n"),                                       \
+           ? "!m[!!{}!m][!b{}!m]<=!greceive!m[pattern|target:!b{}!m]=!!{}!!\n"                                         \
+           : "!m[!!{}!m][!b{}!m]<=!greceive!m[pattern:{}][target:{}]=!!{}!!\n"),                                       \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((subscription).source().toString().c_str()), ((subscription).pattern().toString().c_str()),                         \
       ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                      \
@@ -98,19 +98,19 @@ namespace fhatos {
 
     ID target() const {
       return ID(this->rec_get(vri("target"), [this]() {
-        throw fError("message has no !ytarget!!: %s", this->toString().c_str());
+        throw fError("message has no !ytarget!!: {}", this->toString().c_str());
       })->uri_value());
     }
 
     Obj_p payload() const {
       return this->rec_get(vri("payload"), [this]() {
-        throw fError("message has no !ypayload!!: %s", this->toString().c_str());
+        throw fError("message has no !ypayload!!: {}", this->toString().c_str());
       });
     }
 
     bool retain() const {
       return this->rec_get(vri("retain"), [this]() {
-        throw fError("message has no !yretain!!: %s", this->toString().c_str());
+        throw fError("message has no !yretain!!: {}", this->toString().c_str());
       })->value<bool>();
     }
 
@@ -154,19 +154,19 @@ namespace fhatos {
 
     ID source() const {
       return ID(this->rec_get("source", [this]() {
-        throw fError("subscription has no !ysource!!: %s", this->toString().c_str());
+        throw fError("subscription has no !ysource!!: {}", this->toString().c_str());
       })->uri_value());
     }
 
     Pattern pattern() const {
       return Pattern(this->rec_get("pattern", [this]() {
-        throw fError("subscription has no !ypattern!!: %s", this->toString().c_str());
+        throw fError("subscription has no !ypattern!!: {}", this->toString().c_str());
       })->uri_value());
     }
 
     BCode_p on_recv() const {
       return this->rec_get(":on_recv", [this]() {
-        throw fError("subscription has no !yon_recv!!: %s", this->toString().c_str());
+        throw fError("subscription has no !yon_recv!!: {}", this->toString().c_str());
       });
     }
 

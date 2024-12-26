@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include <exception>
+#include <format>
 
 #define FOS_ERROR_MESSAGE_SIZE 500
 
@@ -59,36 +60,17 @@ namespace fhatos {
 
   class /*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/ fError final : public std::exception {
   protected:
-    char _message[FOS_ERROR_MESSAGE_SIZE];
+    const char *_message;
 
   public:
-    explicit fError(const char *format, ...) noexcept: _message{{0}} {
-      va_list arg;
-      va_start(arg, format);
-      const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
-      va_end(arg);
-      //_message[length] = '\0';
-      if(length >= FOS_ERROR_MESSAGE_SIZE) {
-        _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
-        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
-        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
-      }
+    template<typename... Args>
+    explicit fError(const std::string_view &format, const Args... args) noexcept: _message{
+      std::vformat(format, std::make_format_args(args...)).c_str()} {
     }
 
-    static fError create(const std::string &type_id, const char *format, ...) noexcept {
-      va_list arg;
-      va_start(arg, format);
-      char message[FOS_ERROR_MESSAGE_SIZE];
-      const size_t length = vsnprintf(message, FOS_ERROR_MESSAGE_SIZE, format, arg);
-      va_end(arg);
-      //_message[length] = '\0';
-      if(length >= FOS_ERROR_MESSAGE_SIZE) {
-        message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
-        message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
-        message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
-      }
-      const string format2 = string("!g[!m").append(type_id).append("!g] ").append(message);
-      return fError(format2.c_str());
+    template<typename... Args>
+    static fError create(const std::string &type_id, const std::string_view &format, const Args... args) noexcept {
+      return fError(string("!g[!m").append(type_id).append("!g] ").append(format), args...);
     }
 
     const char *what() const noexcept override { return this->_message; };

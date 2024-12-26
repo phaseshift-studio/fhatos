@@ -104,21 +104,6 @@ namespace fhatos {
       return temp;
     }
 
-    static string format(const char *format, ...) {
-      va_list arg;
-      va_start(arg, format);
-      char *message;
-      const size_t length = vasprintf(&message, format, arg);
-      va_end(arg);
-      if(format[strlen(format) - 1] == '\n')
-        message[length - 1] = '\n';
-      message[length] = '\0';
-      va_end(arg);
-      const auto ret = string(message);
-      free(message);
-      return ret;
-    }
-
     static void ltrim(std::string &s) {
       s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127; }));
     }

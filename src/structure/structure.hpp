@@ -93,7 +93,7 @@ namespace fhatos {
       Option<Mail_p> mail = this->outbox_->pop_front();
       while(mail.has_value()) {
         FEED_WATCDOG();
-        LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
+        LOG_STRUCTURE(TRACE, this, "processing message {} for subscription {}\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
@@ -114,7 +114,7 @@ namespace fhatos {
 
     virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
       if(!this->available_.load())
-        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
+        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! {} from {}\n", source->toString().c_str(),
                     target->toString().c_str());
       else {
         this->subscriptions_->remove_if(
@@ -130,10 +130,10 @@ namespace fhatos {
 
     virtual void recv_subscription(const Subscription_p &subscription) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to receive!! %s\n", subscription->toString().c_str());
+        LOG_STRUCTURE(ERROR, this, "!yunable to receive!! {}\n", subscription->toString().c_str());
         return;
       }
-      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
+      LOG_STRUCTURE(DEBUG, this, "!yreceived!! {}\n", subscription->toString().c_str());
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
       this->recv_unsubscribe(id_p(subscription->source()), p_p(subscription->pattern()));
       if(!subscription->on_recv()->is_noobj()) {
@@ -163,7 +163,7 @@ namespace fhatos {
 
     virtual Obj_p read(const fURI_p &furi) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
+        LOG_STRUCTURE(ERROR, this, "!yunable to read!! {}\n", furi->toString().c_str());
         return noobj();
       }
       if(furi->has_query()) {
@@ -191,7 +191,7 @@ namespace fhatos {
           objs->add_obj(ROUTER_READ(furi_p(query_less_furi->extend(":inst"))));
           for(const Obj_p &o: *objs->objs_value()) {
             if(!o->is_rec())
-              throw fError("obj instructs must be records: %s", o->toString().c_str());
+              throw fError("obj instructs must be records: {}", o->toString().c_str());
             insts->rec_merge(o->rec_value());
           }
           objs->objs_value()->clear();
@@ -249,7 +249,7 @@ namespace fhatos {
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
+        LOG_STRUCTURE(ERROR, this, "!yunable to write!! {}\n", obj->toString().c_str());
         return;
       }
       if(retain) {
@@ -371,7 +371,7 @@ namespace fhatos {
 
     void check_availability(const string &function) const {
       if(!this->available())
-        throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
+        throw fError("structure " FURI_WRAP " not available for {}", function.c_str());
     }
 
     virtual void distribute_to_subscribers(const Message_p &message) {

@@ -182,7 +182,7 @@ namespace fhatos {
                     return jnt((FOS_INT_TYPE) ::rand());
                   if (applied_arg->uri_value().has_path("real"))
                     return real(static_cast<float>(::rand()) / (FOS_REAL_TYPE) (RAND_MAX / 1.0f));
-                  throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
+                  throw fError("{} can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
                   return noobj();
                 };
               },
@@ -249,7 +249,7 @@ namespace fhatos {
                       return lhs;
                     }
                     default:
-                      throw fError("Unknown obj type in []: %s", OTypes.to_chars(lhs->o_type()).c_str());
+                      throw fError("Unknown obj type in []: {}", OTypes.to_chars(lhs->o_type()).c_str());
                   }
                 };
               },
@@ -565,7 +565,7 @@ namespace fhatos {
               "print", {to_print},
               [](const InstArgs &args) {
                 return [args](const Obj_p &lhs) {
-                  printer()->printf("%s\n", args.at(0)->toString().c_str());
+                  printer()->printf("{}\n", args.at(0)->toString().c_str());
                   return lhs;
                 };
               },
@@ -931,7 +931,7 @@ namespace fhatos {
                     return lhs->rec_get(args.at(0));
                   if (lhs->is_lst())
                     return lhs->lst_get(args.at(0));
-                  throw fError("from_get doesn't support %s", lhs->tid()->toString().c_str());
+                  throw fError("from_get doesn't support {}", lhs->tid()->toString().c_str());
                 };
               },
               IType::ONE_TO_ONE);
@@ -974,7 +974,7 @@ namespace fhatos {
     */
     static const List<Obj_p> &arg_check(const ID_p &inst, const List<Obj_p> &args, const uint8_t expected_size) {
       if(args.size() != expected_size)
-        throw fError("incorrect number of arguments provided to %s: %i != %i", inst->toString().c_str(), args.size(),
+        throw fError("incorrect number of arguments provided to {}: %i != %i", inst->toString().c_str(), args.size(),
                      expected_size);
       return args;
     }

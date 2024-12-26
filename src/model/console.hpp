@@ -65,7 +65,7 @@ namespace fhatos {
     }
 
     void print_exception(const std::exception &ex) const {
-      this->write_stdout(str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())));
+      this->write_stdout(str(std::format("!r[ERROR]!! {}\n", ex.what())));
     }
 
     void print_prompt(const bool blank = false) const {
@@ -74,7 +74,7 @@ namespace fhatos {
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth, string *to_out) const {
-      LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
+      LOG_PROCESS(TRACE, this, "printing processor result: {}\n", obj->toString().c_str());
       if(obj->is_objs())
         for(Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
@@ -86,8 +86,8 @@ namespace fhatos {
                        (obj->is_lst() ? "[" : "{") + "!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
-          to_out->append(StringHelper::format(
-            "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+          to_out->append(std::format(
+            "{}{}!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
             e->is_poly() ? "" : e->toString().c_str()));
           if(e->is_poly())
             this->print_result(e, depth + 1, to_out);
@@ -102,8 +102,8 @@ namespace fhatos {
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
           Process::current_process()->feed_watchdog_via_counter();
-          to_out->append(StringHelper::format(
-            "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+          to_out->append(std::format(
+            "{}!c{}!m=>!!{}!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
             key->toString().c_str(),
             value->is_poly()
               ? ""
@@ -123,7 +123,7 @@ namespace fhatos {
         to_out->append(obj_string);
       } else {
         to_out->append(string("!g") + StringHelper::repeat(depth, "="));
-        to_out->append(StringHelper::format("==>!!%s\n",
+        to_out->append(std::format("==>!!{}\n",
                                             obj->toString().c_str()));
       }
     }
@@ -138,7 +138,7 @@ namespace fhatos {
       }
       /////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////
-      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
+      LOG_PROCESS(DEBUG, this, "line to parse: {}\n", line.c_str());
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
       try {
@@ -149,7 +149,7 @@ namespace fhatos {
           return;
         }
         const Obj_p obj = OBJ_PARSER(line);
-        LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
+        LOG_PROCESS(TRACE, this, "processing: {}\n", obj->toString().c_str());
         string to_out;
         this->print_result(obj->is_bcode() ? BCODE_PROCESSOR(obj) : obj, 0, &to_out);
         this->write_stdout(str(to_out));
@@ -204,7 +204,7 @@ namespace fhatos {
             ->type_args(x(0, "code", Obj::to_type(STR_FURI)))
             ->inst_f([this](const Obj_p &, const InstArgs &args) {
               this->print_prompt();
-              Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", args->arg(0)->str_value().c_str())));
+              Terminal::STD_OUT_DIRECT(str(std::format("{}\n", args->arg(0)->str_value().c_str())));
               string code = args->arg(0)->str_value();
               if(FOS_IS_DOC_BUILD)
                 StringHelper::replace(&code, "\\|", "|");

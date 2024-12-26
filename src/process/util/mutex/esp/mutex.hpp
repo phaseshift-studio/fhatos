@@ -54,7 +54,7 @@ namespace fhatos {
         if (pdTRUE == xSemaphoreGive(this->xmutex))
           return t;
        }
-        throw fError("Unable to lock mutex %s", this->_label);
+        throw fError("Unable to lock mutex {}", this->_label);
 #elif defined(ESP8266)
       return T(criticalFunction());
 #endif

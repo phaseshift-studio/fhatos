@@ -65,7 +65,7 @@ namespace fhatos {
           const MemInfo mem_info = this->get_mem_info();
           return List<Pair<ID_p, Obj_p>>(
             {{MEMORY_IDS_.at(0),
-              parse(StringHelper::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
+              parse(std::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
                                               mem_info.usage_mem))}});
         }});*/
       /* this->read_functions_.insert(
@@ -96,7 +96,7 @@ namespace fhatos {
                   {{MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
                                              ESP_THREAD_STACK_SIZE, free, used)}});
             }});*/
-      // LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded:!y\n\t%s\n\t%s\n\t%s!!\n",
+      // LOG_STRUCTURE(INFO, this, "!b{} !yread functions!! loaded:!y\n\t{}\n\t{}\n\t{}!!\n",
       //     FOS_INST_MEMORY_FURI->toString().c_str(), FOS_HEAP_MEMORY_FURI->toString().c_str(),
       //     FOS_PSRAM_MEMORY_FURI->toString().c_str());
     }

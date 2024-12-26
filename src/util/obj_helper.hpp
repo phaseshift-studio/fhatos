@@ -46,15 +46,15 @@ namespace fhatos {
 
      static Obj_p apply_lhs_args(const Obj_p &old_obj, const Lst_p &lhs_args, const Obj_p &lhs = noobj()) {
        if(old_obj->is_noobj())
-         throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
-       LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
+         throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b{}!!", old_obj->toString().c_str());
+       LOG(DEBUG, "apply_lhs_args: {} => {}\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
        if(!lhs_args->is_lst())
          return old_obj->apply(lhs_args);
        if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
          return old_obj->apply(lhs_args->lst_get(0));
        if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
          const Obj_p new_obj = ObjHelper::replace_from_obj(old_obj, *lhs_args->lst_get(1)->lst_value(), lhs);
-         LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
+         LOG(DEBUG, "structure read() transformed bcode: {} => {}\n", old_obj->toString().c_str(),
              new_obj->toString().c_str());
          return new_obj->apply(lhs_args->lst_get(0));
        }
@@ -69,7 +69,7 @@ namespace fhatos {
            return args.at(index);
          if(old_inst->inst_args().size() == 2)
            return old_inst->inst_args().at(1); // default argument
-         throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
+         throw fError("{} requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
                       old_inst->inst_args().size(), args.size());
        } else if(is_from && old_inst->inst_arg(0)->toString() == "_") {
          return lhs;
@@ -104,13 +104,13 @@ namespace fhatos {
 
      static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args, const Obj_p &lhs = noobj()) {
        BCode_p new_bcode = Obj::to_bcode(make_shared<List<Obj_p>>(), old_bcode->tid());
-       LOG(TRACE, "old bcode: %s\n", old_bcode->toString().c_str());
+       LOG(TRACE, "old bcode: {}\n", old_bcode->toString().c_str());
        for(const Inst_p &old_inst: *old_bcode->bcode_value()) {
-         LOG(TRACE, "replacing old bcode inst: %s\n", old_inst->toString().c_str());
+         LOG(TRACE, "replacing old bcode inst: {}\n", old_inst->toString().c_str());
          const Inst_p new_inst = replace_from_inst(old_inst, args, lhs);
          new_bcode = new_bcode->add_inst(new_inst);
        }
-       LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
+       LOG(TRACE, "new bcode: {}\n", new_bcode->toString().c_str());
        return new_bcode;
      }
 
@@ -147,7 +147,7 @@ namespace fhatos {
 
     /* InstF NO_OBJ_INST() const {
        return [this](const Obj_p &lhs, const InstArgs &args) {
-         LOG(TRACE, "base-type instruction requiring resolution for %s\n", lhs->toString().c_str());
+         LOG(TRACE, "base-type instruction requiring resolution for {}\n", lhs->toString().c_str());
 
          List<ID> derivation = {*this->type_};
          Inst_p resolve = RESOLVE_INST(lhs, this->type_, &derivation);
@@ -161,12 +161,12 @@ namespace fhatos {
            int counter = 0;
            for(int i = 0; i < derivation.size(); i++) {
              counter = derivation.at(i).equals(*this->type_) ? 1 : counter + 1;
-             result.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
+             result.append(std::format("\t!m{}>" FURI_WRAP "\n",
                                                 StringHelper::repeat(counter, "--").c_str(),
                                                 derivation.at(i).toString().c_str()).c_str());
            }
            result = result.empty() ? "" : result.substr(0, result.size() - 1); // remove trailing \n
-           throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
+           throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n{}", lhs->tid()->toString().c_str(),
                         this->type_->toString().c_str(), result.c_str());
          }
          /* InstArgs args_applied;

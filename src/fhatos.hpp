@@ -227,23 +227,23 @@ namespace fhatos {
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 #define FSTR(a) STR(a)
-#define FURI_WRAP "!g[!b%s!g]!!"
-#define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
-#define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
+#define FURI_WRAP "!g[!b{}!g]!!"
+#define FURI_WRAP_C(color) STR(!g[!color{}!g]!!)
+#define SCHEDULER_FURI_WRAP "!G[!Y{}!G]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s\n", (obj)->vid()->toString().c_str(), (ex).what())
+#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " {}\n", (obj)->vid()->toString().c_str(), (ex).what())
 #define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),(obj)->vid()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!G[!Y{}!G]!! ") + (format)).c_str(),(obj)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!G[!Y{}!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!g[!b{}!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_OBJ(logtype, obj, format, ...)                                                                     \
-LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!g[!m{}!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
+  LOG((logtype), (string("!g[!b{}!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
 #define FOS_DOMAIN "domain"
 #define FOS_RANGE "range"

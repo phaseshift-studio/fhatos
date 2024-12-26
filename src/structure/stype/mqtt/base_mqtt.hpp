@@ -77,9 +77,9 @@ namespace fhatos {
 
     void connection_logging() const {
       LOG_STRUCTURE(INFO, this,
-                    "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
-                    "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
-                    "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
+                    "\n" FOS_TAB_4 "!ybroker address!!: !b{}!!\n" FOS_TAB_4 "!yclient name!!   : !b{}!!\n" FOS_TAB_4
+                    "!ywill topic!!    : !m{}!!\n" FOS_TAB_4 "!ywill message!!  : !m{}!!\n" FOS_TAB_4
+                    "!ywill qos!!      : !m{}!!\n" FOS_TAB_4 "!ywill retain!!   : !m{}!!\n",
                     this->settings_.broker_.c_str(), this->settings_.client_.c_str(),
                     this->settings_.will_.get() ? this->settings_.will_->target().toString().c_str() : "<none>",
                     this->settings_.will_.get() ? this->settings_.will_->payload()->toString().c_str() : "<none>",
@@ -89,7 +89,7 @@ namespace fhatos {
 
   public:
     void stop() override {
-      LOG_STRUCTURE(INFO, this, "!ydisconnecting!! from !g[!y%s!g]!!\n",
+      LOG_STRUCTURE(INFO, this, "!ydisconnecting!! from !g[!y{}!g]!!\n",
                     this->settings_.broker_.c_str());
       native_mqtt_disconnect();
       Structure::stop();
@@ -100,7 +100,7 @@ namespace fhatos {
       const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern()));
       Structure::recv_subscription(subscription);
       if(mqtt_sub) {
-        LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
+        LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: {}\n",
                       subscription->toString().c_str());
         native_mqtt_subscribe(subscription);
       }
@@ -111,7 +111,7 @@ namespace fhatos {
       const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
       if(mqtt_sub && !this->has_equal_subscription_pattern(target)) {
-        LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
+        LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: {}\n",
                       target->toString().c_str());
         native_mqtt_unsubscribe(target);
       }
@@ -136,7 +136,7 @@ namespace fhatos {
                              ->inst_f(
                                [this, furi, thing](const Obj_p &lhs, const InstArgs &args) {
                                  const auto message = make_shared<Message>(lhs);
-                                 LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
+                                 LOG_STRUCTURE(DEBUG, this, "subscription pattern {} matched: {}\n",
                                                furi->toString().c_str(),
                                                message->toString().c_str());
                                  ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
@@ -160,7 +160,7 @@ namespace fhatos {
     }
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      LOG_STRUCTURE(DEBUG, this, "!g!_writing!! %s => !b%s!! !g[!y%s!g]!!\n", obj->toString().c_str(),
+      LOG_STRUCTURE(DEBUG, this, "!g!_writing!! {} => !b{}!! !g[!y{}!g]!!\n", obj->toString().c_str(),
                     id->toString().c_str(), retain ? "retain" : "transient");
       /*if(id == this->pattern()->retract_pattern()->extend("config/connected")) {
         this->

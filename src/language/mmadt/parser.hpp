@@ -134,22 +134,22 @@ namespace mmadt {
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
-      throw fError("!^r%i^!y^--!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!",
+      throw fError("!^r%i^!y^--!r{}!! at line !y%i!!:!y%i!! !g[!r{}!g]!!",
                    column - 1, message.c_str(), line, column, rule.c_str());
     };
 
   protected:
     Obj_p parse(const string &mmadt) const {
       Obj_p result;
-      LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
+      LOG_OBJ(TRACE, this, "!yparsing!! {}\n", mmadt.c_str());
       Definition::Result ret = START.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
-      LOG(DEBUG, "parsing complete: %s\n", mmadt.c_str());
+      LOG(DEBUG, "parsing complete: {}\n", mmadt.c_str());
       if(ret.ret) {
-        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
+        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of {}\n", mmadt.c_str());
         return result;
       } else {
         ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
-        throw fError("parse failed: %s\n", mmadt.c_str());
+        throw fError("parse failed: {}\n", mmadt.c_str());
       }
     }
 
@@ -277,7 +277,7 @@ namespace mmadt {
       //////////////////////////////////////////////////////////////////////////
       static auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
-          LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+          LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b{}!! with token !y{}!!\n", rule.c_str(), s);
         };
       };
       //////////////////////////////////////////////////////////////////////////

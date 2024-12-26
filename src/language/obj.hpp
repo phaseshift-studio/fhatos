@@ -458,16 +458,16 @@ namespace fhatos {
     LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
   };
   static BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &frame_data) {
-    LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
+    LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: {}\n", pattern.toString().c_str());
   };
   static TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
       [](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
-    LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
+    LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: {}\n", is_type_id->toString().c_str());
     return false;
   };
   static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
       [](const Obj *, const ID_p &type_id, const bool = true) -> bool {
-    LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
+    LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: {}\n", type_id->toString().c_str());
     return true;
   };
   static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, const ID_p &) {
@@ -497,7 +497,7 @@ namespace fhatos {
     return nullptr;
   };
   static BiConsumer<const ID_p, const Obj_p> TYPE_SAVER = [](const ID_p &type_id, const Obj_p &obj) {
-    LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
+    LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: {}\n", type_id->toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
   struct Subscription;
@@ -577,7 +577,7 @@ namespace fhatos {
     }
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
-      return fError(FURI_WRAP " %s !yaccessed!! as !b%s!! L%i", obj->vid_or_tid()->toString().c_str(),
+      return fError(FURI_WRAP " {} !yaccessed!! as !b{}!! L%i", obj->vid_or_tid()->toString().c_str(),
                     obj->toString().c_str(),
                     string(function).replace(string(function).find("_value"), 6, "").c_str(),
                     line_number);
@@ -713,7 +713,7 @@ namespace fhatos {
                         ? std::stoi(segment)
                         : (StringHelper::has_wildcards(segment) ? -1 : -100);
         if(-100 == i)
-          throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
+          throw fError("segment !b{}!! of !b{}!! !ris not!! an !yint!! or wildcard", segment.c_str(),
                        index->uri_value().toString().c_str());
         if(i >= this->lst_value()->size())
           return to_noobj();
@@ -827,7 +827,7 @@ namespace fhatos {
           else {
             const Rec *next_rec = current_rec->rec_value()->at(to_uri(p)).get();
             if(!next_rec->is_rec())
-              throw fError("path %s of %s is not a rec", p.c_str(), key->toString().c_str(),
+              throw fError("path {} of {} is not a rec", p.c_str(), key->toString().c_str(),
                            next_rec->toString().c_str());
             current_rec = next_rec;
           }
@@ -969,7 +969,7 @@ namespace fhatos {
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+            throw fError("{} [{}] not in domain of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -979,7 +979,7 @@ namespace fhatos {
           if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
                                     IType::MANY_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+            throw fError("{} [{}] not in domain of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJS_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -990,7 +990,7 @@ namespace fhatos {
                                     IType::ONE_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+            throw fError("{} [{}] not in domain of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -1003,7 +1003,7 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
+            throw fError("{} [{}] not in range of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -1013,7 +1013,7 @@ namespace fhatos {
           if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
                                     IType::MAYBE_TO_MANY))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
+            throw fError("{} [{}] not in range of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJS_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -1024,7 +1024,7 @@ namespace fhatos {
                                     IType::MAYBE_TO_ONE | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
+            throw fError("{} [{}] not in range of {} [!y{}!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
@@ -1247,7 +1247,7 @@ namespace fhatos {
             break;
           }
           default:
-            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
+            throw fError("unknown obj type in toString(): {}", OTypes.to_chars(this->o_type()).c_str());
         }
       }
       if(!this->is_noobj() &&
@@ -1314,7 +1314,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("%s is not relational (>)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("{} is not relational (>)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1331,7 +1331,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("%s is not relational (<)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("{} is not relational (<)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1348,7 +1348,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() / rhs.real_value(), OType::REAL, this->tid_, this->vid_);
         default:
-          throw fError("%s can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("{} can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1385,7 +1385,7 @@ namespace fhatos {
           return Rec(map, OType::REC, this->tid_, this->vid_);
         }
         default:
-          throw fError("%s can not be subtracted (-)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("{} can not be subtracted (-)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1454,7 +1454,7 @@ namespace fhatos {
           return true;
         }
         case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
-        default: throw fError("Unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
+        default: throw fError("Unknown obj type in ==: {}", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1474,7 +1474,7 @@ namespace fhatos {
         case OType::REC:
           return *this->rec_get(share(key));
         default:
-          throw fError("Unknown obj type in []: %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in []: {}", OTypes.to_chars(this->o_type()).c_str());
       }
     }*/
 
@@ -1528,7 +1528,7 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       int counter = 0;
       for(const auto &[k,v]: *this->rec_value()) {
-        // LOG(INFO, "%s == %s : %i", k->uri_value().toString().c_str(), to_string(counter).insert(0,"_").c_str(),
+        // LOG(INFO, "{} == {} : %i", k->uri_value().toString().c_str(), to_string(counter).insert(0,"_").c_str(),
         //    k->uri_value().toString() == to_string(counter).insert(0,"_"));
         if(!(k->is_uri() &&
              k->uri_value().toString() == to_string(counter++).insert(0, "_")))
@@ -1620,7 +1620,7 @@ namespace fhatos {
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           try {
             if(nullptr == inst->inst_f())
-              throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
+              throw fError("!runable to resolve!! {} relative to !b{}!g[!!{}!g]!!", inst->toString().c_str(),
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
             const Obj_p result = inst->inst_f()->pure
@@ -1632,7 +1632,7 @@ namespace fhatos {
             return result;
           } catch(std::exception &e) {
             ROUTER_POP_FRAME(); // TODO: does this clear all frames automatically through exception recurssion?
-            throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
+            throw fError("{}\n\t\t!rthrown at !yinst!!  {} !g=>!! {}", e.what(),
                          lhs->toString().c_str(),
                          this->toString().c_str());
           }
@@ -1648,7 +1648,7 @@ namespace fhatos {
           return objs;
         }
         default:
-          throw fError("unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("unknown obj type in apply(): {}", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1656,7 +1656,7 @@ namespace fhatos {
     bool is_base_type() const { return this->tid_->equals(*OTYPE_FURI.at(this->otype_)); }
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
-      // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
+      // LOG(TRACE, "!ymatching!!: {} ~ {}\n", this->toString().c_str(), type->toString().c_str());
       if(type_obj->is_noop_bcode())
         return true;
       if(type_obj->is_bcode() && !this->is_bcode())
@@ -1733,7 +1733,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in match(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in match(): {}", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1996,13 +1996,15 @@ namespace fhatos {
     BObj_p serialize() const {
       static ObjPrinter *DEFAULT_SERIALIZATION_PRINTER = new ObjPrinter{.show_id = true, .show_type = true,
         .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
-      LOG(DEBUG, "Serializing obj %s\n", this->toString().c_str());
+      LOG(DEBUG, "Serializing obj {}\n", this->toString().c_str());
       const string serial = this->toString(DEFAULT_SERIALIZATION_PRINTER);
       return ptr<BObj>(new BObj{serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      LOG(DEBUG, "Deserializing bytes %s (length %i)\n", bobj->second, bobj->first);
+      LOG(DEBUG, "Deserializing bytes {} (length {})\n",
+          to_string(bobj->first).c_str(),
+          to_string(bobj->first).c_str());
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
   };

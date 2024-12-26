@@ -41,7 +41,7 @@ namespace fhatos {
           this->unlock();
           return t;
         } else {
-          throw fError("Unable to lock mutex %s", this->_label.c_str());
+          throw fError("Unable to lock mutex {}", this->_label.c_str());
         }
       } catch (const std::exception &) {
         this->xmutex.unlock();

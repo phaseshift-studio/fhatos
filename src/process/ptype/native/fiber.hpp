@@ -43,8 +43,8 @@ namespace fhatos {
             this->xthread->detach();
           LOG_PROCESS(INFO, this, "!bfiber bundle!! !ythread!! destroyed\n");
         } catch (const std::runtime_error &e) {
-          LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
-                      this->xthread->get_id(), std::this_thread::get_id());
+          //LOG_PROCESS(ERROR, this, "{} [process thread id: %i][current thread id: %i]\n", e.what(),
+          //            this->xthread->get_id(), std::this_thread::get_id());
         }
       }
     }
