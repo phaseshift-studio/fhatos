@@ -124,7 +124,7 @@ namespace fhatos {
       } else {
         to_out->append(string("!g") + StringHelper::repeat(depth, "="));
         to_out->append(std::format("==>!!{}\n",
-                                            obj->toString().c_str()));
+                                   obj->toString().c_str()));
       }
     }
 
@@ -186,9 +186,10 @@ namespace fhatos {
                 return noobj();
               }
               StringHelper::trim(this->line_);
-              if(this->line_.empty() || !this->tracker_.closed()) {
-                ///////// DO NOTHING ON EMPTY LINE
-                ///////// /r/n ON OPEN EXPRESSION (i.e. multi-line expressions)
+              if(this->line_.empty() ||
+                 this->line_[this->line_.length() - 1] == ';' || // specific to end-step and imperative simulation
+                 !this->tracker_.closed()) {
+                ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
                 return noobj();
               }
               this->tracker_.clear();

@@ -36,12 +36,14 @@ namespace fhatos {
     unique_ptr<Deque<Monad_p>> running_;
     unique_ptr<Deque<Monad_p>> barriers_;
     unique_ptr<Deque<Obj_p>> halted_;
+    unique_ptr<Map<Inst_p, Any>> inst_meta;
 
     explicit Processor(const BCode_p &bcode) : Valued(ID(to_string(rand()).insert(0, "/sys/processor/"))),
                                                bcode_(bcode),
                                                running_(make_unique<Deque<Monad_p>>()),
                                                barriers_(make_unique<Deque<Monad_p>>()),
-                                               halted_(make_unique<Deque<Obj_p>>()) {
+                                               halted_(make_unique<Deque<Obj_p>>()),
+                                               inst_meta(make_unique<Map<Inst_p, Any>>()) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {
           // monad halts immediately on a non-bcode submission
@@ -50,7 +52,7 @@ namespace fhatos {
       } else {
         // if a single inst, wrap in bcode
         if(this->bcode_->is_inst())
-          this->bcode_ = Obj::to_bcode({this->bcode_},this->bcode_->tid());
+          this->bcode_ = Obj::to_bcode({this->bcode_}, this->bcode_->tid());
         // process bcode inst pipeline
         this->bcode_ = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
         // setup global behavior around barriers, initials, and terminals
@@ -216,15 +218,34 @@ namespace fhatos {
                 ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         if(is_scatter(current_inst_resolved->itype())) {
+          LOG_OBJ(TRACE, this->processor_, "monad {} scattering [{}]\n",
+                  this->toString().c_str(),
+                  ITypeDescriptions.to_chars(this->inst_->itype()));
           for(const Obj_p &obj: *next_obj->objs_value()) {
-            const Monad_p m = this->processor_->M(obj, this->processor_->bcode_->next_inst(this->inst_));
-            this->processor_->running_->push_back(m);
+            if(const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst_);
+              !is_initial(next_inst->itype())) {
+              const Monad_p m = this->processor_->M(obj, next_inst);
+              LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n",
+                      this->toString().c_str(),
+                      m->toString().c_str());
+              this->processor_->running_->push_back(m);
+            } else {
+              LOG_OBJ(TRACE, this->processor_, "monad {} dying [{}]\n", this->toString().c_str(),
+                      ITypeDescriptions.to_chars(next_inst->itype()));
+            }
           }
         } else {
-          const Monad_p m = this->processor_->M(next_obj, this->processor_->bcode_->next_inst(this->inst_));
-          LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n", this->toString().c_str(),
-                  m->toString().c_str());
-          this->processor_->running_->push_back(m);
+          if(const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst_);
+            !is_initial(next_inst->itype())) {
+            const Monad_p m = this->processor_->M(next_obj, next_inst);
+            LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n",
+                    this->toString().c_str(),
+                    m->toString().c_str());
+            this->processor_->running_->push_back(m);
+          } else {
+            LOG_OBJ(TRACE, this->processor_, "monad {} dying [{}]\n", this->toString().c_str(),
+                    ITypeDescriptions.to_chars(next_inst->itype()));
+          }
         }
       }
 
