@@ -200,7 +200,7 @@ namespace fhatos {
     ////////// |
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("start(1).8"))
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1|8"))
-    //FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid());
+    // TODO: FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid());
     ////////// ==
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4),jnt(6)}), PROCESS("[1,2,3]==[x 2,mult(2),x 2]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4),jnt(6)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]"));
@@ -218,7 +218,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*(/abc/o12,  101)"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*(_)"));
-    // FOS_TEST_OBJ_EQUAL(jnt(101),PROCESS("</abc/o1o>*"));
+    // TODO: maybe not though: FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>*"));
   }
 
   void test_apply_mono_parsing() {
@@ -240,9 +240,11 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("[8,[a=>[b=>5],c=>7]].<1>.a.b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
-    //  FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
-    //  FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
-    //  FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
+    FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];*/abc/1/a.b.to(/abc/x);*/abc/x + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];\n*/abc/1/a.b.to(/abc/x);\n*/abc/x + -6\n"));
   }
 
   void test_type_definition_parsing() {
