@@ -122,7 +122,7 @@ using namespace fhatos;
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      LOG(ERROR, "failed test due to %s\n", e.what());                                                     \
+      LOG(ERROR, "failed test due to {}\n", e.what());                                                                 \
       throw;                                                                                                           \
     }                                                                                                                  \
   }
@@ -137,7 +137,7 @@ using namespace fhatos;
       FOS_DEPLOY_PARSER_2                                                                                              \
       FOS_DEPLOY_TYPE_2                                                                                                \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
-      FOS_DEPLOY_FILE_SYSTEM_2                                                                                                                                                                                   \
+      FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
       /*uint32_t __test_freeSketch;                                                                                    \
       uint32_t __test_freeHeap;  */                                                                                    \
@@ -230,7 +230,7 @@ using namespace fhatos;
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                     \
+    FOS_TEST_MESSAGE("!gexpected error occurred!!: {}", e.what());                                                     \
     TEST_ASSERT(true);                                                                                                 \
   }
 
@@ -240,7 +240,7 @@ using namespace fhatos;
     (fn)();                                                                                                            \
     TEST_FAIL_MESSAGE("!rno exception occurred!!: " STR(__FILE__) ":" STR(__LINE__));                                  \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                 \
+    FOS_TEST_MESSAGE("!gexpected exception occurred!!: {}", e.what());                                                 \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
@@ -303,7 +303,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
         objs_value();
     TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
-    LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());
+    LOG(INFO, "expected !rexception thrown!!: {}\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
 }

@@ -212,10 +212,17 @@ namespace fhatos {
                 inst->toString().c_str(),
                 ITypeDescriptions.to_chars(final_inst->itype()).c_str());
             const auto merged_args = Obj::to_inst_args();
+            int counter=0;
             for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
-              merged_args->rec_value()->insert({k,
-                inst->has_arg(k) ? inst->inst_args()->arg(k) : v->inst_args()->arg(1)}); // default arg
+              if(inst->has_arg(k))
+                merged_args->rec_value()->insert({k,inst->arg(k)});
+                else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
+                  merged_args->rec_value()->insert({k, inst->arg(counter)});
+              else
+                merged_args->rec_value()->insert({k, v->is_inst()?  v->arg(1) : v}); // TODO: hack to get the default from from();
+              ++counter;
             }
+            // TODO: recurse off inst for all inst_arg getter/setters
             final_inst = Obj::to_inst(
               final_inst->inst_op(),
               merged_args,

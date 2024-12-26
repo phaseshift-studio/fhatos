@@ -153,9 +153,25 @@ namespace fhatos {
   }
 
   void test_inst_parsing() {
-    // TODO: TEST_ASSERT_EQUAL_STRING("play?play<=int[plus(2)]",
-    //                  PROCESS("|play?play<=int[plus(2)]")->toString(SERIALIZER_PRINTER).
-    //                c_str());
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    FOS_TEST_OBJ_EQUAL(jnt(66),PROCESS("1./abc/temp_inst()"));
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    FOS_TEST_OBJ_EQUAL(jnt(68),PROCESS("2./abc/temp_inst(a=>66)"));
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    FOS_TEST_OBJ_EQUAL(jnt(70),PROCESS("3./abc/temp_inst(67)"));
+
+    /*
+    FOS_TEST_OBJ_EQUAL(jnt(66),PROCESS(
+      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
+      "1./abc/temp_inst()"));
+    FOS_TEST_OBJ_EQUAL(jnt(68),PROCESS(
+      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
+      "2./abc/temp_inst(a=>66)"));
+    FOS_TEST_OBJ_EQUAL(jnt(70),PROCESS(
+      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
+      "3./abc/temp_inst(67)"));
+     */
+
     FOS_TEST_OBJ_EQUAL(dool(false),
                        PROCESS(
                          "|(bool?bool<=bool|(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"

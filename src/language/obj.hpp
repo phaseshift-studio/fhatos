@@ -577,7 +577,7 @@ namespace fhatos {
     }
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
-      return fError(FURI_WRAP " {} !yaccessed!! as !b{}!! L%i", obj->vid_or_tid()->toString().c_str(),
+      return fError(FURI_WRAP " {} !yaccessed!! as !b{}!! L{}", obj->vid_or_tid()->toString().c_str(),
                     obj->toString().c_str(),
                     string(function).replace(string(function).find("_value"), 6, "").c_str(),
                     line_number);
@@ -758,6 +758,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p arg(const size_t index) const {
+if(this->is_inst())
+  return this->inst_args()->arg(index);
       size_t counter = 0;
       for(const auto &[k,v]: *this->rec_value()) {
         if(index == counter)
@@ -768,6 +770,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p arg(const Obj_p &key) const {
+      if(this->is_inst()) return this->inst_args()->arg(key);
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
@@ -894,7 +897,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool has_arg(const Obj_p &key) {
-      return this->inst_args()->rec_value()->count(key) != 0;
+      return (this->is_inst() ? this->inst_args().get() : this)->rec_value()->count(key) != 0;
     }
 
     [[nodiscard]] InstF_p inst_f() const {
@@ -1296,7 +1299,10 @@ namespace fhatos {
         obj_string += "!!";
       }
 
-      return obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
+      obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
+      //StringHelper::replace(&obj_string,"{","{{");
+      //StringHelper::replace(&obj_string,"}","}}"); // objs and std::format
+      return obj_string;
     }
 
     [[nodiscard]] int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
@@ -2109,6 +2115,10 @@ namespace fhatos {
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
+
+  //[[maybe_unused]] static Inst_p x(const char *arg_name, const Obj_p &default_arg = noobj()) {
+  //  return from(Obj::to_uri(arg_name), default_arg);
+ // }
 
   static BCode_p ___ = Obj::to_bcode();
   static NoObj_p _noobj_ = Obj::to_noobj();
