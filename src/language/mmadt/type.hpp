@@ -80,7 +80,9 @@ namespace mmadt {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
             return new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
-          })->save();
+          })
+          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
+          ->save();
 
       InstBuilder::build(MMADT_SCHEME "/block")
           // TODO: currently a "special" instruction (see inst->apply() for logic)

@@ -381,7 +381,7 @@ namespace mmadt {
                         ">"), furi_action;
       DOM_RNG <= WRAP("<", seq(~WS,FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET, ~WS), ">"), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE)), furi_action;
-      VALUE_ID <= seq(chr('@'), FURI);
+      VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;

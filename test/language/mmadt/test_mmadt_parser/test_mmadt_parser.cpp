@@ -207,6 +207,14 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[_,_]"));
     FOS_TEST_OBJ_NTEQL(lst({jnt(2),jnt(4)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[+ 0,plus(1)]"));
     FOS_TEST_OBJ_EQUAL(lst(), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]==[]"));
+    ////////// @
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("10@/abc/at.mult(10)"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("10@</abc/at>.mult(10)"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("10.@</abc/at>.mult(10)"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("10.mult(10).at(/abc/at)"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("10.mult(10).to(/abc/at).at(/abc/at)"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS("/abc/at->(map(10).mult(10)).@/abc/at"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,INT_FURI,id_p("/abc/at")), PROCESS(" /abc/at -> (\n\tmap(10).mult(\n10)  ).@\t/abc/at"));
     ////////// *
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>->101"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("/abc/o1o -> 101"));
