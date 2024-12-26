@@ -123,7 +123,7 @@ namespace fhatos {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : BaseScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
-      this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+      /*this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
               if (!obj->vid())
                 throw fError("value id required to spawn %s", obj->toString().c_str());
               if (obj->tid()->has_path("thread"))
@@ -131,7 +131,7 @@ namespace fhatos {
               if (obj->tid()->has_path("fiber"))
                 return dool(this->spawn(make_shared<Fiber>(obj)));
               throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));*/
 
       /*rec_set(vri(":spawn"), to_bcode(
                                  [this](const Obj_p &obj) {
