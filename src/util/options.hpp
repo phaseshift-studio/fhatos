@@ -57,7 +57,7 @@ namespace fhatos {
     template<typename SCHEDULER>
     shared_ptr<SCHEDULER> scheduler() {
       if (!scheduler_.has_value())
-        throw fError("No scheduler specified in global options\n");
+        throw fError("no scheduler specified in global options\n");
       return std::any_cast<shared_ptr<SCHEDULER>>(this->scheduler_);
     }
 

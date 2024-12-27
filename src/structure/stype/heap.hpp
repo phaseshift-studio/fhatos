@@ -72,7 +72,7 @@ namespace fhatos {
         auto list = IdObjPairs();
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
-            //LOG_STRUCTURE(INFO, this, "\tmatched: {} ~ {} => {}\n", id->toString().c_str(), match->toString().c_str(),
+            //LOG_STRUCTURE(INFO, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
             //              obj->toString().c_str());
             list.push_back({id, obj}); // clone()?
           }

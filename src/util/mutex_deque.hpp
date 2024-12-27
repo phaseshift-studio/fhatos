@@ -46,7 +46,7 @@ namespace fhatos {
     }
 
   public:
-    // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
+    // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) %s
     explicit MutexDeque(const char *label = "<anon>") : mutex_(label) {
     }
 

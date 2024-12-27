@@ -82,7 +82,7 @@ namespace fhatos {
         list->push_back(process);
       });
       for(const auto &[name,count]: *map) {
-        LOG_KERNEL_OBJ(INFO, this, "!b{} !y{}!!(s) closing\n", to_string(count).c_str(), name.c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
       }
       while(!list->empty()) {
         const Process_p p = list->back();
@@ -94,7 +94,7 @@ namespace fhatos {
       list->clear();
       delete list;
       this->running_ = false;
-      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b{}!! stopped\n", this->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
@@ -106,7 +106,7 @@ namespace fhatos {
     void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       this->barrier_ = {id_p(this->vid()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y{}!m>!!\n", this->barrier_.first->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if(message)
         LOG_KERNEL_OBJ(INFO, this, message);
       while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
@@ -114,7 +114,7 @@ namespace fhatos {
         router()->loop();
         this->feed_local_watchdog();
       }
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g{}!m>!!\n", name.c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
       this->barrier_.first = nullptr;
       this->barrier_.second = nullptr;
     }
@@ -139,10 +139,10 @@ namespace fhatos {
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
                        const Obj_p &proc = args->arg(0);
                        if(!proc->vid())
-                         throw fError("value id required to spawn {}", proc->toString().c_str());
+                         throw fError("value id required to spawn %s", proc->toString().c_str());
                        if(proc->tid()->has_path("thread"))
                          return dool(scheduler->spawn(make_shared<Thread>(proc)));
-                       throw fError("unknown process type: {}\n", proc->tid()->toString().c_str());
+                       throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
                      })
                      // ->doc("spawn a parallel thread of execution")
                      ->create())

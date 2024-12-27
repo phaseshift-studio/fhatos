@@ -30,7 +30,7 @@ namespace fhatos {
 #define TRANSIENT false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!{}!m][!b{}!m]=!gsubscribe!m=>[!b{}!m]!! | !m[onRecv:!!{}!m]!!\n",            \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b{}!m]=!gsubscribe!m=>[!b{}!m]!! | !m[onRecv:!!{}!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       (subscription)->source().toString().c_str(), (subscription)->pattern().toString().c_str(),                           \
       (subscription)->on_recv()->toString().c_str())

@@ -27,7 +27,7 @@
 #include "../../src/util/enums.hpp"
 #include "../../src/structure/pubsub.hpp"
 
-#define FOS_ALREADY_STOPPED "!g[!b{}!g] !yprocess!! already stopped\n"
+#define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b{}!g] !yprocess!! already setup\n"
 #ifndef FOS_PROCESS_WDT_COUNTER
 #define FOS_PROCESS_WDT_COUNTER 25

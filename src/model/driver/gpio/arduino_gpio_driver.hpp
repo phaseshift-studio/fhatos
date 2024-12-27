@@ -136,11 +136,11 @@ namespace fhatos {
                           Obj::to_bcode(
                               [lhs, t](const Obj_p &message) {
                                 LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
-                                LOG(DEBUG, "processing input {}\n", message->toString().c_str());
+                                LOG(DEBUG, "processing input %s\n", message->toString().c_str());
                                 const uint8_t pin = lhs_args->second->at(0)->int_value();
                                 const int value = digitalRead(pin);
                                 LOG(DEBUG, "digital read %i on pin %i\n", value, pin);
-                                LOG(DEBUG, "writing to {}\n", "//driver/gpio/:read/1");
+                                LOG(DEBUG, "writing to %s\n", "//driver/gpio/:read/1");
                                 // router()->write(id_p("//driver/gpio/:read/1"), jnt(value), RETAIN);
                                 ROUTER_WRITE(id_p(t.extend(":read/1")), jnt(value), RETAIN);
                                 return noobj();

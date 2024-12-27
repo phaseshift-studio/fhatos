@@ -37,13 +37,13 @@ namespace fhatos {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
         InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":setup"))
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
-          ROUTER_WRITE(id_p(i2c_remote_id.extend(":setup")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":setup")), ObjHelper::make_lhs_args(lhs, %s), TRANSIENT);
           return noobj();
         })
         ->create(),
         InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":stop"))
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
-          ROUTER_WRITE(id_p(i2c_remote_id.extend(":stop")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":stop")), ObjHelper::make_lhs_args(lhs, %s), TRANSIENT);
           return noobj();
         })
         ->create(),
@@ -56,7 +56,7 @@ namespace fhatos {
         ->create(),
         InstBuilder::build(*INST_FURI)
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
-          ROUTER_WRITE(id_p(i2c_remote_id.extend(":read")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":read")), ObjHelper::make_lhs_args(lhs, %s), TRANSIENT);
           return noobj();
         })
         ->create(id_p(lib_id.resolve(i2c_local_id).extend(":read"))),
@@ -115,19 +115,19 @@ namespace fhatos {
       const List<fbyte> data = StringHelper::hex_to_bytes(StringHelper::clip_0x(hex_data));
       Wire.beginTransmission(address);
       uint8_t size = Wire.write(data.data(), data.size());
-      LOG(TRACE, "writing {} to %x/%i\n", StringHelper::bytes_to_hex(data), address, address);
+      LOG(TRACE, "writing %s to %x/%i\n", StringHelper::bytes_to_hex(data), address, address);
       if (end_tx) {
         uint8_t result = Wire.endTransmission(true);
         if (result == 1)
-          LOG(ERROR, "%i with 0x{}: !yoverflow transit buffer!!\n", hex_address, hex_data);
+          LOG(ERROR, "%i with 0x%s: !yoverflow transit buffer!!\n", hex_address, hex_data);
         else if (result == 2)
-          LOG(ERROR, "%i with 0x{}: !rnack !ytransit!! address\n", hex_address, hex_data);
+          LOG(ERROR, "%i with 0x%s: !rnack !ytransit!! address\n", hex_address, hex_data);
         else if (result == 3)
-          LOG(ERROR, "%i with 0x{}: !rnack !ytransit!! data\n", hex_address, hex_data);
+          LOG(ERROR, "%i with 0x%s: !rnack !ytransit!! data\n", hex_address, hex_data);
         else if (result == 4)
-          LOG(ERROR, "%i with 0x{}: unknown error\n", hex_address, hex_data);
+          LOG(ERROR, "%i with 0x%s: unknown error\n", hex_address, hex_data);
         else if (result == 5)
-          LOG(ERROR, "%i with 0x{}: !ytimeout!!\n", hex_address, hex_data);
+          LOG(ERROR, "%i with 0x%s: !ytimeout!!\n", hex_address, hex_data);
         if (result != 0)
           Wire.clearWriteError();
         return result;

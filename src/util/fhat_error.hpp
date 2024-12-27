@@ -21,57 +21,35 @@
 
 #include <exception>
 #include <string>
-#include <format>
+#include <util/string_helper.hpp>
+#include <memory>
 
-#define FOS_ERROR_MESSAGE_SIZE 500
-
+using std::string;
+using std::unique_ptr;
+using std::make_unique;
 namespace fhatos {
-  using std::string;
 
-#ifndef NATIVE
   ///////////////////////
   /// EXCEPTION TYPES ///
   ///////////////////////
-  class fError : public std::exception {
+  class fError final : public std::exception {
   protected:
-    std::unique_ptr<const char *> message_;
+   string message_;
 
   public:
     template<typename... Args>
-    explicit fError(const std::string_view &format, const Args... args) : message_{
-      std::make_unique<const char *>(strdup(std::vformat(format, std::make_format_args(args...).c_str())))
-    };
+    explicit fError(const char* format, const Args... args) : message_{StringHelper::format(format, args...)} {
+
+    }
 
     template<typename... Args>
-    static fError create(const std::string &type_id, const std::string_view &format, const Args... args) noexcept {
+    static fError create(const std::string &type_id, const char * format, const Args... args) noexcept {
       return fError(string("!g[!m").append(type_id).append("!g] ").append(format), args...);
     }
 
     [[nodiscard]] virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
-      return *this->_message;
+      return this->message_.c_str();
     }
-
-    ////////////////////////////////
-#else
-
-  class /*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/ fError final : public std::exception {
-  protected:
-      std::unique_ptr<const char*> message_;
-
-  public:
-    template<typename... Args>
-    explicit fError(const std::string_view &format, const Args... args) noexcept: message_{
-      std::make_unique<const char*>(strdup(std::vformat(format, std::make_format_args(args...)).c_str()))} {
-    }
-
-    template<typename... Args>
-    static fError create(const std::string &type_id, const std::string_view &format, const Args... args) noexcept {
-      return fError(string("!g[!m").append(type_id).append("!g] ").append(format), args...);
-    }
-
-    const char *what() const noexcept override { return *this->message_; };
-#endif
   };
 } // namespace fhatos
-#undef FOS_ERROR_MESSAGE_SIZE
 #endif

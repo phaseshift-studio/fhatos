@@ -34,8 +34,8 @@ namespace fhatos {
     explicit Computed(
       const Pattern &pattern,
       const ID &vid,
-      const Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less> &read_map = {},
-      const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = {}) : Structure(pattern, vid),
+      const Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less> &read_map = %s,
+      const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = %s) : Structure(pattern, vid),
       read_functions_(
         make_unique<Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
       write_functions_(
@@ -50,7 +50,7 @@ namespace fhatos {
             scheduler()->feed_local_watchdog();
             func(id, obj);
             scheduler()->feed_local_watchdog();
-            LOG_STRUCTURE(DEBUG, this, "!g{}!y=>!g{}!! written\n", id->toString().c_str(), obj->toString().c_str());
+            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
           }
         }
       }

@@ -53,7 +53,7 @@ namespace fhatos {
                                          ? this->settings_.broker_
                                          : (string("mqtt://") + this->settings_.broker_));
       if(this->exists()) {
-        LOG_STRUCTURE(INFO, this, "reusing existing connection to {}\n", this->settings_.broker_.c_str());
+        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", this->settings_.broker_.c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
       } else {
         MQTT_CONNECTION =
@@ -80,7 +80,7 @@ namespace fhatos {
           const auto [payload, retained] = make_payload(bobj);
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
           const Message_p message = Message::create(ID(mqtt_message->get_topic()), payload, retained);
-          LOG_STRUCTURE(TRACE, this, "recieved message {}\n", message->toString().c_str());
+          LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for(const Subscription_p &sub: *matches) {
@@ -142,14 +142,14 @@ namespace fhatos {
           if(!MQTT_CONNECTION->connect(this->connection_options_)->wait_for(1000)) {
             if(++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
-            LOG_STRUCTURE(WARN, this, "!bmqtt://{} !yconnection!! retry\n", this->settings_.broker_.c_str());
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker_.c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if(MQTT_CONNECTION->is_connected())
             break;
         }
       } catch(const mqtt::exception &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b{}!!: {}\n", this->settings_.broker_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
       }
     }
   };

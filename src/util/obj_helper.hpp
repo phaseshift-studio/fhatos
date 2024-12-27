@@ -161,7 +161,7 @@ namespace fhatos {
            int counter = 0;
            for(int i = 0; i < derivation.size(); i++) {
              counter = derivation.at(i).equals(*this->type_) ? 1 : counter + 1;
-             result.append(std::format("\t!m{}>" FURI_WRAP "\n",
+             result.append(StringHelper::format("\t!m{}>" FURI_WRAP "\n",
                                                 StringHelper::repeat(counter, "--").c_str(),
                                                 derivation.at(i).toString().c_str()).c_str());
            }

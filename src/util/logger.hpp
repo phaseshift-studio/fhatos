@@ -55,7 +55,7 @@ namespace fhatos {
         printer<>()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
-      printer<>()->print(std::vformat(format, std::make_format_args(args...)).c_str());
+      printer<>()->print(StringHelper::format(format, args...).c_str());
     }
   };
 } // namespace fhatos

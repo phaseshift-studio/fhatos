@@ -39,31 +39,31 @@ namespace fhatos {
     BCode_p apply(const BCode_p &bcode) const {
       BCode_p running = bcode;
       for(const Rewrite &rw: this->_rewrites) {
-        LOG(TRACE, "applying !yrewrite !b{}!!\n", std::get<0>(rw).toString().c_str());
+        LOG(TRACE, "applying !yrewrite !b%s!!\n", std::get<0>(rw).toString().c_str());
         running = std::get<1>(rw)(running);
       }
       return running;
     }
 
     static void LOG_REWRITE(const ID &rewriteID, const BCode_p &original, const BCode_p &rewrite) {
-      LOG(DEBUG, "!g[!b{}!g]!! !yrewrote!! {} !r=to=>!! {}\n", rewriteID.toString().c_str(),
+      LOG(DEBUG, "!g[!b%s!g]!! !yrewrote!! %s !r=to=>!! %s\n", rewriteID.toString().c_str(),
           original->toString().c_str(), rewrite->toString().c_str());
     }
 
     static Rewrite explain() {
-      return Rewrite({ID("/lang/rewrite/explain"),
+      return Rewrite(ID("/lang/rewrite/explain"),
         [](const BCode_p &bcode) {
           if(bcode->bcode_value()->back()->inst_op() == "explain") {
             auto ex = string();
             auto p = Ansi<StringPrinter>(StringPrinter(&ex));
             // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
-            p.printf("\n!r!_{}\t\t    {}\t\t\t\t\t\t  {}!!\n", "op", "inst", "domain/range");
+            p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
             const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
                 [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
               string pad = StringHelper::repeat(depth, " ");
               string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
               for(const Inst_p &inst: *bcode->bcode_value()) {
-                p.printf("!b{}!!\t\t    {}\t\t\t\t\t\t  !b{}!!\n", inst->inst_op().c_str(),
+                p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  !b%s!!\n", inst->inst_op().c_str(),
                          (string(pad2) + inst->toString()).c_str(),
                          (string(pad) + inst->range()->toString() + "!m<=!b" + inst->domain()->toString()).c_str());
                 for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
@@ -83,7 +83,7 @@ namespace fhatos {
           }
           return bcode;
         },
-        {{}, {}}});
+        {{}, {}});
     }
 
     static Rewrite by() {
@@ -96,7 +96,7 @@ namespace fhatos {
             if(inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
               found = true;
               //  if(!done)
-              //  throw fError("Previous inst could not be by()-modulated: {} !r<=/=!! {}",
+              //  throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
               //              prev->toString().c_str(), inst->toString().c_str());
               // rewrite inst
               newInsts.pop_back();

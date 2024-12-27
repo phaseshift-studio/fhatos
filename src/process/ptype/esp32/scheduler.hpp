@@ -70,7 +70,7 @@ namespace fhatos {
       }
       process->setup();
       if (!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b{}!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
@@ -102,18 +102,18 @@ namespace fhatos {
         }
       } else {
         process->running = false;
-        LOG_KERNEL_OBJ(ERROR, this, "!b{}!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       success = pdPASS == threadResult;
       if (success) {
         this->processes_->push_back(process);
-        LOG_KERNEL_OBJ(INFO, this, "!b{}!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
+        LOG_KERNEL_OBJ(INFO, this, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
                       stack_size);
         this->save();
       } else {
         const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
-        LOG_KERNEL_OBJ(ERROR, this, "!b{}!! !yprocess!! failed to spawn [error:%i {}]\n", process->vid()->toString().c_str(),
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid()->toString().c_str(),
                       threadResult, reason);
       }
       return success;
@@ -125,18 +125,18 @@ namespace fhatos {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
       /*this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
               if (!obj->vid())
-                throw fError("value id required to spawn {}", obj->toString().c_str());
+                throw fError("value id required to spawn %s", obj->toString().c_str());
               if (obj->tid()->has_path("thread"))
                 return dool(this->spawn(make_shared<Thread>(obj)));
               if (obj->tid()->has_path("fiber"))
                 return dool(this->spawn(make_shared<Fiber>(obj)));
-              throw fError("unknown process type: {}\n", obj->tid()->toString().c_str());
+              throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
             }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));*/
 
       /*rec_set(vri(":spawn"), to_bcode(
                                  [this](const Obj_p &obj) {
                                    if (!obj->vid())
-                                     throw fError("value id required to spawn {}", obj->toString().c_str());
+                                     throw fError("value id required to spawn %s", obj->toString().c_str());
                                    return dool(this->spawn(make_shared<Thread>(obj)));
                                  },
                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__)));*/
@@ -185,7 +185,7 @@ namespace fhatos {
         }
       } catch (fError error) {
         thread->stop();
-        LOG_PROCESS(ERROR, thread, "pre-processor error: {}\n", error.what());
+        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
       }
       // ESP_ERROR_CHECK(heap_trace_stop());
       // heap_trace_dump();

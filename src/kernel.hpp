@@ -109,7 +109,7 @@ namespace fhatos {
           to_string(reason) + " code";
           break;
       }
-      printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y{}!!\n",r.c_str());
+      printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n",r.c_str());
 #endif
       return Kernel::build();
     }
@@ -141,7 +141,7 @@ namespace fhatos {
     static ptr<Kernel> install(const Obj_p &obj) {
       if (obj->vid()) {
         ROUTER_WRITE(obj->vid(), obj,RETAIN);
-        LOG_KERNEL_OBJ(INFO, router(), "!b{}!! !yobj!! loaded\n", obj->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(INFO, router(), "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
       }
       return Kernel::build();
     }
@@ -160,7 +160,7 @@ namespace fhatos {
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
-      printer()->printf("\n" FOS_TAB_8 "{} !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
+      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH
       esp_restart();
 #else

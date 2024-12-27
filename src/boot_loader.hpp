@@ -136,7 +136,7 @@ namespace fhatos {
                                                           args_parser->option_string("--log", "INFO")))))
             ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
-        LOG(ERROR, "[{}] !rCritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down").c_str(),
+        LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());
         throw;
       }

@@ -49,7 +49,7 @@ namespace fhatos {
         if(pair.first == e)
           return pair.second;
       }
-      throw fError("!ychars!! not found for enum !b{}!!", (int)e);
+      throw fError("!ychars!! not found for enum !b%i!!", (int)e);
     }
 
     ENUM to_enum(const string &s) const {

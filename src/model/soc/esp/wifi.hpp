@@ -58,7 +58,7 @@ namespace fhatos {
       string ssid_;
       string password_;
       Settings(const bool connect, const string &mdns, const string &ssid, const string &password) :
-          connect_(connect), mdns_(mdns), ssid_(ssid), password_(password) {};
+          connect_(connect), mdns_(mdns), ssid_(ssid), password_(password) %s;
     };
 
   protected:
@@ -101,7 +101,7 @@ namespace fhatos {
                map.push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
              return map;
            }});
-      LOG_STRUCTURE(INFO, this, "!b{} !yread functions!! loaded\n", this->pattern()->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
       this->write_functions_->insert(
           {share(this->pattern()->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
              if (obj->is_bool()) {
@@ -116,7 +116,7 @@ namespace fhatos {
                WiFi.disconnect();
              return List<Pair<ID_p, Obj_p>>{{id_p(this->pattern()->resolve("./connect")), dool(WiFi.isConnected())}};
            }});
-      LOG_STRUCTURE(INFO, this, "!b{} !ywrite functions!! loaded\n",
+      LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
                     this->pattern()->resolve("connect").toString().c_str());
     }
 
@@ -133,19 +133,19 @@ namespace fhatos {
       WiFi.setAutoReconnect(true);
       const char *delim = ":";
       char ssidsTemp[this->settings_.ssid_.length() + 1];
-      sprintf(ssidsTemp, "{}", this->settings_.ssid_.c_str());
+      sprintf(ssidsTemp, "%s", this->settings_.ssid_.c_str());
       char *ssid = strtok(ssidsTemp, delim);
       int i = 0;
       char *ssids_parsed[10];
       LOG_STRUCTURE(DEBUG, this, "\tWiFi SSIDs:\n");
       while (ssid != NULL) {
-        LOG_STRUCTURE(DEBUG, this, "\t\t{}\n", ssid);
+        LOG_STRUCTURE(DEBUG, this, "\t\t%s\n", ssid);
         ssids_parsed[i++] = ssid;
         ssid = strtok(NULL, delim);
       }
       i = 0;
       char passwordsTemp[50];
-      sprintf(passwordsTemp, "{}", this->settings_.password_.c_str());
+      sprintf(passwordsTemp, "%s", this->settings_.password_.c_str());
       char *passwords_parsed[10];
       char *password = strtok(passwordsTemp, delim);
       while (password != NULL) {
@@ -164,16 +164,16 @@ namespace fhatos {
           const bool mdnsStatus = MDNS.begin(this->settings_.mdns_.c_str());
           LOG_STRUCTURE(INFO, this,
                         "\n\t!g[!bWIFI Station Configuration!g]!!\n"
-                        "\t!yID             : !m{}\n"
-                        "\t!yStatus         : !m{}\n"
-                        "\t!ySSID           : !m{}\n"
-                        "\t!yMAC address    : !m{}\n"
-                        "\t!yIP address     : !m{}\n"
-                        "\t!yHostname       : !m{}\n"
-                        "\t!ymDNS name      : !m{}\n"
-                        "\t!yGateway address: !m{}\n"
-                        "\t!ySubnet mask    : !m{}\n"
-                        "\t!yDNS address    : !m{}\n"
+                        "\t!yID             : !m%s\n"
+                        "\t!yStatus         : !m%s\n"
+                        "\t!ySSID           : !m%s\n"
+                        "\t!yMAC address    : !m%s\n"
+                        "\t!yIP address     : !m%s\n"
+                        "\t!yHostname       : !m%s\n"
+                        "\t!ymDNS name      : !m%s\n"
+                        "\t!yGateway address: !m%s\n"
+                        "\t!ySubnet mask    : !m%s\n"
+                        "\t!yDNS address    : !m%s\n"
                         "\t!yChannel        : !m%i!!\n",
                         this->settings_.mdns_.c_str(), WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
                         WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
@@ -181,7 +181,7 @@ namespace fhatos {
                         WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
                         WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
-            LOG_STRUCTURE(WARN, this, "unable to create mDNS hostname {}\n", this->settings_.mdns_.c_str());
+            LOG_STRUCTURE(WARN, this, "unable to create mDNS hostname %s\n", this->settings_.mdns_.c_str());
           }
           LOG_STRUCTURE(DEBUG, this, "connection attempts: %i\n", attempts);
           attempts = 100;
@@ -201,15 +201,15 @@ namespace fhatos {
  // WiFi.onSoftAPModeStationConnected(onNewStation);
  // WiFi.softAPConfig();
  if (!WiFi.softAP(ssid, password, hideSSID, maxConnections)) {
-   LOG_ACTOR(ERROR, this, "Unable to create access point: {}\n", ssid);
+   LOG_ACTOR(ERROR, this, "Unable to create access point: %s\n", ssid);
  } else {
    LOG_ACTOR(INFO, this,
        "\n[WIFI Access Point Configuration]\n"
-       "\t!yID:              !m{}\n"
-       "\t!ySSID:            !m{}\n"
-       "\t!yLocal IP:        !m{}\n"
-       "\t!yMac Address:     !m{}\n"
-       "\t!yBroadcast:       !m{}\n"
+       "\t!yID:              !m%s\n"
+       "\t!ySSID:            !m%s\n"
+       "\t!yLocal IP:        !m%s\n"
+       "\t!yMac Address:     !m%s\n"
+       "\t!yBroadcast:       !m%s\n"
        "\t!yChannel:         !m%i\n"
        "\t!yMax connections: !m%i!!\n",
        this->vid()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),

@@ -39,7 +39,7 @@ namespace fhatos {
           InstBuilder::build(driver_value_id.extend(":begin"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":begin")),
-                         ObjHelper::make_lhs_args(lhs, {}),
+                         ObjHelper::make_lhs_args(lhs, %s),
                          TRANSIENT);
             return noobj();
           })
@@ -47,7 +47,7 @@ namespace fhatos {
           InstBuilder::build(driver_value_id.extend(":end"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":end")),
-                         ObjHelper::make_lhs_args(lhs, {}),
+                         ObjHelper::make_lhs_args(lhs, %s),
                          TRANSIENT);
             return noobj();
           })
@@ -91,7 +91,7 @@ namespace fhatos {
           InstBuilder::build(driver_value_id.extend(":available"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":available")),
-                         ObjHelper::make_lhs_args(lhs, {}),
+                         ObjHelper::make_lhs_args(lhs, %s),
                          TRANSIENT);
             return noobj();
           })
@@ -99,7 +99,7 @@ namespace fhatos {
           InstBuilder::build(driver_value_id.extend(":read"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":read")),
-                         ObjHelper::make_lhs_args(lhs, {}),
+                         ObjHelper::make_lhs_args(lhs, %s),
                          TRANSIENT);
             return noobj();
           })

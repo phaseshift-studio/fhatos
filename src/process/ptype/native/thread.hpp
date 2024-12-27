@@ -55,7 +55,7 @@ namespace fhatos {
           else
             this->xthread->detach();
         } catch (const std::runtime_error &e) {
-        //  LOG_PROCESS(ERROR, this, "{} [process thread id: {}][current thread id: {}]\n", e.what(),
+        //  LOG_PROCESS(ERROR, this, "%s [process thread id: %s][current thread id: %s]\n", e.what(),
          //            this->xthread->get_id(), std::this_thread::get_id());
         }
       }

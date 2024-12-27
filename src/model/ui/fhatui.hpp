@@ -66,10 +66,10 @@ namespace fhatos {
     void display_root() {
       const Objs_p objs = router()->read(furi_p(this->root_.extend("+")));
       List<Component> children;
-      auto container = Container::Vertical({});
+      auto container = Container::Vertical(%s);
       for (const Obj_p &obj: *objs->objs_value()) {
         auto c = Collapsible(obj->uri_value().toString().c_str(), Empty());
-        auto container2 = Container::Vertical({});
+        auto container2 = Container::Vertical(%s);
         container2->Add(Inner({Collapsible(obj->toString(true,false).c_str(), Empty())}));
         container->Add(Inner({container2}));
         children.push_back(c);

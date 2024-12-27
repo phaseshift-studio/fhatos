@@ -53,7 +53,7 @@ namespace fhatos {
             this->write(this->vid_, _noobj_);
             this->stop();
             return noobj();
-          }, {}, INST_FURI,
+          }, %s, INST_FURI,
           make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
         {":attach", to_inst(
           [this](const Obj_p &obj, const InstArgs &args) {
@@ -71,13 +71,13 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
         THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: {}]: {}\n", THREAD_FRAME_STACK->depth(),
+        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
                 THREAD_FRAME_STACK->full_frame()->toString().c_str());
       };
       ROUTER_POP_FRAME = [this] {
         if(nullptr == THREAD_FRAME_STACK)
           throw fError("there are no more frames on the stack");
-        LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: {}]: {}\n",
+        LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: %s\n",
                 THREAD_FRAME_STACK->depth(),
                 THREAD_FRAME_STACK->pattern()->toString().c_str());
         THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
@@ -102,7 +102,7 @@ namespace fhatos {
           for(const auto &prefix: *prefixes) {
             const fURI_p x = furi_p(prefix->uri_value().extend(c));
             if(const Structure_p structure = this->get_structure(*x, false); structure && structure->has(x)) {
-              LOG_KERNEL_OBJ(TRACE, this, "located !b{}!! in {} and resolved to !b{}!!\n",
+              LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
                              furi.toString().c_str(),
                              structure->toString().c_str(),
                              x->toString().c_str());
@@ -111,7 +111,7 @@ namespace fhatos {
             }
           }
           if(!found) {
-            LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b{}!!\n", c.toString().c_str());
+            LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b%s!!\n", c.toString().c_str());
           }
           if(first) {
             first = false;
@@ -154,7 +154,7 @@ namespace fhatos {
           if(online)
             structure->loop();
           else {
-            LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !y{}!! detached\n", structure->pattern()->toString().c_str(),
+            LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
                            structure->tid()->name().c_str());
           }
           return !online;
@@ -174,22 +174,22 @@ namespace fhatos {
         map->insert({name, count});
       });
       for(const auto &[name, count]: *map) {
-        LOG_KERNEL_OBJ(INFO, this, "!b{} !y{}!!(s) closing\n", to_string(count).c_str(), name.c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
       }
       this->structures_.forEach([](const Structure_p &structure) { structure->stop(); });
-      LOG_KERNEL_OBJ(INFO, this, "!yrouter !b{}!! stopped\n", this->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     void attach(const Structure_p &structure) {
       if(structure->pattern()->equals(Pattern(""))) {
-        LOG_KERNEL_OBJ(INFO, this, "!b{} !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
+        LOG_KERNEL_OBJ(INFO, this, "!b%s !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                        structure->tid()->name().c_str());
       } else {
         this->structures_.forEach([structure, this](const Structure_p &s) {
           if(structure->pattern()->bimatches(*s->pattern())) {
             // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
             throw fError(ROUTER_FURI_WRAP
-                         " only !ydisjoint structures!! can coexist: !g[!b{}!g]!! overlaps !g[!b{}!g]!!",
+                         " only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
                          this->vid_->toString().c_str(), s->pattern()->toString().c_str(),
                          structure->pattern()->toString().c_str());
           }
@@ -197,10 +197,10 @@ namespace fhatos {
         this->structures_.push_back(structure);
         structure->setup();
         if(structure->available()) {
-          LOG_KERNEL_OBJ(INFO, this, "!b{}!! !y{}!! attached\n", structure->pattern()->toString().c_str(),
+          LOG_KERNEL_OBJ(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
                          structure->tid()->name().c_str());
         } else {
-          LOG_KERNEL_OBJ(ERROR, this, "!runable to attach {}: {}!!\n", structure->pattern()->toString().c_str(),
+          LOG_KERNEL_OBJ(ERROR, this, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
                          structure->tid()->name().c_str());
           this->structures_.pop_back();
         }
@@ -226,7 +226,7 @@ namespace fhatos {
         if(query)
           return structure->shared_from_this();
         const Objs_p objs = structure->read(resolved_furi);
-        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b{}!m=>!y{}!g]!! from " FURI_WRAP "\n",
+        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
                        objs->toString().c_str(), structure->pattern()->toString().c_str());
         return objs->none_one_all();
@@ -239,7 +239,7 @@ namespace fhatos {
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       try {
         const Structure_p structure = this->get_structure(*furi);
-        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to " FURI_WRAP "\n",
+        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
                        furi->toString().c_str(), obj->tid()->toString().c_str(),
                        structure->pattern()->toString().c_str());
@@ -253,7 +253,7 @@ namespace fhatos {
       try {
         this->structures_.forEach([this, subscriber, pattern](const Structure_p &structure) {
           if(structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
-            LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b{}!! for {}\n", pattern->toString().c_str(),
+            LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
                            subscriber->toString().c_str());
             structure->recv_unsubscribe(subscriber, pattern);
           }
@@ -266,7 +266,7 @@ namespace fhatos {
     void route_subscription(const Subscription_p &subscription) {
       try {
         const Structure_p struc = this->get_structure(subscription->pattern());
-        LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! {}\n", subscription->toString().c_str());
+        LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
         struc->recv_subscription(subscription);
       } catch(const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
@@ -298,7 +298,7 @@ namespace fhatos {
         if(list.size() > 1)
           throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern.toString().c_str());
         if(list.empty())
-          throw fError(ROUTER_FURI_WRAP " has no structure for !b{}!!", this->vid()->toString().c_str(),
+          throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
                        pattern.toString().c_str());
         const Structure_p s = list.at(0);
         return s;
@@ -311,14 +311,14 @@ namespace fhatos {
       fURI_p type_id_resolved;
       if(strlen(type_id->scheme()) > 0) {
         const Obj_p resolved_uri = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
-        LOG_KERNEL_OBJ(DEBUG, this, "!g!_resolving !y{}!!:!b{}!! to !b{}!!\n", type_id->scheme(),
+        LOG_KERNEL_OBJ(DEBUG, this, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n", type_id->scheme(),
                        type_id->path().c_str(),
                        resolved_uri->toString().c_str());
         if(!resolved_uri->is_noobj()) {
           if(resolved_uri->is_uri()) {
             return id_p(resolved_uri->uri_value().extend((string(":").append(type_id->path())).c_str()));
           } else
-            throw fError("namespace prefixes must be uris: !y{}!!:!b{}!!", resolved_uri->toString().c_str());
+            throw fError("namespace prefixes must be uris: !y%s!!:!b%s!!", resolved_uri->toString().c_str());
         }
       }
       return type_id; // no resolution available

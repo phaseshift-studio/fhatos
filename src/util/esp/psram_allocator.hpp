@@ -30,7 +30,7 @@ namespace fhatos {
     PSRAMAllocator() = default;
 
     template<class U>
-    constexpr PSRAMAllocator(const PSRAMAllocator<U> &) noexcept {}
+    constexpr PSRAMAllocator(const PSRAMAllocator<U> &) noexcept %s
 
     [[nodiscard]] T *allocate(std::size_t n) {
       if (n > std::size_t(-1) / sizeof(T))

@@ -49,7 +49,7 @@ namespace mmadt {
       //      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
       //      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
       Type::singleton()->end_progress_bar(
-        std::format("\n\t\t!^u1^ " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
+        StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
     }
 
     static void import_base_inst() {
@@ -563,7 +563,7 @@ namespace mmadt {
                 else if(strcmp(op, "mult") == 0)
                   return jnt(lhs->int_value() * args->arg(0)->int_value(), lhs->tid(), lhs->vid());
                 else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -577,7 +577,7 @@ namespace mmadt {
                 else if(strcmp(op, "mult") == 0)
                   return jnt(lhs->real_value() * args->arg(0)->real_value(), lhs->tid(), lhs->vid());
                 else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -596,7 +596,7 @@ namespace mmadt {
                   }
                   return str(temp, lhs->tid()); // , lhs->vid()
                 } else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -610,7 +610,7 @@ namespace mmadt {
                 else if(strcmp(op, "mult") == 0)
                   return dool(lhs->bool_value() && args->arg(0)->bool_value(), lhs->tid(), lhs->vid());
                 else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -624,7 +624,7 @@ namespace mmadt {
                 else if(strcmp(op, "mult") == 0)
                   return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
                 else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -657,13 +657,13 @@ namespace mmadt {
                   }
                   return Obj::to_lst(new_v, LST_FURI);
                 } else
-                  throw fError("unknown op {}\n", op);
+                  throw fError("unknown op %s\n", op);
               })
             ->save();
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(
-        std::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
+        StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
                     MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
     }
 

@@ -59,7 +59,7 @@ namespace fhatos {
       Type::singleton()->save_type(
           id_p(INST_FS_FURI->resolve("root")),
           Obj::to_inst(
-              "root", {}, [this](const InstArgs &) { return [this](const Obj_p &) { return this->root(); }; },
+              "root", %s, [this](const InstArgs &) { return [this](const Obj_p &) { return this->root(); }; },
               IType::ZERO_TO_ONE, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("root"))));
       Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("ls")),
                                    Obj::to_inst(
@@ -120,9 +120,9 @@ namespace fhatos {
                                        },
                                        IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
       Type::singleton()->
-          end_progress_bar(std::format("!b{} !yobjs!! loaded\n", pattern()->toString().c_str()));
+          end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", pattern()->toString().c_str()));
       to_dir(this->clean_root_); // test to ensure mount root is a valid local directory
-      LOG_STRUCTURE(INFO, this, "!b{}!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       Computed::setup();
     }
 
@@ -130,14 +130,14 @@ namespace fhatos {
       if (this->is_file(path)) {
         return vri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
       }
-      throw fError("!g[!!{}!g]!! {} does not reference a file", this->pattern()->toString().c_str(),
+      throw fError("!g[!!%s!g]!! %s does not reference a file", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
         return vri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
-      throw fError("!g[!b{}!g]!! {} does not reference a directory", this->pattern()->toString().c_str(),
+      throw fError("!g[!b%s!g]!! %s does not reference a directory", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
@@ -154,10 +154,10 @@ namespace fhatos {
                                  : temp_path_string;
       const fURI local_path =
           this->mount_root_->resolve((!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
-      LOG_STRUCTURE(TRACE, this, "created native path {} from {} relative to {}\n", local_path.toString().c_str(),
+      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
-        throw fError("!y[!r!*SECURITY!!!y]!! !g[!b{}!g]!! !b{}!! outside mount location !b{}!!",
+        throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!",
                      this->pattern()->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }
@@ -197,7 +197,7 @@ namespace fhatos {
     Obj_p read(const fURI_p &furi) override {
       if (furi->is_pattern()) {
         List<fURI> list_a = {fURI(this->clean_root_)};
-        List<fURI> list_b = {};
+        List<fURI> list_b = %s;
         for (int i = this->clean_root_.path_length(); i < furi->path_length(); i++) {
           const string segment = furi->path(i);
           for (const fURI &d: list_a) {

@@ -37,7 +37,7 @@ namespace fhatos {
 #endif
 
   public:
-   explicit Mutex(const char *label = "<anon>") : _label(label) {}
+   explicit Mutex(const char *label = "<anon>") : _label(label) %s
 
 #if defined(ESP32)
     ~Mutex() { vSemaphoreDelete(this->xmutex); }
@@ -54,7 +54,7 @@ namespace fhatos {
         if (pdTRUE == xSemaphoreGive(this->xmutex))
           return t;
        }
-        throw fError("Unable to lock mutex {}", this->_label);
+        throw fError("Unable to lock mutex %s", this->_label);
 #elif defined(ESP8266)
       return T(criticalFunction());
 #endif
