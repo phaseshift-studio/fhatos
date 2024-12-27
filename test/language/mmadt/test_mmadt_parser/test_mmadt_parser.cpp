@@ -153,38 +153,32 @@ namespace fhatos {
   }
 
   void test_inst_parsing() {
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
     FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst()"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
     FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(a=>66)"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
     FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
-
-    /*
-    FOS_TEST_OBJ_EQUAL(jnt(66),PROCESS(
-      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
-      "1./abc/temp_inst()"));
-    FOS_TEST_OBJ_EQUAL(jnt(68),PROCESS(
-      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
-      "2./abc/temp_inst(a=>66)"));
-    FOS_TEST_OBJ_EQUAL(jnt(70),PROCESS(
-      "/abc/temp_inst -> |/abc/temp_inst?int<=int|(a=>65)[plus(*a)];"
-      "3./abc/temp_inst(67)"));
-     */
-
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zyz"),
+      *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid());
+    FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
+    FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zzz"),
+      *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid());
+    FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
+    ///////////////////////////////////////////////////////////////
     FOS_TEST_OBJ_EQUAL(dool(false),
                        PROCESS(
-                         "|(bool?bool<=bool|(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
+                         "|(bool?bool<=bool(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
                          "false./abc/bool/true_static(a=>_).to(/abc/bool/inst_parse);\n"
                          "*/abc/bool/inst_parse"
                        ));
-    // FOS_TEST_OBJ_EQUAL(dool(false), PROCESS(""
-    //                      "|bcode?bool<=noobj|(a=>_)[is(eq(*a))]@/abc/bool/true_static;."
-    //                     "/abc/bool/true_static(false)"));
-    //  FOS_TEST_OBJ_EQUAL(dool(false),PROCESS(""
-    //                                    "|bcode?bool<=noobj|(_)[is(eq(*_0))]@/abc/bool/true_static;."
-    //                                    "/abc/bool/true_static(false)"));
-    // /"<nat?nat<=int>|(x=>_,y=>2)[is(gt(0))]"
+    ///////////////////////////////////////////////////////////////
+    const ID_p nat = id_p("/abc/nat");
+    FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[5]"));
+    FOS_TEST_OBJ_EQUAL(jnt(6,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[6]"));
+    FOS_TEST_ERROR("/abc/nat[-12]");
+    FOS_TEST_ERROR("/abc/nat[0]");
   }
 
   void test_inst_sugar_parsing() {
@@ -285,11 +279,6 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];\n*/abc/1/a.b.to(/abc/x);\n*/abc/x + -6\n"));
   }
 
-  void test_type_definition_parsing() {
-    const ID_p nat = id_p("/abc/nat");
-    FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("/abc/nat -> |/abc/nat?/abc/nat<=int[is(gt(0))]; /abc/nat[5]"));
-  }
-
   FOS_RUN_TESTS( //
     //FOS_RUN_TEST(test_comment_parsing); //
     FOS_RUN_TEST(test_noobj_parsing); //
@@ -306,7 +295,6 @@ namespace fhatos {
     FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //
     FOS_RUN_TEST(test_apply_poly_parsing); //
-    //FOS_RUN_TEST(test_type_definition_parsing); //
   )
 } // namespace fhatos
 

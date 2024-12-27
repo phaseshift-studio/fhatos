@@ -19,7 +19,7 @@
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 
-#ifndef FOS_LOGGINGX
+#ifndef FOS_LOGGING
 #define FOS_LOGGING INFO
 #endif
 

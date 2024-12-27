@@ -134,7 +134,7 @@ namespace mmadt {
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
-      throw fError("!^r%i^!y^--!r{}!! at line !y%i!!:!y%i!! !g[!r{}!g]!!",
+      throw fError("!^r{}^!y^--!r{}!! at line !y{}!!:!y{}!! !g[!r{}!g]!!",
                    column - 1, message.c_str(), line, column, rule.c_str());
     };
 
@@ -244,19 +244,12 @@ namespace mmadt {
       };
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
-        LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
+        LOG_OBJ(TRACE, Parser::singleton(), "obj_action: {}\n", vs.choice());
         switch(vs.choice()) {
-          case 0: { // a(b)@xyz
+          case 1: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);
           }
-
-          case 1: { // a[b]@xyz
-            const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
-            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
-            return Obj::create(v, o, type_id,
-                               vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
-          }
-          case 2: { // a|(c)[b]@xyz
+          case 0: { // a(c)[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto args = any_cast<InstArgs>(vs[1]);
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
@@ -265,6 +258,12 @@ namespace mmadt {
             return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), IType::ONE_TO_ONE, noobj()),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
+          }
+          case 2: { // a[b]@xyz
+            const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
+            return Obj::create(v, o, type_id,
+                               vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 3: { // b@xyz
             const auto &[v,o] = any_cast<Pair<Any, OType>>(vs[0]);
@@ -311,18 +310,21 @@ namespace mmadt {
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
         const auto insts = make_shared<List<Inst_p>>();
-        bool first = true;
+        Inst_p prev = nullptr;
         for(const auto &obj: vs.transform<Obj_p>()) {
           if(!obj->is_code()) {
-            insts->push_back(Obj::to_inst({first ? Obj::to_objs({obj}) : obj}, id_p(first ? "start" : "map")));
+            const bool as_start = nullptr == prev || /*is_terminal(prev->itype()) ||*/ prev->inst_op() == "end";
+            prev = Obj::to_inst({as_start ? Obj::to_objs({obj}) : obj}, id_p(as_start ? "start" : "map"));
+            insts->push_back(prev);
           } else if(obj->is_inst()) {
             insts->push_back(obj);
+            prev = obj;
           } else {
             for(const Inst_p &inst: *obj->bcode_value()) {
               insts->push_back(inst);
+              prev = inst;
             }
           }
-          first = false;
         }
         return Obj::to_bcode(insts);
       };
@@ -401,9 +403,9 @@ namespace mmadt {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       OBJ <= cho(
+        seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
         seq(INST), // a(b)@xyz
         seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
-        seq(TYPE_ID, lit("|"), ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
         seq(PROTO, opt(VALUE_ID)) // b@xyz
       ), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,20 +434,10 @@ namespace mmadt {
       SUGAR_GENERATOR(EACH, "==", "each");
       SUGAR_GENERATOR(PLUS, "+", "plus");
       SUGAR_GENERATOR(MULT, "x", "mult");
-
-      /*  AT <= seq(lit("@"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("at");
-        DROP <= seq(lit("/|"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("drop");
-        FROM <= seq(lit("*"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("from");
-        REF <= seq(lit("->"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("ref");
-        BLOCK <= seq(lit("|"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("block");*/
       PASS <= seq(lit("-->"), WRAQ("(", OBJ, START, ")")), pass_action;
       MERGE <= seq(chr('>'), opt(OBJ), chr('-')), merge_action;
-      /* SPLIT <= seq(lit("-<"), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("split");
-       EACH <= seq(lit("=="), WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("each");*/
       END <= lit(";"), end_action;
       WITHIN <= seq(lit("_/"), START, lit("\\_")), within_action;
-      /* PLUS <= seq(lit("+ "), ~WS, WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("plus");
-       MULT <= seq(lit("x "), ~WS, WRAQ("(", OBJ, START, ")")), SUGAR_GENERATOR("mult");*/
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif

@@ -22,7 +22,6 @@
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
 #include "../../language/type.hpp"
-#include <string>
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 100

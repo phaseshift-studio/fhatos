@@ -71,13 +71,13 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
         THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: {}\n", THREAD_FRAME_STACK->depth(),
+        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: {}]: {}\n", THREAD_FRAME_STACK->depth(),
                 THREAD_FRAME_STACK->full_frame()->toString().c_str());
       };
       ROUTER_POP_FRAME = [this] {
         if(nullptr == THREAD_FRAME_STACK)
           throw fError("there are no more frames on the stack");
-        LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: {}\n",
+        LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: {}]: {}\n",
                 THREAD_FRAME_STACK->depth(),
                 THREAD_FRAME_STACK->pattern()->toString().c_str());
         THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
@@ -182,14 +182,14 @@ namespace fhatos {
 
     void attach(const Structure_p &structure) {
       if(structure->pattern()->equals(Pattern(""))) {
-        LOG_KERNEL_OBJ(INFO, this, "!b{}!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
+        LOG_KERNEL_OBJ(INFO, this, "!b{} !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                        structure->tid()->name().c_str());
       } else {
         this->structures_.forEach([structure, this](const Structure_p &s) {
           if(structure->pattern()->bimatches(*s->pattern())) {
             // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
             throw fError(ROUTER_FURI_WRAP
-                         " Only !ydisjoint structures!! can coexist: !g[!b{}!g]!! overlaps !g[!b{}!g]!!",
+                         " only !ydisjoint structures!! can coexist: !g[!b{}!g]!! overlaps !g[!b{}!g]!!",
                          this->vid_->toString().c_str(), s->pattern()->toString().c_str(),
                          structure->pattern()->toString().c_str());
           }

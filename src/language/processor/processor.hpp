@@ -56,6 +56,7 @@ namespace fhatos {
         // process bcode inst pipeline
         this->bcode_ = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
         // setup global behavior around barriers, initials, and terminals
+        LOG_OBJ(DEBUG, this, FOS_TAB_2 "{}\n", this->bcode_->toString().c_str());
         bool first = true;
         for(const Inst_p &inst: *this->bcode_->bcode_value()) {
           const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
@@ -290,6 +291,7 @@ namespace fhatos {
         }
       }
     };
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   };
 

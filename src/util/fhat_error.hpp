@@ -19,15 +19,15 @@
 #ifndef fhatos_fhat_error_hpp
 #define fhatos_fhat_error_hpp
 
-#include <stdarg.h>
 #include <exception>
-#include <format>
 #include <string>
+#include <format>
 
 #define FOS_ERROR_MESSAGE_SIZE 500
 
 namespace fhatos {
   using std::string;
+
 #ifndef NATIVE
   ///////////////////////
   /// EXCEPTION TYPES ///

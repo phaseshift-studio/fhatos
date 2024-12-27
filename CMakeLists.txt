@@ -135,7 +135,8 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 ####################################################################
 ####################################################################
 ####################################################################
-OPTION(FOS_SKIP_CMAKE "abort the cnake build process" OFF)
+OPTION(FOS_SKIP_CMAKE "abort the cmake build process" OFF)
+OPTION(FOS_LOGGING "fhatos default logging" INFO)
 OPTION(CHECK_INTERNET "check internet" ON)
 OPTION(BUILD_TESTS "build fhatos tests" OFF)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
@@ -157,6 +158,7 @@ MESSAGE(NOTICE "
 \t  ${.g}CMAKE_SOURCE_DIR${..}   : ${CMAKE_SOURCE_DIR}
 \t  ${.g}CMAKE_BINARY_DIR${..}   : ${CMAKE_BINARY_DIR}
 \t  ${.g}FOS_SKIP_CMAKE${..}     : ${FOS_SKIP_CMAKE}
+\t  ${.g}FOS_LOGGING${..}        : ${FOS_LOGGING}
 \t  ${.g}CHECK_INTERNET${..}     : ${CHECK_INTERNET}
 \t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
 \t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
@@ -267,6 +269,7 @@ IF(BUILD_NATIVE)
     ADD_DEFINITIONS(
             -DNATIVE
             -DBUILD_DOCS=${BUILD_DOCS}
+            -DFOS_LOGGING=${FOS_LOGGING}
             -DFOS_MACHINE_SUBOS=${FOS_MACHINE_SUBOS}
             -DFOS_MACHINE_ARCH=${FOS_MACHINE_ARCH}
             -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
