@@ -1128,7 +1128,7 @@ namespace fhatos {
         obj_printer = GLOBAL_PRINTERS.at(this->o_type());
       string obj_string;
       if(this->is_noobj())
-        return "!r" STR(FOS_NOOBJ_TOKEN) "!!";
+        obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       if(!this->is_type()) {
         switch(this->o_type()) {
           case OType::BOOL:
@@ -1265,7 +1265,7 @@ namespace fhatos {
          (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
-                          : string("!B").append(this->is_bcode() ? "!!" : this->tid_->name()).append("!!");
+                          : string("!B").append(this->is_bcode() ? "!!" : (obj_printer->strict ? this->tid_->toString() : this->tid_->name())).append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            !this->is_base_type() &&
@@ -1990,9 +1990,7 @@ namespace fhatos {
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      LOG(DEBUG, "deserializing bytes %s (length %i)\n",
-          to_string(bobj->first).c_str(),
-          to_string(bobj->first).c_str());
+      LOG(DEBUG, "deserializing bytes %s (length %i)\n",bobj->second,bobj->first);
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
 

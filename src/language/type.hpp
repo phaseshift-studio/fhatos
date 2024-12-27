@@ -73,7 +73,7 @@ namespace fhatos {
                       type_id->toString().c_str(),
                       type_id->toString().c_str());
             } else {
-              LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-{}!! overwritten\n",
+              LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
                       type_id->toString().c_str(), current->toString().c_str());
             }
           }
@@ -110,13 +110,13 @@ namespace fhatos {
           if(throw_on_fail) {
             static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
             p->show_type = false;
-            throw fError("!g[!b{}!g]!! {} is !rnot!! a !b{}!! as defined by {}", this->vid()->toString().c_str(),
+            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
                          obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
           }
           return false;
         }
         if(throw_on_fail)
-          throw fError("!g[!b{}!g] !b{}!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
         return false;
       };

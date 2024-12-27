@@ -23,6 +23,10 @@
 #define FOS_LOGGING INFO
 #endif
 
+#ifndef FOS_TEST_SERIALIZATION
+#define FOS_TEST_SERIALIZATION false
+#endif
+
 #include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
 #include "../src/util/options.hpp"
@@ -122,7 +126,7 @@ using namespace fhatos;
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      LOG(ERROR, "failed test due to {}\n", e.what());                                                                 \
+      LOG(ERROR, "failed test due to %s\n", e.what());                                                                 \
       throw;                                                                                                           \
     }                                                                                                                  \
   }
@@ -186,11 +190,19 @@ void tearDown() {
 
 using namespace fhatos;
 
+static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
+  if(FOS_TEST_SERIALIZATION) {
+    BObj_p bobj = obj->serialize();
+    return Obj::deserialize(bobj);
+  }
+  return obj;
+};
+
 #define PROCESS_ALL(bcode_string) \
   BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))
 
 
-#define PROCESS(bcode_string) BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))->objs_value(0)
+#define PROCESS(bcode_string) BCODE_PROCESSOR(serialization_check(OBJ_PARSER((bcode_string))))->objs_value(0)
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
@@ -230,7 +242,7 @@ using namespace fhatos;
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected error occurred!!: {}", e.what());                                                     \
+    FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                     \
     TEST_ASSERT(true);                                                                                                 \
   }
 
@@ -240,7 +252,7 @@ using namespace fhatos;
     (fn)();                                                                                                            \
     TEST_FAIL_MESSAGE("!rno exception occurred!!: " STR(__FILE__) ":" STR(__LINE__));                                  \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!gexpected exception occurred!!: {}", e.what());                                                 \
+    FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                 \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
@@ -303,7 +315,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
         objs_value();
     TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
-    LOG(INFO, "expected !rexception thrown!!: {}\n", error.what());
+    LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
 }
