@@ -149,13 +149,18 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////
    ///////////////////////////////// MONAD ///////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
+  protected:
+    class MonadSet;
+
   private:
     class Monad : public enable_shared_from_this<Processor::Monad> { // OBJ as well?
+      friend MonadSet;
+
     protected:
       const Processor *processor_;
       const Obj_p obj_;
       const Inst_p inst_;
-      const long bulk_ = 1;
+      long bulk_ = 1;
       uint16_t loops_ = 0;
 
     public:
@@ -217,36 +222,36 @@ namespace fhatos {
                 current_inst_resolved->toString().c_str(),
                 ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
-        if(is_scatter(current_inst_resolved->itype())) {
+        const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst_);
+        if(is_initial(next_inst->itype())) {
+          LOG_OBJ(TRACE, this->processor_, "monad {} dying [{}]\n", this->toString().c_str(),
+                  ITypeDescriptions.to_chars(next_inst->itype()));
+        } else if(is_scatter(current_inst_resolved->itype()) && next_obj->is_objs()) {
           LOG_OBJ(TRACE, this->processor_, "monad {} scattering [{}]\n",
                   this->toString().c_str(),
                   ITypeDescriptions.to_chars(this->inst_->itype()));
-          for(const Obj_p &obj: *next_obj->objs_value()) {
-            if(const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst_);
-              !is_initial(next_inst->itype())) {
-              const Monad_p m = this->processor_->M(obj, next_inst);
-              LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n",
-                      this->toString().c_str(),
-                      m->toString().c_str());
-              this->processor_->running_->push_back(m);
-            } else {
-              LOG_OBJ(TRACE, this->processor_, "monad {} dying [{}]\n", this->toString().c_str(),
-                      ITypeDescriptions.to_chars(next_inst->itype()));
-            }
-          }
-        } else {
-          if(const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst_);
-            !is_initial(next_inst->itype())) {
-            const Monad_p m = this->processor_->M(next_obj, next_inst);
+          for(const Obj_p &barrier_next_obj: *next_obj->objs_value()) {
+            const Monad_p m = this->processor_->M(barrier_next_obj, next_inst);
             LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n",
                     this->toString().c_str(),
                     m->toString().c_str());
             this->processor_->running_->push_back(m);
-          } else {
-            LOG_OBJ(TRACE, this->processor_, "monad {} dying [{}]\n", this->toString().c_str(),
-                    ITypeDescriptions.to_chars(next_inst->itype()));
           }
+        } else {
+          const Monad_p m = this->processor_->M(next_obj, next_inst);
+          LOG_OBJ(TRACE, this->processor_, "monad {} !r==!gmigrating!r==>!! {}\n",
+                  this->toString().c_str(),
+                  m->toString().c_str());
+          this->processor_->running_->push_back(m);
         }
+      }
+
+      bool operator==(const Monad &other) const {
+        return this->equals(other);
+      }
+
+      [[nodiscard]] bool equals(const Monad &other) const {
+        return this->inst_->equals(*other.inst_) && this->obj_->equals(*other.obj_);
       }
 
       [[nodiscard]] Obj_p obj() const { return this->obj_; }
@@ -265,7 +270,29 @@ namespace fhatos {
         return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
       }
     };
+
+    struct monadp_equal_to : std::binary_function<Monad_p &, Monad_p &, bool> {
+      bool operator()(const Monad_p &a, const Monad_p &b) const { return a->equals(*b); }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  protected:
+    class MonadSet {
+    public:
+      const unique_ptr<Set<Monad_p, monadp_equal_to>> internal = make_unique<Set<Monad_p, monadp_equal_to>>();
+
+      void add(const Monad_p &monad) {
+        Set<Monad_p, monadp_equal_to>::iterator it = this->internal->find(monad);
+        if(it != this->internal->end()) {
+          (*it)->bulk_ = (*it)->bulk_ + monad->bulk_;
+        } else {
+          this->internal->insert(monad);
+        }
+      }
+    };
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   };
+
 
   [[maybe_unused]] static void load_processor() {
     BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p {

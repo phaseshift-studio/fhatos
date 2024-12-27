@@ -510,6 +510,9 @@ namespace fhatos {
     return nullptr;
   };
 
+
+  class ObjsSet;
+
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
@@ -589,12 +592,8 @@ namespace fhatos {
       return this->vid_ ? this->vid_ : this->tid_;
     }
 
-    virtual void save(const ID_p &id = nullptr) {
-      if(id) {
-        this->vid_ = id;
-        ROUTER_WRITE(id, shared_from_this(), true);
-      } else if(this->vid_)
-        ROUTER_WRITE(this->vid_, shared_from_this(), true);
+    virtual void save() {
+      this->at(this->vid_);
     }
 
     [[nodiscard]] OType o_type() const { return this->otype_; }
@@ -758,8 +757,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p arg(const size_t index) const {
-if(this->is_inst())
-  return this->inst_args()->arg(index);
+      if(this->is_inst())
+        return this->inst_args()->arg(index);
       size_t counter = 0;
       for(const auto &[k,v]: *this->rec_value()) {
         if(index == counter)
@@ -1471,19 +1470,6 @@ if(this->is_inst())
       return this->equals(other);
     }
 
-    /*[[nodiscard]] Obj operator[](const Obj &key) const {
-      switch(this->o_type()) {
-        case OType::STR:
-          return *this->str_get(share(key));
-        case OType::LST:
-          return *this->lst_get(share(key));
-        case OType::REC:
-          return *this->rec_get(share(key));
-        default:
-          throw fError("Unknown obj type in []: {}", OTypes.to_chars(this->o_type()).c_str());
-      }
-    }*/
-
     [[nodiscard]] Obj_p operator[](const char *id) const { return this->rec_get(id_p(id)); }
 
     [[nodiscard]] bool is_type() const { return !this->value_.has_value() && this->otype_ == OType::OBJ; }
@@ -2013,6 +1999,29 @@ if(this->is_inst())
           to_string(bobj->first).c_str());
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  protected:
+    class ObjsSet {
+    public:
+      const unique_ptr<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>> internal =
+          make_unique<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>>();
+
+      void add(const Obj_p &obj) const {
+        if(this->internal->count(obj)) {
+          const long bulk = this->internal->at(obj);
+          this->internal->insert({obj, bulk + 1});
+        } else {
+          this->internal->insert({obj, 1});
+        }
+      }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   };
 
   [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
@@ -2118,7 +2127,7 @@ if(this->is_inst())
 
   //[[maybe_unused]] static Inst_p x(const char *arg_name, const Obj_p &default_arg = noobj()) {
   //  return from(Obj::to_uri(arg_name), default_arg);
- // }
+  // }
 
   static BCode_p ___ = Obj::to_bcode();
   static NoObj_p _noobj_ = Obj::to_noobj();
