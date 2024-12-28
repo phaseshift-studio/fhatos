@@ -1060,6 +1060,7 @@ namespace fhatos {
       //return Obj::create(new_code, OType::BCODE, this->tid_, this->vid_);
     }
 
+    ////////////////////////////////////////////////////////////
     Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) {
       if(!at_type && !this->vid_)
         throw fError("only objs with a value id can have properties and insts");
@@ -1067,6 +1068,23 @@ namespace fhatos {
       ROUTER_WRITE(id_p(this->vid_->append(relative_id)), inst, true);
       return this->shared_from_this();
     }
+
+    Obj_p this_get(const char *key) const {
+      // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
+      Obj_p result = ROUTER_READ(furi_p(this->vid()->extend(key)));
+      return result;
+    }
+
+    Obj_p this_set(const char *key, const Obj_p &obj) {
+      ROUTER_WRITE(furi_p(this->vid_->extend(key)), obj, true);
+      return this->shared_from_this();
+    }
+
+    Obj_p static_get(const char *key) const {
+      return ROUTER_READ(furi_p(this->tid_->extend(key)));
+    }
+
+    ////////////////////////////////////////////////////////////
 
     BCode_p add_inst(const Inst_p &inst, const bool mutate = true) const {
       if(!this->is_bcode())

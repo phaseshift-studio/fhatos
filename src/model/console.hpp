@@ -50,7 +50,7 @@ namespace fhatos {
     ID_p stdin_id;
     ID_p stdout_id;
     bool direct_stdin_out = true;
-    Settings settings_;
+    //   Settings settings_;
     mmadt::Tracker tracker_;
     ///// printers
     void write_stdout(const Str_p &s) const {
@@ -69,7 +69,7 @@ namespace fhatos {
     }
 
     void print_prompt(const bool blank = false) const {
-      const string prompt = this->settings_.prompt_;
+      const string prompt = this->this_get("config/prompt")->str_value();
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
@@ -80,7 +80,7 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth, to_out);
         }
-      else if(this->settings_.nest_ > depth && obj->is_lst()) {
+      else if(this->this_get("config/nest")->int_value() > depth && obj->is_lst()) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
                        (obj->is_lst() ? "[" : "{") + "!!\n");
@@ -97,7 +97,7 @@ namespace fhatos {
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
                           : "") +
                        "!m" + (obj->is_lst() ? "]" : "}") + "!!\n");
-      } else if(this->settings_.nest_ > depth && obj->is_rec()) {
+      } else if(this->this_get("config/nest")->int_value() > depth && obj->is_rec()) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -123,7 +123,7 @@ namespace fhatos {
       } else {
         to_out->append(string("!g") + StringHelper::repeat(depth, "="));
         to_out->append(StringHelper::format("==>!!%s\n",
-                                   obj->toString().c_str()));
+                                            obj->toString().c_str()));
       }
     }
 
@@ -221,7 +221,7 @@ namespace fhatos {
           /*{"terminal", rec({
                {vri("stdin"), vri(terminal.extend(":stdin"))},
                {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
-      stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
+      stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))) {
       /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"),
                                             InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))->inst_f(
                                               [this](const Obj_p &lhs, const InstArgs &args) {
