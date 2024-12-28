@@ -4,3 +4,13 @@
              ./doc  -> 'a integer monotype',
              ./inst -> ../../inst/ -> [ ./plus, ./mult, ./mod]]
 --- mmadt poly types
+
+
+graph -> [:vertices=>{}]
+vertex -> [:label=>str[]]
+addE?edge<=vertex(inV=>vertex[])[outE->[edge[[outV:_,inV:*inV]]]
+edge   -> [:outV=>vertex[],:label=>str[],:inV=>vertex[]]
+|V?vertex{O}<=obj{o}(id=>_)[*id.as(vertex)]@V
+|addE?edge{1}<=[vertex,vertex]{1}(outV=>vertex[])[pair
+E?edge<=[vertex,vertex](pair=>noobj)[*id.as(vertex)]
+v1 -> [:outE=lst[],:label=>'person']

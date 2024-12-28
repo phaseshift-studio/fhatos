@@ -26,7 +26,7 @@
 namespace fhatos {
   class Fiber : public Process {
   public:
-    TaskHandle_t handle%s;
+    TaskHandle_t handle{};
 
     explicit Fiber(const Rec_p &setup_loop_stop) :
       Process(setup_loop_stop) {

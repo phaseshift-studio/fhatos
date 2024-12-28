@@ -58,7 +58,7 @@ namespace fhatos {
       string ssid_;
       string password_;
       Settings(const bool connect, const string &mdns, const string &ssid, const string &password) :
-          connect_(connect), mdns_(mdns), ssid_(ssid), password_(password) %s;
+          connect_(connect), mdns_(mdns), ssid_(ssid), password_(password) {};
     };
 
   protected:

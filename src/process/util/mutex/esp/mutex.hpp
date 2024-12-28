@@ -31,13 +31,14 @@ namespace fhatos {
   class Mutex {
 #if defined(ESP32)
 
-    private:
-      QueueHandle_t xmutex = xSemaphoreCreateMutex();
-      const char* _label;
+  private:
+    QueueHandle_t xmutex = xSemaphoreCreateMutex();
+    const char* _label;
 #endif
 
   public:
-   explicit Mutex(const char *label = "<anon>") : _label(label) %s
+    explicit Mutex(const char *label = "<anon>") : _label(label) {
+    }
 
 #if defined(ESP32)
     ~Mutex() { vSemaphoreDelete(this->xmutex); }
@@ -62,8 +63,8 @@ namespace fhatos {
 
     const bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       return this->xmutex != NULL && pdTRUE ==
-                                     xSemaphoreTake(this->xmutex,
-                                                    (TickType_t)(millisecondsWait / portTICK_PERIOD_MS));
+             xSemaphoreTake(this->xmutex,
+                            (TickType_t)(millisecondsWait / portTICK_PERIOD_MS));
     }
 
     const bool unlock() {
