@@ -919,26 +919,18 @@ namespace fhatos {
       return this->value<Pair<Obj_p, Inst_p>>();
     }
 
+
     [[nodiscard]] ID_p domain() const {
       return this->tid_->has_query("domain")
-               ? id_p(this->tid_->query_value("domain")->c_str())
+               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value("domain")->c_str())))
                : (this->is_bcode() && !this->bcode_value()->empty()
                     ? this->bcode_value()->front()->domain()
                     : OBJ_FURI);
     }
 
-    [[nodiscard]] IType itype2() const {
-      if(this->is_inst())
-        return this->itype();
-      if(!this->tid_->has_query("ftype"))
-        return IType::ONE_TO_ONE;
-      const auto dom_rng = this->tid_->query_values("ftype");
-      return ITypeSignatures.to_enum(string(dom_rng[0]).append("->").append(dom_rng[1]));
-    }
-
     [[nodiscard]] ID_p range() const {
       return this->tid_->has_query("range")
-               ? id_p(this->tid_->query_value("range")->c_str())
+               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value("range")->c_str())))
                : this->is_code()
                    ? (this->is_bcode() && !this->bcode_value()->empty()
                         ? this->bcode_value()->back()->range()
@@ -950,15 +942,18 @@ namespace fhatos {
       return ROUTER_READ(this->tid_);
     }
 
+
     [[nodiscard]] IType itype() const {
-      if(this->is_inst())
+     if(this->tid_->has_query("ftype")) {
+        const auto dom_rng = this->tid_->query_values("ftype");
+        return ITypeSignatures.to_enum(string(dom_rng[0]).append("->").append(dom_rng[1]));
+      } else if(this->is_inst())
         return std::get<2>(this->inst_value());
-      if(this->is_bcode()) {
+    /*  else if(this->is_bcode()) {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
         return ITypeSignatures.to_enum(string(ITypeDomains.to_chars(domain) + "->" + ITypeRanges.to_chars(range)));
-      }
-      if(this->is_objs())
+      }*/ else if(this->is_objs())
         return IType::ONE_TO_MANY;
       return IType::ONE_TO_ONE;
     }
@@ -1257,7 +1252,7 @@ namespace fhatos {
          (this->is_type() ||
           this->is_inst() ||
           (obj_printer->show_type && this->is_code() &&
-           (this->itype2() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
+           (this->itype() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
             equals(*OBJ_FURI)))) ||
          ////
          (obj_printer->show_type && this->is_base_type()) ||
@@ -1265,18 +1260,21 @@ namespace fhatos {
          (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
-                          : string("!B").append(this->is_bcode() ? "!!" : (obj_printer->strict ? this->tid_->toString() : this->tid_->name())).append("!!");
+                          : string("!B").append(this->is_bcode()
+                                                  ? "!!"
+                                                  : (obj_printer->strict ? this->tid_->toString() : this->tid_->name()))
+                          .append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            !this->is_base_type() &&
-           (this->itype2() != IType::ONE_TO_ONE ||
+           (this->itype() != IType::ONE_TO_ONE ||
             !this->domain()->equals(*OBJ_FURI) ||
             !this->range()->equals(*OBJ_FURI))) {
           typing = typing.append("!m?!!")
-              .append("!c").append(this->range()->name()).append("!m{!c").append(ITypeRanges.to_chars(this->itype2())).
+              .append("!c").append(this->range()->name()).append("!m{!c").append(ITypeRanges.to_chars(this->itype())).
               append("!m}!!")
               .append("!m<=!!")
-              .append("!c").append(this->domain()->name()).append("!m{!c").append(ITypeDomains.to_chars(this->itype2()))
+              .append("!c").append(this->domain()->name()).append("!m{!c").append(ITypeDomains.to_chars(this->itype()))
               .append("!m}!!");
         }
         obj_string = this->is_base_type() && !this->is_inst()
@@ -1990,7 +1988,7 @@ namespace fhatos {
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      LOG(DEBUG, "deserializing bytes %s (length %i)\n",bobj->second,bobj->first);
+      LOG(DEBUG, "deserializing bytes %s (length %i)\n", bobj->second, bobj->first);
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
 

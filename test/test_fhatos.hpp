@@ -208,7 +208,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
     PRINTER->printf((format), ##__VA_ARGS__);                                                                          \
     PRINTER->println();                                                                                                \
-    PRINTER->printf("  !rline %s:%i!!\t", __FILE__, __LINE__);                                                         \
+    PRINTER->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                                         \
 }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \

@@ -974,7 +974,7 @@ namespace fhatos {
     */
     static const List<Obj_p> &arg_check(const ID_p &inst, const List<Obj_p> &args, const uint8_t expected_size) {
       if(args.size() != expected_size)
-        throw fError("incorrect number of arguments provided to {}: %i != %i", inst->toString().c_str(), args.size(),
+        throw fError("incorrect number of arguments provided to %s: %i != %i", inst->toString().c_str(), args.size(),
                      expected_size);
       return args;
     }

@@ -226,13 +226,15 @@ namespace mmadt {
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
         const auto [rf, rc] = any_cast<Pair<fURI_p, Cardinality>>(vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, Cardinality>>(vs[2]);
-        return furi_p(any_cast<fURI_p>(vs[0])->query({
-          {FOS_DOMAIN, df->toString()},
+        const fURI_p dom_rng = furi_p(any_cast<fURI_p>(vs[0])->query({
+          {FOS_DOMAIN, ROUTER_RESOLVE(*df)->toString()},
           {"ftype",
-            to_string(static_cast<char>(rc))
+            to_string(static_cast<unsigned char>(rc))
             .append("-")
-            .append(to_string(static_cast<char>(dc)))},
-          {FOS_RANGE, rf->toString()}}));
+            .append(to_string(static_cast<unsigned char>(dc)))},
+          {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()}}));
+        LOG(INFO, "%s\n", dom_rng->toString().c_str());
+        return dom_rng;
       };
 
       static auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
@@ -246,26 +248,35 @@ namespace mmadt {
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
         switch(vs.choice()) {
-          case 1: { // a(b)@xyz
-            return any_cast<Inst_p>(vs[0]);
+          case 0: {
+            const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            return Obj::create(Any(), OType::OBJ, type_id);
           }
-          case 0: { // a(c)[b]@xyz
+          case 1: { // a(c)[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto args = any_cast<InstArgs>(vs[1]);
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), IType::ONE_TO_ONE, noobj()),
+            const IType itype = type_id->has_query("ftype")
+                                  ? ITypeSignatures.to_enum(
+                                    string(type_id->query_values("ftype")[0]).append("->").append(
+                                      type_id->query_values("ftype")[1]))
+                                  : IType::ONE_TO_ONE;
+            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), itype, noobj()),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
           }
-          case 2: { // a[b]@xyz
+          case 2: { // a(b)@xyz
+            return any_cast<Inst_p>(vs[0]);
+          }
+          case 3: { // a[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id,
                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 3: { // b@xyz
+          case 4: { // b@xyz
             const auto &[v,o] = any_cast<Pair<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o), vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
@@ -348,7 +359,7 @@ namespace mmadt {
       FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/_.#+")),
                           zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
                         ">"), furi_action;
-      DOM_RNG <= WRAP("<", seq(~WS,FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET, ~WS), ">"), dom_rng_action;
+      DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET), ">"), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE)), furi_action;
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
@@ -374,7 +385,7 @@ namespace mmadt {
       ARGS_LST <= cho(lit("()"), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
       CARDINALITY <= cho(chr('.'), chr('?'), chr('o'), chr('O')), cardinality_action;
-      COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
+      //COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
       SET <= seq(FURI_NO_Q, opt(seq(lit("{"), CARDINALITY, lit("}")))),
           [](const SemanticValues &vs) -> Pair<fURI_p, Cardinality> {
             const auto furi = any_cast<fURI_p>(vs[0]);
@@ -403,7 +414,8 @@ namespace mmadt {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       OBJ <= cho(
-        seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a|(c)[b]@xyz)
+        seq(TYPE_ID, lit("[]")),
+        seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
         seq(INST), // a(b)@xyz
         seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
         seq(PROTO, opt(VALUE_ID)) // b@xyz

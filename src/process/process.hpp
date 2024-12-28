@@ -28,7 +28,7 @@
 #include "../../src/structure/pubsub.hpp"
 
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
-#define FOS_ALREADY_SETUP "!g[!b{}!g] !yprocess!! already setup\n"
+#define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
 #ifndef FOS_PROCESS_WDT_COUNTER
 #define FOS_PROCESS_WDT_COUNTER 25
 #endif
@@ -168,7 +168,7 @@ namespace fhatos {
       }
       const BCode_p loop_bcode = this->rec_get(":loop");
       if(loop_bcode->is_noobj())
-        throw fError("!b{}!! loop !ybcode!! undefined", this->vid()->toString().c_str());
+        throw fError("!b%s!! loop !ybcode!! undefined", this->vid()->toString().c_str());
       Obj_p result = BCODE_PROCESSOR(loop_bcode);
     };
 

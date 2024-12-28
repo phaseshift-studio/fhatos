@@ -160,11 +160,11 @@ namespace fhatos {
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
     FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zyz"),
-      *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid());
+                               *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid());
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zzz"),
-      *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid());
+                               *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid());
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
     FOS_TEST_OBJ_EQUAL(dool(false),
@@ -179,6 +179,20 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[6]"));
     FOS_TEST_ERROR("/abc/nat[-12]");
     FOS_TEST_ERROR("/abc/nat[0]");
+
+    const ID_p ncount = id_p("/abc/ncount");
+    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{o}<=int{O}(a=>1)[count().plus(*a)]@/abc/ncount");
+    LOG(INFO, "type_id: %s\n", ncount_inst->tid()->toString().c_str());
+    FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid()->query(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid());
+    TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DOMAIN));
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RANGE));
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query("ftype"));
+    FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->domain());
+    FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
+    TEST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
+                             ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
   }
 
   void test_inst_sugar_parsing() {

@@ -233,7 +233,7 @@ namespace fhatos {
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " {}\n", (obj)->vid()->toString().c_str(), (ex).what())
+#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s\n", (obj)->vid()->toString().c_str(), (ex).what())
 #define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \
 LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),(obj)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
