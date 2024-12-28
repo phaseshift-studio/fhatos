@@ -247,6 +247,7 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
       ##__VA_ARGS__)
 #define FOS_DOMAIN "domain"
 #define FOS_RANGE "range"
+#define FOS_F "f"
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

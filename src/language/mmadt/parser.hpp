@@ -226,14 +226,14 @@ namespace mmadt {
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
         const auto [rf, rc] = any_cast<Pair<fURI_p, Cardinality>>(vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, Cardinality>>(vs[2]);
+        const string card_str = Cardinalities.to_chars(rc).append(",").append(Cardinalities.to_chars(dc));
         const fURI_p dom_rng = furi_p(any_cast<fURI_p>(vs[0])->query({
           {FOS_DOMAIN, ROUTER_RESOLVE(*df)->toString()},
-          {"ftype",
-            to_string(static_cast<unsigned char>(rc))
-            .append("-")
-            .append(to_string(static_cast<unsigned char>(dc)))},
+          {FOS_F,
+            Cardinalities.to_chars(dc)
+            .append(",")
+            .append(Cardinalities.to_chars(rc))},
           {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()}}));
-        LOG(INFO, "%s\n", dom_rng->toString().c_str());
         return dom_rng;
       };
 
@@ -242,7 +242,8 @@ namespace mmadt {
       };
 
       static auto cardinality_action = [](const SemanticValues &vs) -> Cardinality {
-        return static_cast<Cardinality>(vs.token_to_string()[0]);
+        const string card_chr = vs.token_to_string();
+        return Cardinalities.to_enum(card_chr);
       };
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
@@ -258,11 +259,15 @@ namespace mmadt {
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            const IType itype = type_id->has_query("ftype")
-                                  ? ITypeSignatures.to_enum(
-                                    string(type_id->query_values("ftype")[0]).append("->").append(
-                                      type_id->query_values("ftype")[1]))
-                                  : IType::ONE_TO_ONE;
+
+            IType itype;
+            if(type_id->has_query(FOS_F)) {
+              const List<string> f = type_id->query_values(FOS_F);
+              const string itype_str = string(f.at(0)).append("->").append(f.at(1));
+              itype = ITypeSignatures.to_enum(itype_str);
+            } else {
+              itype = IType::ONE_TO_ONE;
+            }
             return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), itype, noobj()),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
@@ -360,7 +365,7 @@ namespace mmadt {
                           zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
                         ">"), furi_action;
       DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET), ">"), dom_rng_action;
-      TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE)), furi_action;
+      TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
       NOOBJ <= lit("noobj"), noobj_action;
@@ -384,7 +389,7 @@ namespace mmadt {
                                        zom(seq(lit(","), START, lit("=>"), START)), lit(")"))), rec_action;
       ARGS_LST <= cho(lit("()"), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
-      CARDINALITY <= cho(chr('.'), chr('?'), chr('o'), chr('O')), cardinality_action;
+      CARDINALITY <= tok(cls(".oO?")), cardinality_action;
       //COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
       SET <= seq(FURI_NO_Q, opt(seq(lit("{"), CARDINALITY, lit("}")))),
           [](const SemanticValues &vs) -> Pair<fURI_p, Cardinality> {
@@ -474,6 +479,7 @@ namespace mmadt {
       INT.enter = enter_y("int");
       TYPE_ID.enter = enter_y("type_id");
       VALUE_ID.enter = enter_y("at_id");
+      DOM_RNG.enter = enter_y("range<=domain");
       FURI_INLINE.enter = enter_y("furi_inline");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
       START.whitespaceOpe = WS.get_core_operator();

@@ -122,12 +122,17 @@ namespace fhatos {
 
 
     static void ltrim(std::string &s) {
-      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127; }));
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) {
+        return !std::isspace(c) && c < 127 && c != '\0';
+      }));
     }
 
     static void rtrim(std::string &s) {
-      s.erase(std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c) && c < 127; }).base(),
-              s.end());
+      s.erase(
+        std::find_if(s.rbegin(), s.rend(), [](const char c) {
+          return !std::isspace(c) && c < 127 && c != '\0';
+        }).base(),
+        s.end());
     }
 
     static bool has_wildcards(const std::string &s) {
@@ -195,7 +200,7 @@ namespace fhatos {
       string token;
       while(!ss->eof()) {
         const char c = ss->get();
-        if(c == split && !token.empty())
+        if(c == EOF || c == '\0' || (c == split && !token.empty()))
           break;
         token += c;
       }

@@ -159,7 +159,11 @@ namespace fhatos {
     MAYBE = '?'
   };
 
-  //Enums<Cardinality> Cardinalities = Enums<Cardinality>({{Cardinality::ZERO,"."},})
+  inline auto Cardinalities = Enums<Cardinality>({
+    {Cardinality::ZERO, "."},
+    {Cardinality::ONE, "o"},
+    {Cardinality::MANY, "O"},
+    {Cardinality::MAYBE, "?"}});
 
   inline bool operator&(IType a, IType b) {
     // Implement bitwise OR logic
@@ -921,16 +925,16 @@ namespace fhatos {
 
 
     [[nodiscard]] ID_p domain() const {
-      return this->tid_->has_query("domain")
-               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value("domain")->c_str())))
+      return this->tid_->has_query(FOS_DOMAIN)
+               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_DOMAIN)->c_str())))
                : (this->is_bcode() && !this->bcode_value()->empty()
                     ? this->bcode_value()->front()->domain()
                     : OBJ_FURI);
     }
 
     [[nodiscard]] ID_p range() const {
-      return this->tid_->has_query("range")
-               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value("range")->c_str())))
+      return this->tid_->has_query(FOS_RANGE)
+               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_RANGE)->c_str())))
                : this->is_code()
                    ? (this->is_bcode() && !this->bcode_value()->empty()
                         ? this->bcode_value()->back()->range()
@@ -944,16 +948,20 @@ namespace fhatos {
 
 
     [[nodiscard]] IType itype() const {
-     if(this->tid_->has_query("ftype")) {
-        const auto dom_rng = this->tid_->query_values("ftype");
-        return ITypeSignatures.to_enum(string(dom_rng[0]).append("->").append(dom_rng[1]));
-      } else if(this->is_inst())
+      if(this->tid_->has_query(FOS_F)) {
+        const auto dom_rng = this->tid_->query_values(FOS_F);
+        const string itype_str = string(dom_rng[0]).append("->").append(dom_rng[1]);
+        return ITypeSignatures.to_enum(itype_str);
+      }
+      if(this->is_inst())
         return std::get<2>(this->inst_value());
-    /*  else if(this->is_bcode()) {
+      /*if(this->is_bcode()) {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
-        return ITypeSignatures.to_enum(string(ITypeDomains.to_chars(domain) + "->" + ITypeRanges.to_chars(range)));
-      }*/ else if(this->is_objs())
+        const string itype_str = ITypeDomains.to_chars(domain).append("->").append(ITypeRanges.to_chars(range));
+        return ITypeSignatures.to_enum(itype_str);
+      }*/
+      if(this->is_objs())
         return IType::ONE_TO_MANY;
       return IType::ONE_TO_ONE;
     }

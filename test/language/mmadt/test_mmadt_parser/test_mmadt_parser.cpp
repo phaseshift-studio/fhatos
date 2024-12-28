@@ -174,21 +174,22 @@ namespace fhatos {
                          "*/abc/bool/inst_parse"
                        ));
     ///////////////////////////////////////////////////////////////
-    const ID_p nat = id_p("/abc/nat");
+   const ID_p nat = id_p("/abc/nat");
     FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[5]"));
     FOS_TEST_OBJ_EQUAL(jnt(6,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[6]"));
+    FOS_TEST_OBJ_EQUAL(jnt(7,nat),PROCESS("/abc/nat[7]"));
+    FOS_TEST_OBJ_EQUAL(jnt(1000,nat),PROCESS("/abc/nat[1000]"));
     FOS_TEST_ERROR("/abc/nat[-12]");
     FOS_TEST_ERROR("/abc/nat[0]");
 
     const ID_p ncount = id_p("/abc/ncount");
     const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{o}<=int{O}(a=>1)[count().plus(*a)]@/abc/ncount");
-    LOG(INFO, "type_id: %s\n", ncount_inst->tid()->toString().c_str());
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid()->query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid());
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DOMAIN));
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RANGE));
-    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query("ftype"));
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_F));
     FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->domain());
     FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
     TEST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),

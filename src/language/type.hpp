@@ -201,7 +201,7 @@ namespace fhatos {
               }
               error_message = error_message.empty() ? "" : error_message.substr(0, error_message.size() - 1);
               // remove trailing \n
-              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n&s", lhs->tid()->toString().c_str(),
+              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s\n", lhs->tid()->toString().c_str(),
                            inst->tid()->toString().c_str(), error_message.c_str());
               ////////////////////////////////////////////////////////////////////////////////
             }

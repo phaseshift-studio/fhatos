@@ -517,9 +517,13 @@ namespace mmadt {
           ->type_args(x(0, "inspected", ___))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Rec_p rec = build_inspect_rec(args->arg(0));
-            rec->rec_set("op", str(args->arg(0)->inst_op()));
+            rec->rec_set("op", str(args->arg(0)->inst_op().c_str()));
             rec->rec_set("args", args->arg(0)->inst_args());
-            //rec->rec_set("f",lhs->inst_f());
+            rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
+            rec->rec_set("domain", vri(*args->arg(0)->domain()));
+            rec->rec_set("range", vri(*args->arg(0)->range()));
+            //if(args->arg(0)->inst_f()->pure)
+            //  rec->rec_set("body", args->arg(0)->inst_f()->obj_f());
             return rec;
           })->save();
 
@@ -664,7 +668,7 @@ namespace mmadt {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
-                    MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
+                             MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
     }
 
     static void *import() {
