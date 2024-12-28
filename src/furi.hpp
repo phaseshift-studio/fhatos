@@ -363,6 +363,25 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] fURI prepend(const fURI &furi_path) const { return this->prepend(furi_path.path().c_str()); }
+
+    [[nodiscard]] fURI prepend(const char *extension) const {
+      if(strlen(extension) == 0) {
+        auto new_uri = fURI(*this);
+        new_uri.sprefix_ = true;
+        return new_uri;
+      }
+      auto new_path = string(extension);
+      const string old_path = this->path();
+      if(old_path[0] != '/' && new_path[new_path.length() - 1] != '/')
+        new_path += '/';
+      new_path = new_path += (old_path[0] == '/' && new_path[new_path.length() - 1] == '/'
+                                ? old_path.substr(1)
+                                : old_path);
+
+      return this->path(new_path);
+    }
+
     [[nodiscard]] fURI retract_pattern() const {
       for(uint8_t i = 0; i < this->path_length_; i++) {
         if(strcmp(this->path(i), "+") == 0 || 0 == strcmp(this->path(i), "#")) {

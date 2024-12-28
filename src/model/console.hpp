@@ -30,38 +30,25 @@
 
 namespace fhatos {
   class Console final : public Thread {
-  public:
-    struct Settings {
-      uint8_t nest_;
-      bool ansi_;
-      string prompt_;
-      bool strict_;
-      LOG_TYPE log_;
-
-      Settings(const uint8_t nest, const bool ansi, const string &prompt, const bool strict,
-               const LOG_TYPE log) : nest_(nest), ansi_(ansi), prompt_(prompt),
-                                     strict_(strict), log_(log) {
-      }
-    };
-
   protected:
     string line_;
     bool new_input_ = true;
-    ID_p stdin_id;
-    ID_p stdout_id;
+    /*ID_p stdin_id;
+    ID_p stdout_id;*/
     bool direct_stdin_out = true;
-    //   Settings settings_;
     mmadt::Tracker tracker_;
     ///// printers
     void write_stdout(const Str_p &s) const {
       if(this->direct_stdin_out)
         Terminal::STD_OUT_DIRECT(s);
       else
-        ROUTER_WRITE(this->stdout_id, s, TRANSIENT);
+        ROUTER_WRITE(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
     }
 
     Int_p read_stdin() const {
-      return this->direct_stdin_out ? Terminal::STD_IN_DIRECT() : router()->exec(this->stdin_id, noobj());
+      return this->direct_stdin_out
+               ? Terminal::STD_IN_DIRECT()
+               : router()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
     }
 
     void print_exception(const std::exception &ex) const {
@@ -159,11 +146,13 @@ namespace fhatos {
 
     bool first = true;
 
-    explicit Console(const ID &value_id, const ID &terminal, const Settings &settings) : Thread(Obj::to_rec(rmap({
-          {
-            "loop", InstBuilder::build(value_id.extend(":loop"))
-            ->itype_and_seed(IType::ZERO_TO_ZERO)
-            ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
+    explicit Console(const ID &value_id, const Rec_p &settings) : Thread(Obj::to_rec(rmap({
+        {
+          "loop", InstBuilder::build(
+            value_id.extend(":loop"))
+          ->itype_and_seed(IType::ZERO_TO_ZERO)
+          ->inst_f([this](
+          const Obj_p &, const InstArgs &) -> Obj_p {
               if(this->first) {
                 this->first = false;
                 this->delay(500);
@@ -175,7 +164,9 @@ namespace fhatos {
               this->new_input_ = false;
               //// READ CHAR INPUT ONE-BY-ONE
               int x;
-              if((x = this->tracker_.track(this->read_stdin()->int_value())) == EOF)
+              if((x = this->tracker_.track(
+                    this->read_stdin()->int_value())) ==
+                 EOF)
                 return noobj();
               if('\n' == static_cast<char>(x)) {
                 this->new_input_ = true;
@@ -186,7 +177,9 @@ namespace fhatos {
               }
               StringHelper::trim(this->line_);
               if(this->line_.empty() ||
-                 this->line_[this->line_.length() - 1] == ';' || // specific to end-step and imperative simulation
+                 this->line_[this->line_.length() - 1] ==
+                 ';' ||
+                 // specific to end-step and imperative simulation
                  !this->tracker_.closed()) {
                 ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
                 return noobj();
@@ -197,78 +190,59 @@ namespace fhatos {
               this->line_.clear();
               return noobj();
             })
-            ->create()},
-          {":prompt", InstBuilder::build(value_id.extend(":prompt"))
-            ->domain_range(STR_FURI, NOOBJ_FURI)
-            ->itype_and_seed(IType::ONE_TO_ZERO)
-            ->type_args(x(0, "code", Obj::to_type(STR_FURI)))
-            ->inst_f([this](const Obj_p &, const InstArgs &args) {
+          ->create()},
+        {":prompt", InstBuilder::build(
+            value_id.extend(":prompt"))
+          ->domain_range(STR_FURI, NOOBJ_FURI)
+          ->itype_and_seed(IType::ONE_TO_ZERO)
+          ->type_args(
+            x(0, "code", Obj::to_type(STR_FURI)))
+          ->inst_f([this](
+          const Obj_p &, const InstArgs &args) {
               this->print_prompt();
-              Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", args->arg(0)->str_value().c_str())));
+              Terminal::STD_OUT_DIRECT(
+                str(StringHelper::format(
+                  "%s\n",
+                  args->arg(0)->str_value().c_str())));
               string code = args->arg(0)->str_value();
               if(FOS_IS_DOC_BUILD)
                 StringHelper::replace(&code, "\\|", "|");
               this->process_line(code);
               return noobj();
             })
-            ->create()},
-          {"config", rec({{vri("nest"), jnt(settings.nest_)},
-            {vri("strict"), dool(settings.strict_)},
-            {vri("ansi"), dool(settings.ansi_)},
-            {vri("prompt"), str(settings.prompt_)},
-            {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-          })}
-          /*{"terminal", rec({
-               {vri("stdin"), vri(terminal.extend(":stdin"))},
-               {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
-      stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))) {
-      /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"),
-                                            InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))->inst_f(
-                                              [this](const Obj_p &lhs, const InstArgs &args) {
-                                                const string name = Message(lhs).target().name();
-                                                if(name == "ansi")
-                                                  this->settings_.ansi_ = lhs->bool_value();
-                                                else if(name == "nest")
-                                                  this->settings_.nest_ = lhs->int_value();
-                                                else if(name == "strict")
-                                                  this->settings_.strict_ = lhs->bool_value();
-                                                else if(name == "prompt")
-                                                  this->settings_.prompt_ = lhs->str_value();
-                                                else if(name == "log") {
-                                                  this->settings_.log_ = LOG_TYPES.to_enum(
-                                                    lhs->uri_value().toString());
-                                                  Options::singleton()->log_level(this->settings_.log_);
-                                                }
-                                                return lhs;
-                                              })->type_args({x(0)})->create()));*/
+          ->create()},
+        {"config", settings}}),
+      THREAD_FURI,
+      id_p(value_id))) {
     }
 
   public:
-    static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
-      const auto console = ptr<Console>(new Console(id, terminal, settings));
+    static ptr<Console> create(const ID &id, const Rec_p &settings) {
+      const auto console = ptr<Console>(new Console(id, settings));
       return console;
     }
 
     static void *import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      TYPE_SAVER(id_p(id), rec({{vri(":create"),
-                                 InstBuilder::build(ID(id.extend(":create")))
-                                 ->type_args(
-                                   x(0, "install_location", vri(id)),
-                                   x(1, "terminal_id", vri(Terminal::singleton()->vid())),
-                                   x(2, "config", Obj::to_rec({{vri("nest"), jnt(2)},
-                                       {vri("strict"), dool(false)},
-                                       {vri("ansi"), dool(true)},
-                                       {vri("prompt"), str(">")},
-                                       {vri("log"), vri("INFO")}})))
-                                 ->inst_f([](const Obj_p &, const InstArgs &args) {
-                                   ptr<Console> console = Console::create(
-                                     ID(args->arg(0)->uri_value()),
-                                     ID(args->arg(1)->uri_value()),
-                                     Settings(2, true, "!mfhatos!g>!! ", false, INFO));
-                                   return console;
-                                 })
-                                 ->create()}}, THREAD_FURI));
+      InstBuilder::build(ID(id.extend(":create")))
+          ->type_args(
+            x(0, "install_location", vri(id)),
+            x(2, "config", Obj::to_rec({
+                {"terminal",
+                  Obj::to_rec({
+                    {"stdin", vri(Terminal::singleton()->vid()->extend(":stdin"))},
+                    {"stdout", vri(Terminal::singleton()->vid()->extend(":stdout"))}})},
+                {"nest", jnt(2)},
+                {"strict", dool(false)},
+                {"ansi", dool(true)},
+                {"prompt", str(">")},
+                {"log", vri("INFO")}})))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            ptr<Console> console = Console::create(
+              ID(args->arg(0)->uri_value()),
+              args->arg(1));
+            return console;
+          });
       return nullptr;
     }
   };

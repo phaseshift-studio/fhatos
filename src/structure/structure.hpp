@@ -322,17 +322,19 @@ namespace fhatos {
           }
           // NODE ID
           else {
-            /*const IdObjPairs_p matches = this->read_raw_pairs(furi);
-            if (matches->empty()) {
-              if (furi->path_length() > 1) {
-                const Rec_p rec = this->read(furi_p(furi->retract()));
-                if (rec->is_rec()) {
-                  rec->rec_set(furi_p(furi->name()), obj);
-                  write_raw_pairs(id_p(*furi), rec, retain);
-                  return;
-                }
-              }
-            }*/
+            fURI_p back = furi;
+            auto front = fURI(back->name());
+            Obj_p matches = noobj();
+            while(back->path_length() > 1 && !matches->is_rec()) {
+              back = furi_p(back->retract());
+              front = front.prepend(back->name());
+              matches = this->read(furi_p(*back));
+            }
+            if(matches->is_rec()) {
+              matches->rec_set(furi_p(front), obj);
+              write_raw_pairs(id_p(*back), matches, retain);
+              return;
+            }
             this->write_raw_pairs(id_p(*furi), obj, retain);
           }
         }

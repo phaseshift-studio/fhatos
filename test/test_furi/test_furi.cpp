@@ -434,6 +434,20 @@ namespace fhatos {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc/:loop"), fURI("abc").extend(":loop"));
   }
 
+void test_uri_prepend() {
+  /// TRUE
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("b/a"), fURI("a").prepend("b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a"), fURI("/a").prepend("b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a"), fURI("a").prepend("/b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a"), fURI("/a").prepend("/b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a/"), fURI("/a/").prepend("/b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a/"), fURI("/a/").prepend("/b/"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a"), fURI("a").prepend("/b/"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/c/b/a"), fURI("/a").prepend("/b").prepend("c"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("c/b/a"), fURI("a").prepend("b").prepend("c"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/c/b/a/"), fURI("/a/").prepend("/b/").prepend("/c/"));
+}
+
   void test_uri_retract_pattern() {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c/"), fURI("a/b/c/").retract_pattern());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c").retract_pattern());
@@ -755,6 +769,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_name); //
       //
       FOS_RUN_TEST(test_uri_extend); //
+      FOS_RUN_TEST(test_uri_prepend); //
       // TODO: FOS_RUN_TEST(test_uri_retract);
       FOS_RUN_TEST(test_uri_retract_pattern);
       FOS_RUN_TEST(test_is_relative); //

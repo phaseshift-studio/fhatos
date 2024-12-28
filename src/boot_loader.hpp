@@ -126,14 +126,17 @@ namespace fhatos {
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap<ALLOC>::create("/console/#"))
-            ->process(Console::create("/console", "/io/terminal",
-                                      Console::Settings(args_parser->option_int("--console:nest", 2),
-                                                        args_parser->option_bool("--ansi", true),
-                                                        args_parser->
-                                                        option_string("--console:prompt", "!mfhatos!g>!! "),
-                                                        args_parser->option_bool("--console:strict", false),
-                                                        LOG_TYPES.to_enum(
-                                                          args_parser->option_string("--log", "INFO")))))
+            ->process(Console::create("/console", Obj::to_rec({
+                                        {"terminal",
+                                          Obj::to_rec({
+                                            {"stdout", vri("/io/terminal/:stdout")},
+                                            {"stdin", vri("/io/terminal/:stdin")}})},
+                                        {"nest", jnt(args_parser->option_int("--console:nest", 2))},
+                                        {"prompt",
+                                          str(args_parser->option_string("--console:prompt", "!mfhatos!g>!! "))},
+                                        {"strict", dool(args_parser->option_bool("--console:strict", false))},
+                                        {"log", vri(args_parser->option_string("--log", "INFO"))}
+                                      })))
             ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
