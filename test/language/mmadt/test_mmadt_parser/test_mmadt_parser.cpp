@@ -183,17 +183,24 @@ namespace fhatos {
     FOS_TEST_ERROR("/abc/nat[0]");
 
     const ID_p ncount = id_p("/abc/ncount");
-    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{o}<=int{O}(a=>1)[count().plus(*a)]@/abc/ncount");
+    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{o}<=objs{O}(a=>7)[count().plus(*a)]@/abc/ncount");
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid()->query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid());
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DOMAIN));
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RANGE));
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_F));
-    FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->domain());
+    FOS_TEST_ASSERT_EQUAL_FURI(*OBJS_FURI, *ncount_inst->domain());
     FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
     TEST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
                              ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(7)")); // position slotted
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(a=>7)")); // key slotted
+    FOS_TEST_OBJ_EQUAL(jnt(11),PROCESS("{1,2,3}./abc/ncount(8)"));
+    FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("{1,2,3}./abc/ncount(a=>9)"));
+    FOS_TEST_ERROR("{1,2,3}./abc/ncount(a)");
+
   }
 
   void test_inst_sugar_parsing() {

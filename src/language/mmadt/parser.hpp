@@ -268,7 +268,8 @@ namespace mmadt {
             } else {
               itype = IType::ONE_TO_ONE;
             }
-            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), itype, noobj()),
+            const Obj_p seed = is_gather(itype) ? Objs::to_objs() : Obj::to_noobj();
+            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), itype, seed),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
           }
@@ -441,7 +442,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
       SUGAR_INST <= cho(AT, PLUS, MULT, WITHIN, EMPTY_BCODE, FROM, PASS, REF,
                         BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
-      EMPTY_BCODE <= lit("_"), empty_bcode_action;
+      EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(DROP, "v", "drop");
       SUGAR_GENERATOR(FROM, "*", "from");
@@ -477,6 +478,7 @@ namespace mmadt {
       OBJ.enter = enter_y("obj");
       FROM.enter = enter_y("from");
       INT.enter = enter_y("int");
+      INST.enter = enter_y("inst");
       TYPE_ID.enter = enter_y("type_id");
       VALUE_ID.enter = enter_y("at_id");
       DOM_RNG.enter = enter_y("range<=domain");

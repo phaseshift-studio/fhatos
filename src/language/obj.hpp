@@ -1195,8 +1195,9 @@ namespace fhatos {
                 obj_string += "!m,!!";
               }
               if(!k->is_indexed_arg()) {
+                obj_string += "!c";
                 obj_string += k->toString(obj_printer->next());
-                obj_string += "=>";
+                obj_string += "!g=>!!";
               }
               obj_string += v->toString();
             }
@@ -1305,8 +1306,6 @@ namespace fhatos {
       }
 
       obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
-      //StringHelper::replace(&obj_string,"{","{{");
-      //StringHelper::replace(&obj_string,"}","}}"); // objs and StringHelper::format
       return obj_string;
     }
 
