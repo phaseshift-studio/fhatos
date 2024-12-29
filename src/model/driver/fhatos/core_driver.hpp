@@ -32,25 +32,25 @@ namespace fhatos {
 
   public:
     static void *import() {
-      Type::singleton()->start_progress_bar(6);
-      Type::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
+      Typer::singleton()->start_progress_bar(6);
+      Typer::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
                                      {"target", Obj::to_bcode()},
                                      {"payload", Obj::to_bcode()},
                                      {"retain", Obj::to_bcode()}}));
-      Type::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
+      Typer::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
                                      {"source", Obj::to_bcode()},
                                      {"pattern", Obj::to_bcode()},
                                      {":on_recv", Obj::to_bcode()}}));
       //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
-      Type::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
-      Type::singleton()->save_type(MQTT_FURI, Obj::to_rec({
+      Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
+      Typer::singleton()->save_type(MQTT_FURI, Obj::to_rec({
                                      {"pattern", Obj::to_bcode()},
                                      {"broker", Obj::to_bcode()},
                                      {"client", Obj::to_bcode()}}));
-      Type::singleton()->end_progress_bar(
+      Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));
-      Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
+      Typer::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
       return nullptr;
     }
   };

@@ -249,9 +249,12 @@ namespace mmadt {
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
         switch(vs.choice()) {
-          case 0: {
+          case 0: { // [a][b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
-            return Obj::create(Any(), OType::OBJ, type_id);
+            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
+            return Obj::to_type(type_id,
+                                Obj::create(v, o, type_id),
+                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 1: { // a(c)[b]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
@@ -416,11 +419,11 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       EMPTY <= seq(lit(""), npd(chr(']'))), [](const SemanticValues &) -> Pair<Any, OType> {
-        return {Any(), OType::OBJ};
+        return {Obj::to_bcode(), OType::TYPE};
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       OBJ <= cho(
-        seq(TYPE_ID, lit("[]")),
+        seq(lit("["), TYPE_ID, lit("]"), lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // [a][b]@xyz
         seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
         seq(INST), // a(b)@xyz
         seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz

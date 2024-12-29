@@ -345,6 +345,7 @@ void test_inst() {
   void test_serialization() {
     const List<Obj_p> objs = {
         Obj::to_noobj(),
+        // TODO: Obj::to_type(INT_FURI,Obj::to_bcode(id_p(INT_FURI->query({{FOS_DOMAIN,INT_FURI->toString()},{FOS_RANGE,INT_FURI->toString()}})))),
         // TODO: Obj::create(Any(),OType::OBJ,INT_FURI),
         Obj::to_int(1),
         Obj::to_int(-453),

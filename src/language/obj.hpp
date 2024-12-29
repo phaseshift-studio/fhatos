@@ -59,6 +59,8 @@ namespace fhatos {
     OBJ,
     /// A "null" object type used to kill a processing monad
     NOOBJ,
+    /// A obj reference to a type id (internal bcode is the compilation)
+    TYPE,
     /// A stream of objs
     OBJS,
     /// A boolean monotype
@@ -83,8 +85,10 @@ namespace fhatos {
     ERROR
   };
 
-  static const auto OTypes = Enums<OType>({{OType::OBJ, "obj"},
+  static const auto OTypes = Enums<OType>({
+    {OType::OBJ, "obj"},
     {OType::NOOBJ, "noobj"},
+    {OType::TYPE, "type"},
     {OType::OBJS, "objs"},
     {OType::BOOL, "bool"},
     {OType::INT, "int"},
@@ -128,6 +132,8 @@ namespace fhatos {
   using BCode_p = Obj_p;
   using Objs = Obj;
   using Objs_p = Obj_p;
+  using Type = Obj;
+  using Type_p = Obj_p;
   using Error = Obj;
   using Error_p = Obj_p;
   using BObj = Pair<uint32_t, fbyte *>;
@@ -313,6 +319,7 @@ namespace fhatos {
 
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
     {OType::OBJ, OBJ_FURI},
+    {OType::TYPE, TYPE_FURI},
     {OType::OBJS, OBJS_FURI},
     {OType::URI, URI_FURI},
     {OType::BOOL, BOOL_FURI},
@@ -326,6 +333,7 @@ namespace fhatos {
     {OType::ERROR, ERROR_FURI}}};
   static const Map<ID, OType> FURI_OTYPE = {{{*NOOBJ_FURI, OType::NOOBJ},
     {*OBJ_FURI, OType::OBJ},
+    {*TYPE_FURI, OType::TYPE},
     {*OBJS_FURI, OType::OBJS},
     {*URI_FURI, OType::URI},
     {*BOOL_FURI, OType::BOOL},
@@ -415,6 +423,7 @@ namespace fhatos {
   };
   static Map<OType, ObjPrinter *> GLOBAL_PRINTERS = {
     {OType::NOOBJ, DEFAULT_NOOBJ_PRINTER},
+    {OType::TYPE, DEFAULT_OBJ_PRINTER},
     {OType::OBJ, DEFAULT_OBJ_PRINTER},
     {OType::BOOL, DEFAULT_OBJ_PRINTER},
     {OType::INT, DEFAULT_OBJ_PRINTER},
@@ -649,6 +658,12 @@ namespace fhatos {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<LstList_p>();
+    }
+
+    [[nodiscard]] Obj_p type_value() const {
+      if(!this->is_type())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return this->value<Obj_p>();
     }
 
     void lst_add(const Obj_p &obj) const {
@@ -1121,7 +1136,7 @@ namespace fhatos {
       string obj_string;
       if(this->is_noobj())
         obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
-      if(!this->is_type()) {
+      else {
         switch(this->o_type()) {
           case OType::BOOL:
             obj_string = this->bool_value() ? "!ytrue!!" : "!yfalse!!";
@@ -1237,8 +1252,8 @@ namespace fhatos {
             obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!"; // TODO: repeated above (is_noobj()) to skip the typing checks
             break;
           }
-          case OType::OBJ: {
-            obj_string = "!g" STR(FOS_OBJ_TOKEN) "!!";
+          case OType::TYPE: {
+            obj_string = this->type_value()->toString();
             break;
           }
           default:
@@ -1256,12 +1271,15 @@ namespace fhatos {
          (obj_printer->show_type && this->is_base_type()) ||
          ////
          (obj_printer->strict && this->is_uri())) {
-        string typing = this->is_base_type() && !this->is_code() && !this->is_type()
-                          ? ""
-                          : string("!B").append(this->is_bcode()
-                                                  ? "!!"
-                                                  : (obj_printer->strict ? this->tid_->toString() : this->tid_->name()))
-                          .append("!!");
+        string typing;
+        if(this->is_type())
+          typing += "!m[!!";
+        typing += this->is_base_type() && !this->is_code() && !this->is_type()
+                    ? ""
+                    : string("!B").append(this->is_bcode()
+                                            ? "!!"
+                                            : (obj_printer->strict ? this->tid_->toString() : this->tid_->name()))
+                    .append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            !this->is_base_type() &&
@@ -1275,7 +1293,9 @@ namespace fhatos {
               .append("!c").append(this->domain()->name()).append("!m{!c").append(ITypeDomains.to_chars(this->itype()))
               .append("!m}!!");
         }
-        obj_string = this->is_base_type() && !this->is_inst()
+        if(this->is_type())
+          typing += "!m]!!";
+        obj_string = this->is_base_type() && !this->is_inst() && !this->is_type()
                        ? typing.append(obj_string)
                        : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
                        .append(obj_string)
@@ -1394,6 +1414,7 @@ namespace fhatos {
       switch(this->otype_) {
         case OType::NOOBJ: return true;
         case OType::OBJ: return !other.value_.has_value();
+        case OType::TYPE: return this->type_value()->equals(*other.type_value());
         case OType::BOOL: return this->bool_value() == other.bool_value();
         case OType::INT: return this->int_value() == other.int_value();
         case OType::REAL: return this->real_value() == other.real_value();
@@ -1474,7 +1495,7 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p operator[](const char *id) const { return this->rec_get(id_p(id)); }
 
-    [[nodiscard]] bool is_type() const { return !this->value_.has_value() && this->otype_ == OType::OBJ; }
+    [[nodiscard]] bool is_type() const { return this->otype_ == OType::TYPE; }
 
     [[nodiscard]] bool is_noobj() const { return this->o_type() == OType::NOOBJ; }
 
@@ -1554,12 +1575,28 @@ namespace fhatos {
       //  if(!lhs->is_bcode() || !this->is_bcode()) {
       //   return shared_from_this()->apply(lhs->apply(shared_from_this()));
       //}
-      if(lhs->is_type() && this->is_code()) {
-        TYPE_CHECKER(this, lhs->tid(), true);
-        return this->range() == OBJ_FURI ? lhs : Obj::to_type(this->range());
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////// TYPE (type -> obj) ////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(lhs->is_type()) {
+        auto next = lhs->type_value();
+        if(!this->is_code()) {
+          next = next->add_inst(Obj::to_inst(Obj::to_inst_args({this->shared_from_this()}), id_p("map")), false);
+        } else if(this->is_bcode()) {
+          next = next->add_bcode(this->shared_from_this(), false);
+        } else {
+          next = next->add_inst(this->shared_from_this(), false);
+        }
+        // TYPE_CHECKER(this, lhs->tid(), true);
+        return Obj::to_type(this->range(), next, lhs->vid());
       }
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       switch(this->o_type()) {
-        case OType::OBJ: // type token
+        //case OType::OBJ: // type token
+        //  return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
+        case OType::TYPE:
           return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
         case OType::BOOL:
         case OType::INT:
@@ -1662,6 +1699,8 @@ namespace fhatos {
         return false;
 
       switch(this->o_type()) {
+        case OType::TYPE:
+          return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj);
         case OType::NOOBJ:
           return true;
         case OType::BOOL:
@@ -1758,17 +1797,15 @@ namespace fhatos {
     }
 
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
-    static Obj_p to_type(const ID_p &type_id) {
-      return Obj::create(Any(), OType::OBJ, type_id);
+    static Obj_p to_type(const ID_p &type_id,
+                         const Obj_p &obj = Obj::create(make_shared<List<Inst_p>>(), OType::BCODE,
+                                                        OTYPE_FURI.at(OType::BCODE)),
+                         const ID_p &value_id = nullptr) {
+      return Obj::create(obj, OType::TYPE, type_id, value_id);
     }
 
     static Obj_p to_noobj() {
       static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
-      return noobj;
-    }
-
-    static Obj_p to_obj() {
-      static auto noobj = Obj::create(Any(nullptr), OType::OBJ, OBJ_FURI);
       return noobj;
     }
 
@@ -1895,16 +1932,16 @@ namespace fhatos {
       return to_inst({args, function, itype, seed}, fix, value_id);
     }
 
-    static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
-      return Obj::create(insts, OType::BCODE, furi);
+    static BCode_p to_bcode(const InstList_p &insts, const ID_p &type_id = BCODE_FURI) {
+      return Obj::create(insts, OType::BCODE, type_id);
     }
 
-    static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
-      return Obj::to_bcode(make_shared<InstList>(insts), furi);
+    static BCode_p to_bcode(const InstList &insts, const ID_p &type_id = BCODE_FURI) {
+      return Obj::to_bcode(make_shared<InstList>(insts), type_id);
     }
 
-    static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) {
-      return Obj::to_bcode(share<InstList>({}), furi);
+    static BCode_p to_bcode(const ID_p &type_id = BCODE_FURI) {
+      return Obj::to_bcode(share<InstList>({}), type_id);
     }
 
     static Objs_p to_objs(const ID_p &type_id = OBJS_FURI) {
@@ -1930,6 +1967,11 @@ namespace fhatos {
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
       const ID_p type_id_clone = id_p(*this->tid_);
+      if(this->is_type()) {
+        auto r = Type::create(this->type_value()->clone(), OType::TYPE, type_id_clone);
+        r->vid_ = this->vid_;
+        return r;
+      }
       if(this->is_rec()) {
         // REC
         const auto new_map = make_shared<RecMap<>>();
@@ -2122,9 +2164,9 @@ namespace fhatos {
     return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
 
-  //[[maybe_unused]] static Inst_p x(const char *arg_name, const Obj_p &default_arg = noobj()) {
-  //  return from(Obj::to_uri(arg_name), default_arg);
-  // }
+ /* [[maybe_unused]] static Inst_p x(const string &arg_name, const Obj_p &default_arg = noobj()) {
+    from(Obj::to_uri(arg_name), default_arg);
+  }*/
 
   static BCode_p ___ = Obj::to_bcode();
   static NoObj_p _noobj_ = Obj::to_noobj();

@@ -31,31 +31,31 @@ namespace fhatos {
   //TODO: MAKE THIS THREAD_LOCAL
   thread_local ptr<ProgressBar> type_progress_bar_;
 
-  class Type final : public Obj {
+  class Typer final : public Obj {
   protected:
-    explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
-                                                                 {
-                                                                   /*{vri(":check"),
-                                                                               Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
-                                                                                              return dool(this->check_type(
-                                                                                                  args.at(0).get(),
-                                                                                                  furi_p(lhs->lst_value()->at(1)->uri_value())));
-                                                                                            }, {x(0, ___)}, INST_FURI,
-                                                                                            id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
-                                                                              {vri(":start_progress_bar"),
-                                                                               Obj::to_inst([this](const Int_p &, const InstArgs &args) {
-                                                                                 this->start_progress_bar(args.at(0)->int_value());
-                                                                                 return _noobj_;
-                                                                               }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
-                                                                              {vri(":end_progress_bar"),
-                                                                               Obj::to_inst([this](const Str_p &, const InstArgs &args) {
-                                                                                 this->end_progress_bar(args.at(0)->str_value());
-                                                                                 return _noobj_;
-                                                                               }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
-                                                                 })),
-                                                               OType::REC,
-                                                               id_p(type_id),
-                                                               id_p(value_id)) {
+    explicit Typer(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
+                                                                  {
+                                                                    /*{vri(":check"),
+                                                                                Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
+                                                                                               return dool(this->check_type(
+                                                                                                   args.at(0).get(),
+                                                                                                   furi_p(lhs->lst_value()->at(1)->uri_value())));
+                                                                                             }, {x(0, ___)}, INST_FURI,
+                                                                                             id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
+                                                                               {vri(":start_progress_bar"),
+                                                                                Obj::to_inst([this](const Int_p &, const InstArgs &args) {
+                                                                                  this->start_progress_bar(args.at(0)->int_value());
+                                                                                  return _noobj_;
+                                                                                }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+                                                                               {vri(":end_progress_bar"),
+                                                                                Obj::to_inst([this](const Str_p &, const InstArgs &args) {
+                                                                                  this->end_progress_bar(args.at(0)->str_value());
+                                                                                  return _noobj_;
+                                                                                }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
+                                                                  })),
+                                                                OType::REC,
+                                                                id_p(type_id),
+                                                                id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
@@ -95,7 +95,7 @@ namespace fhatos {
         if(obj->tid()->equals(*type_id))
           return true;
         // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-        if(obj->o_type() == OType::OBJ || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+        if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
           return true;
         if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
           return true;
@@ -123,6 +123,8 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
+        if(obj->otype_ == OType::TYPE)
+          return obj;
         const ID_p resolved_type_id = id_p(*ROUTER_RESOLVE(fURI(*type_id)));
         const Obj_p type_def = ROUTER_READ(type_id);
         if(type_def->is_noobj()) {
@@ -136,7 +138,7 @@ namespace fhatos {
                                   : type_def->apply(obj);
         if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI) && !resolved_type_id->equals(*OBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!",
-                       Type::singleton()->vid()->toString().c_str(),
+                       Typer::singleton()->vid()->toString().c_str(),
                        obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
         return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
@@ -237,9 +239,10 @@ namespace fhatos {
             final_inst = Obj::to_inst(
               inst->inst_op(),
               inst->inst_args(),
-              make_shared<InstF>(make_shared<Cpp>([x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                return x->apply(lhs, args);
-              })),
+              make_shared<InstF>(make_shared<Cpp>(
+                [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                  return x->apply(lhs, args);
+                })),
               inst->itype(),
               inst->inst_seed_supplier(),
               inst->tid(), inst->vid());
@@ -253,8 +256,8 @@ namespace fhatos {
     }
 
   public:
-    static ptr<Type> singleton(const ID &id = FOS_SCHEME "/type") {
-      static auto types_p = ptr<Type>(new Type(id, *REC_FURI));
+    static ptr<Typer> singleton(const ID &id = FOS_SCHEME "/type") {
+      static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       return types_p;
     }
 

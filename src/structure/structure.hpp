@@ -338,16 +338,15 @@ namespace fhatos {
             this->write_raw_pairs(id_p(*furi), obj, retain);
           }
         }
-      } else {
+      } else { // NO RETAIN
         // x --> y -< subscribers
         // non-retained writes 'pass through' (via application) any existing obj at that write furi location
         const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
         if(applicable_obj->is_noobj()) {
           // no obj, pass the written obj through to subscribers (optimization assuming noobj is _ ?? bad??)
           this->write_raw_pairs(id_p(*furi), obj, retain);
-        } else if(applicable_obj->is_bcode()) {
-          // bcode, pass the output of applying the written obj to bcode to subscribers
-          //const BCode_p rewritten_bcode = ;
+        } else if(applicable_obj->is_code()) {
+          // code: pass the output of applying the written obj to code to subscribers
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
           const Obj_p result = applicable_obj->apply(obj);
           //ObjHelper::replace_from_obj({obj}, applicable_obj)->apply(obj);

@@ -32,7 +32,7 @@ namespace mmadt {
   class mmADT {
   public:
     static void import_base_types() {
-      Type::singleton()->start_progress_bar(14);
+      Typer::singleton()->start_progress_bar(14);
       TYPE_SAVER(OBJ_FURI, Obj::to_type(OBJ_FURI));
       TYPE_SAVER(NOOBJ_FURI, Obj::to_type(NOOBJ_FURI));
       TYPE_SAVER(BOOL_FURI, Obj::to_type(BOOL_FURI));
@@ -48,12 +48,12 @@ namespace mmadt {
       TYPE_SAVER(ERROR_FURI, Obj::to_type(ERROR_FURI));
       //      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
       //      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
-      Type::singleton()->end_progress_bar(
+      Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
     }
 
     static void import_base_inst() {
-      Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
+      Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       InstBuilder::build(MMADT_SCHEME "/start")
           ->domain_range(NOOBJ_FURI, OBJS_FURI)
           ->type_args(x(0, "starts"))
@@ -666,7 +666,7 @@ namespace mmadt {
             ->save();
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
-      Type::singleton()->end_progress_bar(
+      Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
                              MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
     }

@@ -62,12 +62,13 @@ namespace fhatos {
 
     void print_result(const Obj_p &obj, const uint8_t depth, string *to_out) const {
       LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
-      if(obj->is_objs())
+      const int nest_value = this->this_get("config/nest")->int_value();
+      if(obj->is_objs()) {
         for(Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth, to_out);
         }
-      else if(this->this_get("config/nest")->int_value() > depth && obj->is_lst()) {
+      } else if(obj->is_lst() && nest_value > depth) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
                        (obj->is_lst() ? "[" : "{") + "!!\n");
@@ -84,7 +85,7 @@ namespace fhatos {
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
                           : "") +
                        "!m" + (obj->is_lst() ? "]" : "}") + "!!\n");
-      } else if(this->this_get("config/nest")->int_value() > depth && obj->is_rec()) {
+      } else if(obj->is_rec() && nest_value > depth) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -147,8 +148,7 @@ namespace fhatos {
     bool first = true;
 
     explicit Console(const ID &value_id, const Rec_p &settings) : Thread(Obj::to_rec(rmap({
-        {
-          "loop", InstBuilder::build(
+        {"loop", InstBuilder::build(
             value_id.extend(":loop"))
           ->itype_and_seed(IType::ZERO_TO_ZERO)
           ->inst_f([this](
@@ -242,7 +242,8 @@ namespace fhatos {
               ID(args->arg(0)->uri_value()),
               args->arg(1));
             return console;
-          });
+          })
+      ->save();
       return nullptr;
     }
   };

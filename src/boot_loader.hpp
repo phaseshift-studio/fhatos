@@ -95,7 +95,7 @@ namespace fhatos {
             ->mount(Heap<>::create(FOS_SCHEME "/#"))
             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
             ->import(FhatOSCoreDriver::import())
-            ->install(Type::singleton(FOS_SCHEME "/type"))
+            ->install(Typer::singleton(FOS_SCHEME "/type"))
             ->import(mmadt::mmADT::import())
             ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))

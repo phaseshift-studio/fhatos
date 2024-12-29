@@ -84,7 +84,7 @@ router()->write(id_p("/sys/router"), router());
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
-  router()->write(id_p("/mmadt/"),Type::singleton("/mmadt/")); \
+  router()->write(id_p("/mmadt/"),Typer::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
 #define FOS_DEPLOY_TYPE_2 ;

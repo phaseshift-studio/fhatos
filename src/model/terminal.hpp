@@ -45,7 +45,7 @@ namespace fhatos {
       static bool setup = false;
       if(!setup) {
         setup = true;
-        Type::singleton()->save_type(id_p(REC_FURI->extend("terminal")),
+        Typer::singleton()->save_type(id_p(REC_FURI->extend("terminal")),
                                      rec({{vri(":stdout"), Obj::to_bcode()}, {vri(":stdin"), Obj::to_bcode()}}));
       }
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
