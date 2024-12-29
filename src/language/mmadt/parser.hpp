@@ -269,7 +269,7 @@ namespace mmadt {
               itype = IType::ONE_TO_ONE;
             }
             const Obj_p seed = is_gather(itype) ? Objs::to_objs() : Obj::to_noobj();
-            return Obj::to_inst(InstValue(args, make_shared<InstF>(InstF(body, true)), itype, seed),
+            return Obj::to_inst(InstValue(args, make_shared<InstF>(body), itype, seed),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
           }

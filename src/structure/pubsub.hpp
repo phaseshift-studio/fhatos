@@ -91,9 +91,9 @@ namespace fhatos {
     }
 
     explicit Message(const ID &target, const Obj_p &payload, const bool retain) : Rec(rmap({
-        {"target", vri(target)},
-        {"payload", payload},
-        {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+      {"target", vri(target)},
+      {"payload", payload},
+      {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID target() const {
@@ -146,10 +146,10 @@ namespace fhatos {
     }
 
     explicit Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) : Rec(rmap({
-        {"source", vri(source)},
-        {"pattern", vri(pattern)},
-        {":on_recv", on_recv}
-      }), OType::REC, SUBSCRIPTION_FURI) {
+      {"source", vri(source)},
+      {"pattern", vri(pattern)},
+      {":on_recv", on_recv}
+    }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID source() const {
@@ -171,9 +171,9 @@ namespace fhatos {
     }
 
     Obj_p process_message(const Message_p &message) const {
-      return inst_f()->pure
-               ? (*inst_f()->obj_f())(message->payload(), Obj::to_inst_args({message}))
-               : (*inst_f()->cpp_f())(message->payload(), Obj::to_inst_args({message}));
+      return std::holds_alternative<Obj_p>(*inst_f())
+               ? (*std::get<Obj_p>(*inst_f()))(message->payload(), Obj::to_inst_args({message}))
+               : (*std::get<Cpp_p>(*inst_f()))(message->payload(), Obj::to_inst_args({message}));
     }
 
     static Subscription_p create(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {

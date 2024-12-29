@@ -289,14 +289,28 @@ ENDIF()
 
 ####################################
 ####################################
+### FMT: PRINT FORMATTING
+MESSAGE(CHECK_START "${.y}Making Fmt Library${..}")
+FETCHCONTENT_DECLARE(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt
+        GIT_TAG 11.1.1
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
+FETCHCONTENT_MAKEAVAILABLE(fmt)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE fmt::fmt)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+FILE(COPY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/fmt)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+####################################
+####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
 MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
 FETCHCONTENT_DECLARE(
         ordered_map
         GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
         GIT_TAG v1.1.0
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-)
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
 FETCHCONTENT_MAKEAVAILABLE(ordered_map)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
 FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
@@ -307,14 +321,13 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
-#################################### C
+####################################
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
         GIT_TAG v1.3.13
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-)
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
 FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #################################### C++
@@ -323,8 +336,7 @@ FETCHCONTENT_DECLARE(
         paho-mqttpp3
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
         GIT_TAG v1.4.1
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-)
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
 SET(PAHO_ENABLE_TESTING OFF)
 SET(PAHO_BUILD_TESTS OFF)
 SET(PAHO_BUILD_DOCUMENTATION OFF)
@@ -421,8 +433,7 @@ IF(DO_NOT)
             peglib
             GIT_REPOSITORY https://github.com/yhirose/cpp-peglib
             GIT_TAG v1.9.1
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
     FETCHCONTENT_MAKEAVAILABLE(peglib)
     TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC peglib)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/peglib)
@@ -445,8 +456,7 @@ IF(DO_NOT)
             ftxui
             GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
             GIT_TAG v5.0.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
     FETCHCONTENT_MAKEAVAILABLE(ftxui)
     TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
@@ -456,40 +466,6 @@ IF(DO_NOT)
             PRIVATE ftxui::dom
             PRIVATE ftxui::component # Not needed for this example.
     )
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
-    ####################################
-    ####################################
-    ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-    MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
-    FETCHCONTENT_DECLARE(
-            ordered_map
-            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-            GIT_TAG v1.1.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    #FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
-    ####################################
-    ####################################
-    ### MPC: MICRO PARSER COMBINATORS
-    MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
-    FETCHCONTENT_DECLARE(
-            mpc
-            GIT_REPOSITORY https://github.com/orangeduck/mpc.git
-            GIT_TAG 0.9.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    FETCHCONTENT_MAKEAVAILABLE(mpc)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
 ####################################

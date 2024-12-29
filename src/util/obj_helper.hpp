@@ -181,7 +181,7 @@ namespace fhatos {
   protected:
     ID_p type_;
     InstArgs args_{Obj::to_inst_args()};
-    ptr<InstF> function_supplier_ = nullptr;
+    InstF_p function_supplier_ = nullptr;
     IType itype_{IType::ONE_TO_ONE};
     Obj_p seed_;
     string doc_{};
@@ -231,13 +231,13 @@ namespace fhatos {
       return this;
     }
 
-    InstBuilder *inst_f(const BiFunction<const Obj_p, const InstArgs, Obj_p> &inst_f) {
-      this->function_supplier_ = make_shared<InstF>(inst_f);
+    InstBuilder *inst_f(const Cpp &inst_f) {
+      this->function_supplier_ = make_shared<InstF>(make_shared<Cpp>(inst_f));
       return this;
     }
 
     InstBuilder *inst_f(const Obj_p &obj) {
-      this->function_supplier_ = InstF::wrap(obj);
+      this->function_supplier_ = make_shared<InstF>(obj);
       return this;
     }
 

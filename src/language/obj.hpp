@@ -288,38 +288,9 @@ namespace fhatos {
     {IType::MANY_TO_MANY, "O->O (barrier)"},
   });
   using InstArgs = Rec_p;
-
-  struct InstF {
-    bool pure;
-    Any f;
-
-    InstF() = default;
-
-    explicit InstF(const BiFunction<const Obj_p, const InstArgs, Obj_p> &ff) : pure(false),
-                                                                               f(make_shared<BiFunction<Obj_p, InstArgs,
-                                                                                 Obj_p>>(ff)) {
-    }
-
-    InstF(const Obj_p &obj_f, const bool pure) : pure(pure), f(obj_f) {
-    }
-
-    static ptr<InstF> wrap(const Obj_p &obj) {
-      return make_shared<InstF>(obj, true);
-    }
-
-    Obj_p obj_f() {
-      if(!this->pure)
-        throw fError("inst function written in native cxx");
-      return std::any_cast<Obj_p>(this->f);
-    }
-
-    ptr<BiFunction<const Obj_p, const InstArgs, Obj_p>> cpp_f() {
-      if(this->pure)
-        throw fError("inst function written in obj");
-      return std::any_cast<ptr<BiFunction<const Obj_p, const InstArgs, Obj_p>>>(this->f);
-    }
-  };
-
+  using Cpp = BiFunction<const Obj_p, const InstArgs, Obj_p>;
+  using Cpp_p = ptr<Cpp>;
+  using InstF = std::variant<Obj_p, Cpp_p>;
   using InstF_p = ptr<InstF>;
   using InstValue = Quad<InstArgs, InstF_p, IType, Obj_p>;
   using InstList = List<Inst_p>;
@@ -1310,10 +1281,10 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
-        if(this->is_inst() && this->inst_f() && this->inst_f()->pure) {
+        if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f())) {
           obj_string = obj_string
               .append("!g[!!")
-              .append(this->inst_f()->obj_f()->toString())
+              .append(std::get<Obj_p>(*this->inst_f())->toString())
               .append("!g]!!");
         }
       }
@@ -1636,9 +1607,9 @@ namespace fhatos {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
-            const Obj_p result = inst->inst_f()->pure
-                                   ? (*inst->inst_f()->obj_f())(lhs, remake)
-                                   : (*inst->inst_f()->cpp_f())(lhs, remake);
+            const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
+                                   ? (*std::get<Obj_p>(*inst->inst_f()))(lhs, remake)
+                                   : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code())
               TYPE_CHECKER(result.get(), inst->range(), true);
             ROUTER_POP_FRAME();
@@ -2127,10 +2098,11 @@ namespace fhatos {
   static Obj_p from(const Uri_p &uri, const Obj_p &default_arg = noobj()) {
     return Obj::to_inst(
       "from", Obj::to_inst_args({uri, default_arg}),
-      make_shared<InstF>([](const Uri_p &, const InstArgs &args) {
-        const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
-        return result->is_noobj() ? args->arg(1) : result;
-      }),
+      make_shared<InstF>(make_shared<BiFunction<const Obj_p, const InstArgs, Obj_p>>(
+        [](const Uri_p &, const InstArgs &args) {
+          const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
+          return result->is_noobj() ? args->arg(1) : result;
+        })),
       (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
   }
 

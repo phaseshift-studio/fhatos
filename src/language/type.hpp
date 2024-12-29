@@ -212,14 +212,15 @@ namespace fhatos {
                 inst->toString().c_str(),
                 ITypeDescriptions.to_chars(final_inst->itype()).c_str());
             const auto merged_args = Obj::to_inst_args();
-            int counter=0;
+            int counter = 0;
             for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
               if(inst->has_arg(k))
-                merged_args->rec_value()->insert({k,inst->arg(k)});
-                else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
-                  merged_args->rec_value()->insert({k, inst->arg(counter)});
+                merged_args->rec_value()->insert({k, inst->arg(k)});
+              else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
+                merged_args->rec_value()->insert({k, inst->arg(counter)});
               else
-                merged_args->rec_value()->insert({k, v->is_inst()?  v->arg(1) : v}); // TODO: hack to get the default from from();
+                merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
+              // TODO: hack to get the default from from();
               ++counter;
             }
             // TODO: recurse off inst for all inst_arg getter/setters
@@ -236,9 +237,9 @@ namespace fhatos {
             final_inst = Obj::to_inst(
               inst->inst_op(),
               inst->inst_args(),
-              make_shared<InstF>([x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) {
+              make_shared<InstF>(make_shared<Cpp>([x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                 return x->apply(lhs, args);
-              }),
+              })),
               inst->itype(),
               inst->inst_seed_supplier(),
               inst->tid(), inst->vid());
