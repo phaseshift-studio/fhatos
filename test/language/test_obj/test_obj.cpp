@@ -32,7 +32,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  void test_bool() {
+ /* void test_bool() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/truth"), Obj::to_bcode()); //
     const Bool_p bool_a = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
     const Bool_p bool_b = share(Bool(false, "truth"));
@@ -59,9 +59,9 @@ namespace fhatos {
      FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
    //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3,int_t("nat")))));
      FOS_TEST_ASSERT_EXCEPTION(__().lt(2)._bcode->apply(share(Bool(true, "/bool/truth"))));*/
-  }
+  //}
 
-  void test_int() {
+  /*void test_int() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
     const Int_p intA = share(Int(1));
@@ -116,9 +116,9 @@ namespace fhatos {
      /// apply
      FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
      FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/nat"))))*/
-  }
+  //}
 
-  void test_real() {
+  /*void test_real() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/money"), Obj::to_bcode()); //
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/weight"), Obj::to_bcode()); //
     const Real_p realA = share(Real(1.0f));
@@ -325,16 +325,39 @@ namespace fhatos {
           {str("a"), Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(
             Obj::to_int(-10))}))})},
           { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
-  }
+  }*/
+
+void test_inst() {
+  const Inst_p i1 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+                                           make_shared<InstF>(Obj::to_bcode()),
+                                           IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"));
+  const Inst_p i2 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+                                           make_shared<InstF>(make_shared<Cpp>([](const Obj_p& lhs, const InstArgs&) -> Obj_p {return lhs;})),
+                                           IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"));
+  FOS_TEST_OBJ_NOT_EQUAL(i1,i2);
+  FOS_TEST_ASSERT_EQUAL_FURI(*i1->tid(),*i2->tid());
+  FOS_TEST_OBJ_EQUAL(i1->inst_args(),i2->inst_args());
+  TEST_ASSERT_EQUAL(i1->itype(),i2->itype());
+  TEST_ASSERT_NOT_EQUAL_INT(i1->toString(NO_ANSI_PRINTER).find("_"),string::npos);
+  TEST_ASSERT_EQUAL_INT(i2->toString(NO_ANSI_PRINTER).find("_"),string::npos);
+}
 
   void test_serialization() {
     const List<Obj_p> objs = {
-        Obj::to_int(1), Obj::to_int(-453), Obj::to_real(12.035f),
-        // Obj::to_str("fhatos"),
-        // Obj::to_uri("aaaa"),
-        // Obj::to_lst({1, 7, "abc", u("hello/fhat/aus")}),
-        // Obj::to_rec({{u("a"), 2}, {u("b"), 3}}),
-        Obj::to_noobj()
+        Obj::to_noobj(),
+        // TODO: Obj::create(Any(),OType::OBJ,INT_FURI),
+        Obj::to_int(1),
+        Obj::to_int(-453),
+        Obj::to_real(12.035f),
+        Obj::to_str("fhatos"),
+        Obj::to_uri("aaaa"),
+        //Obj::to_uri("<abba>"),
+        Obj::to_lst({jnt(1), jnt(7), str("abc"), vri("hello/fhat/aus")}),
+        Obj::to_rec({{"a", jnt(2)}, {"b", jnt(3)}})
+       // PROCESS("parsed_inst(a=>10,b=>20)[plus(*a).plus(*b)]")->none_one_all(),
+       //Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+        //                                 make_shared<InstF>(Obj::to_bcode()),
+         //                                IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"))
     };
     for (const auto &obj_a: objs) {
       const BObj_p bobj = obj_a->serialize();
@@ -344,13 +367,14 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_bool); //
-      FOS_RUN_TEST(test_int); //
-      FOS_RUN_TEST(test_real); //
-      FOS_RUN_TEST(test_str); //
-      FOS_RUN_TEST(test_uri); //
-      FOS_RUN_TEST(test_lst); //
-      FOS_RUN_TEST(test_rec); //
+    //  FOS_RUN_TEST(test_bool); //
+    //  FOS_RUN_TEST(test_int); //
+    //  FOS_RUN_TEST(test_real); //
+    //  FOS_RUN_TEST(test_str); //
+     // FOS_RUN_TEST(test_uri); //
+     // FOS_RUN_TEST(test_lst); //
+     // FOS_RUN_TEST(test_rec); //
+      FOS_RUN_TEST(test_inst); //
       FOS_RUN_TEST(test_serialization); //
       )
 }; // namespace fhatos

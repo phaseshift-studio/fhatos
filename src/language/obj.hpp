@@ -1393,6 +1393,7 @@ namespace fhatos {
         return false;
       switch(this->otype_) {
         case OType::NOOBJ: return true;
+        case OType::OBJ: return !other.value_.has_value();
         case OType::BOOL: return this->bool_value() == other.bool_value();
         case OType::INT: return this->int_value() == other.int_value();
         case OType::REAL: return this->real_value() == other.real_value();
@@ -1452,7 +1453,14 @@ namespace fhatos {
           }
           return true;
         }
-        case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
+        case OType::INST: return
+              *this->inst_args() == *other.inst_args() &&
+              this->inst_f()->index() == other.inst_f()->index() &&
+              (this->inst_f()->index() == 1 ||
+               (*std::get<Obj_p>(*this->inst_f()) == *std::get<Obj_p>(*other.inst_f()))) &&
+              this->itype() == other.itype() &&
+              *this->inst_seed_supplier() == *other.inst_seed_supplier();
+        // TODO: Tuple equality
         default: throw fError("unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
