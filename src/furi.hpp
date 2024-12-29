@@ -768,8 +768,10 @@ namespace fhatos {
             }
           } else if(part == URI_PART::PATH && c == '.' && ss.peek() == '.') { // TODO: fix
             ss.get(); // drop .
-            if(ss.peek() == '/')
+            this->spostfix_ = (ss.peek() == '/');
+            if(this->spostfix_) {
               ss.get();
+            }
             if(this->path_) {
               if(this->path_[this->path_length_ - 1][0] == '.') {
                 this->path_[this->path_length_++] = strdup("..");
@@ -837,8 +839,8 @@ namespace fhatos {
             }
             if(!this->spostfix_) {
               if(char last = this->path_[this->path_length_ - 1][strlen(this->path_[this->path_length_ - 1]) - 1];
-                last == '.' || last == '_' || last == '=') {
-                throw fError("furis can not end with chars !g[!r.!y_!c=!g]!!: %s", this->name().c_str());
+               /* last == '.' || */last == '_' || last == '=') {
+                throw fError("furis can not end with chars !g[!y_!c=!g]!!: %s", this->name().c_str());
               }
             }
           }

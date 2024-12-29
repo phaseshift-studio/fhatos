@@ -227,7 +227,7 @@ namespace fhatos {
       InstBuilder::build(ID(id.extend(":create")))
           ->type_args(
             x(0, "install_location", vri(id)),
-            x(2, "config", Obj::to_rec({
+            x(1, "config", Obj::to_rec({
                 {"terminal",
                   Obj::to_rec({
                     {"stdin", vri(Terminal::singleton()->vid()->extend(":stdin"))},

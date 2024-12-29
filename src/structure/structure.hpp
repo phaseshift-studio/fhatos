@@ -324,7 +324,7 @@ namespace fhatos {
           else {
             fURI_p back = furi;
             auto front = fURI(back->name());
-            Obj_p matches = noobj();
+            Obj_p matches = this->read(back);
             while(back->path_length() > 1 && !matches->is_rec()) {
               back = furi_p(back->retract());
               front = front.prepend(back->name());
