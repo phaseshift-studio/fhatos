@@ -29,33 +29,91 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
-  void test_locate_poly_base() {
-   const ptr<Heap<>> test_heap = std::make_shared<Heap<>>(Obj::to_rec({{"pattern",vri("/zzz/#")}}));
-    router()->attach(test_heap);
+   ptr<Heap<>> test_heap = std::make_shared<Heap<>>(Obj::to_rec({{"pattern",vri("/zzz/#")}}));
+
+   // in fhatos namespace
+   void setUp(void) {
+    static bool first = true;
+    if(first) router()->attach(test_heap);
+    first =false;
+   }
+
+    void tearDown(void) {
+     ROUTER_WRITE(id_p("/zzz/a/b"),Obj::to_noobj(),true);
+     }
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  void test_locate_rec_base() {
+    setUp();
+    ////////////////////////////
     const Rec_p recA = Obj::to_rec({{"x",jnt(1)},{"y",jnt(2)}});
     ROUTER_WRITE(id_p("/zzz/a/b"),recA,true);
-    ////////////////////////////
-     std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(furi_p("/zzz/a/b/c/d"));
-    TEST_ASSERT_TRUE(pair.has_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
-    FOS_TEST_OBJ_EQUAL(recA, pair->second);
-    ////////////////////////////
-    pair = test_heap->locate_base_poly(furi_p("/zzz/a/b/c/d/e"));
-    TEST_ASSERT_TRUE(pair.has_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
-    FOS_TEST_OBJ_EQUAL(recA, pair->second);
-    ////////////////////////////
-    pair = test_heap->locate_base_poly(furi_p("/zzz/a/b"));
-    TEST_ASSERT_TRUE(pair.has_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
-    FOS_TEST_OBJ_EQUAL(recA, pair->second);
-    ////////////////////////////
-    pair = test_heap->locate_base_poly(furi_p("/zzz/z/y"));
-    TEST_ASSERT_FALSE(pair.has_value());
-    }
+    ////////////////////////////////////////////////////////////////////////////////////
+    for(const auto& test_furi_str : {
+          "/zzz/a/b/c/d/e/f/../..",
+          "/zzz/a/b/c/d/e/../././../f",
+          "/zzz/a/b/c/d/e/./f",
+          "/zzz/a/b/c/d/e",
+          "/zzz/a/b/c/d",
+          "/zzz/a/b" }) {
+      const ID_p test_furi = id_p(test_furi_str);
+      std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
+      FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
+      FOS_TEST_OBJ_EQUAL(recA, pair->second);
+          }
+    ////////////////////////////////////////////////////////////////////////////////////
+    for(const auto& test_furi_str : {
+         "/zzz"
+         "/zzz/a",
+         "/zzz/a/b/../..",
+         "/zzz/a/b/..",
+         "/zzz/a/c",
+         "/zzz/a/a/b/c" }) {
+      const ID_p test_furi = id_p(test_furi_str);
+      std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
+      TEST_ASSERT_FALSE(pair.has_value());
+      }
+    ////////////////////////////////////////////////////////////////////////////////////
+  }
+
+  void test_locate_lst_base() {
+     setUp();
+    const Rec_p lstA = Obj::to_lst({jnt(1),jnt(2)});
+    ROUTER_WRITE(id_p("/zzz/a/b"),lstA,true);
+    ////////////////////////////////////////////////////////////////////////////////////
+    for(const auto& test_furi_str : {
+          "/zzz/a/b/c/d/e/f/../..",
+          "/zzz/a/b/c/d/e/../././../f",
+          "/zzz/a/b/c/d/e/./f",
+          "/zzz/a/b/c/d/e",
+          "/zzz/a/b/c/d",
+          "/zzz/a/b" }) {
+      const ID_p test_furi = id_p(test_furi_str);
+      std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
+      FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
+      FOS_TEST_OBJ_EQUAL(lstA, pair->second);
+     }
+    ////////////////////////////////////////////////////////////////////////////////////
+    for(const auto& test_furi_str : {
+         "/zzz"
+         "/zzz/a",
+         "/zzz/a/b/../..",
+         "/zzz/a/b/..",
+         "/zzz/a/c",
+         "/zzz/a/a/b/c" }) {
+      const ID_p test_furi = id_p(test_furi_str);
+      std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
+      TEST_ASSERT_FALSE(pair.has_value());
+     }
+    ////////////////////////////////////////////////////////////////////////////////////
+   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_locate_poly_base); //
+    FOS_RUN_TEST(test_locate_rec_base); //
+    FOS_RUN_TEST(test_locate_lst_base); //
   )
 } // namespace fhatos
 
