@@ -188,28 +188,33 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static bool is_initial(const IType itype) {
-    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO || itype ==
-           IType::ZERO_TO_MAYBE;
+    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO ||
+           itype == IType::ZERO_TO_MAYBE;
   }
 
   [[maybe_unused]] static bool is_maybe_initial(const IType itype) {
-    return itype == IType::MAYBE_TO_ONE || itype == IType::MAYBE_TO_MAYBE || itype == IType::MAYBE_TO_MANY || itype ==
-           IType::MAYBE_TO_ZERO;
+    return itype == IType::MAYBE_TO_ONE || itype == IType::MAYBE_TO_MAYBE || itype == IType::MAYBE_TO_MANY ||
+           itype == IType::MAYBE_TO_ZERO;
+  }
+
+  [[maybe_unused]] static bool is_maybe_range(const IType itype) {
+    return itype == IType::ZERO_TO_MAYBE || itype == IType::ONE_TO_MAYBE || itype == IType::MANY_TO_MAYBE ||
+           itype == IType::MAYBE_TO_MAYBE;
   }
 
   [[maybe_unused]] static bool is_scatter(const IType itype) {
-    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY || itype ==
-           IType::MAYBE_TO_MANY;
+    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY ||
+           itype == IType::MAYBE_TO_MANY;
   }
 
   [[maybe_unused]] static bool is_gather(const IType itype) {
-    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO || itype ==
-           IType::MANY_TO_MAYBE;
+    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO ||
+           itype == IType::MANY_TO_MAYBE;
   }
 
   [[maybe_unused]] static bool is_terminal(const IType itype) {
-    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO || itype ==
-           IType::MAYBE_TO_ZERO;
+    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO ||
+           itype == IType::MAYBE_TO_ZERO;
   }
 
   [[maybe_unused]] static bool is_map(const IType itype) {

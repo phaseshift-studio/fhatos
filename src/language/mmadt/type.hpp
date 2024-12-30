@@ -238,7 +238,7 @@ namespace mmadt {
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0);
           })
-          ->itype_and_seed(IType::ONE_TO_ONE)
+          ->itype_and_seed(IType::ONE_TO_MAYBE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/merge")

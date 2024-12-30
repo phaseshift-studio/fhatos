@@ -227,7 +227,9 @@ namespace fhatos {
         if(is_initial(next_inst->itype())) {
           LOG_OBJ(TRACE, this->processor_, "monad %s dying [%s]\n", this->toString().c_str(),
                   ITypeDescriptions.to_chars(next_inst->itype()));
-        } else if(is_scatter(current_inst_resolved->itype()) && next_obj->is_objs()) {
+        } else if(next_obj->is_objs() && !is_gather(current_inst_resolved->itype())) {
+          //   (is_scatter(current_inst_resolved->itype()) ||
+          //    is_maybe_range(current_inst_resolved->itype()))) {
           LOG_OBJ(TRACE, this->processor_, "monad %s scattering [%s]\n",
                   this->toString().c_str(),
                   ITypeDescriptions.to_chars(this->inst_->itype()));
