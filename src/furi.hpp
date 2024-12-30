@@ -363,6 +363,20 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] fURI pretract() const {
+      auto new_uri = fURI(*this);
+      for(uint8_t i = 0; i < new_uri.path_length_; i++) {
+        free(new_uri.path_[i]);
+      }
+      delete[] new_uri.path_;
+      new_uri.path_length_ = this->path_length_ > 1 ? this->path_length_ - 1 : 0;
+      new_uri.path_ = new char *[new_uri.path_length_];
+      for(uint8_t i = 1; i < this->path_length_; i++) {
+        new_uri.path_[i - 1] = strdup(this->path_[i]);
+      }
+      return new_uri;
+    }
+
     [[nodiscard]] fURI prepend(const fURI &furi_path) const { return this->prepend(furi_path.path().c_str()); }
 
     [[nodiscard]] fURI prepend(const char *extension) const {
@@ -428,6 +442,13 @@ namespace fhatos {
       return first == '.' || first == ':'; //|| (first != '/' && !this->scheme_ && !this->host_);
     }
 
+    [[nodiscard]] fURI as_relative() const {
+      if(this->path_length_ > 0 && this->path_[0][0] == '/') {
+        return this->path(this->path().substr(1));
+      }
+      return fURI(*this);
+    }
+
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
 
     [[nodiscard]] fURI to_node() const {
@@ -477,6 +498,12 @@ namespace fhatos {
       if(comps.back().empty())
         comps.pop_back();
       return comps;
+    }
+
+    [[nodiscard]] fURI remove_subpath(const string &subpath, const bool forward = true) const {
+      string new_path = this->toString();
+      StringHelper::replace(&new_path, subpath, "", forward);
+      return fURI(new_path);
     }
 
     [[nodiscard]] fURI append(const fURI &other) const {
@@ -839,7 +866,7 @@ namespace fhatos {
             }
             if(!this->spostfix_) {
               if(char last = this->path_[this->path_length_ - 1][strlen(this->path_[this->path_length_ - 1]) - 1];
-               /* last == '.' || */last == '_' || last == '=') {
+                /* last == '.' || */last == '_' || last == '=') {
                 throw fError("furis can not end with chars !g[!y_!c=!g]!!: %s", this->name().c_str());
               }
             }

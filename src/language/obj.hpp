@@ -729,7 +729,11 @@ namespace fhatos {
     void lst_set(const Int_p &index, const Obj_p &obj) const {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      this->lst_value()->insert(this->lst_value()->begin() + index->int_value(), obj);
+      const FOS_INT_TYPE i =
+          index->is_uri() && StringHelper::is_integer(index->uri_value().toString())
+            ? stoi(index->uri_value().toString())
+            : index->int_value();
+      this->lst_value()->insert(this->lst_value()->begin() + i, obj);
     }
 
     [[nodiscard]] RecMap_p<> rec_value() const {
@@ -866,6 +870,17 @@ namespace fhatos {
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
+
+    void poly_set(const Obj_p &key, const Obj_p &value) const {
+      if(!this->is_poly())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(this->is_rec())
+        this->rec_set(key, value);
+      else if(this->is_lst())
+        this->lst_set(key, value);
+      else
+        throw fError("unknown poly base type (logic error): %s", this->tid_->toString().c_str());
+    }
 
     [[nodiscard]] InstValue inst_value() const {
       if(!this->is_inst())
@@ -2164,9 +2179,9 @@ namespace fhatos {
     return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
 
- /* [[maybe_unused]] static Inst_p x(const string &arg_name, const Obj_p &default_arg = noobj()) {
-    from(Obj::to_uri(arg_name), default_arg);
-  }*/
+  /* [[maybe_unused]] static Inst_p x(const string &arg_name, const Obj_p &default_arg = noobj()) {
+     from(Obj::to_uri(arg_name), default_arg);
+   }*/
 
   static BCode_p ___ = Obj::to_bcode();
   static NoObj_p _noobj_ = Obj::to_noobj();

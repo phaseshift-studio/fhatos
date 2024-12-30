@@ -215,7 +215,9 @@ namespace mmadt {
 
       static auto furi_action = [](const SemanticValues &vs) {
         string s = vs.token_to_string();
-        StringHelper::replace(&s, "`.", ".");
+        while(s.find("`.") != string::npos) {
+          StringHelper::replace(&s, "`.", ".");
+        }
         return furi_p((s[0] == '<' && s[s.length() - 1] == '>') ? s.substr(1, s.length() - 2) : s);
       };
 

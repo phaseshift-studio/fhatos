@@ -24,6 +24,7 @@
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
+
 #include <../test/test_fhatos.hpp>
 #include <util/obj_helper.hpp>
 
@@ -375,8 +376,8 @@ void test_inst() {
      // FOS_RUN_TEST(test_uri); //
      // FOS_RUN_TEST(test_lst); //
      // FOS_RUN_TEST(test_rec); //
-      FOS_RUN_TEST(test_inst); //
-      FOS_RUN_TEST(test_serialization); //
+     FOS_RUN_TEST(test_inst); //
+     FOS_RUN_TEST(test_serialization); //
       )
 }; // namespace fhatos
 

@@ -464,7 +464,22 @@ void test_uri_prepend() {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a:8080/b/c"), fURI("mqtt://a:8080/b/c/+").retract_pattern());
   }
 
-  void test_is_relative() {
+
+  void test_uri_remove_subpath() {
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a/"), fURI("mqtt://a/b/c").remove_subpath("b/c",false));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a"), fURI("mqtt://a/b/c").remove_subpath("/b/c",false));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt:///b/c"), fURI("mqtt://a/b/c").remove_subpath("a",false));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://b/c"), fURI("mqtt://a/b/c").remove_subpath("a/",false));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a/c"), fURI("mqtt://a/b/c").remove_subpath("b/",false));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt:///b/c"), fURI("mqtt://a/b/c").remove_subpath("a",false));
+    /// FORWARD
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/c"), fURI("mqtt://a/b/c").remove_subpath("mqtt://a/b",true));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a"), fURI("mqtt://a/b/c").remove_subpath("/b/c",true));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt:///b/c"), fURI("mqtt://a/b/c").remove_subpath("a",true));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a/c"), fURI("mqtt://a/b/c").remove_subpath("b/",true));
+  }
+
+  void test_uri_is_relative() {
     TEST_ASSERT_TRUE(fURI("./").is_relative());
     TEST_ASSERT_TRUE(fURI("./abc/cd").is_relative());
     TEST_ASSERT_TRUE(fURI("././abc").is_relative());
@@ -776,7 +791,8 @@ void test_uri_prepend() {
       FOS_RUN_TEST(test_uri_prepend); //
       // TODO: FOS_RUN_TEST(test_uri_retract);
       FOS_RUN_TEST(test_uri_retract_pattern);
-      FOS_RUN_TEST(test_is_relative); //
+      FOS_RUN_TEST(test_uri_remove_subpath);
+      FOS_RUN_TEST(test_uri_is_relative); //
       FOS_RUN_TEST(test_uri_branch_node);
       FOS_RUN_TEST(test_uri_resolve); //
       FOS_RUN_TEST(test_uri_match); //

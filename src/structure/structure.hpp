@@ -247,6 +247,19 @@ namespace fhatos {
       }
     }
 
+    Option<Pair<ID_p, Poly_p>> locate_base_poly(const fURI_p &furi) {
+      fURI_p pc_furi = furi; // force it to be a node. good or bad?
+      Obj_p obj = Obj::to_noobj();
+      while(pc_furi->path_length() > 0) {
+        obj = this->read(pc_furi);
+        if(obj->is_poly()) break;
+        pc_furi = furi_p(pc_furi->retract().as_node());
+      }
+      return obj->is_poly()
+               ? Option(Pair(id_p(*pc_furi), obj))
+               : Option<Pair<ID_p, Poly_p>>();
+    }
+
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
@@ -283,9 +296,9 @@ namespace fhatos {
             for(const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
             }
-          } else if(obj->is_type() && obj->is_poly()) {
-            this->write_raw_pairs(id_p(*furi), obj, retain);
-          } else if(obj->is_rec()) {
+          } // else if(obj->is_type() && obj->is_poly()) {
+          // this->write_raw_pairs(id_p(*furi), obj, retain);
+          /*}*/ else if(obj->is_rec()) {
             // rec
             const auto remaining = share(Obj::RecMap<>());
             for(const auto &[key, value]: *obj->rec_value()) {
@@ -320,22 +333,26 @@ namespace fhatos {
               this->write_raw_pairs(key, obj, retain);
             }
           }
-          // NODE ID
+          //////////////////////////////////////////////////////////////////////////////////////////////////////////
+          /////////////////////////////////////// WRITE NODE ID ////////////////////////////////////////////////////
+          //////////////////////////////////////////////////////////////////////////////////////////////////////////
           else {
-            fURI_p back = furi;
-            auto front = fURI(back->name());
-            Obj_p matches = noobj();
-            while(back->path_length() > 1 && !matches->is_rec()) {
-              back = furi_p(back->retract());
-              front = front.prepend(back->name());
-              matches = this->read(furi_p(*back));
+            LOG(TRACE, "searching for base poly of: %s\n", furi->toString().c_str());
+            if(const auto pair = this->locate_base_poly(furi_p(furi->retract())); pair.has_value()) {
+              LOG(TRACE, "base poly found at %s: %s\n",
+                  pair->first->toString().c_str(),
+                  pair->second->toString().c_str());
+              const ID_p id_insert = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
+              const Poly_p poly_insert = pair->second; //->clone();
+              poly_insert->poly_set(vri(id_insert), obj);
+              distribute_to_subscribers(Message::create(ID(*furi), obj, retain));
+              LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
+                  pair->first->toString().c_str(),
+                  poly_insert->toString().c_str());
+              this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
+            } else {
+              this->write_raw_pairs(id_p(*furi), obj, retain);
             }
-            if(matches->is_rec()) {
-              matches->rec_set(furi_p(front), obj);
-              write_raw_pairs(id_p(*back), matches, retain);
-              return;
-            }
-            this->write_raw_pairs(id_p(*furi), obj, retain);
           }
         }
       } else { // NO RETAIN

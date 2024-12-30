@@ -77,7 +77,7 @@
                     ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
                     ADD_DEFINITIONS(
                             -DNATIVE
-                            -DFOS_LOGGING=DEBUG)
+                            -DFOS_LOGGING=${FOS_LOGGING})
                     IF(APPLE)
                         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
                     ENDIF()
@@ -130,6 +130,7 @@
             MAKE_TESTS(language "test_obj" true)
             MAKE_TESTS(language/mmadt "test_mmadt_parser;test_mmadt_inst" true)
             #  MAKE_TESTS(process "test_scheduler;test_process" true)
+            MAKE_TESTS(structure "test_structure" true)
             #  MAKE_TESTS(structure/router "test_router" true)
             #  MAKE_TESTS(structure/stype/key_value "test_heap" , true)
             #  IF(BUILD_MQTT_TESTS)

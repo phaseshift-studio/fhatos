@@ -296,9 +296,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
     FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];*/abc/1/a.b.to(/abc/x);*/abc/x + -6"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];\n*/abc/1/a.b.to(/abc/x);\n*/abc/x + -6\n"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/2); */abc/2 + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];*/abc/1/a.b.to(/abc/2);*/abc/2 + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
   }
 
   FOS_RUN_TESTS( //

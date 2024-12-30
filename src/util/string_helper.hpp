@@ -215,15 +215,24 @@ namespace fhatos {
       return true;
     }
 
-    static void replace(string *s, const string &search, const string &replace) {
-      for(size_t pos = 0;; pos += replace.length()) {
-        // Locate the substring to replace
-        pos = s->find(search, pos);
+    static void replace(string *s, const string &search, const string &replace, const bool forward = true) {
+      if(!forward) {
+        const size_t pos = s->rfind(search, s->length()-1);
         if(pos == string::npos)
-          break;
-        // Replace by erasing and inserting
+          return;
         s->erase(pos, search.length());
-        s->insert(pos, replace);
+        if(!replace.empty())
+          s->insert(pos, replace);
+      } else {
+        for(size_t pos = 0;; pos += replace.length()) {
+          // Locate the substring to replace
+          pos = s->find(search, pos);
+          if(pos == string::npos)
+            break;
+          // Replace by erasing and inserting
+          s->erase(pos, search.length());
+          s->insert(pos, replace);
+        }
       }
     }
 
