@@ -60,7 +60,7 @@ namespace fhatos {
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
-    void print_result(const Obj_p &obj, const uint8_t depth, string *to_out) const {
+    void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool nested_poly = false) const {
       LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
@@ -70,24 +70,27 @@ namespace fhatos {
         }
       } else if(obj->is_lst() && nest_value > depth) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
-                       (obj->is_lst() ? "[" : "{") + "!!\n");
+                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
             to_out->append(StringHelper::format(
               "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(), e->toString().c_str()));
-          } else
-            this->print_result(e, depth + 1, to_out);
+          } else {
+            //to_out->append("!m,!!");
+            this->print_result(e, depth + 1, to_out, true);
+          }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
-                          : "") +
-                       "!m" + (obj->is_lst() ? "]" : "}") + "!!\n");
+                          : "") + "!m]!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
-        to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
+        if(!nested_poly) {
+          to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+                         (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
+        }
+        to_out->append("!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!value->is_poly()) {
@@ -95,8 +98,12 @@ namespace fhatos {
               "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
               key->toString().c_str(),
               value->toString().c_str()));
-          } else
-            this->print_result(value, depth + 1, to_out);
+          } else {
+            to_out->append(StringHelper::format(
+              "%s!c%s!m=>!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+              key->toString().c_str()));
+            this->print_result(value, depth + 1, to_out, true);
+          }
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
@@ -109,9 +116,13 @@ namespace fhatos {
         obj_string += "!!\n";
         to_out->append(obj_string);
       } else {
-        to_out->append(string("!g") + StringHelper::repeat(depth, "="));
-        to_out->append(StringHelper::format("==>!!%s\n",
-                                            obj->toString().c_str()));
+        if(nested_poly && obj->is_rec())
+          to_out->append(obj->toString().c_str()).append("\n");
+        else {
+          to_out->append(string("!g") + StringHelper::repeat(depth, "="));
+          to_out->append(StringHelper::format("==>!!%s\n",
+                                              obj->toString().c_str()));
+        }
       }
     }
 
@@ -243,7 +254,7 @@ namespace fhatos {
               args->arg(1));
             return console;
           })
-      ->save();
+          ->save();
       return nullptr;
     }
   };
