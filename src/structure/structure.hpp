@@ -204,7 +204,9 @@ namespace fhatos {
         }
         return ret;
       }
-      //////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
       const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
       const IdObjPairs matches = this->read_raw_pairs(temp);
       if(furi->is_branch()) {
@@ -215,34 +217,30 @@ namespace fhatos {
         }
         return rec;
       } else {
-        // NODE PATTERN
-        if(furi->is_pattern()) {
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////// READ NODE PATTERN/ID /////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(matches.empty()) {
+          LOG(TRACE, "searching for base poly of: %s\n", furi->toString().c_str());
+          if(const auto pair = this->locate_base_poly(furi_p(furi->retract())); pair.has_value()) {
+            LOG(TRACE, "base poly found at %s: %s\n",
+                pair->first->toString().c_str(),
+                pair->second->toString().c_str());
+            const fURI_p furi_subpath = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true));
+            const Poly_p poly_read = pair->second; //->clone();
+            Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
+            return read_obj;
+          }
+          return Obj::to_noobj();
+        }
+        if(!furi->is_pattern())
+          return matches.front().second;
+        else {
           const Objs_p objs = Obj::to_objs();
-          for(const auto &[key, value]: matches) {
-            objs->objs_value()->push_back(value);
+          for(const auto &o: matches) {
+            objs->add_obj(o.second);
           }
           return objs;
-        }
-        // NODE ID
-        else {
-          if(matches.empty()) {
-            if(furi->path_length() > 0) {
-              // recurse backwards to find a root poly that has respective furi path
-              const fURI_p new_furi = furi_p(furi->retract().as_node());
-              const Obj_p maybe_poly = this->read(new_furi);
-              //return maybe_poly->deref(vri(new_furi->path(1, 255)));
-              /*//return furi->path_length() > 1 ? maybe_poly->deref(vri(furi->retract())) : maybe_poly;*/
-
-              // return maybe_poly->deref(vri(furi->name()));
-              if(maybe_poly->is_rec())
-                //return maybe_poly->rec_get(vri(furi->name()))->apply(vri(furi->name()));
-                return maybe_poly->rec_get(vri(furi->name()))->apply(vri(furi->name()));
-              if(maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
-                return maybe_poly->lst_get(jnt(stoi(furi->name())));
-            }
-            return noobj();
-          }
-          return matches.front().second;
         }
       }
     }

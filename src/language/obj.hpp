@@ -672,7 +672,7 @@ namespace fhatos {
       this->lst_value()->push_back(obj);
     }
 
-    [[nodiscard]] Obj_p deref(const Obj_p &uri) const {
+    [[nodiscard]] Obj_p deref(const Obj_p &uri, const bool uri_on_fail = true) const {
       if(this->is_rec())
         return this->rec_get(uri);
       if(this->is_lst())
@@ -680,11 +680,11 @@ namespace fhatos {
       if(this->is_objs()) {
         const Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
         for(const auto &o: *this->objs_value()) {
-          transform->add_obj(o->deref(uri));
+          transform->add_obj(o->deref(uri, uri_on_fail));
         }
         return transform;
       }
-      return uri;
+      return uri_on_fail ? uri : Obj::to_noobj();
     }
 
     [[nodiscard]] Int_p rec_size() const { return Obj::to_int(this->rec_value()->size()); }
@@ -702,8 +702,9 @@ namespace fhatos {
                         ? std::stoi(segment)
                         : (StringHelper::has_wildcards(segment) ? -1 : -100);
         if(-100 == i)
-          throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
-                       index->uri_value().toString().c_str());
+          return Obj::to_noobj();
+        //   throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
+        //                index->uri_value().toString().c_str());
         if(i >= this->lst_value()->size())
           return to_noobj();
         Obj_p segment_value = Obj::to_objs();
@@ -719,7 +720,7 @@ namespace fhatos {
           return to_noobj();
         return index->uri_value().path_length() <= 1
                  ? segment_value
-                 : segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)));
+                 : segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)), false);
       }
       return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
                ? Obj::to_noobj()
@@ -784,7 +785,7 @@ namespace fhatos {
         segment_value = segment_value->none_one_all();
         return key->uri_value().path_length() <= 1
                  ? segment_value
-                 : segment_value->deref(to_uri(key->uri_value().path(1, 255)));
+                 : segment_value->deref(to_uri(key->uri_value().path(1, 255)), false);
       }
       const Objs_p segment_value = Obj::to_objs();
       for(const auto &[k, v]: *this->rec_value()) {
@@ -880,6 +881,16 @@ namespace fhatos {
         this->lst_set(key, value);
       else
         throw fError("unknown poly base type (logic error): %s", this->tid_->toString().c_str());
+    }
+
+    Obj_p poly_get(const Obj_p &key) const {
+      if(!this->is_poly())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(this->is_rec())
+        return this->rec_get(key);
+      if(this->is_lst())
+        return this->lst_get(key);
+      throw fError("unknown poly base type (logic error): %s", this->tid_->toString().c_str());
     }
 
     [[nodiscard]] InstValue inst_value() const {
