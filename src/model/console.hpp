@@ -60,7 +60,7 @@ namespace fhatos {
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
-    void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool nested_poly = false) const {
+    void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool parent_rec = false) const {
       LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
@@ -78,7 +78,7 @@ namespace fhatos {
               "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(), e->toString().c_str()));
           } else {
             //to_out->append("!m,!!");
-            this->print_result(e, depth + 1, to_out, true);
+            this->print_result(e, depth + 1, to_out, false);
           }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
@@ -86,7 +86,7 @@ namespace fhatos {
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
                           : "") + "!m]!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
-        if(!nested_poly) {
+        if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                          (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
         }
@@ -116,7 +116,7 @@ namespace fhatos {
         obj_string += "!!\n";
         to_out->append(obj_string);
       } else {
-        if(nested_poly && obj->is_rec())
+        if(parent_rec)
           to_out->append(obj->toString().c_str()).append("\n");
         else {
           to_out->append(string("!g") + StringHelper::repeat(depth, "="));

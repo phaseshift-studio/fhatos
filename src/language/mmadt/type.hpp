@@ -317,6 +317,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/to_inv")
           ->type_args(x(0, "value_id"), x(1, "retain", dool(true)))
+          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);
             ROUTER_WRITE(furi_p(lhs->uri_value()), ret, args->arg(1)->bool_value());

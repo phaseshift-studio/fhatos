@@ -219,7 +219,7 @@ namespace fhatos {
         if(furi->is_pattern()) {
           const Objs_p objs = Obj::to_objs();
           for(const auto &[key, value]: matches) {
-            objs->add_obj(value);
+            objs->objs_value()->push_back(value);
           }
           return objs;
         }
@@ -256,7 +256,7 @@ namespace fhatos {
         pc_furi = furi_p(pc_furi->retract().as_node());
       }
       return obj->is_poly()
-               ? Option(Pair(id_p(*pc_furi), obj))
+               ? Option<Pair<ID_p, Poly_p>>(Pair<ID_p, Poly_p>(id_p(*pc_furi), obj))
                : Option<Pair<ID_p, Poly_p>>();
     }
 
@@ -330,7 +330,7 @@ namespace fhatos {
           if(furi->is_pattern()) {
             const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
             for(const auto &[key, value]: matches) {
-              this->write_raw_pairs(key, obj, retain);
+              this->write(key, obj, retain);
             }
           }
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
