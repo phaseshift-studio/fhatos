@@ -40,6 +40,7 @@ help_menu() {
   fhat-dev {clean | test | build | upload} {esp32 | native | docs | <empty>} {<extra_args>}
   example usasge:
     fhat-dev clean
+    fhat-dev package native
     fhat-dev build docs
     fhat-dev test native test_scheduler
     fhat-dev build esp32 fhatos
@@ -190,6 +191,17 @@ make_rpi() {
   fi
 }
 
+package_native() {
+   if [[ $platform == "native" || -z "${platform}" ]]; then
+      shift
+      shift
+      local extra_args=${@:1}
+      cd build || exit 1;
+      cpack .. ${extra_args}
+      cd ..
+    fi
+}
+
 ctest_native() {
   if [[ $platform == "native" || -z "${platform}" ]]; then
     shift
@@ -266,6 +278,8 @@ elif [[ $1 == "ctest" ]]; then
 elif [[ $1 == "test" ]]; then
   test_native "${@}"
   test_esp32 "${@}"
+elif [[ $1 == "package" ]]; then
+  package_native "${@}"
 elif [[ $1 == "build" ]]; then
   make_native "${@}"
   make_esp32 "${@}"

@@ -4,7 +4,7 @@
     IF(BUILD_TESTS)
         MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
         ENABLE_TESTING()
-        MESSAGE(CHECK_START "${.y}Searching for MQTT Broker${..}")
+        MESSAGE(CHECK_START "${.y}searching for MQTT broker${..}")
         SET(MQTT_BROKER_PORT 1883)
         EXECUTE_PROCESS(
                 COMMAND netstat -ant | grep ${MQTT_BROKER_PORT}
@@ -22,9 +22,9 @@
         ####################################
         ########### BOOST TEST #############
         ####################################
-        OPTION(BUILD_BOOST_TESTS "Build Boost tests" OFF) # ON/OFF
+        OPTION(BUILD_BOOST_TESTS "build boost tests" OFF) # ON/OFF
         IF(BUILD_BOOST_TESTS)
-            MESSAGE(CHECK_START "${.y}CMaking Boost Test Framework${..}")
+            MESSAGE(CHECK_START "${.y}making boost test framework${..}")
             SET(PROJECT_UNIT_TESTS_NAME ${PROJECT_NAME}_boost_tests)
             #CMAKE_POLICY(SET CMP0167 NEW)
             SET(Boost_USE_STATIC_LIBS OFF)
@@ -43,14 +43,14 @@
                 TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3 ordered_map)
                 ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
             ELSE()
-                MESSAGE("${.r}Unable to locate Boost unit_test_framework${..}. Proceeding without respective depending tests.")
+                MESSAGE("${.r}unable to locate boost unit_test_framework${..}. proceeding without respective depending tests.")
             ENDIF()
             MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ENDIF()
         ####################################
         ######## EXTERNAL LIBRARIES ########
         ####################################
-        MESSAGE(CHECK_START "${.y}CMaking Unity Test Framework${..}")
+        MESSAGE(CHECK_START "${.y}making unity test framework${..}")
         FETCHCONTENT_DECLARE(
                 unity
                 GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
@@ -86,7 +86,7 @@
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
                     IF(USE_PAHO_MQTT_HACK)
-                        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
+                        MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}TEST SUITE${.g}]${..}")
                         TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC
                                 ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
                                 ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
@@ -108,9 +108,9 @@
                     STRING(TOLOWER CMAKE_BUILD_TYPE cmake_build_type_lower)
                     IF(SANITIZER AND cmake_build_type_lower STREQUAL "debug")
                         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-                        MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer${.c} =${.r}-${.m}.${..}\n")
+                        MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}using address sanitizer${.c} =${.r}-${.m}.${..}\n")
                     ELSE()
-                        MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer${.y} =${.g}-${.m}.${..}\n")
+                        MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT using address sanitizer${.y} =${.g}-${.m}.${..}\n")
                     ENDIF()
                     ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
                     SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY TIMEOUT 20)

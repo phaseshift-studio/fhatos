@@ -2,6 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.25.0)  # CMake version check
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 INCLUDE(ExternalProject)
+INCLUDE(CPack)
 PROJECT(fhatos)
 
 ##############################################
@@ -66,7 +67,7 @@ SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 
 ####################################################################
 ####################### DEFAULT SETTINGS ###########################
-MESSAGE(CHECK_START "${.y}Setting Default Values${..}")
+MESSAGE(CHECK_START "${.y}setting default values${..}")
 ####################################################################
 IF(NOT EXISTS CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE DEBUG)
@@ -100,7 +101,7 @@ ELSEIF(LINUX)
         FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
         STRING(TOLOWER ${FOS_MACHINE_MODEL} FOS_MACHINE_MODEL)
         MESSAGE(NOTICE
-                "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
+                "\tbuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
 \t  ${.y}FOS_MACHINE_MODEL${..} : ${FOS_MACHINE_MODEL}")
         STRING(FIND ${FOS_MACHINE_MODEL} "nano" X)
         IF(${X} GREATER -1)
@@ -146,9 +147,29 @@ OPTION(SANITIZER "use address sanitizer" OFF)
 OPTION(USE_CCACHE "use ccache" ON)
 OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
+####################### CPACK PACKAGING ############################
 ####################################################################
-####################################################################
+MESSAGE(CHECK_START "${.y}configuring packaging with cpack${..}")
+SET(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+SET(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+SET(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${CPACK_PACKAGE_NAME}/${CMAKE_PROJECT_VERSION}")
+SET(CPACK_GENERATOR DEB)
+SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FhatOS Distributed Operating System")
+SET(CPACK_PACKAGE_VENDOR "fhatos.org")
+SET(CPACK_PACKAGE_CONTACT "dogturd.stynx@fhatos.org")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Dr. Stynx")
+SET(CPACK_VERBATIM_VARIABLES ON)
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_BINARY_DIR})
+SET(CPACK_OUTPUT_FILE_PREFIX ${CMAKE_BINARY_DIR})
+SET(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION})
+SET(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION})
+SET(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION})
+SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+SET(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/README.md")
+SET(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 SET(FOS_MACHINE_SUBOS ${CMAKE_SYSTEM})
@@ -191,20 +212,20 @@ IF(FOS_SKIP_CMAKE)
 ENDIF()
 ##################
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
+    MESSAGE(FATAL_ERROR "in-source builds not allowed. create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF()
 ##################
 IF(SANITIZER)
-    MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
+    MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}using address sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
 ELSE()
-    MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
+    MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT using address sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
 ENDIF()
 
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
 IF(CHECK_INTERNET)
-    MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
+    MESSAGE(CHECK_START "${.y}testing internet connection${..}")
     IF(MSVC)
         EXECUTE_PROCESS(
                 COMMAND ping www.google.com -n 2
@@ -220,10 +241,10 @@ IF(CHECK_INTERNET)
     ENDIF()
     IF(NOT NO_CONNECTION EQUAL 0)
         SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
-        MESSAGE(WARNING "${.r}\\__Fetch offline mode${..}: requires already populated _deps")
+        MESSAGE(WARNING "${.r}\\__fetch offline mode${..}: requires already populated _deps")
     ELSE()
         SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-        MESSAGE(NOTICE "${.g}\\__Fetch online mode${..}: automatically populates _deps")
+        MESSAGE(NOTICE "${.g}\\__fetch online mode${..}: automatically populates _deps")
     ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ELSE()
@@ -233,7 +254,7 @@ ENDIF()
 ########################################################################################################################
 ########################################################################################################################
 ######## PROJECT LIBRARY (NATIVE)
-OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
+OPTION(BUILD_NATIVE "build native" ON) # ON/OFF
 IF(BUILD_NATIVE)
     IF(APPLE)
         SET(CMAKE_MACOSX_RPATH 1)
@@ -247,7 +268,7 @@ IF(BUILD_NATIVE)
     INCLUDE_DIRECTORIES(src)
     FILE(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.hpp")
     IF(VERBOSE)
-        MESSAGE(NOTICE "${.g}Adding source files${..}: ${SOURCE_FILES}")
+        MESSAGE(NOTICE "${.g}adding source files${..}: ${SOURCE_FILES}")
     ENDIF()
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
@@ -290,7 +311,7 @@ ENDIF()
 ####################################
 ####################################
 ### FMT: PRINT FORMATTING
-MESSAGE(CHECK_START "${.y}Making Fmt Library${..}")
+MESSAGE(CHECK_START "${.y}making fmt library${..}")
 FETCHCONTENT_DECLARE(
         fmt
         GIT_REPOSITORY https://github.com/fmtlib/fmt
@@ -305,7 +326,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+MESSAGE(CHECK_START "${.y}making ordered map library${..}")
 FETCHCONTENT_DECLARE(
         ordered_map
         GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
@@ -322,7 +343,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
 ####################################
-MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
+MESSAGE(CHECK_START "${.y}making paho MQTT C library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
@@ -331,7 +352,7 @@ FETCHCONTENT_DECLARE(
 FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #################################### C++
-MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
+MESSAGE(CHECK_START "${.y}making paho MQTT C++ library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqttpp3
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
@@ -344,8 +365,8 @@ SET(PAHO_BUILD_DOCUMENTATION OFF)
 ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
 ##################################################################
 IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART 1${.g}]${..}")
-    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}Paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
+    MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}PART 1${.g}]${..}")
+    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
     SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
     FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
     FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
@@ -362,7 +383,7 @@ FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
 IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART DEUX${.g}]${..}")
+    MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}PART DEUX${.g}]${..}")
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
@@ -386,7 +407,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
 IF(RASPBERRYPI)
-    MESSAGE(CHECK_START "${.y}Making Raspberry PI Wiring Library${..}")
+    MESSAGE(CHECK_START "${.y}making raspberry pi wiring library${..}")
     IF(NANOPI)
         SET(WIRINGXX_GIT_REPO https://github.com/friendlyarm/WiringNP)
         SET(WIRINGXX_TAG master)
@@ -425,7 +446,7 @@ ENDIF()
 ####################################
 ####################################
 ### PEGLIB: A C++ PEG PARSER
-MESSAGE(CHECK_START "${.y}Making cpp-peglib Library${..}")
+MESSAGE(CHECK_START "${.y}making cpp-peglib library${..}")
 MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
 IF(DO_NOT)
     SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
@@ -450,7 +471,7 @@ IF(DO_NOT)
     ####################################
     ####################################
     ### FTXUI: ANSI C++ TERMINAL UI
-    MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
+    MESSAGE(CHECK_START "${.y}making ftxui library${..}")
     SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
     FETCHCONTENT_DECLARE(
             ftxui
