@@ -109,7 +109,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
             // ->mount(HeapPSRAM::create("/psram/#"))
-            // ->mount(Memory::singleton("/soc/memory/#"))
+             ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
             ->mount(Mqtt::create("//io/#",

@@ -25,73 +25,79 @@
 #include <structure/stype/computed.hpp>
 
 namespace fhatos {
-
   // static constexpr char *MEMORY_REC_STRING = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
   // static constexpr char *MEMORY_REC_STRING_2 = "[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
 
   class Memory : public Computed {
-
   protected:
     explicit Memory(const Pattern &pattern, const ID &id) : Computed(pattern, id) {
-      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0),lte(100.0)))");// parse("is(and(gte(0.0),lte(100.0)))"); //
-      Type::singleton()->save_type(id_p(MMADT_SCHEME "/real/%"), percent_type_def);
+      const ID_p percent_id = REAL_FURI;
+      /*const ID_p percent_id = id_p(MMADT_SCHEME "/%");
+      InstBuilder::build(*percent_id)
+          ->domain_range(REAL_FURI, REAL_FURI)
+          ->itype_and_seed(IType::ONE_TO_ONE)
+          ->inst_f(OBJ_PARSER("is(gte(0.0)).is(lte(100.0))"))
+          ->save();*/
       const ID_p inst = id_p(this->pattern_->resolve("./inst"));
       const ID_p heap = id_p(this->pattern_->resolve("./heap"));
       const ID_p psram = id_p(this->pattern_->resolve("./psram"));
       const ID_p hwm = id_p(this->pattern_->resolve("./hwm"));
-      const ID_p percent = id_p(MMADT_SCHEME "/real/%");
       ///////
       this->read_functions_->insert(
-          {inst, [this, inst, percent](const fURI_p &) {
-             const Rec_p r =
-                 rec({{vri("total"), jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
-                      {vri("free"), jnt(ESP.getFreeSketchSpace())},
-                      {vri("used"),
-                       real(ESP.getSketchSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                     ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))),
-                            percent)}});
-             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
-           }});
+        {inst, [this, inst, percent_id](const fURI_p &) {
+          const Rec_p r =
+              rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
+                {"free", jnt(ESP.getFreeSketchSpace())},
+                {"used",
+                  real(ESP.getSketchSize() == 0
+                         ? 0.0f
+                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) /
+                                              static_cast<float>(ESP.getSketchSize() + ESP.getFreeSketchSpace())))),
+                       percent_id)}});
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
+        }});
       this->read_functions_->insert(
-          {heap, [this, heap, percent](const fURI_p &) {
-             const Rec_p r =
-                 rec({{vri("total"), jnt(ESP.getHeapSize())},
-                      {vri("free"), jnt(ESP.getFreeHeap())},
-                      {vri("used"),
-                       real((float) ESP.getHeapSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))),
-                            percent)}});
-             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
-           }});
+        {heap, [this, heap, percent_id](const fURI_p &) {
+          const Rec_p r =
+              rec({{"total", jnt(ESP.getHeapSize())},
+                {"free", jnt(ESP.getFreeHeap())},
+                {"used",
+                  real(static_cast<float>(ESP.getHeapSize()) == 0
+                         ? 0.0f
+                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<float>(ESP.
+                                                getHeapSize())))),
+                       percent_id)}});
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
+        }});
       this->read_functions_->insert(
-          {psram, [this, psram, percent](const fURI_p &) {
-             const Rec_p r =
-                 rec({{vri("total"), jnt(ESP.getPsramSize())},
-                      {vri("free"), jnt(ESP.getFreePsram())},
-                      {vri("used"),
-                       real((float) ESP.getPsramSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))),
-                            percent)}});
-             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
-           }});
+        {psram, [this, psram, percent_id](const fURI_p &) {
+          const Rec_p r =
+              rec({{"total", jnt(ESP.getPsramSize())},
+                {"free", jnt(ESP.getFreePsram())},
+                {"used",
+                  real(static_cast<float>(ESP.getPsramSize()) == 0
+                         ? 0.0f
+                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
+                                                getPsramSize())))),
+                       percent_id)}});
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
+        }});
 
       this->read_functions_->insert(
-          {hwm, [this, hwm, percent](const fURI_p &) {
-             const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-             const Rec_p r =
-                 rec({{vri("total"), jnt(FOS_ESP_THREAD_STACK_SIZE)},
-                      {vri("min_free"), jnt(free)},
-                      {vri("used"), real(FOS_ESP_THREAD_STACK_SIZE == 0
-                                             ? 0.0f
-                                             : (100.0f * (1.0f - ((float) free) / ((float) FOS_ESP_THREAD_STACK_SIZE))),
-                                         percent)}});
-             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
-           }});
+        {hwm, [this, hwm, percent_id](const fURI_p &) {
+          const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+          const Rec_p r =
+              rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
+                {"min_free", jnt(free)},
+                {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
+                                ? 0.0f
+                                : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
+                                               FOS_ESP_THREAD_STACK_SIZE))),
+                              percent_id)}});
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
+        }});
     }
+
     // TODO: flash/partition/0x4434
 
 

@@ -2150,6 +2150,15 @@ namespace fhatos {
     return Obj::to_rec(map, type, id);
   }
 
+  [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const string, Obj_p>> &map,
+                                    const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
+    Obj::RecMap<> rec_map = Obj::RecMap<>();
+    std::transform(map.begin(), map.end(),
+                   std::inserter(rec_map, rec_map.end()),
+                   [](const auto &pair) { return std::make_pair(vri(pair.first), pair.second); });
+    return rec(rec_map, type, id);
+  }
+
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }
 
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) {

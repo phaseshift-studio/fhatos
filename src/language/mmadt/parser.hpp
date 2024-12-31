@@ -362,13 +362,13 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("_oO"), zom(seq(npd(lit("Oo_")), dot())), lit("Oo_"), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(ncls("#"), dot())), lit("###"), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/?_=&@.#+")))), ">"), furi_action;
+      FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
-                            oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
-                            zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
+                            oom(cho(cls("a-zA-Z:/%?_#+"), seq(lit("`.")))),
+                            zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/%?_=&#+")))))),
                           ">"), furi_action;
-      FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/_.#+")),
-                          zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
+      FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/%_.#+")),
+                          zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))),
                         ">"), furi_action;
       DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET), ">"), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));

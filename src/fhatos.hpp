@@ -60,8 +60,8 @@
 //#include <structure/stype/esp32/allocator.hpp>
 #endif
 
-#define FMT_HEADER_ONLY
-#include <fmt/core.h>
+//#define FMT_HEADER_ONLY
+//#include <fmt/core.h>
 #include "util/ansi.hpp"
 #include "util/fhat_error.hpp"
 
