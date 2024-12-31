@@ -197,13 +197,11 @@ namespace fhatos {
               int counter = 0;
               for(const auto &id: derivation_tree) {
                 counter = inst->tid()->equals(id) ? 1 : counter + 1;
-                error_message.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
-                                                          StringHelper::repeat(counter, "--"),
-                                                          id.toString()));
+                error_message.append(StringHelper::format("\n\t!m%s>!!" FURI_WRAP,
+                                                          StringHelper::repeat(counter, "--").c_str(),
+                                                          id.toString().c_str()));
               }
-              error_message = error_message.empty() ? "" : error_message.substr(0, error_message.size() - 1);
-              // remove trailing \n
-              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s\n", lhs->tid()->toString().c_str(),
+              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
                            inst->tid()->toString().c_str(), error_message.c_str());
               ////////////////////////////////////////////////////////////////////////////////
             }

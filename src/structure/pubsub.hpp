@@ -30,12 +30,12 @@ namespace fhatos {
 #define TRANSIENT false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",            \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[on_recv:!!%s!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       (subscription)->source().toString().c_str(), (subscription)->pattern().toString().c_str(),                           \
       (subscription)->on_recv()->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),   \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
@@ -145,10 +145,10 @@ namespace fhatos {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {
     }
 
-    explicit Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) : Rec(rmap({
+    explicit Subscription(const ID &source, const Pattern &pattern, const Obj_p &on_recv) : Rec(rmap({
       {"source", vri(source)},
       {"pattern", vri(pattern)},
-      {":on_recv", on_recv}
+      {"on_recv", on_recv}
     }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
@@ -165,19 +165,13 @@ namespace fhatos {
     }
 
     BCode_p on_recv() const {
-      return this->rec_get(":on_recv", [this]() {
+      return this->rec_get("on_recv", [this]() {
         throw fError("subscription has no !yon_recv!!: %s", this->toString().c_str());
       });
     }
 
-    Obj_p process_message(const Message_p &message) const {
-      return std::holds_alternative<Obj_p>(*inst_f())
-               ? (*std::get<Obj_p>(*inst_f()))(message->payload(), Obj::to_inst_args({message}))
-               : (*std::get<Cpp_p>(*inst_f()))(message->payload(), Obj::to_inst_args({message}));
-    }
-
-    static Subscription_p create(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
-      return make_shared<Subscription>(source, pattern, on_recv);
+    static Subscription_p create(const ID &source, const Pattern &pattern, const Obj_p &on_recv) {
+      return make_shared<Subscription>(source, pattern, on_recv->clone());
     }
   };
 } // namespace fhatos

@@ -63,6 +63,16 @@ namespace mmadt {
           ->itype_and_seed(IType::ZERO_TO_MANY)
           ->save();
 
+      InstBuilder::build(MMADT_SCHEME "/print")
+          ->domain_range(OBJ_FURI, OBJ_FURI)
+          ->type_args(x(0, "to_print", ___))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            printer()->printf("%s\n", args->arg(0)->toString().c_str());
+            return args->arg(0);
+          })
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->save();
+
       InstBuilder::build(MMADT_SCHEME "/as")
           ->type_args(x(0, "type"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {

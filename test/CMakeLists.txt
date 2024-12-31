@@ -70,10 +70,10 @@
             MESSAGE(STATUS "${.m}Processing ${.g}${PACKAGE}${.m} with ${PACKAGE_TESTS}${..}")
             FOREACH(PACKAGE_TEST ${PACKAGE_TESTS})
                 IF(NOT PACKAGE_TEST IN_LIST BUILD_TESTS AND NOT ON IN_LIST BUILD_TESTS)
-                    MESSAGE(STATUS "\t${.r}Ignoring ${.y}${PACKAGE_TEST} ${.r}as${..} ${.g}BUILD_TESTS${..}=${BUILD_TESTS}")
+                    MESSAGE(STATUS "\t${.r}ignoring ${.y}${PACKAGE_TEST} ${.r}as${..} ${.g}BUILD_TESTS${..}=${BUILD_TESTS}")
                 ELSE()
                     MATH(EXPR COUNTER "${COUNTER}+1")
-                    MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
+                    MESSAGE(CHECK_START "${.y}making ${PACKAGE_TEST}${..}")
                     ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
                     ADD_DEFINITIONS(
                             -DNATIVE
@@ -82,7 +82,7 @@
                         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
                     ENDIF()
                     IF(USE_PRECOMPILED_HEADERS)
-                        MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
+                        MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
                     IF(USE_PAHO_MQTT_HACK)
@@ -142,3 +142,4 @@
         ENDIF()
         MESSAGE(STATUS "${.g}total tests produced${..}: ${.y}${TOTAL}${..}")
     ENDIF()
+    MESSAGE(STATUS,"${.g}tests processed${..}")

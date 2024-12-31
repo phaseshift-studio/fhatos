@@ -569,9 +569,10 @@ namespace fhatos {
     }
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
+      const size_t index = string(function).find("_value");
       return fError(FURI_WRAP " %s !yaccessed!! as !b%s!! L%i", obj->vid_or_tid()->toString().c_str(),
                     obj->toString().c_str(),
-                    string(function).replace(string(function).find("_value"), 6, "").c_str(),
+                    index == string::npos ? function : string(function).replace(index, 6, "").c_str(),
                     line_number);
     }
 
@@ -781,7 +782,7 @@ namespace fhatos {
                                ? key->uri_value().toString()
                                : string(key->uri_value().path(0));
         Objs_p segment_value = Obj::to_objs();
-        const Uri_p segment_uri = Obj::to_uri(fURI(segment));
+        const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
         for(const auto &[k,v]: *this->rec_value()) {
           if(match_all || k->match(segment_uri))
@@ -805,7 +806,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p rec_get(const char *uri_key, const Runnable &on_error = nullptr) const {
-      return rec_get(to_uri(fURI(uri_key)), on_error);
+      return rec_get(to_uri(uri_key), on_error);
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
@@ -1700,7 +1701,7 @@ namespace fhatos {
           }
         }
         case OType::BCODE: {
-          return BCODE_PROCESSOR(this->shared_from_this()->bcode_starts(to_objs({lhs})))->none_one_all();
+          return BCODE_PROCESSOR(this->bcode_starts(to_objs({lhs})))->none_one_all();
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();

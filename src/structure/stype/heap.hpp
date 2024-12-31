@@ -64,7 +64,7 @@ namespace fhatos {
           return id;
         });
       }
-      this->distribute_to_subscribers(Message::create(*id, obj->clone(), retain));
+      this->distribute_to_subscribers(Message::create(*id, obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI_p &match) override {

@@ -97,7 +97,7 @@ namespace fhatos {
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
-        subscription->process_message(message);
+        subscription->on_recv()->apply(message->payload(), {message});
         mail = this->outbox_->pop_front();
       }
     }
@@ -151,7 +151,7 @@ namespace fhatos {
         if(!obj->is_noobj()) {
           if(id->matches(subscription->pattern())) {
             FEED_WATCDOG();
-            subscription->process_message(make_shared<Message>(*id, obj,RETAIN));
+            subscription->on_recv()->apply(obj, make_shared<Message>(*id, obj,RETAIN));
           }
         }
       }
@@ -161,41 +161,51 @@ namespace fhatos {
       return furi->is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(furi_p(furi->extend("+"))).empty();
     }
 
+    Obj_p read(const fURI &furi) {
+      return this->read(furi_p(furi));
+    }
+
     virtual Obj_p read(const fURI_p &furi) {
       if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
         return noobj();
       }
       if(furi->has_query()) {
-        const fURI_p query_less_furi = furi_p(furi->query(""));
-        const Objs_p ret = Obj::to_objs();
+        const fURI_p furi_no_query = furi_p(furi->no_query());
+        Objs_p ret = Obj::to_objs();
         if(furi->has_query("sub")) {
-          ret->add_obj(this->get_subscription_objs(query_less_furi));
-        } else if(furi->has_query("doc")) {
+          ret = this->get_subscription_objs(furi_no_query);
+          LOG_OBJ(DEBUG, this, "%i subscriptions received from %s\n",
+                  ret->objs_value()->size(),
+                  furi_no_query->toString().c_str());
+        }
+        if(furi->has_query("doc")) {
           if(const IdObjPairs doc = this->read_raw_pairs(furi); !doc.empty()) {
             for(const auto &pair: doc) {
               ret->add_obj(pair.second);
             }
           }
-        } else if(furi->query_value("type")) {
+        }
+        if(furi->query_value("type")) {
           const Objs_p objs = Obj::to_objs();
-          objs->add_obj(this->read(query_less_furi));
+          objs->add_obj(this->read(furi_no_query));
           for(const Obj_p &obj: *objs->objs_value()) {
             const Obj_p type = ROUTER_READ(obj->tid());
             ret->add_obj(type);
           }
-        } else if(furi->has_query("inst")) {
+        }
+        if(furi->has_query("inst")) {
           const List<string> opcodes = furi->query_values("inst");
           const Rec_p insts = Obj::to_rec();
           const Objs_p objs = Obj::to_objs();
-          objs->add_obj(ROUTER_READ(furi_p(query_less_furi->extend(":inst"))));
+          objs->add_obj(ROUTER_READ(furi_p(furi_no_query->extend(":inst"))));
           for(const Obj_p &o: *objs->objs_value()) {
             if(!o->is_rec())
               throw fError("obj instructs must be records: %s", o->toString().c_str());
             insts->rec_merge(o->rec_value());
           }
           objs->objs_value()->clear();
-          objs->add_obj(ROUTER_READ(query_less_furi));
+          objs->add_obj(ROUTER_READ(furi_no_query));
           for(const Obj_p &o: *objs->objs_value()) {
             if(!FURI_OTYPE.count(*o->tid()))
               insts->rec_merge(ROUTER_READ(furi_p(o->tid()->query("inst")))->rec_value());
@@ -263,97 +273,117 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
         return;
       }
-      if(retain) {
-        // x -> y
-        if(furi->has_query()) {
-          // x -> ?meta (writing to meta furis)
-          //// SUBSCRIBE
-          if(furi->query_value("sub").has_value()) {
-            const Pattern_p pattern = p_p(furi->query(""));
-            if(obj->is_noobj()) {
-              // unsubscribe
-              this->recv_unsubscribe(
-                (Process::current_process() ? Process::current_process()->vid() : id_p("scheduler")), pattern);
-            } else if(obj->is_bcode()) {
-              // bcode for on_recv
-              this->recv_subscription(Subscription::create(
-                Process::current_process() ? *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
-            } else if(obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
-              // complete sub[=>] record
-              this->recv_subscription(make_shared<Subscription>(obj));
-            }
-            return;
-          }
-        }
-        //// WRITES
-        if(furi->is_branch()) {
-          // BRANCH (POLYS)
+      if(furi->has_query()) {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// SUBSCRIBE ?sub={code|subscription|noobj} // noobj for unsubscribe
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(retain && furi->query_value("sub").has_value()) {
+          const Pattern_p pattern = p_p(furi->no_query());
           if(obj->is_noobj()) {
-            // nobj
-            const IdObjPairs ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-            for(const auto &[key, value]: ids) {
-              this->write_raw_pairs(key, obj, retain);
-            }
-          } // else if(obj->is_type() && obj->is_poly()) {
-          // this->write_raw_pairs(id_p(*furi), obj, retain);
-          /*}*/ else if(obj->is_rec()) {
-            // rec
-            const auto remaining = share(Obj::RecMap<>());
-            for(const auto &[key, value]: *obj->rec_value()) {
-              if(key->is_uri()) {
-                // uri key
-                this->write(id_p(key->uri_value()), value, retain);
-                distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
-                // may be wrong, should be outside recurssion
-              } else // non-uri key
-                remaining->insert({key, value});
-            }
-            if(!remaining->empty()) {
-              // non-uri keyed pairs written to /0
-              this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
-            }
-          } else if(obj->is_lst()) {
-            // lst /0,/1,/2 indexing
-            const List_p<Obj_p> list = obj->lst_value();
-            for(size_t i = 0; i < list->size(); i++) {
-              this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
-            }
-          } else {
-            // BRANCH (MONOS)
-            // monos written to /0
-            this->write_raw_pairs(id_p(*furi), obj, retain);
+            // unsubscribe
+            this->recv_unsubscribe(
+              (Process::current_process() ? Process::current_process()->vid() : SCHEDULER_ID), pattern);
+          } else if(obj->is_code()) {
+            // bcode for on_recv
+            this->recv_subscription(Subscription::create(
+              Process::current_process() ? *Process::current_process()->vid() : *SCHEDULER_ID, *pattern, obj));
+          } else if(obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
+            // complete sub[=>] record
+            this->recv_subscription(make_shared<Subscription>(obj));
+          }
+          return;
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// APPLY ?apply={lhs|rhs} a.b or b.a
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(furi->has_query("apply")) {
+          const string apply_position = furi->query_value("apply").value();
+          const fURI_p furi_no_query = furi_p(furi->no_query()); //.to_ptr<>();
+          const Obj_p old_obj = this->read(furi_no_query);
+          Obj_p new_obj = nullptr;
+          if("lhs" == apply_position) {
+            LOG_OBJ(DEBUG, this, "apply?lhs: %s !m=>!! %s\n", obj->toString().c_str(),
+                    old_obj->toString().c_str());
+            new_obj = old_obj->apply(obj);
+          } else if("rhs" == apply_position) {
+            LOG_OBJ(DEBUG, this, "apply?rhs: %s !m=>!! %s\n", old_obj->toString().c_str(),
+                    obj->toString().c_str());
+            new_obj = obj->apply(old_obj);
+          } else
+            throw fError("invalid query value for !b?apply={!ylhs!b | !yrhs!b}!!: %s", apply_position.c_str());
+          this->write(furi_no_query, new_obj, retain);
+        }
+      }
+
+      //// WRITES
+      if(furi->is_branch()) {
+        // BRANCH (POLYS)
+        if(obj->is_noobj()) {
+          // nobj
+          const IdObjPairs ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+          for(const auto &[key, value]: ids) {
+            this->write_raw_pairs(key, obj, retain);
+          }
+        } // else if(obj->is_type() && obj->is_poly()) {
+        // this->write_raw_pairs(id_p(*furi), obj, retain);
+        /*}*/ else if(obj->is_rec()) {
+          // rec
+          const auto remaining = share(Obj::RecMap<>());
+          for(const auto &[key, value]: *obj->rec_value()) {
+            if(key->is_uri()) {
+              // uri key
+              this->write(id_p(key->uri_value()), value, retain);
+              distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
+              // may be wrong, should be outside recurssion
+            } else // non-uri key
+              remaining->insert({key, value});
+          }
+          if(!remaining->empty()) {
+            // non-uri keyed pairs written to /0
+            this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
+          }
+        } else if(obj->is_lst()) {
+          // lst /0,/1,/2 indexing
+          const List_p<Obj_p> list = obj->lst_value();
+          for(size_t i = 0; i < list->size(); i++) {
+            this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
           }
         } else {
-          // NODE PATTERN
-          if(furi->is_pattern()) {
-            const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
-            for(const auto &[key, value]: matches) {
-              this->write(key, obj, retain);
-            }
-          }
-          //////////////////////////////////////////////////////////////////////////////////////////////////////////
-          /////////////////////////////////////// WRITE NODE ID ////////////////////////////////////////////////////
-          //////////////////////////////////////////////////////////////////////////////////////////////////////////
-          else {
-            LOG(TRACE, "searching for base poly of: %s\n", furi->toString().c_str());
-            if(const auto pair = this->locate_base_poly(furi_p(furi->retract())); pair.has_value()) {
-              LOG(TRACE, "base poly found at %s: %s\n",
-                  pair->first->toString().c_str(),
-                  pair->second->toString().c_str());
-              const ID_p id_insert = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
-              const Poly_p poly_insert = pair->second; //->clone();
-              poly_insert->poly_set(vri(id_insert), obj);
-              distribute_to_subscribers(Message::create(ID(*furi), obj, retain));
-              LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
-                  pair->first->toString().c_str(),
-                  poly_insert->toString().c_str());
-              this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
-            } else {
-              this->write_raw_pairs(id_p(*furi), obj, retain);
-            }
+          // BRANCH (MONOS)
+          // monos written to /0
+          this->write_raw_pairs(id_p(*furi), obj, retain);
+        }
+      } else {
+        // NODE PATTERN
+        if(furi->is_pattern()) {
+          const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
+          for(const auto &[key, value]: matches) {
+            this->write(key, obj, retain);
           }
         }
-      } else { // NO RETAIN
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////// WRITE NODE ID ////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        else {
+          LOG(TRACE, "searching for base poly of: %s\n", furi->toString().c_str());
+          if(const auto pair = this->locate_base_poly(furi_p(furi->retract())); pair.has_value()) {
+            LOG(TRACE, "base poly found at %s: %s\n",
+                pair->first->toString().c_str(),
+                pair->second->toString().c_str());
+            const ID_p id_insert = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
+            const Poly_p poly_insert = pair->second; //->clone();
+            poly_insert->poly_set(vri(id_insert), obj);
+            distribute_to_subscribers(Message::create(ID(*furi), obj, retain));
+            LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
+                pair->first->toString().c_str(),
+                poly_insert->toString().c_str());
+            this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
+          } else {
+            this->write_raw_pairs(id_p(*furi), obj, retain);
+          }
+        }
+      }
+      /*if(!retain) {
         // x --> y -< subscribers
         // non-retained writes 'pass through' (via application) any existing obj at that write furi location
         const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
@@ -371,7 +401,7 @@ namespace fhatos {
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)
           this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj), retain);
-      }
+      }*/
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -391,10 +421,14 @@ namespace fhatos {
     }
 
     virtual void distribute_to_subscribers(const Message_p &message) {
-      this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
-        if(message->target().matches(subscription->pattern()))
-          this->outbox_->push_back(mail_p(subscription, message));
-      });
+      if(!message->payload()->is_noobj()) {
+        LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
+                this->subscriptions_->size());
+        this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
+          if(message->target().matches(subscription->pattern()))
+            this->outbox_->push_back(mail_p(subscription, message));
+        });
+      }
     }
 
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) const {

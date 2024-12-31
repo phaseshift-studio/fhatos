@@ -275,6 +275,10 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] fURI no_query() const {
+      return this->query("");
+    }
+
     [[nodiscard]] fURI query(const List<Pair<string, string>> &key_values) const {
       string query_string;
       for(const auto &[k,v]: key_values) {
