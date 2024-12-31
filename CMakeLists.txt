@@ -260,8 +260,8 @@ IF(BUILD_NATIVE)
         SET(CMAKE_MACOSX_RPATH 1)
     ENDIF()
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
-    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
-    MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
+    MESSAGE(CHECK_START "${.y}making ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
+    MESSAGE(STATUS "${.y}build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
     IF(USE_CCACHE)
         SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
     ENDIF()
@@ -283,7 +283,7 @@ IF(BUILD_NATIVE)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
     SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>")
-    MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
+    MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
     IF(APPLE)
@@ -310,21 +310,6 @@ ENDIF()
 
 ####################################
 ####################################
-### FMT: PRINT FORMATTING
-MESSAGE(CHECK_START "${.y}making fmt library${..}")
-FETCHCONTENT_DECLARE(
-        fmt
-        GIT_REPOSITORY https://github.com/fmtlib/fmt
-        GIT_TAG 11.1.1
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-FETCHCONTENT_MAKEAVAILABLE(fmt)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE fmt::fmt)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-FILE(COPY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/fmt)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
-####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
 MESSAGE(CHECK_START "${.y}making ordered map library${..}")
 FETCHCONTENT_DECLARE(
@@ -343,7 +328,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
 ####################################
-MESSAGE(CHECK_START "${.y}making paho MQTT C library${..}")
+MESSAGE(CHECK_START "${.y}making paho mqtt C library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
@@ -352,7 +337,7 @@ FETCHCONTENT_DECLARE(
 FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #################################### C++
-MESSAGE(CHECK_START "${.y}making paho MQTT C++ library${..}")
+MESSAGE(CHECK_START "${.y}making paho mqtt C++ library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqttpp3
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
@@ -365,8 +350,8 @@ SET(PAHO_BUILD_DOCUMENTATION OFF)
 ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
 ##################################################################
 IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}PART 1${.g}]${..}")
-    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
+    MESSAGE(CHECK_START "${.r}performing paho-mqtt build hack ${.g}[${.y}PART 1${.g}]${..}")
+    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}mqtt${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
     SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
     FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
     FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
@@ -383,7 +368,7 @@ FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
 IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}PART DEUX${.g}]${..}")
+    MESSAGE(CHECK_START "${.r}performing paho-mqtt build hack ${.g}[${.y}PART DEUX${.g}]${..}")
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
@@ -421,7 +406,7 @@ IF(RASPBERRYPI)
         SET(WIRINGXX_TAG 3.10)
         SET(XX PI)
     ENDIF()
-    MESSAGE(NOTICE "${.y}Building ${.g}Wiring${XX} ${.y}at ${.b}${WIRINGXX_GIT_REPO}${..}")
+    MESSAGE(NOTICE "${.y}building ${.g}Wiring${XX} ${.y}at ${.b}${WIRINGXX_GIT_REPO}${..}")
     FETCHCONTENT_DECLARE(
             wiringxx
             GIT_REPOSITORY ${WIRINGXX_GIT_REPO}
@@ -468,6 +453,21 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ############################################################################################################
 
 IF(DO_NOT)
+    ####################################
+    ####################################
+    ### FMT: PRINT FORMATTING
+    MESSAGE(CHECK_START "${.y}making fmt library${..}")
+    FETCHCONTENT_DECLARE(
+            fmt
+            GIT_REPOSITORY https://github.com/fmtlib/fmt
+            GIT_TAG 11.1.1
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
+    FETCHCONTENT_MAKEAVAILABLE(fmt)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE fmt::fmt)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/fmt)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ####################################
     ### FTXUI: ANSI C++ TERMINAL UI
