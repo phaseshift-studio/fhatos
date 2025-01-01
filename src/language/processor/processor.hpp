@@ -28,23 +28,21 @@ namespace fhatos {
   /////////////////////////////// PROCESSOR /////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
   class Processor final : public Obj { // : public IDed, Typed or perhaps just full Obj`
+  protected:
     class Monad;
+    class MonadSet;
     using Monad_p = ptr<Processor::Monad>;
 
-  protected:
     BCode_p bcode_;
-    unique_ptr<Deque<Monad_p>> running_;
-    unique_ptr<Deque<Monad_p>> barriers_;
-    unique_ptr<Deque<Obj_p>> halted_;
-    unique_ptr<Map<Inst_p, Any>> inst_meta;
+    //  unique_ptr<MonadSet> running_ = make_unique<MonadSet>();
+    unique_ptr<Deque<Monad_p>> running_ = make_unique<Deque<Monad_p>>();
+    unique_ptr<Deque<Monad_p>> barriers_ = make_unique<Deque<Monad_p>>();
+    unique_ptr<Deque<Obj_p>> halted_ = make_unique<Deque<Obj_p>>();
+    //unique_ptr<MonadSet> halted_ = make_unique<MonadSet>();
 
     explicit Processor(const BCode_p &bcode) : Obj(Any(), OType::OBJ, REC_FURI,
                                                    id_p(to_string(rand()).insert(0, "/sys/processor/").c_str())),
-                                               bcode_(bcode),
-                                               running_(make_unique<Deque<Monad_p>>()),
-                                               barriers_(make_unique<Deque<Monad_p>>()),
-                                               halted_(make_unique<Deque<Obj_p>>()),
-                                               inst_meta(make_unique<Map<Inst_p, Any>>()) {
+                                               bcode_(bcode) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {
           // monad halts immediately on a non-bcode submission
@@ -155,7 +153,7 @@ namespace fhatos {
   protected:
     class MonadSet;
 
-  private:
+  protected:
     class Monad : public enable_shared_from_this<Processor::Monad> { // OBJ as well?
       friend MonadSet;
 
@@ -170,14 +168,15 @@ namespace fhatos {
       Monad() = delete;
 
       explicit Monad(const Processor *processor, const Obj_p &obj, const Inst_p &inst) : processor_(processor),
-        obj_(obj->clone()), inst_(inst) {
+        obj_(obj),
+        inst_(inst) {
       };
 
       void loop() const {
         if(this->halted()) {
           if(!this->dead()) {
             LOG_OBJ(TRACE, this->processor_, "monad %s halting\n", this->toString().c_str());
-            this->processor_->halted_->push_back(this->obj_);
+            this->halt();
           }
         } else {
           const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj_, this->inst_);
@@ -259,6 +258,13 @@ namespace fhatos {
         return this->inst_->equals(*other.inst_) && this->obj_->equals(*other.obj_);
       }
 
+      void halt() const {
+        this->processor_->halted_->push_back(this->obj_);
+        /*for(int i = 0; i < this->bulk_; i++) {
+          this->processor_->halted_->push_back(std::move(this->obj_->clone()));
+        }*/
+      }
+
       [[nodiscard]] Obj_p obj() const { return this->obj_; }
 
       [[nodiscard]] Inst_p inst() const { return this->inst_; }
@@ -276,23 +282,40 @@ namespace fhatos {
       }
     };
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  protected:
     struct monadp_equal_to : std::binary_function<Monad_p &, Monad_p &, bool> {
       bool operator()(const Monad_p &a, const Monad_p &b) const { return a->equals(*b); }
     };
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  protected:
     class MonadSet {
     public:
       const unique_ptr<Set<Monad_p, monadp_equal_to>> internal = make_unique<Set<Monad_p, monadp_equal_to>>();
 
-      void add(const Monad_p &monad) {
-        Set<Monad_p, monadp_equal_to>::iterator it = this->internal->find(monad);
+      bool empty() const {
+        return this->internal->empty();
+      }
+
+      size_t size() const {
+        return this->internal->size();
+      }
+
+      Monad_p front() const {
+        return *this->internal->begin();
+      }
+
+      void pop_front() const {
+        this->internal->extract(this->internal->begin());
+        //auto node =
+        // return move(node.value());
+      }
+
+      void push_back(const Monad_p &monad) const {
+        const auto it = this->internal->find(monad);
         if(it != this->internal->end()) {
-          (*it)->bulk_ = (*it)->bulk_ + monad->bulk_;
-        } else {
-          this->internal->insert(monad);
+          monad->bulk_ = monad->bulk_ + this->internal->extract(it).value()->bulk_;
         }
+        this->internal->insert(monad);
       }
     };
 
