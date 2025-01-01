@@ -22,18 +22,12 @@
 #include <fhatos.hpp>
 #include <furi.hpp>
 
+#define OBJ_ID_WRAP "!g[!b%s!g]!!"
+#define SYS_ID_WRAP "!g[!y%s!g]!!"
+
 namespace fhatos {
   class Log final : public Rec {
   protected:
-    ///// printers
-    void write_stdout(const Str_p &s) const {
-      //if(this->direct_stdin_out)
-      //Terminal::STD_OUT_DIRECT(s);
-      //else
-      // ROUTER_WRITE(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
-    }
-
-
     explicit Log(const ID &value_id, const Rec_p &settings) : Rec(settings->rec_value(),
                                                                   OType::REC,
                                                                   REC_FURI,
@@ -41,9 +35,34 @@ namespace fhatos {
       this->save();
     }
 
+    template<typename... Args>
+    static void PRINT_LOG(
+      const LOG_TYPE type,
+      const Obj *source,
+      const char *format,
+      const Args... args) {
+      std::lock_guard<std::mutex> lock(stdout_mutex);
+      if(type == NONE)
+        printer<>()->print("");
+      else if(type == ERROR)
+        printer<>()->print("!r[ERROR]!! ");
+      else if(type == WARN)
+        printer<>()->print("!y[WARN] !! ");
+      else if(type == INFO)
+        printer<>()->print("!g[INFO] !! ");
+      else if(type == DEBUG)
+        printer<>()->print("!y[DEBUG]!! ");
+      else if(type == TRACE)
+        printer<>()->print("!r[TRACE]!! ");
+      printer<>()->print(StringHelper::format(
+        (source->vid()->equals(*ROUTER_ID) || source->vid()->equals(*SCHEDULER_ID)) ? SYS_ID_WRAP : OBJ_ID_WRAP,
+        source->vid_or_tid()->toString().c_str()).c_str());
+      printer<>()->print(StringHelper::format(format, args...).c_str());
+    }
+
   public:
     template<typename... Args>
-    static void LOGGER(const LOG_TYPE type, const Obj_p source, const char *format, const Args... args) {
+    static void LOGGER(const LOG_TYPE type, const Obj *source, const char *format, const Args... args) {
       bool match = false;
       const fURI furi = fURI("allow").extend(LOG_TYPES.to_chars(type));
       for(const auto &a: *Log::singleton()->
@@ -54,17 +73,12 @@ namespace fhatos {
         }
       }
       if(match) { // make it type once fully integrated
-        LOG_OBJ(INFO, source, format, args...);
+        PRINT_LOG(INFO, source, format, args...);
       }
     }
 
-
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
       static Rec_p DEFAULT_CONFIG = Obj::to_rec({
-        /*  {"terminal",
-            Obj::to_rec({
-              {"stdin", vri(Terminal::singleton()->vid()->extend(":stdin"))},
-              {"stdout", vri(Terminal::singleton()->vid()->extend(":stdout"))}})},*/
         {"allow", Obj::to_rec({
           {"INFO", lst({vri("#")})},
           {"ERROR", lst({vri("#")})},
@@ -81,8 +95,10 @@ namespace fhatos {
     }
 
     static void *import(const ID &id = "/io/lib/log") {
-      // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      InstBuilder::build(ID(id.extend(":create")))
+     // ROUTER_WRITE(id_p(id), Obj::to_rec({{"allow", Obj::to_type(REC_FURI)}}), true);
+      InstBuilder::build(ID(id.extend("create")))
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->domain_range(OBJ_FURI, id_p(id))
           ->type_args(
             x(0, "install_location", vri(id)),
             x(1, "config", noobj()))

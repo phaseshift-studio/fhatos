@@ -36,6 +36,7 @@
 #include "../src/util/fhat_error.hpp"
 #include "../src/structure/stype/heap.hpp"
 #include "../src/util/logger.hpp"
+#include "../src/model/log.hpp"
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #define FOS_DEPLOY_PRINTER_2                              \
@@ -51,7 +52,6 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_DEPLOY_SCHEDULER_2  \
-  router()->attach(Heap<>::create(Pattern("/sys/#"))); \
   Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
 router()->write(id_p("/sys/router"), router());
 
@@ -63,9 +63,11 @@ router()->write(id_p("/sys/router"), router());
 #include "../src/language/fluent.hpp"
 #include "../src/model/driver/fhatos/core_driver.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
-  Options::singleton()->router<Router>(Router::singleton()); \
-  router()->attach(Heap<>::create(Pattern("/fos/#"))); \
-  void* x = fhatos::FhatOSCoreDriver::import();
+  Options::singleton()->router<Router>(Router::singleton());  \
+  router()->attach(Heap<>::create(Pattern("/sys/#")));        \
+  router()->attach(Heap<>::create(Pattern("/fos/#")));        \
+  void* x = fhatos::FhatOSCoreDriver::import();               \
+  router()->attach(Heap<>::create(Pattern("/io/log/#")));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif

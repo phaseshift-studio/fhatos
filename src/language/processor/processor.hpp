@@ -27,7 +27,7 @@ namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
   /////////////////////////////// PROCESSOR /////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
-  class Processor final : public Valued { // : public IDed, Typed or perhaps just full Obj`
+  class Processor final : public Obj { // : public IDed, Typed or perhaps just full Obj`
     class Monad;
     using Monad_p = ptr<Processor::Monad>;
 
@@ -38,7 +38,8 @@ namespace fhatos {
     unique_ptr<Deque<Obj_p>> halted_;
     unique_ptr<Map<Inst_p, Any>> inst_meta;
 
-    explicit Processor(const BCode_p &bcode) : Valued(ID(to_string(rand()).insert(0, "/sys/processor/"))),
+    explicit Processor(const BCode_p &bcode) : Obj(Any(), OType::OBJ, REC_FURI,
+                                                   id_p(to_string(rand()).insert(0, "/sys/processor/").c_str())),
                                                bcode_(bcode),
                                                running_(make_unique<Deque<Monad_p>>()),
                                                barriers_(make_unique<Deque<Monad_p>>()),
@@ -56,7 +57,7 @@ namespace fhatos {
         // process bcode inst pipeline
         this->bcode_ = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
         // setup global behavior around barriers, initials, and terminals
-        LOG_OBJ(DEBUG, this, FOS_TAB_2 "%s\n", this->bcode_->toString().c_str());
+        Log::LOGGER(DEBUG, this, FOS_TAB_2 "loading %s\n", this->bcode_->toString().c_str());
         bool first = true;
         for(const Inst_p &inst: *this->bcode_->bcode_value()) {
           const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
@@ -65,12 +66,12 @@ namespace fhatos {
             // MANY_TO_??
             const Monad_p m = M(seed_copy, inst);
             this->barriers_->push_back(m);
-            LOG_OBJ(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
+            Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
           } else if(is_initial(resolved->itype()) || (first && is_maybe_initial(resolved->itype()))) {
             // ZERO/MAYBE*-TO_??
             const Monad_p m = M(noobj(), inst); // TODO: use seed
             this->running_->push_back(m);
-            LOG_OBJ(DEBUG, this, FOS_TAB_2 "!ginitial!! monad created: %s\n", m->toString().c_str());
+            Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ginitial!! monad created: %s\n", m->toString().c_str());
           }
           first = false;
         }
@@ -103,7 +104,7 @@ namespace fhatos {
         } else {
           const Obj_p end = this->halted_->front();
           this->halted_->pop_front();
-          LOG_OBJ(TRACE, this, FOS_TAB_2 "!ghalting!! monad at %s\n", end->toString().c_str());
+          Log::LOGGER(TRACE, this, FOS_TAB_2 "!ghalting!! monad at %s\n", end->toString().c_str());
           if(!end->is_noobj())
             return end;
         }
@@ -116,7 +117,8 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
-      LOG_OBJ(TRACE, this, "%s\n", Ansi<>::singleton()->silly_print("processor shutting down",true,false).c_str());
+      Log::LOGGER(TRACE, this, "%s\n",
+                  Ansi<>::singleton()->silly_print("processor shutting down", true, false).c_str());
       return objs;
     }
 
@@ -130,13 +132,13 @@ namespace fhatos {
         } else if(!this->barriers_->empty()) {
           const Monad_p barrier = this->barriers_->front();
           this->barriers_->pop_front();
-          LOG_OBJ(DEBUG, this, "processing barrier: %s\n", barrier->toString().c_str());
+          Log::LOGGER(DEBUG, this, "processing barrier: %s\n", barrier->toString().c_str());
           barrier->loop();
         }
       }
-      LOG_OBJ(TRACE, this, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n",
-              this->running_->size(),
-              this->halted_->size(), this->bcode_->toString().c_str());
+      Log::LOGGER(TRACE, this, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n",
+                  this->running_->size(),
+                  this->halted_->size(), this->bcode_->toString().c_str());
       return this->halted_->size();
     }
 

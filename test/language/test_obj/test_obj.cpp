@@ -19,14 +19,14 @@
 #ifndef fhatos_test_obj_hpp
 #define fhatos_test_obj_hpp
 
-#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
 
-#include <../test/test_fhatos.hpp>
-#include <util/obj_helper.hpp>
+#include "../../test_fhatos.hpp"
+#include "../../../src/util/obj_helper.hpp"
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
