@@ -670,7 +670,7 @@ namespace mmadt {
                         ->apply(lhs_v->at(i))); // TODO: , Obj::to_inst_args{"rhs",rhs_v->at(j)}));
                     }
                   }
-                  return Obj::to_lst(new_v, LST_FURI);
+                  return Obj::to_lst(new_v, lhs->tid(), lhs->vid());
                 } else
                   throw fError("unknown op %s\n", op);
               })

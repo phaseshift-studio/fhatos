@@ -22,6 +22,7 @@
 #include "options.hpp"
 #include <mutex>
 
+
 namespace fhatos {
   inline auto stdout_mutex = std::mutex();
 

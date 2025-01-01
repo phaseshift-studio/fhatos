@@ -158,7 +158,7 @@ namespace fhatos {
 
     bool first = true;
 
-    explicit Console(const ID &value_id, const Rec_p &settings) : Thread(Obj::to_rec(rmap({
+    explicit Console(const ID &value_id, const Rec_p &config) : Thread(Obj::to_rec(rmap({
         {"loop", InstBuilder::build(
             value_id.extend(":loop"))
           ->itype_and_seed(IType::ZERO_TO_ZERO)
@@ -222,7 +222,7 @@ namespace fhatos {
               return noobj();
             })
           ->create()},
-        {"config", settings}}),
+        {"config", config}}),
       THREAD_FURI,
       id_p(value_id))) {
     }

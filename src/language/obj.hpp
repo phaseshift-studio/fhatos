@@ -1095,6 +1095,12 @@ namespace fhatos {
       return result;
     }
 
+    Obj_p this_get(const fURI &furi) const {
+      // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
+      Obj_p result = ROUTER_READ(furi_p(this->vid()->extend(furi)));
+      return result;
+    }
+
     Obj_p this_set(const char *key, const Obj_p &obj) {
       ROUTER_WRITE(furi_p(this->vid_->extend(key)), obj, true);
       return this->shared_from_this();
@@ -1871,28 +1877,30 @@ namespace fhatos {
       return Obj::create(fURI(value), OType::URI, furi);
     }
 
-    static Lst_p to_lst(const ID_p &furi = LST_FURI) {
-      return Obj::create(make_shared<LstList>(), OType::LST, furi);
+    static Lst_p to_lst(const ID_p &type_id = LST_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(make_shared<LstList>(), OType::LST, type_id, value_id);
     }
 
-    static Lst_p to_lst(const LstList_p &xlst, const ID_p &furi = LST_FURI) {
-      return Obj::create(xlst, OType::LST, furi);
+    static Lst_p to_lst(const LstList_p &xlst, const ID_p &type_id = LST_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(xlst, OType::LST, type_id, value_id);
     }
 
-    static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
+    static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &type_id = LST_FURI,
+                        const ID_p &value_id = nullptr) {
       const auto list = make_shared<LstList>();
       for(const auto &obj: xlst) {
         list->push_back(share(obj));
       }
-      return to_lst(list, furi);
+      return to_lst(list, type_id, value_id);
     }
 
-    static Lst_p to_lst(const std::initializer_list<Obj_p> &xlst, const ID_p &furi = LST_FURI) {
-      return to_lst(make_shared<LstList>(xlst), furi);
+    static Lst_p to_lst(const std::initializer_list<Obj_p> &xlst, const ID_p &type_id = LST_FURI,
+                        const ID_p &value_id = nullptr) {
+      return to_lst(make_shared<LstList>(xlst), type_id, value_id);
     }
 
-    static Rec_p to_rec(const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      return Obj::create(make_shared<RecMap<>>(), OType::REC, type, id);
+    static Rec_p to_rec(const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(make_shared<RecMap<>>(), OType::REC, type_id, value_id);
     }
 
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type = REC_FURI, const ID_p &id = nullptr) {

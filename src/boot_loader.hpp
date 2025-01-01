@@ -29,6 +29,7 @@
 #include <language/mmadt/parser.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
+#include <model/log.hpp>
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include <structure/stype/heap.hpp>
@@ -84,6 +85,7 @@ namespace fhatos {
         }
         ////////////////////////////////////////////////////////////
         return kp
+            ->displaying_notes("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"))
             ////////////////// SYS STRUCTURE
@@ -91,15 +93,19 @@ namespace fhatos {
             ->import(Scheduler::import())
             ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
+            ->displaying_notes("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/type/#"))
             ->mount(Heap<>::create(FOS_SCHEME "/#"))
             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
             ->import(FhatOSCoreDriver::import())
             ->install(Typer::singleton(FOS_SCHEME "/type"))
             ->import(mmadt::mmADT::import())
+            ->displaying_notes("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/io/#"))
-            ->install(Terminal::singleton("/io/terminal"))
+            ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
+            ->install(Terminal::singleton("/io/terminal"))
+            ->install(Log::create("/io/log"))
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->mount(Heap<>::create("+/#", "_cache"))
 #if defined(ESP_ARCH)
@@ -125,6 +131,8 @@ namespace fhatos {
             // ->install(ArduinoI2CDriver::load_local("/driver/i2c/master/pin", id_p("//driver/i2c/master")))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
+
+
             ->mount(Heap<ALLOC>::create("/console/#"))
             ->process(Console::create("/console", Obj::to_rec({
                                         {"terminal",

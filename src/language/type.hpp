@@ -22,6 +22,8 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 
+#include "model/log.hpp"
+
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 75
@@ -146,7 +148,7 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
-        LOG_OBJ(DEBUG, lhs, " !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString().c_str());
+         Log::LOGGER(DEBUG, Typer::singleton(), " !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString().c_str());
         if(inst->is_noobj())
           return inst;
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
@@ -157,7 +159,7 @@ namespace fhatos {
             Inst_p maybe;
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid()) {
-              LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
+              Log::LOGGER(DEBUG, Typer::singleton(), "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
               if(derivation_tree)
                 derivation_tree->emplace_back(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
               maybe = ROUTER_READ(id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id)));
@@ -166,7 +168,7 @@ namespace fhatos {
             }
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
-            LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
+            Log::LOGGER(DEBUG, Typer::singleton(), "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
             if(derivation_tree)
               derivation_tree->emplace_back(current_obj->tid()->equals(*OBJ_FURI)
                                               ? fURI(*inst_type_id)
