@@ -2075,7 +2075,7 @@ namespace fhatos {
         .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
       LOG(DEBUG, "serializing obj %s\n", this->toString().c_str());
       const string serial = this->toString(DEFAULT_SERIALIZATION_PRINTER);
-      return make_shared<BObj>({serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
+      return ptr<BObj>(new BObj(serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))), bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
