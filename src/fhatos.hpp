@@ -146,9 +146,9 @@ namespace fhatos {
   template<typename A>
   using ptr = std::shared_ptr<A>;
   template<typename A>
-  using up = std::unique_ptr<A>;
+  using uptr = std::unique_ptr<A>;
   template<typename A>
-  using wp = std::weak_ptr<A>;
+  using wptr = std::weak_ptr<A>;
 
   template<typename A>
   ptr<A> share(const A a) {

@@ -53,7 +53,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_DEPLOY_SCHEDULER_2  \
   Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
-router()->write(id_p("/sys/router"), router());
+  router()->write(id_p("/sys/router"), router());
 
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;

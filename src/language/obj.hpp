@@ -2067,12 +2067,15 @@ namespace fhatos {
       return r;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     BObj_p serialize() const {
-      static ObjPrinter *DEFAULT_SERIALIZATION_PRINTER = new ObjPrinter{.show_id = true, .show_type = true,
+      static auto DEFAULT_SERIALIZATION_PRINTER = new ObjPrinter{.show_id = true, .show_type = true,
         .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
       LOG(DEBUG, "serializing obj %s\n", this->toString().c_str());
       const string serial = this->toString(DEFAULT_SERIALIZATION_PRINTER);
-      return ptr<BObj>(new BObj{serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
+      return make_shared<BObj>({serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
@@ -2181,14 +2184,6 @@ namespace fhatos {
   [[maybe_unused]] static BCode_p bcode() { return Obj::to_bcode(); }
 
   static Obj::RecMap_p<> rmap(const initializer_list<Pair<fURI, Obj_p>> &pairs) {
-    auto m = make_shared<Obj::RecMap<>>();
-    for(const auto &[id, obj]: pairs) {
-      m->insert({vri(id), obj});
-    }
-    return m;
-  }
-
-  static Obj::RecMap_p<> rmap(const initializer_list<Pair<ID_p, Obj_p>> &pairs) {
     auto m = make_shared<Obj::RecMap<>>();
     for(const auto &[id, obj]: pairs) {
       m->insert({vri(id), obj});
