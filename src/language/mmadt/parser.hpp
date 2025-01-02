@@ -272,7 +272,6 @@ namespace mmadt {
             right = components[1];
           }
         }
-        LOG(INFO, "parsed cardinality: %s {%i,%i}\n", card_chr.c_str(), left, right);
         if(0 == left && 0 == right)
           return Cardinality::ZERO;
         if(1 == left && 1 == right)
