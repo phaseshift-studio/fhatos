@@ -221,10 +221,6 @@ namespace mmadt {
         return furi_p((s[0] == '<' && s[s.length() - 1] == '>') ? s.substr(1, s.length() - 2) : s);
       };
 
-      static auto coeff_action = [](const SemanticValues &vs) -> string {
-        return vs.token_to_string();
-      };
-
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
         const auto [rf, rc] = any_cast<Pair<fURI_p, Cardinality>>(vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, Cardinality>>(vs[2]);
