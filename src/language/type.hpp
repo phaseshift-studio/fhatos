@@ -105,8 +105,9 @@ namespace fhatos {
         if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
           return true;
         // get the type definition and match it to the obj
-        const Obj_p type = ROUTER_READ(type_id);
-        if(!type->is_noobj()) {
+        if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
+         // if(type->is_type() && !obj->apply(type)->is_noobj())
+         //   return true;
           if(obj->match(type, false))
             return true;
           if(throw_on_fail) {

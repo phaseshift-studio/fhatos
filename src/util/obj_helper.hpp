@@ -109,8 +109,8 @@ namespace fhatos {
                                          this->seed_ ? this->seed_ : _noobj_),
                                        OType::INST, this->type_,
                                        root ? id_p(root->vid()->extend(*value_id)) : value_id);
-      if(!this->doc_.empty())
-        inst->doc_write(this->doc_);
+     // if(!this->doc_.empty())
+       // inst->doc_write(this->doc_);
       delete this;
       return inst;
     }

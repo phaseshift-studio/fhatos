@@ -73,12 +73,12 @@ namespace fhatos {
         ROUTER_WRITE(furi, obj, retain);
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) override {
-      throw fError("Frame::write_raw_pairs is unreachable code");
+    void write_raw_pairs(const ID_p &, const Obj_p &, bool retain) override {
+      throw fError("frame::write_raw_pairs is unreachable code");
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &match) override {
-      throw fError("Frame::read_raw_pairs is unreachable code");
+    IdObjPairs read_raw_pairs(const fURI_p &) override {
+      throw fError("frame::read_raw_pairs is unreachable code");
     }
   };
 } // namespace fhatos

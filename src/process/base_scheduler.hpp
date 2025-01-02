@@ -121,7 +121,7 @@ namespace fhatos {
 
     virtual bool spawn(const Process_p &) = 0;
 
-    void save() override {
+    void save() const override {
       const Lst_p procs = Obj::to_lst();
       this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid())); });
       this->rec_set(vri("process"), procs);

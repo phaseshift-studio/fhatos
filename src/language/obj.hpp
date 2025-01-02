@@ -104,7 +104,7 @@ namespace fhatos {
   class Obj;
 
 
-  using Obj_p = shared_ptr<Obj>;
+  using Obj_p = shared_ptr<const Obj>;
   using Obj_wp = weak_ptr<Obj>;
   using NoObj = Obj;
   using NoObj_p = Obj_p;
@@ -465,7 +465,7 @@ namespace fhatos {
   };
   static ptr<Ansi<>> PRINTER = nullptr;
 
-  static Function<const string &, Obj_p> OBJ_PARSER = [](const string &) {
+  static Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -510,7 +510,7 @@ namespace fhatos {
               public Valued,
               public Function<Obj_p, Obj_p>,
               public BiFunction<Obj_p, InstArgs, Obj_p>,
-              public enable_shared_from_this<Obj> {
+              public enable_shared_from_this<const Obj> {
   public:
     const OType otype_;
     Any value_;
@@ -556,7 +556,7 @@ namespace fhatos {
         this->tid_ = type_id;
         if(value_id) {
           const Obj_p strip = this->clone();
-          strip->vid_ = nullptr;
+          const_cast<Obj *>(strip.get())->vid_ = nullptr;
           ROUTER_WRITE(value_id, strip, true);
         }
       } else {
@@ -582,7 +582,7 @@ namespace fhatos {
       return this->vid_ ? this->vid_ : this->tid_;
     }
 
-    virtual void save() {
+    virtual void save() const {
       this->at(this->vid_);
     }
 
@@ -701,7 +701,7 @@ namespace fhatos {
       return this->lst_get(Obj::to_uri(index));
     }
 
-    [[nodiscard]] Obj_p lst_get(const uint16_t &index) const { return this->lst_get(Obj::to_int(index)); }
+    [[nodiscard]] Obj_p lst_get(const FOS_INT_TYPE &index) const { return this->lst_get(Obj::to_int(index)); }
 
     [[nodiscard]] Obj_p lst_get(const Obj_p &index) const {
       if(!this->is_lst())
@@ -717,7 +717,7 @@ namespace fhatos {
         //                index->uri_value().toString().c_str());
         if(i >= this->lst_value()->size())
           return to_noobj();
-        Obj_p segment_value = Obj::to_objs();
+        const Obj_p segment_value = Obj::to_objs();
         if(i == -1) {
           for(const auto &e: *this->lst_value()) {
             segment_value->add_obj(e);
@@ -725,12 +725,12 @@ namespace fhatos {
         } else {
           segment_value->add_obj(this->lst_value()->at(i));
         }
-        segment_value = segment_value->none_one_all();
-        if(segment_value->is_noobj())
+        const Obj_p final_segment_value = segment_value->none_one_all();
+        if(final_segment_value->is_noobj())
           return to_noobj();
         return index->uri_value().path_length() <= 1
-                 ? segment_value
-                 : segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)), false);
+                 ? final_segment_value
+                 : final_segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)), false);
       }
       return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
                ? Obj::to_noobj()
@@ -750,37 +750,40 @@ namespace fhatos {
          index->is_uri() &&
          index->uri_value().path_length() > 1 &&
          StringHelper::is_integer(index->uri_value().path(0))) {
-        const int current_index = std::atoi(index->uri_value().path(0));
-        const bool is_lst = StringHelper::is_integer(index->uri_value().path(1));
+        const size_t current_index = std::strtol(index->uri_value().path(0), nullptr, 10);
         Obj_p current_obj = this->lst_get(current_index);
         if(current_obj->is_noobj()) {
-          current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
+          if(const size_t offset = ((current_index + 1) - this->lst_value()->size());
+            offset > 0) {
+            for(size_t j = 0; j < offset; j++) {
+              this->lst_value()->push_back(Obj::to_noobj());
+            }
+          }
+          const bool is_a_lst = StringHelper::is_integer(index->uri_value().path(1));
+          current_obj = is_a_lst ? Obj::to_lst() : Obj::to_rec();
+          this->lst_value()->erase(this->lst_value()->begin() + current_index);
           this->lst_value()->insert(this->lst_value()->begin() + current_index, current_obj);
         }
         current_obj->poly_set(Obj::to_uri(index->uri_value().pretract()), val);
       } else {
-        const int i = index->is_int()
-                        ? index->int_value()
-                        : index->is_uri()
-                            ? std::stoi(index->uri_value().toString())
-                            : -1;
-        if(-1 == i)
+        const int current_index = index->is_int()
+                                    ? index->int_value()
+                                    : index->is_uri()
+                                        ? std::stoi(index->uri_value().toString())
+                                        : -1;
+        if(-1 == current_index)
           throw fError("invalid lst index: %s\n", index->toString().c_str());
-        if(i < this->lst_value()->size())
-          this->lst_value()->erase(this->lst_value()->begin() + i);
+        if(const size_t offset = (current_index + 1) - this->lst_value()->size();
+          offset > 0) {
+          for(size_t j = 0; j < offset; j++) {
+            this->lst_value()->push_back(Obj::to_noobj());
+          }
+        }
+        this->lst_value()->erase(this->lst_value()->begin() + current_index);
         if(!val->is_noobj())
-          this->lst_value()->insert(this->lst_value()->begin() + i, val);
+          this->lst_value()->insert(this->lst_value()->begin() + current_index, val);
       }
     }
-
-    /*  if(!this->is_lst())
-        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      const FOS_INT_TYPE i =
-          index->is_uri() && StringHelper::is_integer(index->uri_value().toString())
-            ? stoi(index->uri_value().toString())
-            : index->int_value();
-      this->lst_value()->insert(this->lst_value()->begin() + i, obj);
-    }*/
 
     [[nodiscard]] RecMap_p<> rec_value() const {
       if(!this->is_rec())
@@ -848,7 +851,7 @@ namespace fhatos {
       return rec_get(to_uri(uri_key));
     }
 
-    [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
+    [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
       this->rec_value()->insert(rmap->cbegin(), rmap->cend());
       return shared_from_this();
     }
@@ -936,7 +939,7 @@ namespace fhatos {
       return std::get<0>(this->inst_value());
     }
 
-    [[nodiscard]] bool has_arg(const Obj_p &key) {
+    [[nodiscard]] bool has_arg(const Obj_p &key) const {
       return (this->is_inst() ? this->inst_args().get() : this)->rec_value()->count(key) != 0;
     }
 
@@ -1108,7 +1111,7 @@ namespace fhatos {
     }
 
     ////////////////////////////////////////////////////////////
-    Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) {
+    Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) const {
       if(!at_type && !this->vid_)
         throw fError("only objs with a value id can have properties and insts");
       //if(inst->is_code())
@@ -1171,7 +1174,7 @@ namespace fhatos {
       return Obj::to_bcode(insts);
     }
 
-    [[nodiscard]] Obj_p none_one_all() {
+    [[nodiscard]] Obj_p none_one_all() const {
       if(this->is_objs()) {
         if(this->objs_value()->empty())
           return Obj::to_noobj();
@@ -1181,7 +1184,7 @@ namespace fhatos {
       return this->shared_from_this();
     }
 
-    void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
+    void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) const {
       if(!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(obj->is_noobj())
@@ -1621,22 +1624,22 @@ namespace fhatos {
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
-    auto operator()(const Obj_p &obj, const InstArgs &args) {
+    auto operator()(const Obj_p &obj, const InstArgs &args) const {
       return this->apply(obj, args);
     }
 
-    Obj_p apply(const Obj_p &lhs, const InstArgs &args) {
+    Obj_p apply(const Obj_p &lhs, const InstArgs &args) const {
       ROUTER_PUSH_FRAME("+", args);
       const Obj_p result = this->apply(lhs);
       ROUTER_POP_FRAME();
       return result;
     }
 
-    Obj_p apply() {
+    Obj_p apply() const {
       return this->apply(Obj::to_noobj());
     }
 
-    Obj_p apply(const Obj_p &lhs) {
+    Obj_p apply(const Obj_p &lhs) const {
       if(lhs->is_error())
         return lhs;
       //  if(!lhs->is_bcode() || !this->is_bcode()) {
@@ -1720,7 +1723,7 @@ namespace fhatos {
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
             const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
-                                   ? (*std::get<Obj_p>(*inst->inst_f()))(lhs, remake)
+                                   ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code())
               TYPE_CHECKER(result.get(), inst->range(), true);
@@ -1755,6 +1758,8 @@ namespace fhatos {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if(type_obj->is_noop_bcode())
         return true;
+      if(type_obj->is_type())
+        return IS_TYPE_OF(this->tid_, type_obj->tid_, {}) && !this->clone()->apply(type_obj->type_value())->is_noobj();
       if(type_obj->is_bcode() && !this->is_bcode())
         return !type_obj->apply(this->clone())->is_noobj();
       if(!type_obj->value_.has_value() &&
@@ -2066,7 +2071,7 @@ namespace fhatos {
         Inst_p r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
                            this->inst_seed_supplier(),
                            this->tid());
-        r->vid_ = this->vid_;
+        const_cast<Obj *>(r.get())->vid_ = this->vid_;
         return r;
       }
       if(this->is_bcode()) {
@@ -2076,7 +2081,7 @@ namespace fhatos {
           new_insts.push_back(inst->clone());
         }
         BCode_p r = to_bcode(new_insts, type_id_clone);
-        r->vid_ = this->vid_;
+        const_cast<Obj *>(r.get())->vid_ = this->vid_;
         return r;
       }
       if(this->is_objs()) {

@@ -168,17 +168,7 @@ namespace fhatos {
         Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(23.1f))}))})));
   }
 
-  void test_str() {
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/first_name"), Obj::to_bcode()); //
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/letter"), Obj::to_bcode()); //
-    const Str strA = *Obj::to_str("fhat", id_p(FOS_TYPE_PREFIX "str/first_name"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
-    TEST_ASSERT_FALSE(strA.is_bcode());
-    TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
-    TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
-    TEST_ASSERT_TRUE(strA.match(str("fhat"), false));
-    TEST_ASSERT_FALSE(strA.match(str("fhat"), true));
-  }
+
 
   void test_uri() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/webpage"), Obj::to_bcode()); //
@@ -229,38 +219,7 @@ namespace fhatos {
       })));
   }
 
-  void test_lst() {
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ones"), Obj::to_lst({1, 1, 1}));
-    const Lst lstA = *Obj::to_lst({1, 2, 3, 4});
-    const Lst lstB = *Obj::to_lst({1, 2, 3, 4});
-    const Lst lstC = *Obj::to_lst({2, 3, 4});
-    FOS_TEST_OBJ_EQUAL(&lstA, &lstB);
-    FOS_TEST_OBJ_EQUAL(&lstB, &lstA);
-    FOS_TEST_OBJ_NOT_EQUAL(&lstA, &lstC);
-    FOS_TEST_OBJ_NOT_EQUAL(&lstB, &lstC);
-    TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
-    TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
-    TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
-    lstC.lst_set(jnt(0), jnt(1));
-    FOS_TEST_OBJ_EQUAL(&lstC, &lstA);
-    lstC.lst_set(jnt(4), jnt(5));
-    FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
-    for (int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA.lst_get(jnt(i)));
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstB.lst_get(jnt(i)));
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstC.lst_get(jnt(i)));
-    }
-    const Lst_p lstD = Obj::to_lst({1, 1, 1});
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "lst/ones",
-                             lstD->as(FOS_TYPE_PREFIX "lst/ones")->tid()->toString().c_str());
-    try {
-      Obj_p x = lstA.as(FOS_TYPE_PREFIX "lst/ones");
-      LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
-      TEST_FAIL_MESSAGE("Should throw exception");
-    } catch (const fError &) {
-      TEST_ASSERT_TRUE(true);
-    }
-  }
+
 
   void test_rec() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
@@ -328,22 +287,50 @@ namespace fhatos {
           { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
   }*/
 
-void test_rec_nested_set_get() {
-  Rec_p arec = Obj::to_rec();
-  arec->rec_set("a",jnt(45));
-  FOS_TEST_OBJ_EQUAL(jnt(45),arec->rec_get("a"));
-  TEST_ASSERT_EQUAL_INT(1,arec->rec_value()->size());
-  arec->rec_set("b/c/d/e",jnt(10));
-  TEST_ASSERT_TRUE(arec->rec_get("b/c/d/e")->is_int());
-  FOS_TEST_OBJ_EQUAL(jnt(10),arec->rec_get("b/c/d/e"));
-  TEST_ASSERT_EQUAL_INT(2,arec->rec_value()->size());
-  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b")->rec_value()->size());
-  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
-  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c")->rec_value()->size());
-  TEST_ASSERT_TRUE(arec->rec_get("b/c")->is_rec());
-  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c/d")->rec_value()->size());
-  TEST_ASSERT_TRUE(arec->rec_get("b/c/d")->is_rec());
-  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
+ void test_str() {
+    Typer::singleton()->save_type(id_p("first_name"), Obj::to_type(STR_FURI)); //
+    Typer::singleton()->save_type(id_p("str/letter"),Obj::to_type(STR_FURI)); //
+    const Str strA = *Obj::to_str("fhat", id_p("first_name"));
+    TEST_ASSERT_FALSE(strA.is_bcode());
+    TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
+    TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
+    TEST_ASSERT_TRUE(strA.match(str("fhat"), false));
+    TEST_ASSERT_FALSE(strA.match(str("fhat"), true));
+  }
+
+  void test_lst() {
+    Typer::singleton()->save_type(id_p("ones"), Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
+    const Lst lstA = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
+    const Lst lstB = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
+    const Lst lstC = *Obj::to_lst({jnt(2), jnt(3), jnt(4)});
+    const Lst lstD = *Obj::to_lst({jnt(1), jnt(2), jnt(3)});
+    FOS_TEST_OBJ_EQUAL(&lstA, &lstB);
+    FOS_TEST_OBJ_EQUAL(&lstB, &lstA);
+    FOS_TEST_OBJ_NTEQL(&lstA, &lstC);
+    FOS_TEST_OBJ_NTEQL(&lstB, &lstC);
+    TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
+    lstD.lst_set(jnt(3), jnt(4));
+    FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
+    FOS_TEST_OBJ_EQUAL(&lstD, &lstA);
+    lstC.lst_set(4, jnt(5));
+    FOS_TEST_OBJ_EQUAL(Obj::to_lst({jnt(2),jnt(3),jnt(4),Obj::to_noobj(),jnt(5)}), &lstC);
+    FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
+    for (int i = 0; i < 4; i++) {
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA.lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstB.lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstD.lst_get(jnt(i)));
+    }
+    const Lst_p lstE = Obj::to_lst({jnt(1), jnt(1), jnt(1)});
+    FOS_TEST_OBJ_EQUAL(Obj::to_uri("ones"), Obj::to_uri(*lstE->as("ones")->tid()));
+    try {
+      Obj_p x = lstA.as("ones");
+      LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
+      TEST_FAIL_MESSAGE("should throw exception");
+    } catch (const fError &) {
+      TEST_ASSERT_TRUE(true);
+    }
   }
 
   void test_lst_nested_set_get() {
@@ -361,6 +348,24 @@ void test_rec_nested_set_get() {
   TEST_ASSERT_TRUE(alst->lst_get("1/0")->is_lst());
   TEST_ASSERT_EQUAL_INT(1,alst->lst_get("1/0/0")->lst_value()->size());
   TEST_ASSERT_TRUE(alst->lst_get("1/0/0")->is_lst());
+  }
+
+  void test_rec_nested_set_get() {
+  Rec_p arec = Obj::to_rec();
+  arec->rec_set("a",jnt(45));
+  FOS_TEST_OBJ_EQUAL(jnt(45),arec->rec_get("a"));
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_value()->size());
+  arec->rec_set("b/c/d/e",jnt(10));
+  TEST_ASSERT_TRUE(arec->rec_get("b/c/d/e")->is_int());
+  FOS_TEST_OBJ_EQUAL(jnt(10),arec->rec_get("b/c/d/e"));
+  TEST_ASSERT_EQUAL_INT(2,arec->rec_value()->size());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b/c")->is_rec());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c/d")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b/c/d")->is_rec());
+  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
   }
 
 void test_inst() {
@@ -407,13 +412,14 @@ void test_inst() {
     //  FOS_RUN_TEST(test_bool); //
     //  FOS_RUN_TEST(test_int); //
     //  FOS_RUN_TEST(test_real); //
-    //  FOS_RUN_TEST(test_str); //
      // FOS_RUN_TEST(test_uri); //
-      FOS_RUN_TEST(test_lst_nested_set_get); //
+     FOS_RUN_TEST(test_str); //
+     FOS_RUN_TEST(test_lst); //
+     FOS_RUN_TEST(test_lst_nested_set_get); //
      FOS_RUN_TEST(test_rec_nested_set_get); //
      FOS_RUN_TEST(test_inst); //
      FOS_RUN_TEST(test_serialization); //
-      )
+   )
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

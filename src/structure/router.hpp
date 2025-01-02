@@ -209,9 +209,9 @@ namespace fhatos {
     }
 
 
-    virtual void save() override {
+    virtual void save() const override {
       const Lst_p strcs = Obj::to_lst();
-      this->structures_.forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern())); });
+     // this->structures_.forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern())); });
       this->rec_set("structure", strcs);
       Obj::save();
     }

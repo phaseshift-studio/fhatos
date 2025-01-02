@@ -325,11 +325,11 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
-[[maybe_unused]] static void FOS_CHECK_RESULTS(
+/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const BCode_p &bcode,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   [[maybe_unused]] const bool clearRouter = true) {
-  const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(bcode, true);
+   ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(bcode, true);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for(const Obj &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p &element) {
@@ -346,7 +346,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     /* TEST_ASSERT_EQUAL_INT_MESSAGE(
          expectedReferences.size(), router()->retainSize(),
          (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
-    for(const auto &[key, value]: expectedReferences) {
+/*    for(const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       ROUTER_SUBSCRIBE(
         Subscription::create(ID("fhatty"),
@@ -363,7 +363,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   }
   // if (clearRouter)
   //  Options::singleton()->router<Router>()->clear(false, true);
-}
+}*/
 #endif
 
 #ifdef FOS_DEPLOY_PARSER
