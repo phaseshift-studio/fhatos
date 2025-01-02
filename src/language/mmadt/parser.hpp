@@ -124,7 +124,7 @@ namespace mmadt {
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
         FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_OBJ, NO_MATCH,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SET, OBJS, OBJ, TYPE_ID,
-        CARDINALITY, COEF, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
+        COEFFICIENT, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition
@@ -243,10 +243,51 @@ namespace mmadt {
         return Obj::to_bcode();
       };
 
-      static auto cardinality_action = [](const SemanticValues &vs) -> Cardinality {
-        const string card_chr = vs.token_to_string();
-        return Cardinalities.to_enum(card_chr);
+      static auto coefficient_action = [](const SemanticValues &vs) -> Cardinality {
+        int left;
+        int right;
+        // -1 means "or more"
+        string card_chr = vs.token_to_string();
+        StringHelper::trim(card_chr);
+        if(card_chr.empty()) {
+          left = 1;
+          right = 1;
+        } else if(card_chr == "*") {
+          left = -1;
+          right = -1;
+        } else if(card_chr == "?") {
+          left = 0;
+          right = 1;
+        } else if(card_chr == "+") {
+          left = 1;
+          right = -1;
+        } else {
+          const List<int> components = StringHelper::tokenize<int>(',', card_chr, [](const string &s) {
+            return StringHelper::is_integer(s) ? stoi(s) : -1;
+          });
+          if(0 == components.size()) { // I believe this first part is an unreachable branch
+            left = 1;
+            right = 1;
+          } else if(1 == components.size()) {
+            left = components[0];
+            right = left;
+          } else {
+            left = components[0];
+            right = components[1];
+          }
+        }
+        LOG(INFO, "parsed cardinality: %s {%i,%i}\n", card_chr.c_str(), left, right);
+        if(0 == left && 0 == right)
+          return Cardinality::ZERO;
+        if(1 == left && 1 == right)
+          return Cardinality::ONE;
+        if(0 == left && right != 0)
+          return Cardinality::MAYBE;
+        if(left > 1 || right > 1 || left == -1 || right == -1)
+          return Cardinality::MANY;
+        throw fError("unknown cardinality %i %s", left, card_chr.c_str());
       };
+
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
@@ -395,9 +436,9 @@ namespace mmadt {
                                        zom(seq(lit(","), START, lit("=>"), START)), lit(")"))), rec_action;
       ARGS_LST <= cho(lit("()"), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
-      CARDINALITY <= tok(cls(".oO?")), cardinality_action;
-      //COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
-      SET <= seq(FURI_NO_Q, opt(seq(lit("{"), CARDINALITY, lit("}")))),
+      COEFFICIENT <= tok(cho(cls("?*+"), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
+      //zoo,zom,oom
+      SET <= seq(FURI_NO_Q, opt(seq(lit("{"), COEFFICIENT, lit("}")))),
           [](const SemanticValues &vs) -> Pair<fURI_p, Cardinality> {
             const auto furi = any_cast<fURI_p>(vs[0]);
             const auto cardinality = 1 == vs.size() ? Cardinality::ONE : any_cast<Cardinality>(vs[1]);

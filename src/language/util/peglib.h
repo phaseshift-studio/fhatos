@@ -2389,9 +2389,9 @@ namespace peg {
     /*
      * Keywords
      */
-    static const char *WHITESPACE_DEFINITION_NAME = "%whitespace";
-    static const char *WORD_DEFINITION_NAME = "%word";
-    static const char *RECOVER_DEFINITION_NAME = "%recover";
+//    static const char *WHITESPACE_DEFINITION_NAME = "%whitespace";
+//    static const char *WORD_DEFINITION_NAME = "%word";
+//    static const char *RECOVER_DEFINITION_NAME = "%recover";
 
     /*
      * Definition

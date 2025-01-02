@@ -183,7 +183,7 @@ namespace fhatos {
     FOS_TEST_ERROR("/abc/nat[0]");
 
     const ID_p ncount = id_p("/abc/ncount");
-    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{o}<=objs{O}(a=>7)[count().plus(*a)]@/abc/ncount");
+    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid()->query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid());
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());

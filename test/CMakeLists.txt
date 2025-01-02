@@ -139,7 +139,7 @@
             # ENDIF()
             MAKE_TESTS(. "test_main;test_furi" false)
             # MAKE_TESTS(model "test_fs" true)
-            # MAKE_TESTS(util "test_mutex;test_string_helper" true)
+            MAKE_TESTS(util "test_string_helper" true)
         ENDIF()
         MESSAGE(STATUS "${.g}total tests produced${..}: ${.y}${TOTAL}${..}")
     ENDIF()

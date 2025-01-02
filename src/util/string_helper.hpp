@@ -160,6 +160,26 @@ namespace fhatos {
       return parent.substr(index + 1);
     }
 
+    template<typename T = string>
+    static std::vector<T> tokenize(const char split, const string &parent,
+                                   const std::function<T(const string &)> transformer = [](const string &s) {
+                                     return s;
+                                   }) {
+      std::vector<T> tokens;
+      string sub = parent;
+      size_t index;
+      while(string::npos != (index = sub.find(split))) {
+        const string temp = sub.substr(0, index);
+        const T temp2 = transformer(temp);
+        tokens.push_back(temp2);
+        if(sub.empty())
+          break;
+        sub = sub.substr(index + 1);
+      }
+      tokens.push_back(transformer(sub));
+      return tokens;
+    }
+
     static string pad(const uint8_t total, const string &text) {
       auto text2 = string(text);
       for(size_t i = 0; i < (total - text.length()); i++) {
@@ -208,6 +228,8 @@ namespace fhatos {
     }
 
     static bool is_integer(const string &xstring) {
+      if(xstring.empty())
+        return false;
       for(uint8_t i = 0; i < xstring.length(); i++) {
         if(!isdigit(xstring[i]))
           return false;
@@ -217,7 +239,7 @@ namespace fhatos {
 
     static void replace(string *s, const string &search, const string &replace, const bool forward = true) {
       if(!forward) {
-        const size_t pos = s->rfind(search, s->length()-1);
+        const size_t pos = s->rfind(search, s->length() - 1);
         if(pos == string::npos)
           return;
         s->erase(pos, search.length());
@@ -238,10 +260,9 @@ namespace fhatos {
 
     static std::stringstream *eat_space(std::stringstream *ss) {
       while(!ss->eof()) {
-        if(char c = (char) ss->peek(); !isspace(c))
+        if(const char c = static_cast<char>(ss->peek()); !isspace(c))
           return ss;
-        else
-          ss->get();
+        ss->get();
       }
       return ss;
     }
