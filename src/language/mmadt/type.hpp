@@ -773,9 +773,7 @@ namespace mmadt {
       rec->rec_set("type/type_id", vri(lhs->tid()));
       rec->rec_set("type/domain", vri(lhs->domain()));
       rec->rec_set("type/range", vri(lhs->range()));
-      rec->rec_set("type/obj", FURI_OTYPE.count(*lhs->tid())
-                                 ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
-                                 : type);
+      rec->rec_set("type/obj", Obj::to_type(lhs->tid()));
       if(lhs->vid()) {
         rec->rec_set("value/value_id", vri(lhs->vid()));
         if(const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub"))); !subs->is_noobj())

@@ -820,42 +820,22 @@ namespace fhatos {
 
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       if(nest && key->is_uri() && key->uri_value().path_length() > 1) {
-        const Rec *current_rec = const_cast<Rec *>(this);
-        for(int i = 0; i < key->uri_value().path_length(); i++) {
-          const auto p = string(key->uri_value().path(i));
-          if(!current_rec->rec_value()->count(to_uri(p)))
-            break;
-          if(i == key->uri_value().path_length() - 1)
-            current_rec->rec_value()->erase(to_uri(p));
-          else {
-            const Rec *next_rec = current_rec->rec_value()->at(to_uri(p)).get();
-            if(!next_rec->is_rec())
-              throw fError("path %s of %s is not a rec", p.c_str(), key->toString().c_str(),
-                           next_rec->toString().c_str());
-            current_rec = next_rec;
-          }
+        const Uri_p current_key = Obj::to_uri(key->uri_value().path(0));
+        Obj_p current_obj = this->rec_get(current_key);
+        const bool is_lst = StringHelper::is_integer(key->uri_value().path(1));
+        if(current_obj->is_noobj()) {
+          current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
+          this->rec_value()->insert({current_key, current_obj});
         }
-        if(!val->is_noobj()) {
-          for(int i = 0; i < key->uri_value().path_length(); i++) {
-            const auto p = string(key->uri_value().path(i));
-            if(i == key->uri_value().path_length() - 1)
-              current_rec->rec_value()->insert({to_uri(p), val});
-            else {
-              if(!current_rec->rec_value()->count(to_uri(p)))
-                current_rec->rec_value()->insert({to_uri(p), Obj::to_rec()});
-              current_rec = current_rec->rec_value()->at(to_uri(p)).get();
-            }
-          }
-        }
+        current_obj->poly_set(Obj::to_uri(key->uri_value().pretract()), val);
       } else {
-        this->rec_value()->erase(key);
+        if(this->rec_value()->count(key))
+          this->rec_value()->erase(key);
         if(!val->is_noobj())
           this->rec_value()->insert({key, val});
-        if(this->vid_)
-          ROUTER_WRITE(this->vid_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->tid_)), true);
       }
     }
-
+    
     virtual void rec_set(const Obj &key, const Obj &value) const {
       Obj::rec_set(make_shared<Obj>(key), make_shared<Obj>(value));
     }
@@ -948,6 +928,14 @@ namespace fhatos {
                : (this->is_bcode() && !this->bcode_value()->empty()
                     ? this->bcode_value()->front()->domain()
                     : OBJ_FURI);
+    }
+
+    [[nodiscard]] Cardinality domain_coefficient() const {
+      return Cardinalities.to_enum(ITypeDomains.to_chars(itype()));
+    }
+
+    [[nodiscard]] Cardinality range_coefficient() const {
+      return Cardinalities.to_enum(ITypeRanges.to_chars(itype()));
     }
 
     [[nodiscard]] ID_p range() const {
