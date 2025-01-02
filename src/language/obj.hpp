@@ -697,6 +697,10 @@ namespace fhatos {
 
     [[nodiscard]] Int_p lst_size() const { return Obj::to_int(this->lst_value()->size()); }
 
+    [[nodiscard]] Obj_p lst_get(const string &index) const {
+      return this->lst_get(Obj::to_uri(index));
+    }
+
     [[nodiscard]] Obj_p lst_get(const uint16_t &index) const { return this->lst_get(Obj::to_int(index)); }
 
     [[nodiscard]] Obj_p lst_get(const Obj_p &index) const {
@@ -733,15 +737,50 @@ namespace fhatos {
                : this->lst_value()->at(index->int_value());
     }
 
-    void lst_set(const Int_p &index, const Obj_p &obj) const {
-      if(!this->is_lst())
+    void lst_set(const string &index, const Obj_p &val, const bool nest = true) const {
+      return lst_set(Obj::to_uri(index), val, nest);
+    }
+
+    void lst_set(const int index, const Obj_p &val, const bool nest = true) const {
+      return lst_set(Obj::to_int(index), val, nest);
+    }
+
+    void lst_set(const Obj_p &index, const Obj_p &val, const bool nest = true) const {
+      if(nest &&
+         index->is_uri() &&
+         index->uri_value().path_length() > 1 &&
+         StringHelper::is_integer(index->uri_value().path(0))) {
+        const int current_index = std::atoi(index->uri_value().path(0));
+        const bool is_lst = StringHelper::is_integer(index->uri_value().path(1));
+        Obj_p current_obj = this->lst_get(current_index);
+        if(current_obj->is_noobj()) {
+          current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
+          this->lst_value()->insert(this->lst_value()->begin() + current_index, current_obj);
+        }
+        current_obj->poly_set(Obj::to_uri(index->uri_value().pretract()), val);
+      } else {
+        const int i = index->is_int()
+                        ? index->int_value()
+                        : index->is_uri()
+                            ? std::stoi(index->uri_value().toString())
+                            : -1;
+        if(-1 == i)
+          throw fError("invalid lst index: %s\n", index->toString().c_str());
+        if(i < this->lst_value()->size())
+          this->lst_value()->erase(this->lst_value()->begin() + i);
+        if(!val->is_noobj())
+          this->lst_value()->insert(this->lst_value()->begin() + i, val);
+      }
+    }
+
+    /*  if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const FOS_INT_TYPE i =
           index->is_uri() && StringHelper::is_integer(index->uri_value().toString())
             ? stoi(index->uri_value().toString())
             : index->int_value();
       this->lst_value()->insert(this->lst_value()->begin() + i, obj);
-    }
+    }*/
 
     [[nodiscard]] RecMap_p<> rec_value() const {
       if(!this->is_rec())
@@ -774,7 +813,7 @@ namespace fhatos {
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Runnable &on_error = nullptr) const {
+    [[nodiscard]] Obj_p rec_get(const Obj_p &key) const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(key->is_uri()) {
@@ -801,12 +840,12 @@ namespace fhatos {
       return segment_value->none_one_all();
     }
 
-    [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Runnable &on_error = nullptr) const {
-      return rec_get(to_uri(*key), on_error);
+    [[nodiscard]] Obj_p rec_get(const fURI_p &key) const {
+      return rec_get(to_uri(*key));
     }
 
-    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Runnable &on_error = nullptr) const {
-      return rec_get(to_uri(uri_key), on_error);
+    [[nodiscard]] Obj_p rec_get(const char *uri_key) const {
+      return rec_get(to_uri(uri_key));
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
@@ -835,7 +874,7 @@ namespace fhatos {
           this->rec_value()->insert({key, val});
       }
     }
-    
+
     virtual void rec_set(const Obj &key, const Obj &value) const {
       Obj::rec_set(make_shared<Obj>(key), make_shared<Obj>(value));
     }

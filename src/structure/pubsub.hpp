@@ -16,14 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-
-#ifndef fhatos_structure_subscription_hpp
-#define fhatos_structure_subscription_hpp
+#ifndef fhatos_pubsub_hpp
+#define fhatos_pubsub_hpp
 
 #include "../../src/fhatos.hpp"
 #include  "../../src/language/obj.hpp"
-
-#include "../../src/util/obj_helper.hpp"
 
 namespace fhatos {
 #define RETAIN true
@@ -91,27 +88,21 @@ namespace fhatos {
     }
 
     explicit Message(const ID &target, const Obj_p &payload, const bool retain) : Rec(rmap({
-      {"target", vri(target)},
-      {"payload", payload},
-      {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+        {"target", vri(target)},
+        {"payload", payload},
+        {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID target() const {
-      return ID(this->rec_get(vri("target"), [this]() {
-        throw fError("message has no !ytarget!!: %s", this->toString().c_str());
-      })->uri_value());
+      return {this->rec_get(vri("target"))->uri_value()};
     }
 
     Obj_p payload() const {
-      return this->rec_get(vri("payload"), [this]() {
-        throw fError("message has no !ypayload!!: %s", this->toString().c_str());
-      });
+      return this->rec_get(vri("payload"));
     }
 
     bool retain() const {
-      return this->rec_get(vri("retain"), [this]() {
-        throw fError("message has no !yretain!!: %s", this->toString().c_str());
-      })->value<bool>();
+      return this->rec_get(vri("retain"))->bool_value();
     }
 
     static Message_p create(const ID &target, const Obj_p &payload, const bool retain) {
@@ -146,28 +137,22 @@ namespace fhatos {
     }
 
     explicit Subscription(const ID &source, const Pattern &pattern, const Obj_p &on_recv) : Rec(rmap({
-      {"source", vri(source)},
-      {"pattern", vri(pattern)},
-      {"on_recv", on_recv}
-    }), OType::REC, SUBSCRIPTION_FURI) {
+        {"source", vri(source)},
+        {"pattern", vri(pattern)},
+        {"on_recv", on_recv}
+      }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID source() const {
-      return ID(this->rec_get("source", [this]() {
-        throw fError("subscription has no !ysource!!: %s", this->toString().c_str());
-      })->uri_value());
+      return {this->rec_get("source")->uri_value()};
     }
 
     Pattern pattern() const {
-      return Pattern(this->rec_get("pattern", [this]() {
-        throw fError("subscription has no !ypattern!!: %s", this->toString().c_str());
-      })->uri_value());
+      return {this->rec_get("pattern")->uri_value()};
     }
 
     BCode_p on_recv() const {
-      return this->rec_get("on_recv", [this]() {
-        throw fError("subscription has no !yon_recv!!: %s", this->toString().c_str());
-      });
+      return this->rec_get("on_recv");
     }
 
     static Subscription_p create(const ID &source, const Pattern &pattern, const Obj_p &on_recv) {

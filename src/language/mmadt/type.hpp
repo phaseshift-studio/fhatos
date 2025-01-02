@@ -771,9 +771,9 @@ namespace mmadt {
       const Obj_p type = ROUTER_READ(lhs->tid());
       const Rec_p rec = Obj::to_rec();
       rec->rec_set("type/type_id", vri(lhs->tid()));
+      rec->rec_set("type/obj", Obj::to_type(lhs->tid()));
       rec->rec_set("type/domain", vri(lhs->domain()));
       rec->rec_set("type/range", vri(lhs->range()));
-      rec->rec_set("type/obj", Obj::to_type(lhs->tid()));
       if(lhs->vid()) {
         rec->rec_set("value/value_id", vri(lhs->vid()));
         if(const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub"))); !subs->is_noobj())

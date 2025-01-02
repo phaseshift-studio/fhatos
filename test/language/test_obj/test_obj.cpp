@@ -328,6 +328,41 @@ namespace fhatos {
           { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
   }*/
 
+void test_rec_nested_set_get() {
+  Rec_p arec = Obj::to_rec();
+  arec->rec_set("a",jnt(45));
+  FOS_TEST_OBJ_EQUAL(jnt(45),arec->rec_get("a"));
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_value()->size());
+  arec->rec_set("b/c/d/e",jnt(10));
+  TEST_ASSERT_TRUE(arec->rec_get("b/c/d/e")->is_int());
+  FOS_TEST_OBJ_EQUAL(jnt(10),arec->rec_get("b/c/d/e"));
+  TEST_ASSERT_EQUAL_INT(2,arec->rec_value()->size());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b/c")->is_rec());
+  TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c/d")->rec_value()->size());
+  TEST_ASSERT_TRUE(arec->rec_get("b/c/d")->is_rec());
+  TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
+  }
+
+  void test_lst_nested_set_get() {
+  Lst_p alst = Obj::to_lst();
+  alst->lst_set(0,jnt(145));
+  FOS_TEST_OBJ_EQUAL(jnt(145),alst->lst_get(0));
+  TEST_ASSERT_EQUAL_INT(1,alst->lst_value()->size());
+  alst->lst_set(Obj::to_uri("1/0/0/0"),jnt(110));
+  TEST_ASSERT_TRUE(alst->lst_get("1/0/0/0")->is_int());
+  FOS_TEST_OBJ_EQUAL(jnt(110),alst->lst_get("1/0/0/0"));
+  TEST_ASSERT_EQUAL_INT(2,alst->lst_value()->size());
+  TEST_ASSERT_EQUAL_INT(1,alst->lst_get(1)->lst_value()->size());
+  TEST_ASSERT_TRUE(alst->lst_get(1)->is_lst());
+  TEST_ASSERT_EQUAL_INT(1,alst->lst_get(Obj::to_uri("1/0"))->lst_value()->size());
+  TEST_ASSERT_TRUE(alst->lst_get("1/0")->is_lst());
+  TEST_ASSERT_EQUAL_INT(1,alst->lst_get("1/0/0")->lst_value()->size());
+  TEST_ASSERT_TRUE(alst->lst_get("1/0/0")->is_lst());
+  }
+
 void test_inst() {
   const Inst_p i1 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
                                            make_shared<InstF>(Obj::to_bcode()),
@@ -374,8 +409,8 @@ void test_inst() {
     //  FOS_RUN_TEST(test_real); //
     //  FOS_RUN_TEST(test_str); //
      // FOS_RUN_TEST(test_uri); //
-     // FOS_RUN_TEST(test_lst); //
-     // FOS_RUN_TEST(test_rec); //
+      FOS_RUN_TEST(test_lst_nested_set_get); //
+     FOS_RUN_TEST(test_rec_nested_set_get); //
      FOS_RUN_TEST(test_inst); //
      FOS_RUN_TEST(test_serialization); //
       )

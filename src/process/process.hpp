@@ -19,13 +19,14 @@
 #ifndef fhatos_process_hpp
 #define fhatos_process_hpp
 
-#include <atomic>
-#include "../../src/fhatos.hpp"
-#include "../../src/furi.hpp"
-#include "../../src/language/obj.hpp"
 #include <thread>
-#include "../../src/util/enums.hpp"
-#include "../../src/structure/pubsub.hpp"
+#include <atomic>
+#include "../fhatos.hpp"
+#include "../furi.hpp"
+#include "../language/obj.hpp"
+#include "../util/enums.hpp"
+#include "../util/obj_helper.hpp"
+#include "../structure/pubsub.hpp"
 
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
