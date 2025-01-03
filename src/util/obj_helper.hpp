@@ -73,8 +73,11 @@ namespace fhatos {
                         ? Obj::to_objs()
                         : _noobj_;
       }
-
       return this;
+    }
+
+    InstBuilder *itype_and_seed(const Cardinality domain, const uint8_t range_arg, const Obj_p &seed = nullptr) {
+      return this->itype_and_seed(to_itype(domain, itype_range(this->args_->arg(range_arg)->itype())), seed);
     }
 
     InstBuilder *doc(const string &documentation) {
@@ -109,8 +112,8 @@ namespace fhatos {
                                          this->seed_ ? this->seed_ : _noobj_),
                                        OType::INST, this->type_,
                                        root ? id_p(root->vid()->extend(*value_id)) : value_id);
-     // if(!this->doc_.empty())
-       // inst->doc_write(this->doc_);
+      // if(!this->doc_.empty())
+      // inst->doc_write(this->doc_);
       delete this;
       return inst;
     }

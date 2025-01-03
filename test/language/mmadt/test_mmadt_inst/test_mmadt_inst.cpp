@@ -42,6 +42,26 @@ namespace fhatos {
     //FOS_TEST_OBJ_EQUAL(args,PROCESS("[_0=>10,_1=>'eleven',_3=>BAD]"));
   }
 
+    void test_barrier_inst() {
+      // objs
+      FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(3),jnt(4),jnt(5)}), PROCESS_ALL("{1,2,3}.barrier(plus(2))"));
+      FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(4)}), PROCESS_ALL("{7,109,18,566}.barrier({count()})"));
+     // FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(7+109+18+566)}), PROCESS_ALL("{7,109,18,566}.barrier({sum()})"));
+  }
+
+  void test_neg_inst() {
+      // bool
+      FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("neg(false)"));
+      FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("false.neg()"));
+      FOS_TEST_OBJ_EQUAL(dool(true,id_p("truth")), PROCESS("truth -> [bool][]; neg(truth[false])"));
+      FOS_TEST_OBJ_EQUAL(dool(true,id_p("truth")), PROCESS("truth -> [bool][]; truth[false].neg()"));
+      // int
+       FOS_TEST_OBJ_EQUAL(jnt(-1), PROCESS("neg(1)"));
+      FOS_TEST_OBJ_EQUAL(jnt(-2), PROCESS("2.neg()"));
+      FOS_TEST_OBJ_EQUAL(jnt(3,id_p("number")), PROCESS("number -> int[is(neq(0))]; neg(number[-3])"));
+ 	  FOS_TEST_OBJ_EQUAL(jnt(4,id_p("number")), PROCESS("number -> int[is(neq(0))]; number[-4].neg()"));
+  }
+
   void test_plus_inst() {
     // bool
     FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("true.plus(false)"));
@@ -101,6 +121,8 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
     FOS_RUN_TEST(test_inst_args); //
+    FOS_RUN_TEST(test_barrier_inst); //
+    //FOS_RUN_TEST(test_neg_inst); //
     FOS_RUN_TEST(test_plus_inst); //
     FOS_RUN_TEST(test_mult_inst); //
     FOS_RUN_TEST(test_count_inst); //

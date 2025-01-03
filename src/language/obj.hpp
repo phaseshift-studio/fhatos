@@ -171,6 +171,84 @@ namespace fhatos {
     {Cardinality::MANY, "O"},
     {Cardinality::MAYBE, "?"}});
 
+  inline Cardinality itype_domain(const IType itype) {
+    switch(itype) {
+      case IType::ZERO_TO_ZERO: return Cardinality::ZERO;
+      case IType::ONE_TO_ZERO: return Cardinality::ONE;
+      case IType::MANY_TO_ZERO: return Cardinality::MANY;
+      case IType::MAYBE_TO_ZERO: return Cardinality::MAYBE;
+      case IType::ZERO_TO_ONE: return Cardinality::ZERO;
+      case IType::ONE_TO_ONE: return Cardinality::ONE;
+      case IType::MANY_TO_ONE: return Cardinality::MANY;
+      case IType::MAYBE_TO_ONE: return Cardinality::MAYBE;
+      case IType::ZERO_TO_MANY: return Cardinality::ZERO;
+      case IType::ONE_TO_MANY: return Cardinality::ONE;
+      case IType::MANY_TO_MANY: return Cardinality::MANY;
+      case IType::MAYBE_TO_MANY: return Cardinality::MAYBE;
+      case IType::ZERO_TO_MAYBE: return Cardinality::ZERO;
+      case IType::ONE_TO_MAYBE: return Cardinality::ONE;
+      case IType::MANY_TO_MAYBE: return Cardinality::MANY;
+      case IType::MAYBE_TO_MAYBE: return Cardinality::MAYBE;
+      default: throw fError("unknown itype: %i", itype);
+    }
+  }
+
+  inline Cardinality itype_range(const IType itype) {
+    switch(itype) {
+      case IType::ZERO_TO_ZERO: return Cardinality::ZERO;
+      case IType::ONE_TO_ZERO: return Cardinality::ZERO;
+      case IType::MANY_TO_ZERO: return Cardinality::ZERO;
+      case IType::MAYBE_TO_ZERO: return Cardinality::ZERO;
+      case IType::ZERO_TO_ONE: return Cardinality::ONE;
+      case IType::ONE_TO_ONE: return Cardinality::ONE;
+      case IType::MANY_TO_ONE: return Cardinality::ONE;
+      case IType::MAYBE_TO_ONE: return Cardinality::ONE;
+      case IType::ZERO_TO_MANY: return Cardinality::MANY;
+      case IType::ONE_TO_MANY: return Cardinality::MANY;
+      case IType::MANY_TO_MANY: return Cardinality::MANY;
+      case IType::MAYBE_TO_MANY: return Cardinality::MANY;
+      case IType::ZERO_TO_MAYBE: return Cardinality::MAYBE;
+      case IType::ONE_TO_MAYBE: return Cardinality::MAYBE;
+      case IType::MANY_TO_MAYBE: return Cardinality::MAYBE;
+      case IType::MAYBE_TO_MAYBE: return Cardinality::MAYBE;
+      default: throw fError("unknown itype: %i", itype);
+    }
+  }
+
+  inline IType to_itype(const Cardinality domain, const Cardinality range) {
+    switch(domain) {
+      case Cardinality::ZERO: switch(range) {
+          case Cardinality::ZERO: return IType::ZERO_TO_ZERO;
+          case Cardinality::ONE: return IType::ZERO_TO_ONE;
+          case Cardinality::MANY: return IType::ZERO_TO_MANY;
+          case Cardinality::MAYBE: return IType::ZERO_TO_MAYBE;
+          default: throw fError("unknown cardinality: %i", range);
+        }
+      case Cardinality::ONE: switch(range) {
+          case Cardinality::ZERO: return IType::ONE_TO_ZERO;
+          case Cardinality::ONE: return IType::ONE_TO_ONE;
+          case Cardinality::MANY: return IType::ONE_TO_MANY;
+          case Cardinality::MAYBE: return IType::ONE_TO_MAYBE;
+          default: throw fError("unknown cardinality: %i", range);
+        }
+      case Cardinality::MANY: switch(range) {
+          case Cardinality::ZERO: return IType::MANY_TO_ZERO;
+          case Cardinality::ONE: return IType::MANY_TO_ONE;
+          case Cardinality::MANY: return IType::MANY_TO_MANY;
+          case Cardinality::MAYBE: return IType::MANY_TO_MAYBE;
+          default: throw fError("unknown cardinality: %i", range);
+        }
+      case Cardinality::MAYBE: switch(range) {
+          case Cardinality::ZERO: return IType::MAYBE_TO_ZERO;
+          case Cardinality::ONE: return IType::MAYBE_TO_ONE;
+          case Cardinality::MANY: return IType::MAYBE_TO_MANY;
+          case Cardinality::MAYBE: return IType::MAYBE_TO_MAYBE;
+          default: throw fError("unknown cardinality: %i", range);
+        }
+    }
+    throw fError("unknown cardinality: %i", domain);
+  }
+
   inline bool operator&(IType a, IType b) {
     // Implement bitwise OR logic
     return (bool) (IType) (static_cast<std::underlying_type_t<IType>>(a) & static_cast<std::underlying_type_t<IType>>(
@@ -2029,7 +2107,14 @@ namespace fhatos {
     static Objs_p to_objs(const std::initializer_list<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
       const auto list = make_shared<List<Obj_p>>();
       for(const auto &obj: objs) {
-        list->push_back(obj);
+        if(obj->is_objs()) {
+          for(const auto &o: *obj->objs_value()) {
+            if(o->is_objs())
+              throw fError("nested objs not allowed: %s\n", o->toString().c_str());
+            list->push_back(o);
+          }
+        } else
+          list->push_back(obj);
       }
       return Obj::create(list, OType::OBJS, type_id);
     }

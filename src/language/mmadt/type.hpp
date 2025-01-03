@@ -134,6 +134,15 @@ namespace mmadt {
           })
           ->save();*/
 
+      InstBuilder::build(MMADT_SCHEME "/barrier")
+          ->domain_range(OBJS_FURI, OBJS_FURI)
+          ->type_args(x(0, "barrier_op", ___))
+          ->itype_and_seed(IType::MANY_TO_MANY)
+          ->inst_f([](const Objs_p &lhs, const InstArgs &args) {
+            return args->arg(0)->apply(lhs);
+          })
+          ->save();
+
       InstBuilder::build(MMADT_SCHEME "/sum")
           ->domain_range(OBJS_FURI, OBJ_FURI)
           ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
@@ -551,7 +560,7 @@ namespace mmadt {
             return rec;
           })->save();
 
-      /////////////////////////// PLUS,MUT INST ///////////////////////////
+      //////////////////////////////// MODULO ////////////////////////////////////
       InstBuilder::build(MMADT_SCHEME "/mod")
           ->type_args(x(0, "rhs"))
           ->save();
@@ -561,7 +570,33 @@ namespace mmadt {
             return jnt(lhs->int_value() % args->arg(0)->int_value());
           })
           ->save();
+      ////////////////////////////// NEGATIVE /////////////////////////////////////
+      InstBuilder::build(MMADT_SCHEME "/neg")
+          ->type_args(x(0, "self", ___))
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->save();
 
+      InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/neg")
+          ->type_args(x(0, "self", ___))
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            return dool(!args->arg(0)->bool_value(), args->arg(0)->vid());
+          })
+          ->save();
+      InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/neg")
+          ->type_args(x(0, "self", ___))
+          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            return jnt(args->arg(0)->int_value() * -1, args->arg(0)->vid());
+          })
+          ->save();
+      InstBuilder::build(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/neg")
+          ->type_args(x(0, "self", ___))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            return real(args->arg(0)->real_value() * -1.0f, args->arg(0)->vid());
+          })
+          ->save();
+      ////////////////////////////// PLUS/MULT ///////////////////////////////////
       for(const auto &op: {"plus", "mult"}) {
         const ID MMADT_INST = MMADT_ID->extend(op);
         InstBuilder::build(MMADT_INST)

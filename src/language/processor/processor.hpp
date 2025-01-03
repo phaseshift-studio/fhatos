@@ -223,11 +223,11 @@ namespace fhatos {
                     ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
             range_loop(current_inst_resolved->apply(this->obj), current_inst_resolved);
           } else {
+            this->processor_->barriers_->front()->obj->add_obj(this->obj);
             LOG_OBJ(TRACE, this->processor_, "monad %s stored in barrier [size: %i] [!m%s!m]\n",
                     this->toString().c_str(),
                     this->processor_->barriers_->front()->obj->objs_value()->size(),
                     ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
-            this->processor_->barriers_->front()->obj->add_obj(this->obj);
           }
         } else {
           this->obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
@@ -247,7 +247,7 @@ namespace fhatos {
         if(is_initial(next_inst->itype())) {
           LOG_OBJ(TRACE, this->processor_, "monad %s dying [%s]\n", this->toString().c_str(),
                   ITypeDescriptions.to_chars(next_inst->itype()));
-        } else if(next_obj->is_objs() && !is_gather(current_inst_resolved->itype())) {
+        } else if(next_obj->is_objs() && !is_gather(next_inst->itype())) {
           //   (is_scatter(current_inst_resolved->itype()) ||
           //    is_maybe_range(current_inst_resolved->itype()))) {
           LOG_OBJ(TRACE, this->processor_, "monad %s scattering [%s]\n",
@@ -350,7 +350,7 @@ namespace fhatos {
 
       void push_back(const Monad_p &monad) const {
         if(const auto it = this->internal->find(monad); it != this->internal->end()) {
-         // LOG(INFO, "FOUND: %s ==  %s\n", (*it)->toString().c_str(), monad->toString().c_str());
+          // LOG(INFO, "FOUND: %s ==  %s\n", (*it)->toString().c_str(), monad->toString().c_str());
           (*it)->bulk = (*it)->bulk + monad->bulk;
         } else
           this->internal->insert(monad);
