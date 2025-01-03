@@ -111,6 +111,7 @@ namespace fhatos {
 
   void test_lst_parsing() {
     FOS_TEST_OBJ_EQUAL(lst(), PROCESS("[]"));
+    FOS_TEST_OBJ_EQUAL(lst(), PROCESS("  [\n   ] "));
     FOS_TEST_OBJ_EQUAL(lst(), PROCESS("lst[[]]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1,2,3]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), PROCESS("[1   , 2 , 3]"));
@@ -127,6 +128,7 @@ namespace fhatos {
 
   void test_rec_parsing() {
     FOS_TEST_OBJ_EQUAL(rec(), PROCESS("[=>]"));
+    FOS_TEST_OBJ_EQUAL(rec(), PROCESS(" [   =>\n   ] "));
     FOS_TEST_OBJ_EQUAL(rec(), PROCESS("rec[[=>]]"));
     TEST_ASSERT_EQUAL_STRING("[=>]", rec()->toString(NO_ANSI_PRINTER).c_str());
     FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[]"));
@@ -150,6 +152,11 @@ namespace fhatos {
                        PROCESS("rec\t  [\t[1 =>  a,2  =>[\t\t\tb =>[d => 4] ], 3=>   c]  ]"));
     FOS_TEST_OBJ_NTEQL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
                        PROCESS("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
+  }
+
+  void test_objs_parsing() {
+    FOS_TEST_OBJ_EQUAL(Obj::to_objs(), PROCESS_ALL("{}"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_objs(), PROCESS_ALL("{   \n   } "));
   }
 
   void test_inst_parsing() {
@@ -237,6 +244,9 @@ namespace fhatos {
     ////////// _/x\_
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
+    ////////// _]x[_
+    FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(2),jnt(3),jnt(4)}), PROCESS_ALL("{1,2,3}_]plus(1)[_"))
+    FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(6)}), PROCESS_ALL("{1,2,3}_]{count()}[_.plus(3)"))
     ////////// |
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("start(1).8"))
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1|8"))
@@ -313,6 +323,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_lst_parsing); //
     FOS_RUN_TEST(test_rec_parsing); //
     FOS_RUN_TEST(test_inst_parsing); //
+    FOS_RUN_TEST(test_objs_parsing); //
     //////////////////////////////////
     FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //

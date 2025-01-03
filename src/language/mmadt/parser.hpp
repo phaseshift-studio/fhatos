@@ -129,7 +129,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
     Definition
         EMPTY_BCODE, AT, REPEAT, END, FROM, REF, PASS,
-        MULT, PLUS, BLOCK, WITHIN, MERGE, DROP,
+        MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP,
         SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
@@ -346,6 +346,9 @@ namespace mmadt {
               return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE(opcode)));
             };
       };
+      static auto barrier_action = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("barrier")));
+      };
       static auto within_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.transform<Obj_p>(), id_p(*ROUTER_RESOLVE("within")));
       };
@@ -415,13 +418,14 @@ namespace mmadt {
       INT <= tok(seq(opt(chr('-')), oom(cls("0-9")))), int_action;
       REAL <= tok(seq(opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")))), real_action;
       STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
-      URI <= cho(lit("<>"), FURI_INLINE, FURI), uri_action;
-      LST <= cho(lit("[]"), seq(lit("["), START,
-                                zom(seq(lit(","), START)), lit("]"))), lst_action;
-      LST.error_message = "typed polys are type wrapped polys: lst[[]] not lst[]";
-      REC <= cho(lit("[=>]"), seq(lit("["), START, lit("=>"), START,
-                                  zom(seq(lit(","), START, lit("=>"), START)), lit("]"))), rec_action;
-      OBJS <= seq(lit("{"), START, zom(seq(lit(","), START)), lit("}")), objs_action;
+      URI <= cho(seq(lit("<"), lit(">")), FURI_INLINE, FURI), uri_action;
+      LST <= cho(seq(lit("["), lit("]")), seq(lit("["), START,
+                                              zom(seq(lit(","), START)), lit("]"))), lst_action;
+      //LST.error_message = "typed polys are type wrapped polys: lst[[]] not lst[]";
+      REC <= cho(seq(lit("["), lit("=>"), lit("]")), seq(lit("["), START, lit("=>"), START,
+                                                         zom(seq(lit(","), START, lit("=>"), START)),
+                                                         lit("]"))), rec_action;
+      OBJS <= cho(seq(lit("{"), lit("}")), seq(lit("{"), START, zom(seq(lit(","), START)), lit("}"))), objs_action;
 
       /////////////////// INST COMPONENTS ///////////////////////////
       INST <= cho(SUGAR_INST, NORMAL_INST);
@@ -470,8 +474,11 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(opt(OBJ), zom(cho(seq(END, START), seq(lit("."), OBJ), seq(SUGAR_INST)))), start_action;
-      // (END,OBJ) => ; next...
+      START <= seq(opt(OBJ), zom(cho(
+                     seq(END, START),
+                     seq(lit("."), OBJ),
+                     SUGAR_INST
+                   ))), start_action;
       START_OBJ <= START, start_obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -481,7 +488,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(AT, PLUS, MULT, WITHIN, EMPTY_BCODE, FROM, PASS, REF,
+      SUGAR_INST <= cho(AT, PLUS, MULT, BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS, REF,
                         BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
@@ -497,6 +504,7 @@ namespace mmadt {
       MERGE <= seq(chr('>'), opt(OBJ), chr('-')), merge_action;
       END <= lit(";"), end_action;
       WITHIN <= seq(lit("_/"), START, lit("\\_")), within_action;
+      BARRIER <= seq(lit("_]"), START, lit("[_")), barrier_action;
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif
