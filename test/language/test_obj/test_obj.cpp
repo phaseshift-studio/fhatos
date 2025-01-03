@@ -33,35 +33,6 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
- /* void test_bool() {
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/truth"), Obj::to_bcode()); //
-    const Bool_p bool_a = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
-    const Bool_p bool_b = share(Bool(false, "truth"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*bool_a).c_str());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_a->tid());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_b->tid());
-    FOS_TEST_OBJ_NOT_EQUAL(bool_a, bool_b);
-    FOS_TEST_OBJ_NOT_EQUAL(bool_b, bool_a);
-    FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
-    FOS_TEST_OBJ_EQUAL(bool_b, bool_b);
-    FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false, FOS_TYPE_PREFIX "bool/truth")), share(Bool(*bool_a && *bool_b)));
-    FOS_TEST_OBJ_EQUAL(share(Bool(false)), share(Bool(*bool_a && *bool_b)));
-    TEST_ASSERT_TRUE(bool_a->bool_value());
-    TEST_ASSERT_FALSE(bool_a->is_bcode());
-    TEST_ASSERT_FALSE(bool_a->is_noobj());
-    TEST_ASSERT_EQUAL(OType::BOOL, bool_a->o_type());
-    FOS_TEST_OBJ_EQUAL(bool_a, bool_a->apply(bool_b));
-    ///
-    TEST_ASSERT_TRUE(bool_a->match(bool_a));
-    TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
-    TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
-    /* const Bool_p boolBCode = share(Bool(__().gt(5)._bcode->bcode_value(), "/_bcode/secret"));
-     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
-     FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
-   //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3,int_t("nat")))));
-     FOS_TEST_ASSERT_EXCEPTION(__().lt(2)._bcode->apply(share(Bool(true, "/bool/truth"))));*/
-  //}
-
   /*void test_int() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
@@ -287,15 +258,51 @@ namespace fhatos {
           { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
   }*/
 
+void is_a_testing(const OType o_type, const Obj_p obj) {
+		TEST_ASSERT_EQUAL(o_type == OType::BOOL, obj->is_bool());
+                TEST_ASSERT_EQUAL(o_type == OType::INT, obj->is_int());
+                TEST_ASSERT_EQUAL(o_type == OType::REAL, obj->is_real());
+                TEST_ASSERT_EQUAL(o_type == OType::STR, obj->is_str());
+                TEST_ASSERT_EQUAL(o_type == OType::URI, obj->is_uri());
+                TEST_ASSERT_EQUAL(o_type == OType::LST, obj->is_lst());
+                TEST_ASSERT_EQUAL(o_type == OType::REC, obj->is_rec());
+                TEST_ASSERT_EQUAL(o_type == OType::INST, obj->is_inst());
+                TEST_ASSERT_EQUAL(o_type == OType::BCODE, obj->is_bcode());
+                TEST_ASSERT_EQUAL(o_type == OType::OBJS, obj->is_objs());
+}
+
+void test_bool() {
+    Typer::singleton()->save_type(id_p("truth"), Obj::to_bcode()); //
+    const Bool_p bool_a = Obj::to_bool(true,id_p("truth"));
+    const Bool_p bool_b = Obj::to_bool(false, id_p("truth"));
+    is_a_testing(OType::BOOL,bool_a);
+    is_a_testing(OType::BOOL,bool_b);
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("truth"), *bool_a->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("truth"), *bool_b->tid());
+    FOS_TEST_OBJ_NTEQL(bool_a, bool_b);
+    FOS_TEST_OBJ_NTEQL(bool_b, bool_a);
+    FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
+    FOS_TEST_OBJ_EQUAL(bool_b, bool_b);
+    FOS_TEST_OBJ_NTEQL(Obj::to_bool(false,id_p("truth")), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
+    FOS_TEST_OBJ_EQUAL(Obj::to_bool(false), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
+    TEST_ASSERT_TRUE(bool_a->bool_value());
+    TEST_ASSERT_FALSE(bool_a->is_bcode());
+    TEST_ASSERT_FALSE(bool_a->is_noobj());
+    TEST_ASSERT_EQUAL(OType::BOOL, bool_a->o_type());
+    FOS_TEST_OBJ_EQUAL(bool_a, bool_a->apply(bool_b));
+    TEST_ASSERT_TRUE(bool_a->match(bool_a));
+  }
+
  void test_str() {
     Typer::singleton()->save_type(id_p("first_name"), Obj::to_type(STR_FURI)); //
-    Typer::singleton()->save_type(id_p("str/letter"),Obj::to_type(STR_FURI)); //
-    const Str strA = *Obj::to_str("fhat", id_p("first_name"));
-    TEST_ASSERT_FALSE(strA.is_bcode());
-    TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
-    TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
-    TEST_ASSERT_TRUE(strA.match(str("fhat"), false));
-    TEST_ASSERT_FALSE(strA.match(str("fhat"), true));
+    Typer::singleton()->save_type(id_p("letter"),Obj::to_type(STR_FURI)); //
+    const Str_p strA = Obj::to_str("fhat", id_p("first_name"));
+    TEST_ASSERT_FALSE(strA->is_bcode());
+    TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
+    TEST_ASSERT_EQUAL(OType::STR, strA->o_type());
+    is_a_testing(OType::STR,strA);
+    TEST_ASSERT_TRUE(strA->match(str("fhat"), false));
+    TEST_ASSERT_FALSE(strA->match(str("fhat"), true));
   }
 
   void test_lst() {
@@ -348,6 +355,7 @@ namespace fhatos {
   TEST_ASSERT_TRUE(alst->lst_get("1/0")->is_lst());
   TEST_ASSERT_EQUAL_INT(1,alst->lst_get("1/0/0")->lst_value()->size());
   TEST_ASSERT_TRUE(alst->lst_get("1/0/0")->is_lst());
+  is_a_testing(OType::LST,alst);
   }
 
   void test_rec_nested_set_get() {
@@ -366,6 +374,7 @@ namespace fhatos {
   TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c/d")->rec_value()->size());
   TEST_ASSERT_TRUE(arec->rec_get("b/c/d")->is_rec());
   TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
+    is_a_testing(OType::REC,arec);
   }
 
 void test_inst() {
@@ -381,6 +390,8 @@ void test_inst() {
   TEST_ASSERT_EQUAL(i1->itype(),i2->itype());
   TEST_ASSERT_NOT_EQUAL_INT(i1->toString(NO_ANSI_PRINTER).find("_"),string::npos);
   TEST_ASSERT_EQUAL_INT(i2->toString(NO_ANSI_PRINTER).find("_"),string::npos);
+    is_a_testing(OType::INST,i1);
+    is_a_testing(OType::INST,i2);
 }
 
   void test_serialization() {
@@ -409,10 +420,10 @@ void test_inst() {
   }
 
   FOS_RUN_TESTS( //
-    //  FOS_RUN_TEST(test_bool); //
     //  FOS_RUN_TEST(test_int); //
     //  FOS_RUN_TEST(test_real); //
      // FOS_RUN_TEST(test_uri); //
+     FOS_RUN_TEST(test_bool); //
      FOS_RUN_TEST(test_str); //
      FOS_RUN_TEST(test_lst); //
      FOS_RUN_TEST(test_lst_nested_set_get); //
