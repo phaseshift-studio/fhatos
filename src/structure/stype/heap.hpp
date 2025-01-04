@@ -21,8 +21,8 @@
 #define fhatos_heaped_hpp
 
 #include <fhatos.hpp>
+#include <shared_mutex>
 #include <language/obj.hpp>
-#include <process/util/mutex_rw.hpp>
 #include <structure/structure.hpp>
 
 #ifdef ESP_ARCH
@@ -35,11 +35,10 @@ namespace fhatos {
   protected:
     const unique_ptr<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>> data_ =
         make_unique<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
-    MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
+    std::shared_mutex map_mutex;
 
   public:
-    explicit Heap(const Rec_p &structure_rec) :
-      Structure(structure_rec) {
+    explicit Heap(const Rec_p &structure_rec) : Structure(structure_rec) {
     }
 
     static unique_ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
@@ -54,31 +53,23 @@ namespace fhatos {
 
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (retain) {
-        this->mutex_data_.template write<ID>([this, id, obj]() {
-          if (this->data_->count(id))
-            this->data_->erase(id);
-          if (!obj->is_noobj()) {
-            this->data_->insert({id_p(*id), obj->clone()});
-          }
-          return id;
-        });
+      if(retain) {
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+        if(obj->is_noobj())this->data_->erase(id);
+        else this->data_->insert_or_assign(id, obj);
       }
       this->distribute_to_subscribers(Message::create(*id, obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI_p &match) override {
-      return this->mutex_data_.template read<IdObjPairs>([this, match] {
-        auto list = IdObjPairs();
-        for (const auto &[id, obj]: *this->data_) {
-          if (id->matches(*match)) {
-            //LOG_STRUCTURE(INFO, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
-            //              obj->toString().c_str());
-            list.push_back({id, obj}); // clone()?
-          }
+      std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      auto list = IdObjPairs();
+      for(const auto &[id, obj]: *this->data_) {
+        if(id->matches(*match)) {
+          list.push_back({id, obj});
         }
-        return list;
-      });
+      }
+      return list;
     }
   };
 

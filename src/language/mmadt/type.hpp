@@ -700,10 +700,42 @@ namespace mmadt {
                         TYPE_INST_RESOLVER(
                           lhs_v->at(i),
                           Obj::to_inst({x(0, ___)}, id_p("mult")))
-                        ->apply(lhs_v->at(i))); // TODO: , Obj::to_inst_args{"rhs",rhs_v->at(j)}));
+                        ->apply(rhs_v->at(j)));
                     }
                   }
                   return Obj::to_lst(new_v, lhs->tid(), lhs->vid());
+                }
+                throw fError("unknown op %s\n", op);
+              })
+            ->save();
+
+        InstBuilder::build(string(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/").append(op).c_str())
+            ->domain_range(LST_FURI)
+            ->type_args(x(0, "rhs"))
+            ->inst_f(
+              [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                if(strcmp(op, "plus") == 0) {
+                  const auto new_v = make_shared<Obj::RecMap<>>();
+                  for(const auto &[k1,v1]: *lhs->rec_value()) {
+                    new_v->insert_or_assign(k1, v1);
+                  }
+                  for(const auto &[k2,v2]: *args->arg(0)->rec_value()) {
+                    new_v->insert_or_assign(k2, v2);
+                  }
+                  return Obj::to_rec(new_v, lhs->tid(), lhs->vid());
+                }
+                if(strcmp(op, "mult") == 0) {
+                  const Obj::RecMap_p<> lhs_v = lhs->rec_value();
+                  const Obj::RecMap_p<> rhs_v = args->arg(0)->rec_value();
+                  const auto new_v = make_shared<Obj::RecMap<>>();
+                  for(const auto &[k1,v1]: *lhs_v) {
+                    for(const auto &[k2,v2]: *rhs_v) {
+                      new_v->insert_or_assign(
+                        TYPE_INST_RESOLVER(k1, Obj::to_inst({x(0, ___)}, id_p("mult")))->apply(k2),
+                        TYPE_INST_RESOLVER(v1, Obj::to_inst({x(0, ___)}, id_p("mult")))->apply(v2));
+                    }
+                  }
+                  return Obj::to_rec(new_v, lhs->tid(), lhs->vid());
                 }
                 throw fError("unknown op %s\n", op);
               })

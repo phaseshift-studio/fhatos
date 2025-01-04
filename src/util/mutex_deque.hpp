@@ -20,130 +20,112 @@
 #define fhatos_mutex_deque_hpp
 
 #include  "../../src/fhatos.hpp"
-////
-#include FOS_MUTEX(mutex.hpp)
-#include "../../src/process/util/mutex_rw.hpp"
+#include <shared_mutex>
 
 namespace fhatos {
-  template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>
+  template<typename T, typename SIZE_TYPE = uint8_t>
   class MutexDeque {
     enum ACCESS { READ, WRITE, LOCK };
 
   protected:
     Deque<T> deque_;
-    Mutex<WAIT_TIME_MS> mutex_;
-
-  private:
-    template<typename A = void *>
-    A lockUnlock(const bool withMutex, Supplier<A> function, ACCESS access = LOCK) {
-      // remove withMutex and replace with ACCESS.OPEN
-      if (withMutex)
-        return access == READ ? mutex_.lockUnlock(function) : mutex_.lockUnlock(function);
-      else {
-        A temp = function();
-        return temp;
-      }
-    }
+    std::shared_mutex map_mutex;
 
   public:
-    // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) %s
-    explicit MutexDeque(const char *label = "<anon>") : mutex_(label) {
+    explicit MutexDeque(const char *label = "<anon>") {
     }
 
     bool exists(const Predicate<T> &predicate, const bool with_mutex = true) {
-      return lockUnlock<bool>(with_mutex, [this, predicate]() {
-        for (const T &t: this->deque_) {
-          if (predicate(t))
-            return true;
-        }
-        return false;
-      }, READ);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      for(const T &t: this->deque_) {
+        if(predicate(t))
+          return true;
+      }
+      return false;
     }
 
     Option<T> find(const Predicate<T> &predicate, const bool with_mutex = true) {
-      return lockUnlock<Option<T>>(with_mutex, [this, predicate]() {
-        for (const T &t: this->deque_) {
-          if (predicate(t)) {
-            return Option<T>(t);
-          }
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      for(const T &t: this->deque_) {
+        if(predicate(t)) {
+          return Option<T>(t);
         }
-        return Option<T>();
-      }, READ);
+      }
+      return Option<T>();
     }
 
     List<T> find_all(const Predicate<T> &predicate, const bool with_mutex = true) {
-      return lockUnlock<List<T>>(with_mutex, [this, predicate]() {
-        List<T> list;
-        for (const T &t: deque_) {
-          if (predicate(t)) {
-            list.push_back(t);
-          }
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      List<T> list;
+      for(const T &t: deque_) {
+        if(predicate(t)) {
+          list.push_back(t);
         }
-        return list;
-      }, READ);
+      }
+      return list;
     }
 
     Option<T> pop_front(const bool with_mutex = true) {
-      return lockUnlock<Option<T>>(with_mutex, [this]() {
-        if (deque_.empty()) {
-          return Option<T>();
-        } else {
-          const T t = this->deque_.front();
-          deque_.pop_front();
-          return Option<T>(t);
-        }
-      }, WRITE);
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      if(deque_.empty()) {
+        return Option<T>();
+      } else {
+        const T t = this->deque_.front();
+        deque_.pop_front();
+        return Option<T>(t);
+      }
     }
 
     List_p<T> match(const Predicate<T> &predicate, const bool with_mutex = true) {
-      auto results = share(List<T>());
-      lockUnlock<void *>(with_mutex, [this, results, predicate]() {
-        for (const T &t: deque_) {
-          if (predicate(t))
-            results->push_back(t);
-        }
-        return nullptr;
-      }, READ);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      auto results = make_shared<List<T>>();
+      for(const T &t: deque_) {
+        if(predicate(t))
+          results->push_back(t);
+      }
       return results;
     }
 
     void forEach(const Consumer<T> &consumer, const bool with_mutex = true) {
-      lockUnlock<void *>(with_mutex, [this, consumer]() {
-        for (const T &t: deque_) {
-          consumer(t);
-        }
-        return nullptr;
-      }, WRITE);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      for(const T &t: deque_) {
+        consumer(t);
+      }
     }
 
     Option<T> get(const int index, const bool with_mutex = true) {
-      return lockUnlock<Option<T>>(with_mutex, [this, index]() {
-        int counter = 0;
-        for (const T &t: deque_) {
-          if (counter++ == index) {
-            return Option<T>(t);
-            break;
-          }
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      int counter = 0;
+      for(const T &t: deque_) {
+        if(counter++ == index) {
+          return Option<T>(t);
+          break;
         }
-        return Option<T>();
-      }, READ);
+      }
+      return Option<T>();
     }
 
     List_p<T> remove_if(const Predicate<T> &predicate, const bool with_mutex = true) {
-      auto *removed = new List<T>();
-      lockUnlock<void *>(with_mutex, [this, predicate, removed] {
-        deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
-                                    [predicate, removed](T t) {
-                                      const bool r = predicate(t);
-                                      if (r)
-                                        removed->push_back(t);
-                                      return r;
-                                    }),
-                     deque_.end());
-        return nullptr;
-      }, WRITE);
-      const List_p<T> removed_p = ptr<List<T>>(removed);
-      return removed_p;
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      auto removed = make_shared<List<T>>();
+
+      deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
+                                  [predicate, removed](T t) {
+                                    const bool r = predicate(t);
+                                    if(r)
+                                      removed->push_back(t);
+                                    return r;
+                                  }),
+                   deque_.end());
+      return removed;
     }
 
     void remove(const T &to_remove, const bool with_mutex = true) {
@@ -151,55 +133,58 @@ namespace fhatos {
     }
 
     Option<T> pop_back(const bool with_mutex = true) {
-      return lockUnlock<Option<T>>(with_mutex, [this]() {
-        if (deque_.empty())
-          return Option<T>();
-        const T t = deque_.back();
-        deque_.pop_back();
-        return Option<T>(t);
-      }, WRITE);
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      if(deque_.empty())
+        return Option<T>();
+      const T t = deque_.back();
+      deque_.pop_back();
+      return Option<T>(t);
     }
 
     bool push_front(const T t, const bool with_mutex = true) {
-      return lockUnlock<bool>(with_mutex, [this, t]() {
-        deque_.push_front(t);
-        return true;
-      }, WRITE);
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      deque_.push_front(t);
+      return true;
     }
 
     bool push_back(const T t, const bool with_mutex = true) {
-      return lockUnlock<bool>(with_mutex, [this, t]() {
-        this->deque_.push_back(t);
-        return true;
-      }, WRITE);
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      this->deque_.push_back(t);
+      return true;
     }
 
     SIZE_TYPE size(const bool with_mutex = true) {
-      return lockUnlock<SIZE_TYPE>(with_mutex, [this]() { return this->deque_.size(); }, READ);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      return this->deque_.size();
     }
 
     bool empty(const bool with_mutex = true) {
-      return lockUnlock<bool>(with_mutex, [this]() { return this->deque_.empty(); }, READ);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      return this->deque_.empty();
     }
 
     string toString(const bool with_mutex = true) {
-      return lockUnlock<string>(with_mutex, [this]() {
-        string temp = "[";
-        for (const auto &t: this->deque_) {
-          if (t)
-            temp = temp + t->toString() + ", ";
-        }
-        temp = temp.substr(0, temp.length() - 3) + "]";
-        return temp;
-      }, READ);
+      if(with_mutex)
+        std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      string temp = "[";
+      for(const auto &t: this->deque_) {
+        if(t)
+          temp = temp + t->toString() + ", ";
+      }
+      temp = temp.substr(0, temp.length() - 3) + "]";
+      return temp;
     }
 
     void clear(const bool with_mutex = true) {
-      lockUnlock<void *>(with_mutex, [this]() {
-        if (!this->deque_.empty())
-          this->deque_.clear();
-        return nullptr;
-      }, WRITE);
+      if(with_mutex)
+        std::lock_guard<std::shared_mutex> lock(this->map_mutex);
+      if(!this->deque_.empty())
+        this->deque_.clear();
     }
   };
 } // namespace fhatos

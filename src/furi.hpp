@@ -701,9 +701,9 @@ namespace fhatos {
         }
       }*/
       try {
-        std::stringstream ss = std::stringstream(dups);
+        auto ss = std::stringstream(dups);
         string token;
-        URI_PART part = URI_PART::SCHEME;
+        auto part = URI_PART::SCHEME;
         bool hasUserInfo = strchr(dups, '@') != nullptr;
         bool foundAuthority = false;
         while(!ss.eof()) {

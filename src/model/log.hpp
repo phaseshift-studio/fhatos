@@ -28,11 +28,12 @@
 namespace fhatos {
   class Log final : public Rec {
   protected:
-    explicit Log(const ID &value_id, const Rec_p &settings) : Rec(settings->rec_value(),
-                                                                  OType::REC,
-                                                                  REC_FURI,
-                                                                  id_p(value_id)) {
+    explicit Log(const ID &value_id, const Rec_p &config) : Rec(config->rec_value(),
+                                                                OType::REC,
+                                                                REC_FURI,
+                                                                id_p(value_id)) {
       this->save();
+      // this->rec_set("config", Obj::to_rec(this->rec_get("config")->rec_value(), id_p("/io/log/config_t")));
     }
 
     template<typename... Args>
@@ -64,7 +65,7 @@ namespace fhatos {
     template<typename... Args>
     static void LOGGER(const LOG_TYPE type, const Obj *source, const char *format, const Args... args) {
       bool match = false;
-      const fURI furi = fURI("allow").extend(LOG_TYPES.to_chars(type));
+      const fURI furi = fURI("config").extend(LOG_TYPES.to_chars(type));
       for(const auto &a: *Log::singleton()->
           this_get(furi)->lst_value()) {
         if(source->vid_or_tid()->matches(a->uri_value())) {
@@ -78,13 +79,16 @@ namespace fhatos {
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
-      static Rec_p DEFAULT_CONFIG = Obj::to_rec({
-        {"allow", Obj::to_rec({
-          {"INFO", lst({vri("#")})},
-          {"ERROR", lst({vri("#")})},
-          {"DEBUG", lst()},
-          {"TRACE", lst()}})}
-      });
+      Obj::to_rec({{"INFO", lst({Obj::to_type(URI_FURI)})},
+                    {"ERROR", lst({Obj::to_type(URI_FURI)})},
+                    {"DEBUG", lst()},
+                    {"TRACE", lst()}}, REC_FURI, id_p("/io/log/config_t"));
+      static Rec_p DEFAULT_CONFIG = Obj::to_rec(
+        {{"config",
+          Obj::to_rec({{"INFO", lst({vri("#")})},
+                        {"ERROR", lst({vri("#")})},
+                        {"DEBUG", lst()},
+                        {"TRACE", lst()}}, id_p("/io/log/config_t"))}});
       const auto log = ptr<Log>(new Log(id, config->is_noobj() ? DEFAULT_CONFIG : config));
       return log;
     }
@@ -95,7 +99,7 @@ namespace fhatos {
     }
 
     static void *import(const ID &id = "/io/lib/log") {
-     // ROUTER_WRITE(id_p(id), Obj::to_rec({{"allow", Obj::to_type(REC_FURI)}}), true);
+      // ROUTER_WRITE(id_p(id), Obj::to_rec({{"allow", Obj::to_type(REC_FURI)}}), true);
       InstBuilder::build(ID(id.extend("create")))
           ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->domain_range(OBJ_FURI, id_p(id))

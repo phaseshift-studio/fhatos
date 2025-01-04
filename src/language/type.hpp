@@ -93,21 +93,21 @@ namespace fhatos {
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
           return true;
-        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-        if(obj->tid()->equals(*type_id))
+        // if the type is a base type and the base types match, then type check passes
+        if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
           return true;
+        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+        //if(obj->tid()->equals(*type_id))
+        //  return true;
         // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
         if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
           return true;
         if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
           return true;
-        // if the type is a base type and the base types match, then type check passes
-        if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
-          return true;
         // get the type definition and match it to the obj
         if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
-         // if(type->is_type() && !obj->apply(type)->is_noobj())
-         //   return true;
+          // if(type->is_type() && !obj->apply(type)->is_noobj())
+          //   return true;
           if(obj->match(type, false))
             return true;
           if(throw_on_fail) {
@@ -122,29 +122,6 @@ namespace fhatos {
           throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
         return false;
-      };
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
-        if(obj->otype_ == OType::TYPE)
-          return obj;
-        const ID_p resolved_type_id = id_p(*ROUTER_RESOLVE(fURI(*type_id)));
-        const Obj_p type_def = ROUTER_READ(type_id);
-        if(type_def->is_noobj()) {
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
-                       type_id->toString().c_str());
-        }
-        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping ??
-        const Obj_p proto_obj = type_id->equals(*OTYPE_FURI.at(obj->o_type())) || (
-                                  !type_def->is_bcode() && !type_def->is_inst())
-                                  ? obj
-                                  : type_def->apply(obj);
-        if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI) && !resolved_type_id->equals(*OBJ_FURI))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!",
-                       Typer::singleton()->vid()->toString().c_str(),
-                       obj->toString().c_str(),
-                       resolved_type_id->toString().c_str());
-        return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -151,7 +151,7 @@ namespace fhatos {
         string to_out;
         this->print_result(obj->is_bcode() ? BCODE_PROCESSOR(obj) : obj, 0, &to_out);
         this->write_stdout(str(to_out));
-      } catch(const std::exception &e) {
+      } catch(std::exception &e) {
         this->print_exception(e);
       }
     }
@@ -164,41 +164,47 @@ namespace fhatos {
           ->itype_and_seed(IType::ZERO_TO_ZERO)
           ->inst_f([this](
           const Obj_p &, const InstArgs &) -> Obj_p {
-              if(this->first) {
-                this->first = false;
-                this->delay(500);
-              }
-              if(FOS_IS_DOC_BUILD)
-                return noobj();
-              if(this->new_input_)
-                this->print_prompt(!this->line_.empty());
-              this->new_input_ = false;
-              //// READ CHAR INPUT ONE-BY-ONE
-              int x;
-              if((x = this->tracker_.track(
-                    this->read_stdin()->int_value())) ==
-                 EOF)
-                return noobj();
-              if('\n' == static_cast<char>(x)) {
+              try {
+                if(this->first) {
+                  this->first = false;
+                  this->delay(500);
+                }
+                if(FOS_IS_DOC_BUILD)
+                  return noobj();
+                if(this->new_input_)
+                  this->print_prompt(!this->line_.empty());
+                this->new_input_ = false;
+                //// READ CHAR INPUT ONE-BY-ONE
+                int x;
+                if((x = this->tracker_.track(
+                      this->read_stdin()->int_value())) ==
+                   EOF)
+                  return noobj();
+                if('\n' == static_cast<char>(x)) {
+                  this->new_input_ = true;
+                  this->line_ += static_cast<char>(x);
+                } else {
+                  this->line_ += static_cast<char>(x);
+                  return noobj();
+                }
+                StringHelper::trim(this->line_);
+                if(this->line_.empty() ||
+                   this->line_[this->line_.length() - 1] ==
+                   ';' ||
+                   // specific to end-step and imperative simulation
+                   !this->tracker_.closed()) {
+                  ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                  return noobj();
+                }
+                this->tracker_.clear();
+                StringHelper::trim(this->line_);
+                this->process_line(this->line_);
+                this->line_.clear();
+              } catch(std::exception &e) {
+                this->print_exception(e);
+                this->line_.clear();
                 this->new_input_ = true;
-                this->line_ += static_cast<char>(x);
-              } else {
-                this->line_ += static_cast<char>(x);
-                return noobj();
               }
-              StringHelper::trim(this->line_);
-              if(this->line_.empty() ||
-                 this->line_[this->line_.length() - 1] ==
-                 ';' ||
-                 // specific to end-step and imperative simulation
-                 !this->tracker_.closed()) {
-                ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                return noobj();
-              }
-              this->tracker_.clear();
-              StringHelper::trim(this->line_);
-              this->process_line(this->line_);
-              this->line_.clear();
               return noobj();
             })
           ->create()},
