@@ -39,8 +39,7 @@ namespace fhatos {
   protected:
     const ID_p namespace_prefix_;
     // List<fURI> prefixes = List<fURI>();
-
-    MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
+    const unique_ptr<MutexDeque<Structure_p>> structures_ = make_unique<MutexDeque<Structure_p>>();
 
   protected:
     explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) : Rec(rmap({
@@ -149,7 +148,7 @@ namespace fhatos {
     }
 
     void loop() {
-      if(!this->structures_.remove_if([this](const Structure_p &structure) {
+      if(!this->structures_->remove_if([this](const Structure_p &structure) {
           const bool online = structure->available();
           if(online)
             structure->loop();
@@ -165,7 +164,7 @@ namespace fhatos {
 
     void stop() {
       auto map = make_shared<Map<string, int>>();
-      this->structures_.forEach([map](const Structure_p &structure) {
+      this->structures_->forEach([map](const Structure_p &structure) {
         const string name = structure->tid()->name();
         int count = map->count(name) ? map->at(name) : 0;
         count++;
@@ -176,7 +175,7 @@ namespace fhatos {
       for(const auto &[name, count]: *map) {
         LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
       }
-      this->structures_.forEach([](const Structure_p &structure) { structure->stop(); });
+      this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
       LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
@@ -185,7 +184,7 @@ namespace fhatos {
         LOG_KERNEL_OBJ(INFO, this, "!b%s !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                        structure->tid()->name().c_str());
       } else {
-        this->structures_.forEach([structure, this](const Structure_p &s) {
+        this->structures_->forEach([structure, this](const Structure_p &s) {
           if(structure->pattern()->bimatches(*s->pattern())) {
             // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
             throw fError(ROUTER_FURI_WRAP
@@ -194,7 +193,7 @@ namespace fhatos {
                          structure->pattern()->toString().c_str());
           }
         });
-        this->structures_.push_back(structure);
+        this->structures_->push_back(structure);
         structure->setup();
         if(structure->available()) {
           LOG_KERNEL_OBJ(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
@@ -202,7 +201,7 @@ namespace fhatos {
         } else {
           LOG_KERNEL_OBJ(ERROR, this, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
                          structure->tid()->name().c_str());
-          this->structures_.pop_back();
+          this->structures_->pop_back();
         }
       }
       this->save();
@@ -211,7 +210,7 @@ namespace fhatos {
 
     virtual void save() const override {
       const Lst_p strcs = Obj::to_lst();
-     // this->structures_.forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern())); });
+      this->structures_->forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern())); });
       this->rec_set("structure", strcs);
       Obj::save();
     }
@@ -251,7 +250,7 @@ namespace fhatos {
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {
       try {
-        this->structures_.forEach([this, subscriber, pattern](const Structure_p &structure) {
+        this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
           if(structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
             LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
                            subscriber->toString().c_str());
@@ -275,21 +274,20 @@ namespace fhatos {
 
     static void *import() {
       ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
-      ROUTER_WRITE(id_p(ROUTER_ID->extend("lib/heap")), make_shared<Heap<>>(Obj::to_rec({{"pattern", vri("#")}})),
-                   RETAIN);
-      ROUTER_WRITE(id_p("/sys/router/lib/mqtt"),
-                   make_shared<Mqtt>(Obj::to_rec({
-                     {"pattern", vri("#")},
-                     {"broker", vri("#")},
-                     {"client", vri("#")}})),
-                   RETAIN);
+      InstBuilder::build(ROUTER_ID->extend("detach"))
+          ->domain_range(URI_FURI, NOOBJ_FURI)
+          ->coefficients({1, 1}, {0, 0})
+          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+            Router::singleton()->get_structure(lhs->uri_value())->stop();
+            return noobj();
+          })->save();
       return nullptr;
     }
 
   private:
     [[nodiscard]] Structure_p get_structure(const Pattern &pattern, const bool throw_exception = true) {
       const Pattern temp = pattern.is_branch() ? Pattern(pattern.extend("+")) : pattern;
-      const List<Structure_p> list = this->structures_.find_all(
+      const List<Structure_p> list = this->structures_->find_all(
         [pattern, temp](const Structure_p &structure) {
           return pattern.matches(*structure->pattern()) || temp.matches(*structure->pattern());
         },

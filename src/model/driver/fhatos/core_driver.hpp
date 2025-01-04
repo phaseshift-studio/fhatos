@@ -34,19 +34,30 @@ namespace fhatos {
     static void *import() {
       Typer::singleton()->start_progress_bar(6);
       Typer::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
-                                     {"target", Obj::to_bcode()},
-                                     {"payload", Obj::to_bcode()},
-                                     {"retain", Obj::to_bcode()}}));
+                                      {"target", Obj::to_type(URI_FURI)},
+                                      {"payload", Obj::to_bcode()},
+                                      {"retain", Obj::to_type(BOOL_FURI)}}));
       Typer::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                                     {"source", Obj::to_bcode()},
-                                     {"pattern", Obj::to_bcode()},
-                                     {":on_recv", Obj::to_bcode()}}));
+                                      {"source", Obj::to_type(URI_FURI)},
+                                      {"pattern", Obj::to_type(URI_FURI)},
+                                      {":on_recv", Obj::to_bcode()}}));
       //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
-      Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
+      Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
+      InstBuilder::build("/fos/lib/heap/create")
+          ->type_args(x(0, "pattern"))
+          ->domain_range(OBJ_FURI, HEAP_FURI)
+          ->coefficients({0, 1}, {1, 1})
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            const Pattern pattern = args->arg(0)->uri_value();
+            const ptr<Heap<>> heap = Heap<>::create(pattern);
+            router()->attach(heap);
+            return heap;
+          })->save();
+
       Typer::singleton()->save_type(MQTT_FURI, Obj::to_rec({
-                                     {"pattern", Obj::to_bcode()},
-                                     {"broker", Obj::to_bcode()},
-                                     {"client", Obj::to_bcode()}}));
+                                      {"pattern", Obj::to_type(URI_FURI)},
+                                      {"broker", Obj::to_type(URI_FURI)},
+                                      {"client", Obj::to_type(URI_FURI)}}));
       Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));

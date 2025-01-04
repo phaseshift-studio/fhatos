@@ -1780,6 +1780,8 @@ namespace fhatos {
     }
 
     Obj_p apply(const Obj_p &lhs) const {
+      //if(lhs->is_noobj())
+       // return lhs;
       if(lhs->is_error())
         return lhs;
       //  if(!lhs->is_bcode() || !this->is_bcode()) {

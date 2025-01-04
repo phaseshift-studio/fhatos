@@ -62,15 +62,8 @@ namespace fhatos {
                                                                          nullptr), pattern_(p_p(pattern)) {
     }
 
-    explicit Structure(const Rec_p &structure_rec) : Obj(*structure_rec->clone()), //->rec_merge(rmap({{
-                                                     /*id_p(":detach"), Obj::to_bcode(
-                                                       [this](const Obj_p &) {
-                                                         this->stop();
-                                                         return noobj();
-                                                       }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-                                                   }}))),*/
-                                                     pattern_(p_p(
-                                                       structure_rec->rec_get(vri("pattern"))->uri_value())) {
+    explicit Structure(const Rec_p &structure_rec) : Obj(*structure_rec),
+                                                     pattern_(p_p(structure_rec->rec_get("pattern")->uri_value())) {
     }
 
     [[nodiscard]] Pattern_p pattern() const {

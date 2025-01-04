@@ -41,7 +41,7 @@ namespace fhatos {
     explicit Heap(const Rec_p &structure_rec) : Structure(structure_rec) {
     }
 
-    static unique_ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
+    static unique_ptr<Heap> create(const Pattern &pattern) {
       unique_ptr<Heap> heap = make_unique<Heap>(Obj::to_rec({{"pattern", vri(pattern)}}, HEAP_FURI));
       return heap;
     }
