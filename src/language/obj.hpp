@@ -251,13 +251,15 @@ namespace fhatos {
 
   inline bool operator&(IType a, IType b) {
     // Implement bitwise OR logic
-    return (bool) (IType) (static_cast<std::underlying_type_t<IType>>(a) & static_cast<std::underlying_type_t<IType>>(
-                             b));
+    return static_cast<bool>(static_cast<IType>(static_cast<std::underlying_type_t<IType>>(a) &
+                                                static_cast<std::underlying_type_t<IType>>(b)));
   }
 
   inline IType operator|(IType a, IType b) {
     // Implement bitwise OR logic
-    return (IType) (static_cast<std::underlying_type_t<IType>>(a) | static_cast<std::underlying_type_t<IType>>(b));
+    return static_cast<IType>(
+      static_cast<std::underlying_type_t<IType>>(a) |
+      static_cast<std::underlying_type_t<IType>>(b));
   }
 
 
@@ -384,6 +386,7 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstF_p, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
+  using Coefficient = Pair<int, int>;
   static const auto MMADT_ID = make_shared<ID>(MMADT_SCHEME);
   static const auto OBJ_FURI = make_shared<ID>(MMADT_SCHEME "/obj");
   static const auto NOOBJ_FURI = make_shared<ID>(MMADT_SCHEME "/noobj");
@@ -1050,12 +1053,18 @@ namespace fhatos {
                     : OBJ_FURI);
     }
 
-    [[nodiscard]] Cardinality domain_coefficient() const {
-      return Cardinalities.to_enum(ITypeDomains.to_chars(itype()));
+
+    // type?dom=xxx,dc_min=1,dc_max=2,rng=yyy,rc
+    [[nodiscard]] Coefficient domain_coefficient() const {
+      int min = std::stoi(this->tid_->query_value(FOS_DC_MIN).value_or("1"));
+      int max = std::stoi(this->tid_->query_value(FOS_DC_MAX).value_or("1"));
+      return {min, max};
     }
 
-    [[nodiscard]] Cardinality range_coefficient() const {
-      return Cardinalities.to_enum(ITypeRanges.to_chars(itype()));
+    [[nodiscard]] Coefficient range_coefficient() const {
+      int min = std::stoi(this->tid_->query_value(FOS_RC_MIN).value_or("1"));
+      int max = std::stoi(this->tid_->query_value(FOS_RC_MAX).value_or("1"));
+      return {min, max};
     }
 
     [[nodiscard]] ID_p range() const {
@@ -1065,7 +1074,7 @@ namespace fhatos {
                    ? (this->is_bcode() && !this->bcode_value()->empty()
                         ? this->bcode_value()->back()->range()
                         : OBJ_FURI)
-                   : this->tid_;
+                   : id_p(this->tid_->no_query());
     }
 
     [[nodiscard]] Obj_p type() const {
@@ -1074,22 +1083,34 @@ namespace fhatos {
 
 
     [[nodiscard]] IType itype() const {
-      if(this->tid_->has_query(FOS_F)) {
-        const auto dom_rng = this->tid_->query_values(FOS_F);
-        const string itype_str = string(dom_rng[0]).append("->").append(dom_rng[1]);
-        return ITypeSignatures.to_enum(itype_str);
-      }
       if(this->is_inst())
         return std::get<2>(this->inst_value());
-      /*if(this->is_bcode()) {
-        const IType domain = this->bcode_value()->front()->itype();
-        const IType range = this->bcode_value()->back()->itype();
-        const string itype_str = ITypeDomains.to_chars(domain).append("->").append(ITypeRanges.to_chars(range));
-        return ITypeSignatures.to_enum(itype_str);
-      }*/
       if(this->is_objs())
         return IType::ONE_TO_MANY;
-      return IType::ONE_TO_ONE;
+      const int dc_min = std::stoi(tid_->query_value(FOS_DC_MIN).value_or("1"));
+      const int dc_max = std::stoi(tid_->query_value(FOS_DC_MAX).value_or("1"));
+      const int rc_min = std::stoi(tid_->query_value(FOS_RC_MIN).value_or("1"));
+      const int rc_max = std::stoi(tid_->query_value(FOS_RC_MAX).value_or("1"));
+      auto dom_card = Cardinality::ONE;
+      auto rng_card = Cardinality::ONE;
+      if(0 == dc_min && 0 == dc_max)
+        dom_card = Cardinality::ZERO;
+      if(1 == dc_min && 1 == dc_max)
+        dom_card = Cardinality::ONE;
+      if(0 == dc_min && dc_max != 0)
+        dom_card = Cardinality::MAYBE;
+      if(dc_min > 1 || dc_max > 1 || dc_min == -1 || dc_max == -1)
+        dom_card = Cardinality::MANY;
+      if(0 == rc_min && 0 == rc_max)
+        rng_card = Cardinality::ZERO;
+      if(1 == rc_min && 1 == rc_max)
+        rng_card = Cardinality::ONE;
+      if(0 == rc_min && rc_max != 0)
+        rng_card = Cardinality::MAYBE;
+      if(rc_min > 1 || rc_max > 1 || rc_min == -1 || rc_max == -1)
+        rng_card = Cardinality::MANY;
+      const IType itype = to_itype(dom_card, rng_card);
+      return itype;
     }
 
     bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
@@ -1194,6 +1215,14 @@ namespace fhatos {
         throw fError("only objs with a value id can have properties and insts");
       //if(inst->is_code())
       ROUTER_WRITE(id_p(this->vid_->append(relative_id)), inst, true);
+      return this->shared_from_this();
+    }
+
+    Obj_p this_add_inst(const ID &relative_id, const Obj_p &inst, const bool at_type = true) const {
+      if(!at_type && !this->vid_)
+        throw fError("only objs with a value id can have properties and insts");
+      //if(inst->is_code())
+      ROUTER_WRITE(id_p(this->vid_->add_component(relative_id)), inst, true);
       return this->shared_from_this();
     }
 
@@ -1435,10 +1464,18 @@ namespace fhatos {
             !this->domain()->equals(*OBJ_FURI) ||
             !this->range()->equals(*OBJ_FURI))) {
           typing = typing.append("!m?!!")
-              .append("!c").append(this->range()->name()).append("!m{!c").append(ITypeRanges.to_chars(this->itype())).
-              append("!m}!!")
+              .append("!c").append(obj_printer->strict ? this->range()->toString() : this->range()->name()).
+              append("!m{!c")
+              .append(to_string(this->range_coefficient().first))
+              .append(",")
+              .append(to_string(this->range_coefficient().second))
+              .append("!m}!!")
               .append("!m<=!!")
-              .append("!c").append(this->domain()->name()).append("!m{!c").append(ITypeDomains.to_chars(this->itype()))
+              .append("!c").append(obj_printer->strict ? this->domain()->toString() : this->domain()->name()).
+              append("!m{!c")
+              .append(to_string(this->domain_coefficient().first))
+              .append(",")
+              .append(to_string(this->domain_coefficient().second))
               .append("!m}!!");
         }
         if(this->is_type())
@@ -2209,13 +2246,44 @@ namespace fhatos {
       const unique_ptr<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>> internal =
           make_unique<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>>();
 
-      void add(const Obj_p &obj) const {
+      void push_back(const Obj_p &obj, const long bulk = 1) const {
+        this->add(obj, bulk);
+      }
+
+      void add(const Obj_p &obj, const long bulk = 1) const {
         if(this->internal->count(obj)) {
-          const long bulk = this->internal->at(obj);
-          this->internal->insert({obj, bulk + 1});
+          const long prev_bulk = this->internal->at(obj);
+          this->internal->insert_or_assign(obj, prev_bulk + bulk);
         } else {
-          this->internal->insert({obj, 1});
+          this->internal->insert_or_assign(obj, bulk);
         }
+      }
+
+      [[nodiscard]] Obj_p next() const {
+        if(this->internal->empty())
+          return Obj::to_noobj();
+        auto [obj, bulk] = this->internal->front();
+        if(bulk < 2)
+          this->internal->erase(obj);
+        else
+          this->internal->insert_or_assign(obj, bulk - 1);
+        return obj->clone();
+      }
+
+      [[nodiscard]] long bulk_size() const {
+        long bulk_total = 0;
+        for(const auto &[obj,bulk]: *this->internal) {
+          bulk_total += bulk;
+        }
+        return bulk_total;
+      }
+
+      [[nodiscard]] unsigned long size() const {
+        return this->internal->size();
+      }
+
+      [[nodiscard]] bool empty() const {
+        return this->internal->empty();
       }
     };
 

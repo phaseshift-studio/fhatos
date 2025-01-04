@@ -133,8 +133,8 @@ namespace fhatos {
       // ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
       scheduler
           ///// INSTRUCTIONS
-          ->this_add("/:spawn",
-                     InstBuilder::build(*INST_FURI)
+          ->this_add("/spawn",
+                     InstBuilder::build(scheduler->vid()->add_component("spawn"))
                      ->type_args(x(0, "thread", ___))
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
                        const Obj_p &proc = args->arg(0);
@@ -146,8 +146,8 @@ namespace fhatos {
                      })
                      // ->doc("spawn a parallel thread of execution")
                      ->create())
-          ->this_add("/:stop",
-                     InstBuilder::build(*INST_FURI)
+          ->this_add("/stop",
+                     InstBuilder::build("stop")
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
                        scheduler->stop();
                        return noobj();
@@ -156,16 +156,7 @@ namespace fhatos {
                      ->create())
           ///// OBJECTS
           ->this_add("/lib/process", Obj::to_rec())
-          ->this_add("/lib/thread",
-                     Obj::to_rec())
-          /*->this_add("::stop",
-                     InstBuilder::build(*INST_FURI)
-                     ->inst_f([](const Obj_p &, const InstArgs &args) {
-                       static_cast<Thread *>(args->arg(0).get())->stop();
-                       return _noobj_;
-                     })
-                     ->itype_and_seed(IType::ONE_TO_ZERO)
-                     ->create()))*/
+          ->this_add("/lib/thread", Obj::to_rec())
           ->save();
       return nullptr;
     }

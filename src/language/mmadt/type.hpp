@@ -540,8 +540,9 @@ namespace mmadt {
             rec->rec_set("op", str(args->arg(0)->inst_op().c_str()));
             rec->rec_set("args", args->arg(0)->inst_args());
             rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
-            rec->rec_set("domain", vri(*args->arg(0)->domain()));
-            rec->rec_set("range", vri(*args->arg(0)->range()));
+            rec->rec_set(FOS_DOMAIN, vri(*args->arg(0)->domain()));
+            // TODO: coefficients as lsts
+            rec->rec_set(FOS_RANGE, vri(*args->arg(0)->range()));
             //if(args->arg(0)->inst_f()->pure)
             //  rec->rec_set("body", args->arg(0)->inst_f()->obj_f());
             return rec;
@@ -610,10 +611,9 @@ namespace mmadt {
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
                   return jnt(lhs->int_value() + args->arg(0)->int_value(), lhs->tid(), lhs->vid());
-                else if(strcmp(op, "mult") == 0)
+                if(strcmp(op, "mult") == 0)
                   return jnt(lhs->int_value() * args->arg(0)->int_value(), lhs->tid(), lhs->vid());
-                else
-                  throw fError("unknown op %s\n", op);
+                throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -624,10 +624,9 @@ namespace mmadt {
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
                   return jnt(lhs->real_value() + args->arg(0)->real_value(), lhs->tid(), lhs->vid());
-                else if(strcmp(op, "mult") == 0)
+                if(strcmp(op, "mult") == 0)
                   return jnt(lhs->real_value() * args->arg(0)->real_value(), lhs->tid(), lhs->vid());
-                else
-                  throw fError("unknown op %s\n", op);
+                throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -638,15 +637,15 @@ namespace mmadt {
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
                   return str(lhs->str_value().append(args->arg(0)->str_value()), lhs->tid()); // , lhs->vid()
-                else if(strcmp(op, "mult") == 0) {
+                if(strcmp(op, "mult") == 0) {
                   string temp;
                   for(const char c: lhs->str_value()) {
                     temp += c;
                     temp.append(args->arg(0)->str_value());
                   }
                   return str(temp, lhs->tid()); // , lhs->vid()
-                } else
-                  throw fError("unknown op %s\n", op);
+                }
+                throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -657,10 +656,9 @@ namespace mmadt {
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
                   return dool(lhs->bool_value() || args->arg(0)->bool_value(), lhs->tid(), lhs->vid());
-                else if(strcmp(op, "mult") == 0)
+                if(strcmp(op, "mult") == 0)
                   return dool(lhs->bool_value() && args->arg(0)->bool_value(), lhs->tid(), lhs->vid());
-                else
-                  throw fError("unknown op %s\n", op);
+                throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -671,10 +669,9 @@ namespace mmadt {
               [op](const Obj_p &lhs, const InstArgs &args) {
                 if(strcmp(op, "plus") == 0)
                   return vri(lhs->uri_value().extend(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
-                else if(strcmp(op, "mult") == 0)
+                if(strcmp(op, "mult") == 0)
                   return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
-                else
-                  throw fError("unknown op %s\n", op);
+                throw fError("unknown op %s\n", op);
               })
             ->save();
 
@@ -692,7 +689,8 @@ namespace mmadt {
                     new_v->push_back(v);
                   }
                   return Obj::to_lst(new_v, LST_FURI);
-                } else if(strcmp(op, "mult") == 0) {
+                }
+                if(strcmp(op, "mult") == 0) {
                   const Obj::LstList_p lhs_v = lhs->lst_value();
                   const Obj::LstList_p rhs_v = args->arg(0)->lst_value();
                   const auto new_v = make_shared<Obj::LstList>();
@@ -706,8 +704,8 @@ namespace mmadt {
                     }
                   }
                   return Obj::to_lst(new_v, lhs->tid(), lhs->vid());
-                } else
-                  throw fError("unknown op %s\n", op);
+                }
+                throw fError("unknown op %s\n", op);
               })
             ->save();
       }

@@ -487,6 +487,10 @@ namespace fhatos {
       return false;
     }
 
+    [[nodiscard]] fURI add_component(const fURI component) const {
+      return this->extend("::").extend(component);
+    }
+
     [[nodiscard]] List<string> components() const {
       List<string> comps = {""};
       for(uint8_t i = 0; i < this->path_length_; i++) {

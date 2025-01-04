@@ -37,11 +37,11 @@ namespace fhatos {
 
   protected:
     BCode_p bcode_;
-    //  unique_ptr<MonadSet> running_ = make_unique<MonadSet>();
+    //unique_ptr<MonadSet> running_ = make_unique<MonadSet>();
     unique_ptr<Deque<Monad_p>> running_ = make_unique<Deque<Monad_p>>();
     unique_ptr<Deque<Monad_p>> barriers_ = make_unique<Deque<Monad_p>>();
     unique_ptr<Deque<Obj_p>> halted_ = make_unique<Deque<Obj_p>>();
-    //unique_ptr<MonadSet> halted_ = make_unique<MonadSet>();
+    //unique_ptr<ObjsSet> halted_ = make_unique<ObjsSet>();
 
     explicit Processor(const BCode_p &bcode) : Obj(Any(), OType::OBJ, REC_FURI,
                                                    id_p(to_string(rand()).insert(0, "/sys/processor/").c_str())),
@@ -61,18 +61,22 @@ namespace fhatos {
         Log::LOGGER(DEBUG, this, FOS_TAB_2 "loading %s\n", this->bcode_->toString().c_str());
         bool first = true;
         for(const Inst_p &inst: *this->bcode_->bcode_value()) {
-          const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
-          const Obj_p seed_copy = resolved->inst_seed(resolved);
-          if(is_gather(resolved->itype())) {
-            // MANY_TO_??
-            const Monad_p m = M(seed_copy, inst);
-            this->barriers_->push_back(m);
-            Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
-          } else if(is_initial(resolved->itype()) || (first && is_maybe_initial(resolved->itype()))) {
-            // ZERO/MAYBE*-TO_??
-            const Monad_p m = M(noobj(), inst); // TODO: use seed
-            this->running_->push_back(m);
-            Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ginitial!! monad created: %s\n", m->toString().c_str());
+          try {
+            const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
+            const Obj_p seed_copy = resolved->inst_seed(resolved);
+            if(is_gather(resolved->itype())) {
+              // MANY_TO_??
+              const Monad_p m = M(seed_copy, inst);
+              this->barriers_->push_back(m);
+              Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
+            } else if(is_initial(resolved->itype()) || (first && is_maybe_initial(resolved->itype()))) {
+              // ZERO/MAYBE*-TO_??
+              const Monad_p m = M(noobj(), inst); // TODO: use seed
+              this->running_->push_back(m);
+              Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ginitial!! monad created: %s\n", m->toString().c_str());
+            }
+          } catch(const fError &e) {
+            // throw e;
           }
           first = false;
         }
@@ -90,8 +94,8 @@ namespace fhatos {
       return this->vid_;
     }
 
-    [[nodiscard]] Monad_p M(const Obj_p &obj, const Inst_p &inst) const {
-      return make_shared<Monad>(this, obj, inst);
+    [[nodiscard]] Monad_p M(const Obj_p &obj, const Inst_p &inst, const long bulk = 1l) const {
+      return make_shared<Monad>(this, obj, inst, bulk);
     }
 
 
@@ -123,7 +127,7 @@ namespace fhatos {
       return objs;
     }
 
-    int execute(const int steps = -1) const {
+    void execute(const int steps = -1) const {
       uint16_t counter = 0;
       while((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
         if(!this->running_->empty()) {
@@ -140,7 +144,6 @@ namespace fhatos {
       Log::LOGGER(TRACE, this, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n",
                   this->running_->size(),
                   this->halted_->size(), this->bcode_->toString().c_str());
-      return this->halted_->size();
     }
 
   public:
@@ -185,10 +188,12 @@ namespace fhatos {
 
       Monad() = delete;
 
-      explicit Monad(const Processor *processor, const Obj_p &obj, const Inst_p &inst) : Pair<Obj_p, Inst_p>(obj, inst),
-        processor_(processor),
-        obj(obj),
-        inst(inst) {
+      explicit Monad(const Processor *processor, const Obj_p &obj, const Inst_p &inst,
+                     const long bulk = 1l) : Pair<Obj_p, Inst_p>(obj, inst),
+                                             processor_(processor),
+                                             obj(obj),
+                                             inst(inst),
+                                             bulk(bulk) {
       };
 
       void loop() const {
@@ -318,32 +323,40 @@ namespace fhatos {
     public:
       const unique_ptr<Set<Monad_p, TransparentCompare>> internal = make_unique<Set<Monad_p, TransparentCompare>>();
 
-      bool empty() const {
+      [[nodiscard]] bool empty() const {
         return this->internal->empty();
       }
 
-      long bulk_of(const Pair_p<Obj_p, Inst_p> &monad) const {
+      [[nodiscard]] long bulk_of(const Pair_p<Obj_p, Inst_p> &monad) const {
         if(const auto it = this->internal->find(make_shared<Monad>(nullptr, monad->first, monad->second));
           it != this->internal->end()) {
           return (*it)->bulk;
         }
-        return 0;
+        return 0l;
       }
 
-      size_t size() const {
+      [[nodiscard]] unsigned long size() const {
         return this->internal->size();
       }
 
-      size_t bulk_size() const {
-        return this->internal->size();
+      [[nodiscard]] unsigned long bulk_size() const {
+        unsigned long bulk_total = 0;
+        for(const auto &o: *this->internal) {
+          bulk_total += o->bulk;
+        }
+        return bulk_total;
       }
 
-      Monad_p front() const {
-        return *this->internal->begin();
+      [[nodiscard]] Monad_p next() const {
+        return std::move(this->internal->extract(this->internal->begin()).value());
+      }
+
+      [[nodiscard]] Monad_p front() const {
+        return std::move(*this->internal->begin());
       }
 
       void pop_front() const {
-        this->internal->extract(this->internal->begin());
+        this->internal->erase(this->internal->begin());
         //auto node =
         // return move(node.value());
       }

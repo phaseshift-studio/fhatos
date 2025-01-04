@@ -247,9 +247,12 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
-#define FOS_DOMAIN "domain"
-#define FOS_RANGE "range"
-#define FOS_F "f"
+#define FOS_DOMAIN "dom"
+#define FOS_DC_MIN "dmin"
+#define FOS_DC_MAX "dmax"
+#define FOS_RANGE "rng"
+#define FOS_RC_MIN "rmin"
+#define FOS_RC_MAX "rmax"
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

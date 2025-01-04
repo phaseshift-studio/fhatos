@@ -58,8 +58,23 @@ namespace fhatos {
 
     InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr) {
       this->type_ = id_p(this->type_->query({
-        {"domain", domain->toString()},
-        {"range", nullptr == range ? domain->toString() : range->toString()}}));
+        {FOS_DOMAIN, domain->toString()},
+        {FOS_DC_MIN, this->type_->query_value(FOS_DC_MIN).value_or("1")},
+        {FOS_DC_MAX, this->type_->query_value(FOS_DC_MAX).value_or("1")},
+        {FOS_RANGE, nullptr == range ? domain->toString() : range->toString()},
+        {FOS_RC_MIN, this->type_->query_value(FOS_RC_MIN).value_or("1")},
+        {FOS_RC_MAX, this->type_->query_value(FOS_RC_MAX).value_or("1")}}));
+      return this;
+    }
+
+    InstBuilder *coefficients(const Coefficient &domain_coefficient, const Coefficient &range_coefficient) {
+      this->type_ = id_p(this->type_->query({
+        {FOS_DOMAIN, this->type_->query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())},
+        {FOS_DC_MIN, to_string(domain_coefficient.first)},
+        {FOS_DC_MAX, to_string(domain_coefficient.second)},
+        {FOS_RANGE, this->type_->query_value(FOS_RANGE).value_or(OBJ_FURI->toString())},
+        {FOS_RC_MIN, to_string(range_coefficient.first)},
+        {FOS_RC_MAX, to_string(range_coefficient.second)}}));
       return this;
     }
 
@@ -97,7 +112,7 @@ namespace fhatos {
 
     void save(const Obj_p &root = nullptr) const {
       const Inst_p inst = this->create(nullptr, root);
-      TYPE_SAVER(id_p(inst->vid_or_tid()->query("")), inst);
+      TYPE_SAVER(id_p(inst->vid_or_tid()->no_query()), inst);
     }
 
     [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {

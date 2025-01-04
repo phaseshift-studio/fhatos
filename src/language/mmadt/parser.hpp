@@ -222,16 +222,15 @@ namespace mmadt {
       };
 
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
-        const auto [rf, rc] = any_cast<Pair<fURI_p, Cardinality>>(vs[1]);
-        const auto [df, dc] = any_cast<Pair<fURI_p, Cardinality>>(vs[2]);
-        const string card_str = Cardinalities.to_chars(rc).append(",").append(Cardinalities.to_chars(dc));
+        const auto [rf, rc] = any_cast<Pair<fURI_p, Coefficient>>(vs[1]);
+        const auto [df, dc] = any_cast<Pair<fURI_p, Coefficient>>(vs[2]);
         const fURI_p dom_rng = furi_p(any_cast<fURI_p>(vs[0])->query({
           {FOS_DOMAIN, ROUTER_RESOLVE(*df)->toString()},
-          {FOS_F,
-            Cardinalities.to_chars(dc)
-            .append(",")
-            .append(Cardinalities.to_chars(rc))},
-          {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()}}));
+          {FOS_DC_MIN, to_string(dc.first)},
+          {FOS_DC_MAX, to_string(dc.second)},
+          {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()},
+          {FOS_RC_MIN, to_string(rc.first)},
+          {FOS_RC_MAX, to_string(rc.second)}}));
         return dom_rng;
       };
 
@@ -239,11 +238,11 @@ namespace mmadt {
         return Obj::to_bcode();
       };
 
-      static auto coefficient_action = [](const SemanticValues &vs) -> Cardinality {
+      static auto coefficient_action = [](const SemanticValues &vs) -> Coefficient {
         int left;
         int right;
         // -1 means "or more"
-        string card_chr = vs.token_to_string();
+        const string card_chr = vs.token_to_string();
         StringHelper::trim(card_chr);
         if(card_chr.empty()) {
           left = 1;
@@ -272,15 +271,16 @@ namespace mmadt {
             right = components[1];
           }
         }
-        if(0 == left && 0 == right)
+        /*if(0 == left && 0 == right)
           return Cardinality::ZERO;
         if(1 == left && 1 == right)
           return Cardinality::ONE;
         if(0 == left && right != 0)
           return Cardinality::MAYBE;
         if(left > 1 || right > 1 || left == -1 || right == -1)
-          return Cardinality::MANY;
-        throw fError("unknown cardinality %i %s", left, card_chr.c_str());
+          return Cardinality::MANY;*/
+        return {left, right};
+        //throw fError("unknown cardinality %i %s", left, card_chr.c_str());
       };
 
 
@@ -301,14 +301,29 @@ namespace mmadt {
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
 
-            IType itype;
-            if(type_id->has_query(FOS_F)) {
-              const List<string> f = type_id->query_values(FOS_F);
-              const string itype_str = string(f.at(0)).append("->").append(f.at(1));
-              itype = ITypeSignatures.to_enum(itype_str);
-            } else {
-              itype = IType::ONE_TO_ONE;
-            }
+            const int dc_min = stoi(type_id->query_value(FOS_DC_MIN).value_or("1"));
+            const int dc_max = stoi(type_id->query_value(FOS_DC_MAX).value_or("1"));
+            const int rc_min = stoi(type_id->query_value(FOS_RC_MIN).value_or("1"));
+            const int rc_max = stoi(type_id->query_value(FOS_RC_MAX).value_or("1"));
+            Cardinality dom_card = Cardinality::ONE;
+            Cardinality rng_card = Cardinality::ONE;
+            if(0 == dc_min && 0 == dc_max)
+              dom_card = Cardinality::ZERO;
+            if(1 == dc_min && 1 == dc_max)
+              dom_card = Cardinality::ONE;
+            if(0 == dc_min && dc_max != 0)
+              dom_card = Cardinality::MAYBE;
+            if(dc_min > 1 || dc_max > 1 || dc_min == -1 || dc_max == -1)
+              dom_card = Cardinality::MANY;
+            if(0 == rc_min && 0 == rc_max)
+              rng_card = Cardinality::ZERO;
+            if(1 == rc_min && 1 == rc_max)
+              rng_card = Cardinality::ONE;
+            if(0 == rc_min && rc_max != 0)
+              rng_card = Cardinality::MAYBE;
+            if(rc_min > 1 || rc_max > 1 || rc_min == -1 || rc_max == -1)
+              rng_card = Cardinality::MANY;
+            const IType itype = to_itype(dom_card, rng_card);
             const Obj_p seed = is_gather(itype) ? Objs::to_objs() : Obj::to_noobj();
             return Obj::to_inst(InstValue(args, make_shared<InstF>(body), itype, seed),
                                 type_id, value_id);
@@ -438,10 +453,10 @@ namespace mmadt {
       COEFFICIENT <= tok(cho(cls("?*+"), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
       //zoo,zom,oom
       SET <= seq(FURI_NO_Q, opt(seq(lit("{"), COEFFICIENT, lit("}")))),
-          [](const SemanticValues &vs) -> Pair<fURI_p, Cardinality> {
+          [](const SemanticValues &vs) -> Pair<fURI_p, Coefficient> {
             const auto furi = any_cast<fURI_p>(vs[0]);
-            const auto cardinality = 1 == vs.size() ? Cardinality::ONE : any_cast<Cardinality>(vs[1]);
-            return {furi, cardinality};
+            const auto coefficient = 1 == vs.size() ? Coefficient(1, 1) : any_cast<Coefficient>(vs[1]);
+            return {furi, coefficient};
           };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       START.name = "start";
@@ -535,7 +550,7 @@ namespace mmadt {
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
       START.whitespaceOpe = WS.get_core_operator();
       START.enablePackratParsing = true;
-      START.eoi_check = true;
+      START.eoi_check = false;
       /////////////////////////////////////////////////////////////////////////////////////
       OBJ_PARSER = [](const string &obj_string) {
         return Parser::singleton()->parse(obj_string);
