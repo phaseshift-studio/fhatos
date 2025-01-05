@@ -166,7 +166,7 @@ namespace fhatos {
     explicit Console(const ID &value_id, const Rec_p &config) : Thread(Obj::to_rec(rmap({
         {"loop", InstBuilder::build(
             value_id.extend(":loop"))
-          ->itype_and_seed(IType::ZERO_TO_ZERO)
+          ->domain_range(NOOBJ_FURI, {0, 0}, NOOBJ_FURI, {0, 0})
           ->inst_f([this](
           const Obj_p &, const InstArgs &) -> Obj_p {
               try {
@@ -215,8 +215,7 @@ namespace fhatos {
           ->create()},
         {":prompt", InstBuilder::build(
             value_id.extend(":prompt"))
-          ->domain_range(STR_FURI, NOOBJ_FURI)
-          ->itype_and_seed(IType::ONE_TO_ZERO)
+          ->domain_range(STR_FURI, {1,1}, NOOBJ_FURI, {0,0})
           ->type_args(
             x(0, "code", Obj::to_type(STR_FURI)))
           ->inst_f([this](

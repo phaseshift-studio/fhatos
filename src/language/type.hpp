@@ -197,7 +197,7 @@ namespace fhatos {
             LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
                 final_inst->toString().c_str(),
                 inst->toString().c_str(),
-                ITypeDescriptions.to_chars(final_inst->itype()).c_str());
+               "SIGNATURE HERE");
             const auto merged_args = Obj::to_inst_args();
             int counter = 0;
             for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
@@ -215,7 +215,6 @@ namespace fhatos {
               final_inst->inst_op(),
               merged_args,
               final_inst->inst_f(),
-              final_inst->itype(),
               final_inst->inst_seed_supplier(),
               final_inst->tid(),
               final_inst->vid());
@@ -228,7 +227,6 @@ namespace fhatos {
                 [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                   return x->apply(lhs, args);
                 })),
-              inst->itype(),
               inst->inst_seed_supplier(),
               inst->tid(), inst->vid());
           }

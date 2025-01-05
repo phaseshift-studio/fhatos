@@ -45,8 +45,7 @@ namespace fhatos {
       TYPE_SAVER(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
       InstBuilder::build("~")
           ->type_args(x(0, "bcode", ___))
-          ->coefficients({1, 1}, {1, 1})
-          ->domain_range(OBJ_FURI, THREAD_FURI)
+          ->domain_range(OBJ_FURI, {1,1}, THREAD_FURI,{1,1})
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             auto t = make_shared<Thread>(Obj::to_rec({{":loop", args->arg(0)}}));
             Scheduler::singleton()->spawn(t);
@@ -57,8 +56,7 @@ namespace fhatos {
       Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
       InstBuilder::build("/fos/lib/heap/create")
           ->type_args(x(0, "pattern"))
-          ->domain_range(OBJ_FURI, HEAP_FURI)
-          ->coefficients({0, 1}, {1, 1})
+          ->domain_range(OBJ_FURI,{0, 1}, HEAP_FURI,{1,1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Pattern pattern = args->arg(0)->uri_value();
             const ptr<Heap<>> heap = Heap<>::create(pattern);

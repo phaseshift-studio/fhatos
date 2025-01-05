@@ -372,15 +372,20 @@ void test_bool() {
 
 void test_inst() {
   const Inst_p i1 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
-                                           make_shared<InstF>(Obj::to_bcode()),
-                                           IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"));
+                                           make_shared<InstF>(Obj::to_bcode()) ,
+                                          noobj()),
+                                OType::INST,id_p("myinst"));
   const Inst_p i2 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
                                            make_shared<InstF>(make_shared<Cpp>([](const Obj_p& lhs, const InstArgs&) -> Obj_p {return lhs;})),
-                                           IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"));
+                                    	    noobj()),
+                                OType::INST,id_p("myinst"));
   FOS_TEST_OBJ_NOT_EQUAL(i1,i2);
   FOS_TEST_ASSERT_EQUAL_FURI(*i1->tid(),*i2->tid());
   FOS_TEST_OBJ_EQUAL(i1->inst_args(),i2->inst_args());
-  TEST_ASSERT_EQUAL(i1->itype(),i2->itype());
+  TEST_ASSERT_EQUAL_INT(i1->domain_coefficient().first,i2->domain_coefficient().first);
+    TEST_ASSERT_EQUAL_INT(i1->domain_coefficient().second,i2->domain_coefficient().second);
+      TEST_ASSERT_EQUAL_INT(i1->range_coefficient().first,i2->range_coefficient().first);
+        TEST_ASSERT_EQUAL_INT(i1->range_coefficient().second,i2->range_coefficient().second);
   TEST_ASSERT_NOT_EQUAL_INT(i1->toString(NO_ANSI_PRINTER).find("_"),string::npos);
   TEST_ASSERT_EQUAL_INT(i2->toString(NO_ANSI_PRINTER).find("_"),string::npos);
     is_a_testing(OType::INST,i1);

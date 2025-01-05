@@ -275,8 +275,7 @@ namespace fhatos {
     static void *import() {
       ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
       InstBuilder::build(ROUTER_ID->extend("detach"))
-          ->domain_range(URI_FURI, NOOBJ_FURI)
-          ->coefficients({1, 1}, {0, 0})
+          ->domain_range(URI_FURI,{1,1}, NOOBJ_FURI,{0,0})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             Router::singleton()->get_structure(lhs->uri_value())->stop();
             return noobj();

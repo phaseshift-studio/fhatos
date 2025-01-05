@@ -33,7 +33,6 @@ namespace fhatos {
     ID_p type_;
     InstArgs args_{Obj::to_inst_args()};
     InstF_p function_supplier_ = nullptr;
-    IType itype_{IType::ONE_TO_ONE};
     Obj_p seed_;
     string doc_{};
 
@@ -57,42 +56,21 @@ namespace fhatos {
     }
 
     InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr) {
+      return this->domain_range(domain, {1, 1}, range, {1, 1});
+    }
+
+    InstBuilder *domain_range(const ID_p &domain, const IntCoefficient &domain_coefficient, const ID_p &range,
+                              const IntCoefficient &range_coefficient) {
       this->type_ = id_p(this->type_->query({
         {FOS_DOMAIN, domain->toString()},
-        {FOS_DC_MIN, this->type_->query_value(FOS_DC_MIN).value_or("1")},
-        {FOS_DC_MAX, this->type_->query_value(FOS_DC_MAX).value_or("1")},
-        {FOS_RANGE, nullptr == range ? domain->toString() : range->toString()},
-        {FOS_RC_MIN, this->type_->query_value(FOS_RC_MIN).value_or("1")},
-        {FOS_RC_MAX, this->type_->query_value(FOS_RC_MAX).value_or("1")}}));
-      return this;
-    }
-
-    InstBuilder *coefficients(const Coefficient &domain_coefficient, const Coefficient &range_coefficient) {
-      this->type_ = id_p(this->type_->query({
-        {FOS_DOMAIN, this->type_->query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())},
         {FOS_DC_MIN, to_string(domain_coefficient.first)},
         {FOS_DC_MAX, to_string(domain_coefficient.second)},
-        {FOS_RANGE, this->type_->query_value(FOS_RANGE).value_or(OBJ_FURI->toString())},
+        {FOS_RANGE, range->toString()},
         {FOS_RC_MIN, to_string(range_coefficient.first)},
         {FOS_RC_MAX, to_string(range_coefficient.second)}}));
+      if(!this->seed_)
+        this->seed_ = domain_coefficient.second > 1 ? Obj::to_objs() : Obj::to_noobj();
       return this;
-    }
-
-    InstBuilder *itype_and_seed(const IType itype,
-                                const Obj_p &seed = nullptr) {
-      this->itype_ = itype;
-      if(seed)
-        this->seed_ = seed;
-      else {
-        this->seed_ = is_gather(this->itype_)
-                        ? Obj::to_objs()
-                        : _noobj_;
-      }
-      return this;
-    }
-
-    InstBuilder *itype_and_seed(const Cardinality domain, const uint8_t range_arg, const Obj_p &seed = nullptr) {
-      return this->itype_and_seed(to_itype(domain, itype_range(this->args_->arg(range_arg)->itype())), seed);
     }
 
     InstBuilder *doc(const string &documentation) {
@@ -123,8 +101,7 @@ namespace fhatos {
       const Inst_p inst = Inst::create(make_tuple(
                                          this->args_,
                                          this->function_supplier_,
-                                         static_cast<IType>(this->itype_),
-                                         this->seed_ ? this->seed_ : _noobj_),
+                                         this->seed_ ? this->seed_ : Obj::to_noobj()),
                                        OType::INST, this->type_,
                                        root ? id_p(root->vid()->extend(*value_id)) : value_id);
       // if(!this->doc_.empty())

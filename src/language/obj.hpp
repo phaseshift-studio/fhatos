@@ -139,254 +139,37 @@ namespace fhatos {
   using BObj = Pair<uint32_t, fbyte *>;
   using BObj_p = ptr<Pair<uint32_t, fbyte *>>;
 
-  enum class IType : uint16_t {
-    ZERO_TO_ZERO = (1 << 0),
-    ZERO_TO_ONE = (1 << 1),
-    ZERO_TO_MANY = (1 << 2),
-    ZERO_TO_MAYBE = (1 << 3),
-    ONE_TO_ZERO = (1 << 4),
-    ONE_TO_ONE = (1 << 5),
-    ONE_TO_MANY = (1 << 6),
-    ONE_TO_MAYBE = (1 << 7),
-    MANY_TO_ONE = (1 << 8),
-    MANY_TO_MANY = (1 << 9),
-    MANY_TO_MAYBE = (1 << 10),
-    MANY_TO_ZERO = (1 << 11),
-    MAYBE_TO_ONE = (1 << 12),
-    MAYBE_TO_MANY = (1 << 13),
-    MAYBE_TO_ZERO = (1 << 14),
-    MAYBE_TO_MAYBE = (1 << 15),
-  }; // TYPE
-
-  enum class Cardinality : unsigned char {
-    ZERO = '.',
-    ONE = 'o',
-    MANY = 'O',
-    MAYBE = '?'
-  };
-
-  inline auto Cardinalities = Enums<Cardinality>({
-    {Cardinality::ZERO, "."},
-    {Cardinality::ONE, "o"},
-    {Cardinality::MANY, "O"},
-    {Cardinality::MAYBE, "?"}});
-
-  inline Cardinality itype_domain(const IType itype) {
-    switch(itype) {
-      case IType::ZERO_TO_ZERO: return Cardinality::ZERO;
-      case IType::ONE_TO_ZERO: return Cardinality::ONE;
-      case IType::MANY_TO_ZERO: return Cardinality::MANY;
-      case IType::MAYBE_TO_ZERO: return Cardinality::MAYBE;
-      case IType::ZERO_TO_ONE: return Cardinality::ZERO;
-      case IType::ONE_TO_ONE: return Cardinality::ONE;
-      case IType::MANY_TO_ONE: return Cardinality::MANY;
-      case IType::MAYBE_TO_ONE: return Cardinality::MAYBE;
-      case IType::ZERO_TO_MANY: return Cardinality::ZERO;
-      case IType::ONE_TO_MANY: return Cardinality::ONE;
-      case IType::MANY_TO_MANY: return Cardinality::MANY;
-      case IType::MAYBE_TO_MANY: return Cardinality::MAYBE;
-      case IType::ZERO_TO_MAYBE: return Cardinality::ZERO;
-      case IType::ONE_TO_MAYBE: return Cardinality::ONE;
-      case IType::MANY_TO_MAYBE: return Cardinality::MANY;
-      case IType::MAYBE_TO_MAYBE: return Cardinality::MAYBE;
-      default: throw fError("unknown itype: %i", itype);
-    }
-  }
-
-  inline Cardinality itype_range(const IType itype) {
-    switch(itype) {
-      case IType::ZERO_TO_ZERO: return Cardinality::ZERO;
-      case IType::ONE_TO_ZERO: return Cardinality::ZERO;
-      case IType::MANY_TO_ZERO: return Cardinality::ZERO;
-      case IType::MAYBE_TO_ZERO: return Cardinality::ZERO;
-      case IType::ZERO_TO_ONE: return Cardinality::ONE;
-      case IType::ONE_TO_ONE: return Cardinality::ONE;
-      case IType::MANY_TO_ONE: return Cardinality::ONE;
-      case IType::MAYBE_TO_ONE: return Cardinality::ONE;
-      case IType::ZERO_TO_MANY: return Cardinality::MANY;
-      case IType::ONE_TO_MANY: return Cardinality::MANY;
-      case IType::MANY_TO_MANY: return Cardinality::MANY;
-      case IType::MAYBE_TO_MANY: return Cardinality::MANY;
-      case IType::ZERO_TO_MAYBE: return Cardinality::MAYBE;
-      case IType::ONE_TO_MAYBE: return Cardinality::MAYBE;
-      case IType::MANY_TO_MAYBE: return Cardinality::MAYBE;
-      case IType::MAYBE_TO_MAYBE: return Cardinality::MAYBE;
-      default: throw fError("unknown itype: %i", itype);
-    }
-  }
-
-  inline IType to_itype(const Cardinality domain, const Cardinality range) {
-    switch(domain) {
-      case Cardinality::ZERO: switch(range) {
-          case Cardinality::ZERO: return IType::ZERO_TO_ZERO;
-          case Cardinality::ONE: return IType::ZERO_TO_ONE;
-          case Cardinality::MANY: return IType::ZERO_TO_MANY;
-          case Cardinality::MAYBE: return IType::ZERO_TO_MAYBE;
-          default: throw fError("unknown cardinality: %i", range);
-        }
-      case Cardinality::ONE: switch(range) {
-          case Cardinality::ZERO: return IType::ONE_TO_ZERO;
-          case Cardinality::ONE: return IType::ONE_TO_ONE;
-          case Cardinality::MANY: return IType::ONE_TO_MANY;
-          case Cardinality::MAYBE: return IType::ONE_TO_MAYBE;
-          default: throw fError("unknown cardinality: %i", range);
-        }
-      case Cardinality::MANY: switch(range) {
-          case Cardinality::ZERO: return IType::MANY_TO_ZERO;
-          case Cardinality::ONE: return IType::MANY_TO_ONE;
-          case Cardinality::MANY: return IType::MANY_TO_MANY;
-          case Cardinality::MAYBE: return IType::MANY_TO_MAYBE;
-          default: throw fError("unknown cardinality: %i", range);
-        }
-      case Cardinality::MAYBE: switch(range) {
-          case Cardinality::ZERO: return IType::MAYBE_TO_ZERO;
-          case Cardinality::ONE: return IType::MAYBE_TO_ONE;
-          case Cardinality::MANY: return IType::MAYBE_TO_MANY;
-          case Cardinality::MAYBE: return IType::MAYBE_TO_MAYBE;
-          default: throw fError("unknown cardinality: %i", range);
-        }
-    }
-    throw fError("unknown cardinality: %i", domain);
-  }
-
-  inline bool operator&(IType a, IType b) {
-    // Implement bitwise OR logic
-    return static_cast<bool>(static_cast<IType>(static_cast<std::underlying_type_t<IType>>(a) &
-                                                static_cast<std::underlying_type_t<IType>>(b)));
-  }
-
-  inline IType operator|(IType a, IType b) {
-    // Implement bitwise OR logic
-    return static_cast<IType>(
-      static_cast<std::underlying_type_t<IType>>(a) |
-      static_cast<std::underlying_type_t<IType>>(b));
-  }
-
-
-  inline bool contains_itype(IType check, IType check_set) {
-    return (static_cast<uint8_t>(check) & static_cast<uint8_t>(check_set)) == static_cast<uint8_t>(check_set);
-  }
-
-  [[maybe_unused]] static bool is_initial(const IType itype) {
-    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO ||
-           itype == IType::ZERO_TO_MAYBE;
-  }
-
-  [[maybe_unused]] static bool is_maybe_initial(const IType itype) {
-    return itype == IType::MAYBE_TO_ONE || itype == IType::MAYBE_TO_MAYBE || itype == IType::MAYBE_TO_MANY ||
-           itype == IType::MAYBE_TO_ZERO;
-  }
-
-  [[maybe_unused]] static bool is_maybe_range(const IType itype) {
-    return itype == IType::ZERO_TO_MAYBE || itype == IType::ONE_TO_MAYBE || itype == IType::MANY_TO_MAYBE ||
-           itype == IType::MAYBE_TO_MAYBE;
-  }
-
-  [[maybe_unused]] static bool is_scatter(const IType itype) {
-    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY ||
-           itype == IType::MAYBE_TO_MANY;
-  }
-
-  [[maybe_unused]] static bool is_gather(const IType itype) {
-    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO ||
-           itype == IType::MANY_TO_MAYBE;
-  }
-
-  [[maybe_unused]] static bool is_terminal(const IType itype) {
-    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO ||
-           itype == IType::MAYBE_TO_ZERO;
-  }
-
-  [[maybe_unused]] static bool is_map(const IType itype) {
-    return itype == IType::ONE_TO_ONE || itype == IType::MAYBE_TO_ONE;
-  }
-
-  [[maybe_unused]] static bool is_filter(const IType itype) {
-    return itype == IType::ONE_TO_MAYBE || itype == IType::MAYBE_TO_MAYBE;
-  }
-
   static Consumer<BObj *> bobj_deleter = [](const BObj *bobj) {
     free(bobj->second);
     delete bobj;
   };
-  static const auto ITypeDomains = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "."},
-    {IType::ZERO_TO_ONE, "."},
-    {IType::ZERO_TO_MANY, "."},
-    {IType::ONE_TO_ZERO, "o"},
-    {IType::MANY_TO_ZERO, "O"},
-    {IType::ONE_TO_ONE, "o"},
-    {IType::ONE_TO_MANY, "o"},
-    {IType::MAYBE_TO_MANY, "?"},
-    {IType::MAYBE_TO_ONE, "?"},
-    {IType::MAYBE_TO_ZERO, "?"},
-    {IType::MAYBE_TO_MAYBE, "?"},
-    {IType::ONE_TO_MAYBE, "o"},
-    {IType::ZERO_TO_MAYBE, "."},
-    {IType::MANY_TO_MAYBE, "O"},
-    {IType::MANY_TO_ONE, "O"},
-    {IType::MANY_TO_MANY, "O"}});
-  static const auto ITypeRanges = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "."},
-    {IType::ZERO_TO_ONE, "o"},
-    {IType::ZERO_TO_MANY, "O"},
-    {IType::ONE_TO_ZERO, "."},
-    {IType::MANY_TO_ZERO, "."},
-    {IType::ONE_TO_ONE, "o"},
-    {IType::ONE_TO_MANY, "O"},
-    {IType::MAYBE_TO_MANY, "?"},
-    {IType::MAYBE_TO_ONE, "o"},
-    {IType::MAYBE_TO_ZERO, "."},
-    {IType::MAYBE_TO_MAYBE, "?"},
-    {IType::ONE_TO_MAYBE, "?"},
-    {IType::ZERO_TO_MAYBE, "?"},
-    {IType::MANY_TO_MAYBE, "?"},
-    {IType::MANY_TO_ONE, "o"},
-    {IType::MANY_TO_MANY, "O"}});
-  static const auto ITypeSignatures = Enums<IType>({
-    {IType::ZERO_TO_ZERO, ".->."},
-    {IType::ZERO_TO_ONE, ".->o"},
-    {IType::ZERO_TO_MANY, ".->O"},
-    {IType::ONE_TO_ZERO, "o->."},
-    {IType::MANY_TO_ZERO, "O->."},
-    {IType::ONE_TO_ONE, "o->o"},
-    {IType::ONE_TO_MANY, "o->O"},
-    {IType::MAYBE_TO_MANY, "?"},
-    {IType::MAYBE_TO_ONE, "o"},
-    {IType::MAYBE_TO_ZERO, "."},
-    {IType::MAYBE_TO_MAYBE, "?"},
-    {IType::MANY_TO_MAYBE, "?"},
-    {IType::ONE_TO_MAYBE, "o"},
-    {IType::ZERO_TO_MAYBE, "."},
-    {IType::MANY_TO_ONE, "O->o"},
-    {IType::MANY_TO_MANY, "O->O"}});
-  static const auto ITypeDescriptions = Enums<IType>({
-    {IType::ZERO_TO_ZERO, ".->. (transient)"},
-    {IType::ZERO_TO_ONE, ".->o (supplier)"},
-    {IType::ZERO_TO_MANY, ".->O (initial)"},
-    {IType::ONE_TO_ZERO, "o->. (consumer)"},
-    {IType::MANY_TO_ZERO, "O->. (terminal)"},
-    {IType::ONE_TO_ONE, "o->o (map)"},
-    {IType::ONE_TO_MANY, "o->O (flatmap)"},
-    {IType::MAYBE_TO_MANY, "?->O (potential)"},
-    {IType::MAYBE_TO_ONE, "?->o (flip)"},
-    {IType::MAYBE_TO_ZERO, "?->. (spark)"},
-    {IType::MAYBE_TO_MAYBE, "?->? (flux)"},
-    {IType::ONE_TO_MAYBE, "o->? (filter)"},
-    {IType::ZERO_TO_MAYBE, ".->? (check)"},
-    {IType::MANY_TO_MAYBE, "?-? (strain)"},
-    {IType::MANY_TO_ONE, "O->o (reduce)"},
-    {IType::MANY_TO_MANY, "O->O (barrier)"},
-  });
+
+  /* static const auto ITypeDescriptions = Enums<IType>({
+     {IType::ZERO_TO_ZERO, ".->. (transient)"},
+     {IType::ZERO_TO_ONE, ".->o (supplier)"},
+     {IType::ZERO_TO_MANY, ".->O (initial)"},
+     {IType::ONE_TO_ZERO, "o->. (consumer)"},
+     {IType::MANY_TO_ZERO, "O->. (terminal)"},
+     {IType::ONE_TO_ONE, "o->o (map)"},
+     {IType::ONE_TO_MANY, "o->O (flatmap)"},
+     {IType::MAYBE_TO_MANY, "?->O (potential)"},
+     {IType::MAYBE_TO_ONE, "?->o (flip)"},
+     {IType::MAYBE_TO_ZERO, "?->. (spark)"},
+     {IType::MAYBE_TO_MAYBE, "?->? (flux)"},
+     {IType::ONE_TO_MAYBE, "o->? (filter)"},
+     {IType::ZERO_TO_MAYBE, ".->? (check)"},
+     {IType::MANY_TO_MAYBE, "?-? (strain)"},
+     {IType::MANY_TO_ONE, "O->o (reduce)"},
+     {IType::MANY_TO_MANY, "O->O (barrier)"},
+   });*/
   using InstArgs = Rec_p;
   using Cpp = BiFunction<const Obj_p, const InstArgs, Obj_p>;
   using Cpp_p = ptr<Cpp>;
   using InstF = std::variant<Obj_p, Cpp_p>;
   using InstF_p = ptr<InstF>;
-  using InstValue = Quad<InstArgs, InstF_p, IType, Obj_p>;
+  using InstValue = Trip<InstArgs, InstF_p, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  using Coefficient = Pair<int, int>;
   static const auto MMADT_ID = make_shared<ID>(MMADT_SCHEME);
   static const auto OBJ_FURI = make_shared<ID>(MMADT_SCHEME "/obj");
   static const auto NOOBJ_FURI = make_shared<ID>(MMADT_SCHEME "/noobj");
@@ -402,6 +185,11 @@ namespace fhatos {
   static const auto BCODE_FURI = make_shared<ID>(MMADT_SCHEME "/bcode");
   static const auto ERROR_FURI = make_shared<ID>(MMADT_SCHEME "/error");
   static const auto OBJS_FURI = make_shared<ID>(MMADT_SCHEME "/objs");
+
+
+  template<typename T>
+  using Coefficient = Pair<T, T>;
+  using IntCoefficient = Coefficient<FOS_INT_TYPE>;
 
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
     {OType::OBJ, OBJ_FURI},
@@ -633,6 +421,11 @@ namespace fhatos {
                  const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
                                                    Valued(value_id), otype_(otype),
                                                    value_(value) {
+      if(otype == OType::INST && nullptr == std::get<2>(std::any_cast<InstValue>(value))) {
+        this->value_ = InstValue(std::get<0>(std::any_cast<InstValue>(value)),
+                                 std::get<1>(std::any_cast<InstValue>(value)),
+                                 this->is_gather() ? Obj::to_objs() : Obj::to_noobj());
+      }
       if(value.has_value()) { // value token
         TYPE_CHECKER(this, type_id, true);
         this->tid_ = type_id;
@@ -1062,7 +855,7 @@ namespace fhatos {
     [[nodiscard]] Obj_p inst_seed_supplier() const {
       if(!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return std::get<3>(this->inst_value());
+      return std::get<2>(this->inst_value());
     }
 
     [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()->apply(arg); }
@@ -1084,13 +877,13 @@ namespace fhatos {
 
 
     // type?dom=xxx,dc_min=1,dc_max=2,rng=yyy,rc
-    [[nodiscard]] Coefficient domain_coefficient() const {
+    [[nodiscard]] IntCoefficient domain_coefficient() const {
       int min = std::stoi(this->tid_->query_value(FOS_DC_MIN).value_or("1"));
       int max = std::stoi(this->tid_->query_value(FOS_DC_MAX).value_or("1"));
       return {min, max};
     }
 
-    [[nodiscard]] Coefficient range_coefficient() const {
+    [[nodiscard]] IntCoefficient range_coefficient() const {
       int min = std::stoi(this->tid_->query_value(FOS_RC_MIN).value_or("1"));
       int max = std::stoi(this->tid_->query_value(FOS_RC_MAX).value_or("1"));
       return {min, max};
@@ -1111,107 +904,67 @@ namespace fhatos {
     }
 
 
-    [[nodiscard]] IType itype() const {
-      if(this->is_inst())
-        return std::get<2>(this->inst_value());
-      if(this->is_objs())
-        return IType::ONE_TO_MANY;
-      const int dc_min = std::stoi(tid_->query_value(FOS_DC_MIN).value_or("1"));
-      const int dc_max = std::stoi(tid_->query_value(FOS_DC_MAX).value_or("1"));
-      const int rc_min = std::stoi(tid_->query_value(FOS_RC_MIN).value_or("1"));
-      const int rc_max = std::stoi(tid_->query_value(FOS_RC_MAX).value_or("1"));
-      auto dom_card = Cardinality::ONE;
-      auto rng_card = Cardinality::ONE;
-      if(0 == dc_min && 0 == dc_max)
-        dom_card = Cardinality::ZERO;
-      if(1 == dc_min && 1 == dc_max)
-        dom_card = Cardinality::ONE;
-      if(0 == dc_min && dc_max != 0)
-        dom_card = Cardinality::MAYBE;
-      if(dc_min > 1 || dc_max > 1 || dc_min == -1 || dc_max == -1)
-        dom_card = Cardinality::MANY;
-      if(0 == rc_min && 0 == rc_max)
-        rng_card = Cardinality::ZERO;
-      if(1 == rc_min && 1 == rc_max)
-        rng_card = Cardinality::ONE;
-      if(0 == rc_min && rc_max != 0)
-        rng_card = Cardinality::MAYBE;
-      if(rc_min > 1 || rc_max > 1 || rc_min == -1 || rc_max == -1)
-        rng_card = Cardinality::MANY;
-      const IType itype = to_itype(dom_card, rng_card);
-      return itype;
-    }
-
     bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
                                      const bool throw_exception = true) const {
       if(domain_or_range) {
-        if(resolved->itype() & (IType::MAYBE_TO_ZERO | IType::MAYBE_TO_ONE |
-                                IType::MAYBE_TO_MAYBE | IType::MAYBE_TO_MANY)) {
+        if(resolved->is_generative()) {
           // do nothing
         } else if(this->is_noobj()) {
-          if(!(resolved->itype() & (IType::ZERO_TO_ONE | IType::ZERO_TO_MANY | IType::ZERO_TO_ZERO |
-                                    IType::ZERO_TO_MAYBE))) {
+          if(!resolved->is_initial()) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         "SIGNATURE HERE");
           }
         } else if(this->is_objs()) {
-          if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
-                                    IType::MANY_TO_MAYBE))) {
+          if(!resolved->is_gather()) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJS_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         resolved->toString().c_str(), "SIGNATURE HERE");
           }
         } else {
-          if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::ONE_TO_MANY | IType::ONE_TO_ZERO |
-                                    IType::ONE_TO_MAYBE))) {
+          if(const auto &[a,b] = resolved->domain_coefficient(); !(a == 1 && b == 1)) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         "SIGNATURE HERE");
           }
         }
       } else {
-        if(resolved->itype() & (IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
-                                IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE)) {
+        if(const auto &[a,b] = resolved->range_coefficient(); (a == 0 && b > 0)) {
           // do nothing
         } else if(this->is_noobj()) {
-          if(!(resolved->itype() & (IType::ONE_TO_ZERO | IType::MANY_TO_ZERO | IType::ZERO_TO_ZERO |
-                                    IType::MAYBE_TO_ZERO))) {
+          if(!resolved->is_terminal()) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in range of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         "SIGNATURE HERE");
           }
         } else if(this->is_objs()) {
-          if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
-                                    IType::MAYBE_TO_MANY))) {
+          if(!resolved->is_scatter()) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in range of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJS_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         "SIGNATURE HERE");
           }
         } else {
-          if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::MANY_TO_ONE | IType::ZERO_TO_ONE |
-                                    IType::MAYBE_TO_ONE))) {
+          if(const auto &[a,b] = resolved->range_coefficient(); a != 1 && b != 1) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in range of %s [!y%s!!]",
                          this->toString().c_str(),
                          Obj::to_type(OBJ_FURI)->toString().c_str(),
                          resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         "SIGNATURE HERE");
           }
         }
       }
@@ -1473,9 +1226,9 @@ namespace fhatos {
          ////
          (this->is_type() ||
           this->is_inst() ||
-          (obj_printer->show_type && this->is_code() &&
-           (this->itype() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
-            equals(*OBJ_FURI)))) ||
+          (obj_printer->show_type && this->is_code() //&&
+            /* (this->itype() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
+              equals(*OBJ_FURI)))*/)) ||
          ////
          (obj_printer->show_type && !this->is_base_type()) ||
          ////
@@ -1492,7 +1245,7 @@ namespace fhatos {
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            !this->is_base_type() &&
-           (this->itype() != IType::ONE_TO_ONE ||
+           (this->is_map() ||
             !this->domain()->equals(*OBJ_FURI) ||
             !this->range()->equals(*OBJ_FURI))) {
           typing = typing.append("!m?!!")
@@ -1693,7 +1446,8 @@ namespace fhatos {
               this->inst_f()->index() == other.inst_f()->index() &&
               (this->inst_f()->index() == 1 ||
                (*std::get<Obj_p>(*this->inst_f()) == *std::get<Obj_p>(*other.inst_f()))) &&
-              this->itype() == other.itype() &&
+              this->domain_coefficient() == other.domain_coefficient() &&
+              this->range_coefficient() == other.range_coefficient() &&
               *this->inst_seed_supplier() == *other.inst_seed_supplier();
         // TODO: Tuple equality
         default: throw fError("unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
@@ -1742,6 +1496,44 @@ namespace fhatos {
     [[nodiscard]] bool is_error() const { return this->otype_ == OType::ERROR; }
 
     [[nodiscard]] bool is_empty_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
+
+    bool is_initial() const {
+      const auto &[dmin,dmax] = this->domain_coefficient();
+      return dmin == 0 && dmax == 0;
+    }
+
+    bool is_generative() const {
+      const auto &[dmin,dmax] = this->domain_coefficient();
+      return dmin == 0 && dmax > 0;
+    }
+
+    bool is_scatter() const {
+      const auto &[rmin,rmax] = this->range_coefficient();
+      return rmin == 0 && rmax > 1;
+    };
+
+
+    bool is_gather() const {
+      const auto &[dmin,dmax] = this->domain_coefficient();
+      return dmin == 0 && dmax > 1;
+    }
+
+    bool is_terminal() const {
+      const auto &[rmin,rmax] = this->range_coefficient();
+      return rmin == 0 && rmax == 0;
+    }
+
+    bool is_map() const {
+      const auto &[dmin,dmax] = this->domain_coefficient();
+      const auto &[rmin,rmax] = this->range_coefficient();
+      return 1 == dmin && 1 == dmax && 1 == rmin && 1 == rmax;
+    }
+
+    bool is_filter() const {
+      const auto &[rmin,rmax] = this->range_coefficient();
+      return !this->is_initial() && rmin == 0 && rmax > 0;
+    }
+
 
     bool is_indexed_arg() const {
       if(!this->is_uri()) return false;
@@ -1961,7 +1753,8 @@ namespace fhatos {
           const auto args_a = this->inst_args();
           if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b))
             return false;
-          if(this->itype() != type_obj->itype())
+          if(this->domain_coefficient() != type_obj->domain_coefficient() ||
+             this->range_coefficient() != type_obj->range_coefficient())
             return false;
           return true;
         }
@@ -2131,24 +1924,24 @@ namespace fhatos {
 
     static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
                           const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
+      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, to_noobj(), type_id,
                      value_id);
     }
 
     static Inst_p to_inst(const List<Obj_p> &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
+      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, to_noobj(), type_id,
                      value_id);
     }
 
     static Inst_p to_inst(const InstArgs &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), args, nullptr, IType::ONE_TO_ONE, to_noobj(), type_id, value_id);
+      return to_inst(type_id->name(), args, nullptr, to_noobj(), type_id, value_id);
     }
 
     static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF_p &function,
-                          const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
+                          const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(*ROUTER_RESOLVE(fURI(opcode)));
-      return to_inst({args, function, itype, seed}, fix, value_id);
+      return to_inst({args, function, seed}, fix, value_id);
     }
 
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &type_id = BCODE_FURI, const ID_p &value_id = nullptr) {
@@ -2225,7 +2018,7 @@ namespace fhatos {
           return r;
         }
         case OType::INST: {
-          auto r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
+          auto r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(),
                            this->inst_seed_supplier(),
                            this->tid_);
           const_cast<Obj *>(r.get())->vid_ = this->vid_;
@@ -2277,7 +2070,8 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  protected:
+  protected
+  :
     class ObjsSet {
     public:
       const unique_ptr<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>> internal =
@@ -2422,8 +2216,7 @@ namespace fhatos {
         [](const Uri_p &, const InstArgs &args) {
           const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
           return result->is_noobj() ? args->arg(1) : result;
-        })),
-      (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
+        })));
   }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {

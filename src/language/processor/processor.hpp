@@ -64,12 +64,12 @@ namespace fhatos {
           try {
             const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
             const Obj_p seed_copy = resolved->inst_seed(resolved);
-            if(is_gather(resolved->itype())) {
+            if(resolved->is_gather()) {
               // MANY_TO_??
               const Monad_p m = M(seed_copy, inst);
               this->barriers_->push_back(m);
               Log::LOGGER(DEBUG, this, FOS_TAB_2 "!ybarrier!! monad created: %s\n", m->toString().c_str());
-            } else if(is_initial(resolved->itype()) || (first && is_maybe_initial(resolved->itype()))) {
+            } else if(resolved->is_initial() || (first && resolved->is_map())) {
               // ZERO/MAYBE*-TO_??
               const Monad_p m = M(noobj(), inst); // TODO: use seed
               this->running_->push_back(m);
@@ -208,7 +208,7 @@ namespace fhatos {
                   this->toString().c_str(),
                   this->inst->toString().c_str(),
                   current_inst_resolved->toString().c_str(),
-                  ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+                  "SIGNATURE HERE");
           this->domain_loop(current_inst_resolved);
         }
       }
@@ -219,20 +219,20 @@ namespace fhatos {
         LOG_OBJ(TRACE, this->processor_, FOS_TAB_2 "monad at !gdomain!! of %s !m=>!! %s [!m%s!m]\n",
                 this->toString().c_str(),
                 current_inst_resolved->toString().c_str(),
-                ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
-        if(is_gather(current_inst_resolved->itype())) {
+                "SIGNATURE HERE");
+        if(current_inst_resolved->is_gather()) {
           if(this->obj->is_objs()) {
             LOG_OBJ(TRACE, this->processor_, "barrier monad [size: %i] fetch for processing by %s [!m%s!m]\n",
                     this->obj->objs_value()->size(),
                     current_inst_resolved->toString().c_str(),
-                    ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
+                    "SIGNATURE HERE");
             range_loop(current_inst_resolved->apply(this->obj), current_inst_resolved);
           } else {
             this->processor_->barriers_->front()->obj->add_obj(this->obj);
             LOG_OBJ(TRACE, this->processor_, "monad %s stored in barrier [size: %i] [!m%s!m]\n",
                     this->toString().c_str(),
                     this->processor_->barriers_->front()->obj->objs_value()->size(),
-                    ITypeDescriptions.to_chars(current_inst_resolved->itype()).c_str());
+                    "SIGNATURE HERE");
           }
         } else {
           this->obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
@@ -246,18 +246,18 @@ namespace fhatos {
         LOG_OBJ(TRACE, this->processor_, FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
                 this->processor_->M(next_obj,this->inst)->toString().c_str(),
                 current_inst_resolved->toString().c_str(),
-                ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+                "SIGNATURE HERE");
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst);
-        if(is_initial(next_inst->itype())) {
+        if(next_inst->is_generative()) {
           LOG_OBJ(TRACE, this->processor_, "monad %s dying [%s]\n", this->toString().c_str(),
-                  ITypeDescriptions.to_chars(next_inst->itype()));
-        } else if(next_obj->is_objs() && !is_gather(next_inst->itype())) {
+                  "SIGNATURE HERE");
+        } else if(next_obj->is_objs() && !next_inst->is_gather()) {
           //   (is_scatter(current_inst_resolved->itype()) ||
           //    is_maybe_range(current_inst_resolved->itype()))) {
           LOG_OBJ(TRACE, this->processor_, "monad %s scattering [%s]\n",
                   this->toString().c_str(),
-                  ITypeDescriptions.to_chars(this->inst->itype()));
+                  "SIGNATURE HERE");
           for(const Obj_p &barrier_next_obj: *next_obj->objs_value()) {
             const Monad_p m = this->processor_->M(barrier_next_obj, next_inst);
             LOG_OBJ(TRACE, this->processor_, "monad %s !r==!gmigrating!r==>!! %s\n",

@@ -153,7 +153,7 @@ namespace fhatos {
                        scheduler->stop();
                        return noobj();
                      })
-                     ->itype_and_seed(IType::MANY_TO_ZERO)
+                     ->domain_range(OBJ_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
                      ->create())
           ///// OBJECTS
           ->this_add("/lib/process", Obj::to_rec())

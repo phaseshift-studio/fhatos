@@ -55,22 +55,20 @@ namespace mmadt {
     static void import_base_inst() {
       Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       InstBuilder::build(MMADT_SCHEME "/start")
-          ->domain_range(NOOBJ_FURI, OBJS_FURI)
+          ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "starts"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
           })
-          ->itype_and_seed(IType::ZERO_TO_MANY)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/print")
-          ->domain_range(OBJ_FURI, OBJ_FURI)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "to_print", ___))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             printer()->printf("%s\n", args->arg(0)->toString().c_str());
             return args->arg(0);
           })
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/as")
@@ -83,32 +81,30 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/at")
           ->type_args(x(0, "var"))
-          ->domain_range(OBJ_FURI, OBJ_FURI)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
             const Obj_p ret = new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
             return ret;
           })
-          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/block")
           // TODO: currently a "special" instruction (see inst->apply() for logic)
           ->type_args(x(0, "rhs"))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0);
           })
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/count")
-          ->domain_range(OBJS_FURI, INT_FURI)
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, INT_FURI, {1, 1})
           //->type_args(x(0, "obj", ___))
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             return Obj::to_int(lhs->objs_value()->size());
           })
-          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/drop")
@@ -116,7 +112,7 @@ namespace mmadt {
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0)->apply(lhs);
           })
-          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->save();
 
       /*InstBuilder::build(MMADT_SCHEME "/lift")
@@ -136,21 +132,19 @@ namespace mmadt {
           ->save();*/
 
       InstBuilder::build(MMADT_SCHEME "/barrier")
-          ->domain_range(OBJS_FURI, OBJS_FURI)
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "barrier_op", ___))
-          ->itype_and_seed(IType::MANY_TO_MANY)
           ->inst_f([](const Objs_p &lhs, const InstArgs &args) {
             return args->arg(0)->apply(lhs);
           })
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/sum")
-          ->domain_range(OBJS_FURI, OBJ_FURI)
-          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, OBJ_FURI, {1, 1})\
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/sum")
-          ->domain_range(OBJS_FURI, BOOL_FURI)
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, BOOL_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             bool sum = false;
             for(const auto &b: *lhs->objs_value()) {
@@ -158,12 +152,10 @@ namespace mmadt {
             }
             return dool(sum);
           })
-          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/sum")
-          ->domain_range(OBJ_FURI, INT_FURI)
-          ->coefficients({-1, -1}, {1, 1})
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, INT_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             FOS_INT_TYPE sum = 0;
             for(const auto &i: *lhs->objs_value()) {
@@ -171,11 +163,10 @@ namespace mmadt {
             }
             return jnt(sum);
           })
-          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/sum")
-          ->domain_range(OBJS_FURI, STR_FURI)
+          ->domain_range(OBJS_FURI, {0,INT_MAX}, STR_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             string sum;
             for(const auto &s: *lhs->objs_value()) {
@@ -183,7 +174,7 @@ namespace mmadt {
             }
             return str(sum);
           })
-          ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
+
           ->save();
 
 
@@ -215,12 +206,10 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/end")
-          ->domain_range(OBJ_FURI, NOOBJ_FURI)
-          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
-            //assert(lhs->is_objs());
+          ->domain_range(OBJ_FURI, {0,INT_MAX}, NOOBJ_FURI, {0, 0})
+          ->inst_f([](const Obj_p &, const InstArgs &) {
             return noobj();
           })
-          ->itype_and_seed(IType::MANY_TO_ZERO)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/eq")
@@ -236,22 +225,21 @@ namespace mmadt {
           })->save();
 
       InstBuilder::build(MMADT_SCHEME "/from")
-          //->domain_range(URI_FURI, OBJ_FURI)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p result = ROUTER_READ(args->arg(0)->uri_p_value<fURI>());
             return result->is_noobj() ? args->arg(1) : result;
           })
-          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/is") // TODO: figure out how to get the opcode in obj insts
-          //->domain_range(OBJ_FURI, OBJ_FURI)
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "rhs"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0)->bool_value() ? lhs : _noobj_;
           })
-          ->itype_and_seed(IType::ONE_TO_MAYBE)
+
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/map")
@@ -259,17 +247,15 @@ namespace mmadt {
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0);
           })
-          ->itype_and_seed(IType::ONE_TO_MAYBE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/merge")
-          ->domain_range(LST_FURI, OBJS_FURI)
+          ->domain_range(LST_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "count", jnt(INT32_MAX)))
-          ->itype_and_seed(IType::ONE_TO_MANY)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/lst" MMADT_INST_SCHEME "/merge")
-          ->domain_range(LST_FURI, OBJS_FURI)
+          ->domain_range(LST_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "count", jnt(INT32_MAX)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const int max = args->arg(0)->int_value();
@@ -285,11 +271,11 @@ namespace mmadt {
             }
             return objs;
           })
-          ->itype_and_seed(IType::ONE_TO_MANY)
+
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/merge")
-          ->domain_range(REC_FURI, OBJS_FURI)
+          ->domain_range(REC_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "count", jnt(INT32_MAX)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const int max = args->arg(0)->int_value();
@@ -305,7 +291,6 @@ namespace mmadt {
             }
             return objs;
           })
-          ->itype_and_seed(IType::ONE_TO_MANY)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/neq")
@@ -320,7 +305,6 @@ namespace mmadt {
             Objs_p r = BCODE_PROCESSOR(args->arg(0)->bcode_starts({lhs}));
             return r;
           })
-          ->itype_and_seed(IType::ONE_TO_MANY)
           ->save();
       InstBuilder::build(MMADT_SCHEME "/split")
           ->type_args(x(0, "poly"))
@@ -338,7 +322,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/to_inv")
           ->type_args(x(0, "value_id"), x(1, "retain", dool(true)))
-          ->itype_and_seed(IType::MAYBE_TO_MAYBE)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);
             ROUTER_WRITE(furi_p(lhs->uri_value()), ret, args->arg(1)->bool_value());
@@ -347,12 +331,11 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/type")
-          ->domain_range(OBJ_FURI, URI_FURI)
+          ->domain_range(OBJ_FURI, {0, 1}, URI_FURI, {1, 1})
           ->type_args(x(0, "obj", ___))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return Obj::to_uri(*args->arg(0)->tid());
           })
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/within")
@@ -541,7 +524,7 @@ namespace mmadt {
             const Rec_p rec = build_inspect_rec(args->arg(0));
             rec->rec_set("op", str(args->arg(0)->inst_op().c_str()));
             rec->rec_set("args", args->arg(0)->inst_args());
-            rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
+           // rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
             rec->rec_set(FOS_DOMAIN, vri(*args->arg(0)->domain()));
             // TODO: coefficients as lsts
             rec->rec_set(FOS_RANGE, vri(*args->arg(0)->range()));
@@ -576,25 +559,25 @@ namespace mmadt {
       ////////////////////////////// NEGATIVE /////////////////////////////////////
       InstBuilder::build(MMADT_SCHEME "/neg")
           ->type_args(x(0, "self", ___))
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/neg")
           ->type_args(x(0, "self", ___))
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->domain_range(BOOL_FURI, {1, 1}, BOOL_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return dool(!args->arg(0)->bool_value(), args->arg(0)->vid());
           })
           ->save();
       InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/neg")
           ->type_args(x(0, "self", ___))
-          ->itype_and_seed(IType::MAYBE_TO_ONE)
+          ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return jnt(args->arg(0)->int_value() * -1, args->arg(0)->vid());
           })
           ->save();
       InstBuilder::build(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/neg")
           ->type_args(x(0, "self", ___))
+          ->domain_range(REAL_FURI, {1, 1}, REAL_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return real(args->arg(0)->real_value() * -1.0f, args->arg(0)->vid());
           })
@@ -607,7 +590,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(INT_FURI)
+            ->domain_range(INT_FURI,{1,1},INT_FURI,{1,1})
             ->type_args(x(0, "rhs")) //
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -620,7 +603,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(REAL_FURI)
+        ->domain_range(REAL_FURI,{1,1},REAL_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -633,7 +616,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(STR_FURI)
+        ->domain_range(STR_FURI,{1,1},STR_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -652,7 +635,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(BOOL_FURI)
+        ->domain_range(BOOL_FURI,{1,1},BOOL_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -665,7 +648,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(URI_FURI)
+        ->domain_range(URI_FURI,{1,1},URI_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -678,7 +661,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(LST_FURI)
+        ->domain_range(LST_FURI,{1,1},LST_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
@@ -712,7 +695,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(LST_FURI)
+        ->domain_range(REC_FURI,{1,1},REC_FURI,{1,1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
