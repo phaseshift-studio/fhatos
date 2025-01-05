@@ -1243,25 +1243,44 @@ namespace fhatos {
                                             : (obj_printer->strict ? this->tid_->toString() : this->tid_->name()))
                     .append("!!");
         // TODO: remove base_type check
-        if(obj_printer->show_domain_range &&
-           !this->is_base_type() &&
-           (this->is_map() ||
-            !this->domain()->equals(*OBJ_FURI) ||
-            !this->range()->equals(*OBJ_FURI))) {
-          typing = typing.append("!m?!!")
-              .append("!c").append(obj_printer->strict ? this->range()->toString() : this->range()->name()).
-              append("!m{!c")
-              .append(to_string(this->range_coefficient().first))
-              .append(",")
-              .append(to_string(this->range_coefficient().second))
-              .append("!m}!!")
-              .append("!m<=!!")
-              .append("!c").append(obj_printer->strict ? this->domain()->toString() : this->domain()->name()).
-              append("!m{!c")
-              .append(to_string(this->domain_coefficient().first))
-              .append(",")
-              .append(to_string(this->domain_coefficient().second))
-              .append("!m}!!");
+        if(obj_printer->show_domain_range && !this->is_base_type()) {
+          string dom_str = this->has_domain(1, 1)
+                             ? ""
+                             : this->has_domain(0, 1)
+                                 ? "?"
+                                 : this->has_domain(0,INT_MAX)
+                                     ? "+"
+                                     : this->is_initial()
+                                         ? "."
+                                         : this->is_gather()
+                                             ? "*"
+                                             : to_string(this->domain_coefficient().first)
+                                             .append(",")
+                                             .append(to_string(this->domain_coefficient().second));
+          string rng_str = this->has_range(1, 1)
+                             ? ""
+                             : this->has_range(0, 1)
+                                 ? "?"
+                                 : this->has_range(0,INT_MAX)
+                                     ? "+"
+                                     : this->is_terminal()
+                                         ? "."
+                                         : this->is_scatter()
+                                             ? "*"
+                                             : to_string(this->range_coefficient().first)
+                                             .append(",")
+                                             .append(to_string(this->range_coefficient().second));
+
+          if(!(this->domain()->equals(*OBJ_FURI) &&
+               this->range()->equals(*OBJ_FURI) &&
+               dom_str.empty() && rng_str.empty())) {
+            typing = typing.append("!m?!!")
+                .append("!c").append(obj_printer->strict ? this->range()->toString() : this->range()->name())
+                .append(rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
+                .append("!m<=!!")
+                .append("!c").append(obj_printer->strict ? this->domain()->toString() : this->domain()->name())
+                .append(dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
+          }
         }
         if(this->is_type())
           typing += "!m]!!";
@@ -1521,6 +1540,14 @@ namespace fhatos {
     bool is_terminal() const {
       const auto &[rmin,rmax] = this->range_coefficient();
       return rmin == 0 && rmax == 0;
+    }
+
+    bool has_domain(const FOS_INT_TYPE min, const FOS_INT_TYPE max) const {
+      return this->domain_coefficient().first == min && this->domain_coefficient().second == max;
+    }
+
+    bool has_range(const FOS_INT_TYPE min, const FOS_INT_TYPE max) const {
+      return this->range_coefficient().first == min && this->range_coefficient().second == max;
     }
 
     bool is_map() const {
