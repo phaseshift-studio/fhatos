@@ -40,8 +40,7 @@
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #define FOS_DEPLOY_PRINTER_2                              \
-  Options::singleton()->printer<>(Ansi<>::singleton());   \
-  PRINTER = Ansi<>::singleton();
+  Options::singleton()->printer<>(Ansi<>::singleton());
 #ifdef FOS_DEPLOY_PROCESSOR
 #include "../src/language/processor/processor.hpp"
 #define FOS_DEPLOY_PROCESSOR_2 load_processor();
@@ -157,8 +156,7 @@ using namespace fhatos;
 #ifdef NATIVE
 #define SETUP_AND_LOOP_2                                                                                               \
 int main(int argc, char ** argv) {                                                                                     \
-  PRINTER = Ansi<>::singleton();         \
-  Options::singleton()->printer<Ansi<>>(PRINTER); \
+  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton()); \
   auto *args_parser = new fhatos::ArgvParser();                                                                          \
   args_parser->init(argc, argv);                                                                                       \
   fhatos::Options::singleton()->log_level(                                                                             \
@@ -207,10 +205,10 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
 #define PROCESS(bcode_string) BCODE_PROCESSOR(serialization_check(OBJ_PARSER((bcode_string))))->objs_value(0)
 
 #define FOS_TEST_MESSAGE(format, ...) \
-  if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
-    PRINTER->printf((format), ##__VA_ARGS__);                                                                          \
-    PRINTER->println();                                                                                                \
-    PRINTER->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                                         \
+  if (fhatos::LOG_TYPE::FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
+    Ansi<>::singleton()->printf((format), ##__VA_ARGS__);                                                                          \
+    Ansi<>::singleton()->println();                                                                                                \
+    Ansi<>::singleton()->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                                         \
 }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \

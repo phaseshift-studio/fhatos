@@ -134,8 +134,12 @@ namespace fhatos {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));
           while(true) {
-            // check for inst on obj value
-            Inst_p maybe;
+            /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
+            Inst_p maybe = ROUTER_READ(inst_type_id);
+            if(derivation_tree)
+              derivation_tree->emplace_back(fURI("auto_prefix/").extend(*inst_type_id));
+            if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
+              return maybe;
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid()) {
               Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",

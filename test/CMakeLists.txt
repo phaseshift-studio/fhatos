@@ -77,7 +77,7 @@
                     ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
                     ADD_DEFINITIONS(
                             -DNATIVE
-                            -DFOS_LOGGING=${FOS_LOGGING})
+                            -DFOS_LOGGING=INFO)
                     IF(APPLE)
                         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
                     ENDIF()

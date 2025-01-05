@@ -541,7 +541,7 @@ namespace fhatos {
     return true;
   };
 
-  static ptr<Ansi<>> PRINTER = nullptr;
+  //static ptr<Ansi<>> PRINTER = nullptr;
 
   static Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
@@ -574,6 +574,10 @@ namespace fhatos {
   static BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
       ](const Obj_p &lhs, const Inst_p &old_inst) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
+  static Function<const Obj_p &, Obj_p> SCHEDULER_SPAWN = [](const Obj_p &) {
+    LOG(TRACE, "!ySCHEDULER_SPAWN!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
 
@@ -1737,7 +1741,7 @@ namespace fhatos {
 
     [[nodiscard]] bool is_error() const { return this->otype_ == OType::ERROR; }
 
-    [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
+    [[nodiscard]] bool is_empty_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
     bool is_indexed_arg() const {
       if(!this->is_uri()) return false;
@@ -1874,6 +1878,7 @@ namespace fhatos {
           }
         }
         case OType::BCODE: {
+          if(this->is_empty_bcode())return lhs;
           return BCODE_PROCESSOR(this->bcode_starts(to_objs({lhs})))->none_one_all();
         }
         case OType::OBJS: {
@@ -1893,7 +1898,7 @@ namespace fhatos {
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
-      if(type_obj->is_noop_bcode())
+      if(type_obj->is_empty_bcode())
         return true;
       if(type_obj->is_type())
         return IS_TYPE_OF(this->tid_, type_obj->tid_, {}) && !this->clone()->apply(type_obj->type_value())->is_noobj();
@@ -2299,7 +2304,7 @@ namespace fhatos {
           this->internal->erase(obj);
         else
           this->internal->insert_or_assign(obj, bulk - 1);
-        return obj->clone();
+        return obj;
       }
 
       [[nodiscard]] long bulk_size() const {
@@ -2348,16 +2353,18 @@ namespace fhatos {
     return Obj::to_int(xint, type_id, value_id);
   }
 
-  [[maybe_unused]] static Str_p str(const char *xstr, const ID_p &type_id = STR_FURI) {
-    return Obj::to_str(xstr, type_id);
+  [[maybe_unused]] static Str_p str(const char *xstr, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+    return Obj::to_str(xstr, type_id, value_id);
   }
 
-  [[maybe_unused]] static Str_p str(const string &xstr, const ID_p &type_id = STR_FURI) {
-    return Obj::to_str(xstr, type_id);
+  [[maybe_unused]] static Str_p str(const string &xstr, const ID_p &type_id = STR_FURI,
+                                    const ID_p &value_id = nullptr) {
+    return Obj::to_str(xstr, type_id, value_id);
   }
 
-  [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type_id = REAL_FURI) {
-    return Obj::to_real(xreal, type_id);
+  [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type_id = REAL_FURI,
+                                      const ID_p &value_id = nullptr) {
+    return Obj::to_real(xreal, type_id, value_id);
   }
 
   [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }

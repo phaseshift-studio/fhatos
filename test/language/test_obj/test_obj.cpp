@@ -138,25 +138,23 @@ namespace fhatos {
     TEST_ASSERT_FALSE(
         Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(23.1f))}))})));
   }
-
+*/
 
 
   void test_uri() {
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/webpage"), Obj::to_bcode()); //
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/ftp"), Obj::to_bcode()); //
-    const Uri_p uriA = share(Uri(fURI("home/web/html/index.html")));
+    Typer::singleton()->save_type(id_p("webpage"), Obj::to_bcode());
+    Typer::singleton()->save_type(id_p("ftp"), Obj::to_bcode());
+    const Uri_p uriA = Obj::to_uri("home/web/html/index.html");
     const Uri_p uriB = vri("home/web/html/index.html");
-    const Uri_p uriC = share(Uri(fURI("home/web/html/index.html"), FOS_TYPE_PREFIX "uri/webpage"));
-    const Uri_p uriD = ptr<Uri>(new Uri(fURI("ftp://localhost:23/"), FOS_TYPE_PREFIX "uri/ftp"));
+    const Uri_p uriC = Obj::to_uri("home/web/html/index.html", id_p("webpage"));
+    const Uri_p uriD = Obj::to_uri("ftp://localhost:23/", id_p("ftp"));
     ///
-    const Uri_p uriE = share(Uri(fURI("http://index.org/index.html"), "webpage"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*uriE).c_str());
+    const Uri_p uriE = Obj::to_uri(fURI("http://index.org/index.html"), id_p("webpage"));
 
     TEST_ASSERT_FALSE(uriA->is_bcode());
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "uri/", uriA->tid()->toString().c_str());
+    FOS_TEST_ASSERT_EQUAL_FURI(*URI_FURI, *uriA->tid());
     TEST_ASSERT_EQUAL_STRING("uri", uriA->tid()->name().c_str());
-    TEST_ASSERT_EQUAL_STRING("/type", uriA->tid()->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("uri/", uriA->tid()->path(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("index.html", uriA->uri_value().name().c_str());
     TEST_ASSERT_EQUAL(OType::URI, uriA->o_type());
     TEST_ASSERT_FALSE(uriA->is_noobj());
     TEST_ASSERT_TRUE(uriA->match(uriB));
@@ -165,33 +163,28 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(*uriC->tid(), *uriA->as(id_p("webpage"))->tid());
     FOS_TEST_OBJ_EQUAL(uriA, uriB);
     FOS_TEST_OBJ_EQUAL(uriB, uriA);
-    FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(FOS_TYPE_PREFIX "uri/webpage"));
-    FOS_TEST_OBJ_EQUAL(uriC, uriA->as("webpage"));
-    FOS_TEST_OBJ_EQUAL(uriC, uriB->as(FOS_TYPE_PREFIX "uri/webpage"));
-    FOS_TEST_OBJ_EQUAL(uriA, uriC->as(FOS_TYPE_PREFIX "uri/"));
-    FOS_TEST_OBJ_EQUAL(uriA, uriA->as(FOS_TYPE_PREFIX "uri/"));
+    FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(id_p("webpage")));
+    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("webpage")));
+    FOS_TEST_OBJ_EQUAL(uriC, uriB->as(id_p("webpage")));
+    FOS_TEST_OBJ_EQUAL(uriA, uriC->as(URI_FURI));
+    FOS_TEST_OBJ_EQUAL(uriA, uriA->as(URI_FURI));
     /// apply
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriB));
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriA));
-    FOS_TEST_OBJ_EQUAL(uriA->as("webpage"), uriA->as(FOS_TYPE_PREFIX "uri/webpage")->apply(uriB));
-    FOS_TEST_OBJ_EQUAL(uriC, uriA->as("webpage")->apply(uriB));
+    FOS_TEST_OBJ_EQUAL(uriA->as(id_p("webpage")), uriA->as(id_p("webpage"))->apply(uriB));
+    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("webpage"))->apply(uriB));
     /// relations // TODO
     // TEST_ASSERT_GREATER_THAN_INT(uriA->as("ftp")->uri_value(), uriD->int_value());
     // TEST_ASSERT_LESS_THAN_INT(uriD->uri_value(), uriB->as(FOS_TYPE_PREFIX "int/nat")->int_value());
     /// match
     TEST_ASSERT_TRUE(vri("example.com")->match(Obj::to_uri("example.com")));
-    TEST_ASSERT_TRUE(vri("/fhatos/index.html")->as("webpage")->match(vri("/+/index.html")->as("webpage")));
-    TEST_ASSERT_FALSE(vri("/fhatos/index")->as("webpage")->match(vri("/fhatos/index")->as("ftp")));
-    TEST_ASSERT_TRUE(vri("/a/b/c")->match(Obj::to_bcode({
-      Insts::is(Obj::to_bcode({Insts::eq(vri("/a/b/c"))}))
-      })));
-    TEST_ASSERT_FALSE(vri("/a/b/c")->match(Obj::to_bcode({
-      Insts::is(Obj::to_bcode({Insts::eq(vri("/a/b/c/d"))}))
-      })));
+    TEST_ASSERT_TRUE(vri("/fhatos/index.html")->as(id_p("webpage"))->match(vri("/+/index.html")->as(id_p("webpage"))));
+    TEST_ASSERT_FALSE(vri("/fhatos/index")->as(id_p("webpage"))->match(vri("/fhatos/index")->as(id_p("ftp"))));
+
   }
 
 
-
+/*
   void test_rec() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/cost"), Obj::to_bcode()); //
@@ -422,7 +415,7 @@ void test_inst() {
   FOS_RUN_TESTS( //
     //  FOS_RUN_TEST(test_int); //
     //  FOS_RUN_TEST(test_real); //
-     // FOS_RUN_TEST(test_uri); //
+     FOS_RUN_TEST(test_uri); //
      FOS_RUN_TEST(test_bool); //
      FOS_RUN_TEST(test_str); //
      FOS_RUN_TEST(test_lst); //

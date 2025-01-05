@@ -520,6 +520,7 @@ namespace mmadt {
       END <= lit(";"), end_action;
       WITHIN <= seq(lit("_/"), START, lit("\\_")), within_action;
       BARRIER <= seq(lit("_]"), START, lit("[_")), barrier_action;
+      //REDUCE <= seq(lit("-{"), START, lit("}-")), reduce_action;
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif

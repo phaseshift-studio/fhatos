@@ -72,7 +72,7 @@ namespace fhatos {
       } else if(obj->is_lst() && nest_value > depth) {
         //////////////////////// LST ///////////////////////////
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
+                       (obj->tid()->path_length() > 2 ? obj->tid()->name().append("!g[").c_str() : "") + "!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
@@ -84,9 +84,7 @@ namespace fhatos {
           }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2
-                          ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
-                          : "") + "!m]!!");
+                       (obj->tid()->path_length() > 2 ? "!g]" : "") + "!m]!!");
         if(obj->vid())
           to_out->append("!m@!b").append(obj->vid()->toString());
         to_out->append("!!\n");
@@ -94,7 +92,7 @@ namespace fhatos {
         //////////////////////// REC ///////////////////////////
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
+                         (obj->tid()->path_length() > 2 ? obj->tid()->name().append("!g[").c_str() : ""));
         }
         to_out->append("!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -113,7 +111,7 @@ namespace fhatos {
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            //(obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
+            (obj->tid()->path_length() > 2 ? "!g]" : "") +
             "!m]";
         if(obj->vid()) {
           obj_string += "!m@!b";

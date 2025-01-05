@@ -162,7 +162,8 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/sum")
-          ->domain_range(OBJS_FURI, INT_FURI)
+          ->domain_range(OBJ_FURI, INT_FURI)
+          ->coefficients({-1, -1}, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             FOS_INT_TYPE sum = 0;
             for(const auto &i: *lhs->objs_value()) {
@@ -371,7 +372,7 @@ namespace mmadt {
             for(const Str_p &s: *strs->objs_value()) {
               ret += s->str_value();
             }
-            return str(ret);
+            return Obj::to_str(ret, lhs->tid(), lhs->vid());
           })
           ->save();
 
@@ -379,7 +380,7 @@ namespace mmadt {
           ->type_args(x(0, "code"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const BCode_p starts_bcode = args->arg(0)->bcode_starts(Obj::to_objs(lhs->lst_value()));
-            return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value());
+            return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value(), lhs->tid(), lhs->vid());
           })
           ->save();
 
@@ -396,7 +397,7 @@ namespace mmadt {
             for(const auto &result: *results->objs_value()) {
               rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
             }
-            return Obj::to_rec(rec);
+            return Obj::to_rec(rec, lhs->tid(), lhs->vid());
           })
           ->save();
 

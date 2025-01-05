@@ -136,13 +136,14 @@ namespace fhatos {
           ->this_add("/spawn",
                      InstBuilder::build(scheduler->vid()->add_component("spawn"))
                      ->type_args(x(0, "thread", ___))
-                     ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+                     ->domain_range(OBJ_FURI, THREAD_FURI)
+                     ->inst_f([](const Obj_p &, const InstArgs &args) {
                        const Obj_p &proc = args->arg(0);
                        if(!proc->vid())
                          throw fError("value id required to spawn %s", proc->toString().c_str());
-                       if(proc->tid()->has_path("thread"))
-                         return dool(scheduler->spawn(make_shared<Thread>(proc)));
-                       throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
+                       // if(proc->tid()->has_path("thread"))
+                       return SCHEDULER_SPAWN(proc);
+                       // throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
                      })
                      // ->doc("spawn a parallel thread of execution")
                      ->create())
