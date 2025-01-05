@@ -1253,13 +1253,13 @@ namespace fhatos {
 
     Obj_p this_get(const char *key) const {
       // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
-      Obj_p result = ROUTER_READ(furi_p(this->vid()->extend(key)));
+      Obj_p result = ROUTER_READ(furi_p(this->vid_->extend(key)));
       return result;
     }
 
     Obj_p this_get(const fURI &furi) const {
       // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
-      Obj_p result = ROUTER_READ(furi_p(this->vid()->extend(furi)));
+      Obj_p result = ROUTER_READ(furi_p(this->vid_->extend(furi)));
       return result;
     }
 
@@ -1358,17 +1358,21 @@ namespace fhatos {
             obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
             break;
           case OType::LST: {
-            obj_string = "!m[!!";
-            bool first = true;
-            for(const auto &obj: *this->lst_value()) {
-              if(first) {
-                first = false;
-              } else {
-                obj_string += "!m,!!";
+            if(this->lst_value()->empty())
+              obj_string = "!m[]!!";
+            else {
+              obj_string = "!m[!!";
+              bool first = true;
+              for(const auto &obj: *this->lst_value()) {
+                if(first) {
+                  first = false;
+                } else {
+                  obj_string += "!m,!!";
+                }
+                obj_string += obj->toString(obj_printer->next());
               }
-              obj_string += obj->toString(obj_printer);
+              obj_string += "!m]!!";
             }
-            obj_string += "!m]!!";
             break;
           }
           case OType::REC: {
@@ -1407,7 +1411,6 @@ namespace fhatos {
               }
               obj_string += v->toString();
             }
-
             break;
           }
           case OType::BCODE: {
@@ -1518,11 +1521,8 @@ namespace fhatos {
               .append("!g]!!");
         }
       }
-      if(obj_printer->show_id && this->vid_) {
-        obj_string += "!m@!b";
-        obj_string += this->vid_->toString();
-        obj_string += "!!";
-      }
+      if(obj_printer->show_id && this->vid_)
+        obj_string.append("!m@!b").append(this->vid_->toString()).append("!!");
 
       obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
       return obj_string;
@@ -1739,14 +1739,13 @@ namespace fhatos {
 
     [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
-    [[no_discard]] bool is_indexed_arg() const {
+    bool is_indexed_arg() const {
       if(!this->is_uri()) return false;
       const string s = this->uri_value().toString();
       return s[0] == '_' && StringHelper::is_integer(s.substr(1));
     }
 
-
-    [[no_discard]] bool is_indexed_args() const {
+    bool is_indexed_args() const {
       if(this->is_inst())
         return this->inst_args()->is_indexed_args();
       if(!this->is_rec())
@@ -1780,8 +1779,6 @@ namespace fhatos {
     }
 
     Obj_p apply(const Obj_p &lhs) const {
-      //if(lhs->is_noobj())
-       // return lhs;
       if(lhs->is_error())
         return lhs;
       //  if(!lhs->is_bcode() || !this->is_bcode()) {
@@ -1806,8 +1803,6 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       switch(this->o_type()) {
-        //case OType::OBJ: // type token
-        //  return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
         case OType::TYPE:
           return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
         case OType::BOOL:
@@ -1982,9 +1977,9 @@ namespace fhatos {
       }
     }
 
-    [[nodiscard]] Obj_p as(const char *furi) const {
+    /*[[nodiscard]] Obj_p as(const char *furi) const {
       return this->as(id_p(furi));
-    }
+    }*/
 
     [[nodiscard]] Obj_p as(const ID_p &type_id) const {
       return Obj::create(this->value_, this->otype_, type_id, this->vid_);
@@ -2032,24 +2027,24 @@ namespace fhatos {
       return Obj::create(value, OType::INT, type_id, value_id);
     }
 
-    static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &type_id = REAL_FURI) {
-      return Obj::create(value, OType::REAL, type_id);
+    static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &type_id = REAL_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::REAL, type_id, value_id);
     }
 
-    static Str_p to_str(const string &value, const ID_p &type_id = STR_FURI) {
-      return Obj::create(value, OType::STR, type_id);
+    static Str_p to_str(const string &value, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::STR, type_id, value_id);
     }
 
-    static Str_p to_str(const char *value, const ID_p &type_id = STR_FURI) {
-      return Obj::create(string(value), OType::STR, type_id);
+    static Str_p to_str(const char *value, const ID_p &type_id = STR_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(string(value), OType::STR, type_id, value_id);
     }
 
-    static Uri_p to_uri(const fURI &value, const ID_p &type_id = URI_FURI) {
-      return Obj::create(value, OType::URI, type_id);
+    static Uri_p to_uri(const fURI &value, const ID_p &type_id = URI_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::URI, type_id, value_id);
     }
 
-    static Uri_p to_uri(const char *value, const ID_p &type_id = URI_FURI) {
-      return Obj::create(fURI(value), OType::URI, type_id);
+    static Uri_p to_uri(const char *value, const ID_p &type_id = URI_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(fURI(value), OType::URI, type_id, value_id);
     }
 
 
@@ -2076,8 +2071,8 @@ namespace fhatos {
     }
 
 
-    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      return Obj::create(map, OType::REC, type, id);
+    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(map, OType::REC, type_id, value_id);
     }
 
     static Rec_p to_rec(const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
@@ -2193,63 +2188,69 @@ namespace fhatos {
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
-      const ID_p type_id_clone = id_p(*this->tid_);
-      if(this->is_type()) {
-        auto r = Type::create(this->type_value()->clone(), OType::TYPE, type_id_clone);
-        r->vid_ = this->vid_;
-        return r;
-      }
-      if(this->is_rec()) {
-        // REC
-        const auto new_map = make_shared<RecMap<>>();
-        for(const auto &[k, v]: *this->rec_value()) {
-          new_map->insert({k->clone(), v->clone()});
+      switch(this->o_type()) {
+        case OType::NOOBJ: return this->shared_from_this();
+        case OType::OBJ:
+        case OType::ERROR:
+        case OType::BOOL:
+        case OType::INT:
+        case OType::REAL:
+        case OType::STR:
+        case OType::URI: {
+          auto r = Obj::create(this->value_, this->otype_, this->tid_);
+          r->vid_ = this->vid_;
+          return r;
         }
-        auto r = Rec::create(new_map, OType::REC, type_id_clone);
-        r->vid_ = this->vid_;
-        return r;
-      }
-      if(this->is_lst()) {
-        // LST
-        const auto new_list = make_shared<LstList>();
-        for(const auto &e: *this->lst_value()) {
-          new_list->push_back(e->clone());
+        case OType::LST: {
+          const auto new_list = make_shared<LstList>();
+          for(const auto &e: *this->lst_value()) {
+            new_list->push_back(e->clone());
+          }
+          auto r = Lst::create(new_list, OType::LST, this->tid_);
+          r->vid_ = this->vid_;
+          return r;
         }
-        auto r = Lst::create(new_list, OType::LST, type_id_clone);
-        r->vid_ = this->vid_;
-        return r;
-      }
-      if(this->is_inst()) {
-        // INST
-        Inst_p r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
+        case OType::REC: {
+          const auto new_map = make_shared<RecMap<>>();
+          for(const auto &[k, v]: *this->rec_value()) {
+            new_map->insert({k->clone(), v->clone()});
+          }
+          auto r = Rec::create(new_map, OType::REC, this->tid_);
+          r->vid_ = this->vid_;
+          return r;
+        }
+        case OType::INST: {
+          auto r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
                            this->inst_seed_supplier(),
-                           this->tid());
-        const_cast<Obj *>(r.get())->vid_ = this->vid_;
-        return r;
-      }
-      if(this->is_bcode()) {
-        // BCODE
-        InstList new_insts;
-        for(const auto &inst: *this->bcode_value()) {
-          new_insts.push_back(inst->clone());
+                           this->tid_);
+          const_cast<Obj *>(r.get())->vid_ = this->vid_;
+          return r;
         }
-        BCode_p r = to_bcode(new_insts, type_id_clone);
-        const_cast<Obj *>(r.get())->vid_ = this->vid_;
-        return r;
-      }
-      if(this->is_objs()) {
-        // OBJS
-        const auto new_list = make_shared<List<Obj_p>>();
-        for(const auto &e: *this->objs_value()) {
-          new_list->push_back(e->clone());
+        case OType::BCODE: {
+          InstList new_insts;
+          for(const auto &inst: *this->bcode_value()) {
+            new_insts.push_back(inst->clone());
+          }
+          BCode_p r = to_bcode(new_insts, this->tid_);
+          const_cast<Obj *>(r.get())->vid_ = this->vid_;
+          return r;
         }
-        auto r = Objs::create(new_list, OType::OBJS, type_id_clone);
-        r->vid_ = this->vid_;
-        return r;
+        case OType::OBJS: {
+          const auto new_list = make_shared<List<Obj_p>>();
+          for(const auto &e: *this->objs_value()) {
+            new_list->push_back(e->clone());
+          }
+          auto r = Objs::create(new_list, OType::OBJS, this->tid_);
+          r->vid_ = this->vid_;
+          return r;
+        }
+        case OType::TYPE: {
+          auto r = Type::create(this->type_value()->clone(), OType::TYPE, this->tid_);
+          r->vid_ = this->vid_;
+          return r;
+        }
+        default: throw fError("unknown base type: %i", this->o_type());
       }
-      auto r = Obj::create(any(this->value_), this->otype_, type_id_clone);
-      r->vid_ = this->vid_;
-      return r;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

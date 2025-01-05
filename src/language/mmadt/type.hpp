@@ -87,7 +87,8 @@ namespace mmadt {
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
-            return new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
+            const Obj_p ret = new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
+            return ret;
           })
           ->itype_and_seed(IType::MAYBE_TO_MAYBE)
           ->save();
@@ -688,7 +689,7 @@ namespace mmadt {
                   for(const auto &v: *args->arg(0)->lst_value()) {
                     new_v->push_back(v);
                   }
-                  return Obj::to_lst(new_v, LST_FURI);
+                  return Obj::to_lst(new_v, lhs->tid(), lhs->vid());
                 }
                 if(strcmp(op, "mult") == 0) {
                   const Obj::LstList_p lhs_v = lhs->lst_value();

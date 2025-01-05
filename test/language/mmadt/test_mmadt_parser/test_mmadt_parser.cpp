@@ -300,18 +300,18 @@ namespace fhatos {
   }
 
   void test_apply_poly_parsing() {
-    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("[a=>1,b=>7].a"));
-    FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("[a=>7,b=>[c=>2]].b/c"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("rec[[a=>1,b=>7]].a"));
+    FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("[a=>7,b=>rec[[c=>2]]].b/c"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("[7,3,5].<1>"));
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("[8,7,4].<2>"));
-    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("[8,[a=>[b=>5],c=>7]].<1>.a.b"));
-    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("lst[[8,[a=>rec[[b=>5]],c=>7]]].<1>.a.b"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,rec[[a=>[b=>6],c=>7]]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> lst[[8,[a=>[b=>8],c=>7]]];.*</abc/1/a/b>"));
     FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/2); */abc/2 + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> lst[[8,[a=>[b=>6],c=>7]]]; */abc/1/a.b.to(/abc/2); */abc/2 + -6"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];*/abc/1/a.b.to(/abc/2);*/abc/2 + -6"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,rec[[a=>rec[[b=>6]],c=>7]]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
   }
 
   FOS_RUN_TESTS( //

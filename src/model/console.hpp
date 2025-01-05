@@ -64,11 +64,13 @@ namespace fhatos {
       LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
+        //////////////////////// OBJS ///////////////////////////
         for(Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth, to_out);
         }
       } else if(obj->is_lst() && nest_value > depth) {
+        //////////////////////// LST ///////////////////////////
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
@@ -84,8 +86,12 @@ namespace fhatos {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                        (obj->tid()->path_length() > 2
                           ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
-                          : "") + "!m]!!\n");
+                          : "") + "!m]!!");
+        if(obj->vid())
+          to_out->append("!m@!b").append(obj->vid()->toString());
+        to_out->append("!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
+        //////////////////////// REC ///////////////////////////
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                          (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
@@ -116,6 +122,7 @@ namespace fhatos {
         obj_string += "!!\n";
         to_out->append(obj_string);
       } else {
+        //////////////////////// ALL OTHER OBJS ///////////////////////////
         if(parent_rec)
           to_out->append(obj->toString().c_str()).append("\n");
         else {
@@ -180,7 +187,7 @@ namespace fhatos {
                       this->read_stdin()->int_value())) ==
                    EOF)
                   return noobj();
-                if('\n' == static_cast<char>(x)) {
+                if('\n' == static_cast<char>(x) || '\r' == static_cast<char>(x)) {
                   this->new_input_ = true;
                   this->line_ += static_cast<char>(x);
                 } else {

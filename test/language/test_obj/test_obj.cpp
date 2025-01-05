@@ -330,9 +330,9 @@ void test_bool() {
       FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstD.lst_get(jnt(i)));
     }
     const Lst_p lstE = Obj::to_lst({jnt(1), jnt(1), jnt(1)});
-    FOS_TEST_OBJ_EQUAL(Obj::to_uri("ones"), Obj::to_uri(*lstE->as("ones")->tid()));
+    FOS_TEST_OBJ_EQUAL(Obj::to_uri("ones"), Obj::to_uri(*lstE->as(id_p("ones"))->tid()));
     try {
-      Obj_p x = lstA.as("ones");
+      Obj_p x = lstA.as(id_p("ones"));
       LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
       TEST_FAIL_MESSAGE("should throw exception");
     } catch (const fError &) {

@@ -487,7 +487,7 @@ namespace fhatos {
       return false;
     }
 
-    [[nodiscard]] fURI add_component(const fURI component) const {
+    [[nodiscard]] fURI add_component(const fURI& component) const {
       return this->extend("::").extend(component);
     }
 

@@ -19,9 +19,9 @@
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 
-#ifndef FOS_LOGGING
+//#ifndef FOS_LOGGING
 #define FOS_LOGGING INFO
-#endif
+//#endif
 
 #ifndef FOS_TEST_SERIALIZATION
 #define FOS_TEST_SERIALIZATION false
@@ -206,7 +206,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
 
 #define PROCESS(bcode_string) BCODE_PROCESSOR(serialization_check(OBJ_PARSER((bcode_string))))->objs_value(0)
 
-#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
+#define FOS_TEST_MESSAGE(format, ...) \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
     PRINTER->printf((format), ##__VA_ARGS__);                                                                          \
     PRINTER->println();                                                                                                \

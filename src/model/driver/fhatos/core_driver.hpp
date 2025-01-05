@@ -21,8 +21,9 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-
+#include FOS_PROCESS(thread.hpp)
 #include FOS_MQTT(mqtt.hpp)
+#include FOS_PROCESS(scheduler.hpp)
 
 #define TOTAL_INSTRUCTIONS 75
 
@@ -33,15 +34,26 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->start_progress_bar(6);
-      Typer::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
-                                      {"target", Obj::to_type(URI_FURI)},
-                                      {"payload", Obj::to_bcode()},
-                                      {"retain", Obj::to_type(BOOL_FURI)}}));
-      Typer::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                                      {"source", Obj::to_type(URI_FURI)},
-                                      {"pattern", Obj::to_type(URI_FURI)},
-                                      {":on_recv", Obj::to_bcode()}}));
-      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
+      TYPE_SAVER(MESSAGE_FURI, Obj::to_rec({
+                   {"target", Obj::to_type(URI_FURI)},
+                   {"payload", Obj::to_bcode()},
+                   {"retain", Obj::to_type(BOOL_FURI)}}));
+      TYPE_SAVER(SUBSCRIPTION_FURI, Obj::to_rec({
+                   {"source", Obj::to_type(URI_FURI)},
+                   {"pattern", Obj::to_type(URI_FURI)},
+                   {":on_recv", Obj::to_bcode()}}));
+      TYPE_SAVER(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
+      InstBuilder::build("~")
+          ->type_args(x(0, "bcode", ___))
+          ->coefficients({1, 1}, {1, 1})
+          ->domain_range(OBJ_FURI, THREAD_FURI)
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            auto t = make_shared<Thread>(Obj::to_rec({{":loop", args->arg(0)}}));
+            Scheduler::singleton()->spawn(t);
+            return t;
+          })->save();
+
+
       Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
       InstBuilder::build("/fos/lib/heap/create")
           ->type_args(x(0, "pattern"))
