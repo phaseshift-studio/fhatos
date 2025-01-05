@@ -256,6 +256,9 @@ namespace mmadt {
         } else if(card_chr == "+") {
           left = 1;
           right = INT_MAX;
+        } else if(card_chr == ".") {
+          left = 0;
+          right = 0;
         } else {
           const List<int> components = StringHelper::tokenize<int>(',', card_chr, [](const string &s) {
             return StringHelper::is_integer(s) ? stoi(s) : INT_MAX;
