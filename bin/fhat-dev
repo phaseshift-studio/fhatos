@@ -202,25 +202,14 @@ package_native() {
     fi
 }
 
-ctest_native() {
-  if [[ $platform == "native" || -z "${platform}" ]]; then
-    shift
-    shift
-    local extra_args=${@:1}
-    cd build/test
-    status_check $? "cd build/test"
-    ctest ${extra_args}
-    status_check $? "ctest"
-    cd ../..
-  fi
-}
-
 test_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
     make_native ${@} -DBUILD_TESTS=ON
     shift
     shift
     local extra_args=${@:1}
+    cd build/test
+    status_check $? "cd build/test"
     ctest ${extra_args}
     status_check $? "ctest"
     cd ../..
@@ -272,9 +261,6 @@ if [[ $1 == "clean" ]]; then
 elif [[ $1 == "build" &&  $2 == "docs" ]]; then
   build_docs "${@}"
   status_check $? "doc build"
-elif [[ $1 == "ctest" ]]; then
-  ctest_native "${@}"
-  # test_esp32
 elif [[ $1 == "test" ]]; then
   test_native "${@}"
   test_esp32 "${@}"
