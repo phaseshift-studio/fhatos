@@ -328,6 +328,9 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
 ####################################
 MESSAGE(CHECK_START "${.y}making paho mqtt C library${..}")
+SET(PAHO_ENABLE_TESTING OFF)
+SET(PAHO_BUILD_TESTS OFF)
+SET(PAHO_BUILD_DOCUMENTATION OFF)
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
@@ -342,9 +345,6 @@ FETCHCONTENT_DECLARE(
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
         GIT_TAG v1.4.1
         GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-SET(PAHO_ENABLE_TESTING OFF)
-SET(PAHO_BUILD_TESTS OFF)
-SET(PAHO_BUILD_DOCUMENTATION OFF)
 ##################################################################
 ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
 ##################################################################
@@ -371,15 +371,10 @@ IF(USE_PAHO_MQTT_HACK)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-    SET(PAHO_MQTT_C_LIB ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13)
     TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c)
     TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
     TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
-            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
-            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
-            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-            paho-mqttpp3)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3a paho-mqttpp3)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ELSE()
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3c paho-mqttpp3)
