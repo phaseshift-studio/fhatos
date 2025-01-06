@@ -230,20 +230,28 @@ namespace fhatos {
     ////////// x
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3x 2"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3x2"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x2"));
     ////////// +
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3 + 2"));
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+ 2"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+2"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3 +2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), PROCESS("  start(3) + 2 x 2 .plus(-5) "));
     ////////// proto.map
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("start({9}).plus(1)"));
     FOS_TEST_ERROR("map(9).plus(1)");
+    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("'a' + 'b' + 'c'"))
     ////////// -< >-
     FOS_TEST_OBJ_EQUAL(lst({vri("a"),jnt(1),vri("a/b")}), PROCESS("a-<[_,1,+ /b]"))
     FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[+ b/]>-x c"))
     FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[_ + b/]>-x c"))
-    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("'a' + 'b' + 'c'"))
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("a-<[_,-<[_,-<[_,_,_]]].count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.>-.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.>-.>-.count()"));
     ////////// _/x\_
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))

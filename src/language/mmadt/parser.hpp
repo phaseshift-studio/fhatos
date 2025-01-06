@@ -419,7 +419,7 @@ namespace mmadt {
                                        zom(seq(lit(","), START, lit("=>"), START)), lit(")"))), rec_action;
       ARGS_LST <= cho(lit("()"), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
-      COEFFICIENT <= tok(cho(cls("?*+"), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
+      COEFFICIENT <= tok(cho(cls("?*+."), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
       //zoo,zom,oom
       SET <= seq(FURI_NO_Q, opt(seq(lit("{"), COEFFICIENT, lit("}")))),
           [](const SemanticValues &vs) -> Pair<fURI_p, IntCoefficient> {

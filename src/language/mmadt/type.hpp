@@ -250,8 +250,11 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/merge")
-          ->domain_range(LST_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "count", jnt(INT32_MAX)))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            return args->arg(0)->int_value() > 0 ? lhs : Obj::to_noobj();
+          })
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/lst" MMADT_INST_SCHEME "/merge")
@@ -285,13 +288,28 @@ namespace mmadt {
               if(counter >= max)
                 break;
               if(!value->is_noobj()) {
-                objs->add_obj(value->apply(key));
+                objs->add_obj(value->apply(key, lhs));
                 ++counter;
               }
             }
             return objs;
           })
           ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/goto")
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "inst_id"))
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            const Inst_p inst = ROUTER_READ(args->arg(0)->uri_p_value<fURI>());
+            if(!inst->is_inst())
+              throw fError("!bgoto!! must resolve to an !binst!!: %s !m=>!! %s",
+                           args->arg(0)->toString().c_str(),
+                           inst->toString().c_str());
+            ROUTER_PUSH_FRAME("^", args);
+            const Obj_p result = ROUTER_READ(id_p("v"));
+            ROUTER_POP_FRAME();
+            return result;
+          })->save();
 
       InstBuilder::build(MMADT_SCHEME "/neq")
           ->domain_range(OBJ_FURI, BOOL_FURI)
@@ -524,7 +542,7 @@ namespace mmadt {
             const Rec_p rec = build_inspect_rec(args->arg(0));
             rec->rec_set("op", str(args->arg(0)->inst_op().c_str()));
             rec->rec_set("args", args->arg(0)->inst_args());
-           // rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
+            // rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
             rec->rec_set(FOS_DOMAIN, vri(*args->arg(0)->domain()));
             // TODO: coefficients as lsts
             rec->rec_set(FOS_RANGE, vri(*args->arg(0)->range()));
@@ -590,7 +608,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/").append(op).c_str())
-            ->domain_range(INT_FURI,{1,1},INT_FURI,{1,1})
+            ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
             ->type_args(x(0, "rhs")) //
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -603,7 +621,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(REAL_FURI,{1,1},REAL_FURI,{1,1})
+            ->domain_range(REAL_FURI, {1, 1}, REAL_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -616,7 +634,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(STR_FURI,{1,1},STR_FURI,{1,1})
+            ->domain_range(STR_FURI, {1, 1}, STR_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -635,7 +653,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(BOOL_FURI,{1,1},BOOL_FURI,{1,1})
+            ->domain_range(BOOL_FURI, {1, 1}, BOOL_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -648,7 +666,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(URI_FURI,{1,1},URI_FURI,{1,1})
+            ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) {
@@ -661,7 +679,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(LST_FURI,{1,1},LST_FURI,{1,1})
+            ->domain_range(LST_FURI, {1, 1}, LST_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
@@ -695,7 +713,7 @@ namespace mmadt {
             ->save();
 
         InstBuilder::build(string(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/").append(op).c_str())
-        ->domain_range(REC_FURI,{1,1},REC_FURI,{1,1})
+            ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})
             ->type_args(x(0, "rhs"))
             ->inst_f(
               [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {

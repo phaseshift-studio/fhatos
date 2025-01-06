@@ -43,14 +43,14 @@ namespace fhatos {
                    {"pattern", Obj::to_type(URI_FURI)},
                    {":on_recv", Obj::to_bcode()}}));
       TYPE_SAVER(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
-      InstBuilder::build("~")
+      /*InstBuilder::build("~")
           ->type_args(x(0, "bcode", ___))
           ->domain_range(OBJ_FURI, {1,1}, THREAD_FURI,{1,1})
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             auto t = make_shared<Thread>(Obj::to_rec({{":loop", args->arg(0)}}));
             Scheduler::singleton()->spawn(t);
             return t;
-          })->save();
+          })->save();*/
 
 
       Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));

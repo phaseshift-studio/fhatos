@@ -170,69 +170,71 @@ namespace fhatos {
           }
         };
         Inst_p final_inst;
-        if(inst->inst_f() == nullptr) {
-          // inst is a token placeholder from a parse or dynamic generation (dynamic dispatch required)
-          List<ID> derivation_tree;
-          final_inst = TEMP(lhs, inst, &derivation_tree);
+        // if(inst->inst_f() == nullptr) {
+        // inst is a token placeholder from a parse or dynamic generation (dynamic dispatch required)
+        List<ID> derivation_tree;
+        final_inst = TEMP(lhs, inst, &derivation_tree);
+        if(final_inst->is_noobj()) {
+          const Obj_p type_obj = ROUTER_READ(lhs->tid());
+          derivation_tree.push_back(*final_inst->tid());
+          final_inst = TEMP(lhs->as(lhs->type()->domain()), inst, &derivation_tree);
           if(final_inst->is_noobj()) {
-            const Obj_p type_obj = ROUTER_READ(lhs->tid());
-            derivation_tree.push_back(*final_inst->tid());
-            final_inst = TEMP(lhs->as(lhs->type()->domain()), inst, &derivation_tree);
-            if(final_inst->is_noobj()) {
-              //////////////////// print derivation tree in the error message ////////////////////
-              string error_message;
-              int counter = 0;
-              for(const auto &id: derivation_tree) {
-                counter = inst->tid()->equals(id) ? 1 : counter + 1;
-                error_message.append(StringHelper::format("\n\t!m%s>!!" FURI_WRAP,
-                                                          StringHelper::repeat(counter, "--").c_str(),
-                                                          id.toString().c_str()));
-              }
+            //////////////////// print derivation tree in the error message ////////////////////
+            string error_message;
+            int counter = 0;
+            for(const auto &id: derivation_tree) {
+              counter = inst->tid()->equals(id) ? 1 : counter + 1;
+              error_message.append(StringHelper::format("\n\t!m%s>!!" FURI_WRAP,
+                                                        StringHelper::repeat(counter, "--").c_str(),
+                                                        id.toString().c_str()));
+            }
+            if(!inst->inst_f())
               throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
                            inst->tid()->toString().c_str(), error_message.c_str());
-              ////////////////////////////////////////////////////////////////////////////////
-            }
+            final_inst = inst;
+            ////////////////////////////////////////////////////////////////////////////////
           }
-          if(final_inst->is_inst()) {
-            LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
-                final_inst->toString().c_str(),
-                inst->toString().c_str(),
-               "SIGNATURE HERE");
-            const auto merged_args = Obj::to_inst_args();
-            int counter = 0;
-            for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
-              if(inst->has_arg(k))
-                merged_args->rec_value()->insert({k, inst->arg(k)});
-              else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
-                merged_args->rec_value()->insert({k, inst->arg(counter)});
-              else
-                merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
-              // TODO: hack to get the default from from();
-              ++counter;
-            }
-            // TODO: recurse off inst for all inst_arg getter/setters
-            final_inst = Obj::to_inst(
-              final_inst->inst_op(),
-              merged_args,
-              final_inst->inst_f(),
-              final_inst->inst_seed_supplier(),
-              final_inst->tid(),
-              final_inst->vid());
-            /// TODO ^--- inst->vid());
-          } else {
-            final_inst = Obj::to_inst(
-              inst->inst_op(),
-              inst->inst_args(),
-              make_shared<InstF>(make_shared<Cpp>(
-                [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                  return x->apply(lhs, args);
-                })),
-              inst->inst_seed_supplier(),
-              inst->tid(), inst->vid());
-          }
-        } else {
-          final_inst = inst;
         }
+        if(final_inst->is_inst()) {
+          LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
+              final_inst->toString().c_str(),
+              inst->toString().c_str(),
+              "SIGNATURE HERE");
+          const auto merged_args = Obj::to_inst_args();
+          int counter = 0;
+          for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
+            if(inst->has_arg(k))
+              merged_args->rec_value()->insert({k, inst->arg(k)});
+            else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
+              merged_args->rec_value()->insert({k, inst->arg(counter)});
+            else
+              merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
+            // TODO: hack to get the default from from();
+            ++counter;
+          }
+          // TODO: recurse off inst for all inst_arg getter/setters
+          final_inst = Obj::to_inst(
+            final_inst->inst_op(),
+            merged_args,
+            final_inst->inst_f(),
+            final_inst->inst_seed_supplier(),
+            final_inst->tid(),
+            final_inst->vid());
+          /// TODO ^--- inst->vid());
+        } else {
+          final_inst = Obj::to_inst(
+            inst->inst_op(),
+            inst->inst_args(),
+            make_shared<InstF>(make_shared<Cpp>(
+              [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                return x->apply(lhs, args);
+              })),
+            inst->inst_seed_supplier(),
+            inst->tid(), inst->vid());
+        }
+        // } else {
+        // final_inst = inst;
+        // }
         LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;
       };
