@@ -199,7 +199,7 @@ namespace fhatos {
         List<fURI> list_a = {fURI(this->clean_root_)};
         List<fURI> list_b = %s;
         for (int i = this->clean_root_.path_length(); i < furi->path_length(); i++) {
-          const string segment = furi->path(i);
+          const string segment = furi->segment(i);
           for (const fURI &d: list_a) {
             if (is_dir(d)) {
               const Objs_p objs = this->ls(to_dir(d));

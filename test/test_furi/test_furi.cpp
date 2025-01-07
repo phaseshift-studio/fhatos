@@ -89,21 +89,21 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(pair.second.at(4) ? 88 : 0, uri.port());
       bool path = true;
       if (pair.second.at(5))
-        TEST_ASSERT_EQUAL_STRING("a", uri.path(0));
+        TEST_ASSERT_EQUAL_STRING("a", uri.segment(0));
       else if (pair.second.at(6) == 0 && pair.second.at(7) == 0) {
         path = false;
         TEST_ASSERT_EQUAL_INT(0, uri.path_length());
       }
       /////////
       if (pair.second.at(6))
-        TEST_ASSERT_EQUAL_STRING("bb", uri.path(1));
+        TEST_ASSERT_EQUAL_STRING("bb", uri.segment(1));
       else if (path && pair.second.at(7) == 0) {
         path = false;
         TEST_ASSERT_EQUAL_INT(1, uri.path_length());
       }
       /////////
       if (pair.second.at(7))
-        TEST_ASSERT_EQUAL_STRING("c_c_c", uri.path(2));
+        TEST_ASSERT_EQUAL_STRING("c_c_c", uri.segment(2));
       else if (path) {
         TEST_ASSERT_EQUAL_INT(2, uri.path_length());
       }
@@ -127,8 +127,8 @@ namespace fhatos {
       auto a = fURI("127.0.0.1");
       auto b = fURI(a);
       auto c = fURI(b.toString());
-      auto d = fURI(c.path(0));
-      auto e = fURI(d.path(0)).extend("");
+      auto d = fURI(c.segment(0));
+      auto e = fURI(d.segment(0)).extend("");
       auto f = fURI(e.toString());
       auto g = fURI("127.0.0.1/");
       if (!a.equals(a)) {
@@ -287,17 +287,17 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("/a", fURI("//127.0.0.1/a").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c", fURI("//127.0.0.1/a/b/c").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c", fURI("//fhat@127.0.0.1/a/b/c").path().c_str());
-    TEST_ASSERT_EQUAL_STRING("/a/b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").path(0, 2).c_str());
-    TEST_ASSERT_EQUAL_STRING("b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").path(1));
-    TEST_ASSERT_EQUAL_STRING("c/d", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(2, 4).c_str());
-    TEST_ASSERT_EQUAL_STRING("e", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(4, 5).c_str());
-    TEST_ASSERT_EQUAL_STRING("e/", fURI("fos://fhat@127.0.0.1/a/b/c/d/e/").path(4, 5).c_str());
-    TEST_ASSERT_EQUAL_STRING("", fURI("//fhat@127.0.0.1/a/b/c/d/e").path(5, 6).c_str());
-    TEST_ASSERT_EQUAL_STRING("", fURI("//fhat@127.0.0.1/a/b/c/d/e").path(6));
+    TEST_ASSERT_EQUAL_STRING("/a/b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").subpath(0, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").segment(1));
+    TEST_ASSERT_EQUAL_STRING("c/d", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").subpath(2, 4).c_str());
+    TEST_ASSERT_EQUAL_STRING("e", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").subpath(4, 5).c_str());
+    TEST_ASSERT_EQUAL_STRING("e/", fURI("fos://fhat@127.0.0.1/a/b/c/d/e/").subpath(4, 5).c_str());
+    TEST_ASSERT_EQUAL_STRING("", fURI("//fhat@127.0.0.1/a/b/c/d/e").subpath(5, 6).c_str());
+    TEST_ASSERT_EQUAL_STRING("", fURI("//fhat@127.0.0.1/a/b/c/d/e").segment(6));
     TEST_ASSERT_EQUAL_STRING("/a/b/c/d/e", fURI("/a/b/c/d/e").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c/d/e", fURI("//x@/a/b/c/d/e").path().c_str());
-    TEST_ASSERT_EQUAL_STRING("c/d", fURI("/a/b/c/d/e").path(2, 4).c_str());
-    TEST_ASSERT_EQUAL_STRING("c/d", fURI("//x@/a/b/c/d/e").path(2, 4).c_str());
+    TEST_ASSERT_EQUAL_STRING("c/d", fURI("/a/b/c/d/e").subpath(2, 4).c_str());
+    TEST_ASSERT_EQUAL_STRING("c/d", fURI("//x@/a/b/c/d/e").subpath(2, 4).c_str());
     //
     TEST_ASSERT_EQUAL_INT(0, fURI("").path_length());
     TEST_ASSERT_EQUAL_INT(0, fURI("foi://fhat@127.0.0.1").path_length());
@@ -308,14 +308,14 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(5, fURI("a/b/c/d/e").path_length());
     TEST_ASSERT_EQUAL_INT(4, fURI("//x@a/b/c/d/e").path_length());
     //
-    TEST_ASSERT_EQUAL_STRING("a", fURI("//127.0.0.1/a/b/c").path(0));
-    TEST_ASSERT_EQUAL_STRING("b", fURI("//127.0.0.1/a/b/c").path(1));
-    TEST_ASSERT_EQUAL_STRING("c", fURI("//127.0.0.1/a/b/c").path(2));
-    TEST_ASSERT_EQUAL_STRING("", fURI("//127.0.0.1/a/b/c").path(3));
-    TEST_ASSERT_EQUAL_STRING("a", fURI("//127.0.0.1///a//b////c").path(2));
-    TEST_ASSERT_EQUAL_STRING("", fURI("//127.0.0.1///a//b////c").path(3));
-    TEST_ASSERT_EQUAL_STRING("b", fURI("//127.0.0.1///a//b////c").path(4));
-    TEST_ASSERT_EQUAL_STRING("c", fURI("//127.0.0.1///a//b////c").path(8));
+    TEST_ASSERT_EQUAL_STRING("a", fURI("//127.0.0.1/a/b/c").segment(0));
+    TEST_ASSERT_EQUAL_STRING("b", fURI("//127.0.0.1/a/b/c").segment(1));
+    TEST_ASSERT_EQUAL_STRING("c", fURI("//127.0.0.1/a/b/c").segment(2));
+    TEST_ASSERT_EQUAL_STRING("", fURI("//127.0.0.1/a/b/c").segment(3));
+    TEST_ASSERT_EQUAL_STRING("a", fURI("//127.0.0.1///a//b////c").segment(2));
+    TEST_ASSERT_EQUAL_STRING("", fURI("//127.0.0.1///a//b////c").segment(3));
+    TEST_ASSERT_EQUAL_STRING("b", fURI("//127.0.0.1///a//b////c").segment(4));
+    TEST_ASSERT_EQUAL_STRING("c", fURI("//127.0.0.1///a//b////c").segment(8));
   }
 
   void test_uri_query() {
@@ -696,17 +696,17 @@ void test_uri_prepend() {
     fURI nat("/int/nat");
     TEST_ASSERT_EQUAL_STRING("nat", nat.name().c_str());
     TEST_ASSERT_EQUAL_STRING("/int/nat", nat.toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("int", nat.path(0));
-    TEST_ASSERT_EQUAL_STRING("nat", nat.path(1));
-    TEST_ASSERT_EQUAL_STRING("", nat.path(3));
+    TEST_ASSERT_EQUAL_STRING("int", nat.segment(0));
+    TEST_ASSERT_EQUAL_STRING("nat", nat.segment(1));
+    TEST_ASSERT_EQUAL_STRING("", nat.segment(3));
     TEST_ASSERT_EQUAL_INT(2, nat.path_length());
-    TEST_ASSERT_EQUAL_STRING("/", nat.path(0, 0).c_str());
-    TEST_ASSERT_EQUAL_STRING("/int", nat.path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("", nat.path(2, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("", nat.path(2, 3).c_str());
-    TEST_ASSERT_EQUAL_STRING("/int/nat", nat.path(0, 2).c_str());
-    TEST_ASSERT_EQUAL_STRING("nat", nat.path(1, 2).c_str());
-    TEST_ASSERT_EQUAL_STRING("", nat.path(2, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("/", nat.subpath(0, 0).c_str());
+    TEST_ASSERT_EQUAL_STRING("/int", nat.subpath(0, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("", nat.subpath(2, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("", nat.subpath(2, 3).c_str());
+    TEST_ASSERT_EQUAL_STRING("/int/nat", nat.subpath(0, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("nat", nat.subpath(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("", nat.subpath(2, 2).c_str());
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/int/nat"), ID("/int/").resolve(ID("nat")));
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/int/"), ID("/int/").resolve(ID("")));
   }

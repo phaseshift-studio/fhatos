@@ -503,7 +503,7 @@ namespace mmadt {
             if(furi.has_path()) {
               const Lst_p path = Obj::to_lst();
               for(int i = 0; i < furi.path_length(); i++) {
-                path->lst_add(vri(furi.path(i)));
+                path->lst_add(vri(furi.segment(i)));
               }
               rec->rec_set("path", path);
             }

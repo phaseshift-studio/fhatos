@@ -586,7 +586,7 @@ namespace fhatos {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(index->is_uri()) {
-        const auto segment = string(index->uri_value().path(0));
+        const auto segment = string(index->uri_value().segment(0));
         const int i = StringHelper::is_integer(segment)
                         ? std::stoi(segment)
                         : (StringHelper::has_wildcards(segment) ? -1 : -100);
@@ -609,7 +609,7 @@ namespace fhatos {
           return to_noobj();
         return index->uri_value().path_length() <= 1
                  ? final_segment_value
-                 : final_segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)), false);
+                 : final_segment_value->deref(Obj::to_uri(index->uri_value().subpath(1)), false);
       }
       return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
                ? Obj::to_noobj()
@@ -630,8 +630,8 @@ namespace fhatos {
       if(nest &&
          index->is_uri() &&
          index->uri_value().path_length() > 1 &&
-         StringHelper::is_integer(index->uri_value().path(0))) {
-        const size_t current_index = std::strtol(index->uri_value().path(0), nullptr, 10);
+         StringHelper::is_integer(index->uri_value().segment(0))) {
+        const size_t current_index = std::strtol(index->uri_value().segment(0), nullptr, 10);
         Obj_p current_obj = this->lst_get(current_index);
         if(current_obj->is_noobj()) {
           if(const size_t offset = ((current_index + 1) - this->lst_value()->size());
@@ -640,7 +640,7 @@ namespace fhatos {
               this->lst_value()->push_back(Obj::to_noobj());
             }
           }
-          const bool is_a_lst = StringHelper::is_integer(index->uri_value().path(1));
+          const bool is_a_lst = StringHelper::is_integer(index->uri_value().segment(1));
           current_obj = is_a_lst ? Obj::to_lst() : Obj::to_rec();
           this->lst_value()->erase(this->lst_value()->begin() + current_index);
           this->lst_value()->insert(this->lst_value()->begin() + current_index, current_obj);
@@ -716,7 +716,7 @@ namespace fhatos {
       if(key->is_uri()) {
         const auto segment = 0 == key->uri_value().path_length()
                                ? key->uri_value().toString()
-                               : string(key->uri_value().path(0));
+                               : string(key->uri_value().segment(0));
         Objs_p segment_value = Obj::to_objs();
         const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
@@ -727,7 +727,7 @@ namespace fhatos {
         segment_value = segment_value->none_one_all();
         return key->uri_value().path_length() <= 1
                  ? segment_value
-                 : segment_value->deref(to_uri(key->uri_value().path(1, 255)), false);
+                 : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
       }
       const Objs_p segment_value = Obj::to_objs();
       for(const auto &[k, v]: *this->rec_value()) {
@@ -758,9 +758,9 @@ namespace fhatos {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().path_length() > 1) {
-        const Uri_p current_key = Obj::to_uri(key->uri_value().path(0));
+        const Uri_p current_key = Obj::to_uri(key->uri_value().segment(0));
         Obj_p current_obj = this->rec_get(current_key);
-        const bool is_lst = StringHelper::is_integer(key->uri_value().path(1));
+        const bool is_lst = StringHelper::is_integer(key->uri_value().segment(1));
         if(current_obj->is_noobj()) {
           current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
           this->rec_value()->insert_or_assign(current_key, current_obj);

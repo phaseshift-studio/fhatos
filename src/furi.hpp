@@ -143,7 +143,7 @@ namespace fhatos {
     }
 
     /// PATH
-    [[nodiscard]] string path(const uint8_t start, const uint8_t end) const {
+    [[nodiscard]] string subpath(const uint8_t start, const uint8_t end = UINT8_MAX) const {
       if(start > this->path_length_ || start > end)
         return "";
       string path_str;
@@ -179,9 +179,9 @@ namespace fhatos {
 
     [[nodiscard]] bool has_path() const { return this->path_length_ > 0; }
 
-    [[nodiscard]] string path() const { return this->path(0, this->path_length_); }
+    [[nodiscard]] string path() const { return this->subpath(0, this->path_length_); }
 
-    [[nodiscard]] const char *path(const uint8_t segment) const {
+    [[nodiscard]] const char *segment(const uint8_t segment) const {
       return (this->path_ && this->path_length_ > segment) ? this->path_[segment] : EMPTY_CHARS;
     }
 
@@ -408,7 +408,7 @@ namespace fhatos {
 
     [[nodiscard]] fURI retract_pattern() const {
       for(uint8_t i = 0; i < this->path_length_; i++) {
-        if(strcmp(this->path(i), "+") == 0 || 0 == strcmp(this->path(i), "#")) {
+        if(strcmp(this->segment(i), "+") == 0 || 0 == strcmp(this->segment(i), "#")) {
           auto retracted = fURI(*this);
           retracted.path_length_ = i;
           for(uint8_t j = i; j < this->path_length_; j++) {
@@ -563,15 +563,15 @@ namespace fhatos {
       }
       fURI *temp = path_end_slash || this->path_length_ == 0 ? new fURI(*this) : new fURI(this->retract());
       for(uint8_t i = 0; i < other.path_length_; i++) {
-        if(strcmp(other.path(i), "..") == 0) {
+        if(strcmp(other.segment(i), "..") == 0) {
           const fURI *temp2 = new fURI(*temp);
           delete temp;
           temp = temp2->path_length() > 0 ? new fURI(temp2->retract()) : new fURI(*temp2);
           delete temp2;
-        } else if(strcmp(other.path(i), ".") != 0) {
+        } else if(strcmp(other.segment(i), ".") != 0) {
           const fURI *temp2 = new fURI(*temp);
           delete temp;
-          temp = new fURI(temp2->extend(other.path(i)));
+          temp = new fURI(temp2->extend(other.segment(i)));
           delete temp2;
         }
         if(i == other.path_length_ - 1)
@@ -628,12 +628,12 @@ namespace fhatos {
       if(strcmp(pattern.password(), "+") != 0 && strcmp(this->password(), pattern.password()) != 0)
         return false;
       for(uint8_t i = 0; i < pattern.path_length(); i++) {
-        if(strcmp(pattern.path(i), "#") == 0)
+        if(strcmp(pattern.segment(i), "#") == 0)
           return true;
         if(0 == i && (this->sprefix_ != pattern.sprefix_))
           return false;
-        if(strcmp(pattern.path(i), "+") == 0) {
-          if(strcmp(this->path(i), "#") == 0)
+        if(strcmp(pattern.segment(i), "+") == 0) {
+          if(strcmp(this->segment(i), "#") == 0)
             return false;
           if((i == (pattern.path_length_ - 1)) && this->is_branch() != pattern.is_branch())
             return false;
@@ -642,8 +642,8 @@ namespace fhatos {
         }
         if(this->path_length_ <= i)
           return false;
-        if((strlen(this->path(i)) == 0 && strlen(pattern.path(i)) != 0) ||
-           (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
+        if((strlen(this->segment(i)) == 0 && strlen(pattern.segment(i)) != 0) ||
+           (strcmp(pattern.segment(i), "+") != 0 && strcmp(this->segment(i), pattern.segment(i)) != 0))
           return false;
       }
       return (0 == strlen(pattern.query()) || this->query() == pattern.query()) && this->path_length_ == pattern.

@@ -34,13 +34,13 @@ namespace fhatos {
                            const Pair<Pattern_p, Pattern_p> &write_mapping) {
       router()->route_subscription(
           subscription_p(id, *read_mapping.first, Subscription::to_bcode([read_mapping](const Message_p &message) {
-                           const fURI_p rewrite = furi_p(read_mapping.second->path(message->target.path()));
+                           const fURI_p rewrite = furi_p(read_mapping.second->segment(message->target.path()));
                            const Obj_p payload = message->payload;
                            router()->pull_exec(id_p(*rewrite), payload);
                          })));
       router()->route_subscription(
           subscription_p(id, *write_mapping.first, Subscription::to_bcode([write_mapping](const Message_p &message) {
-                           const fURI_p rewrite = furi_p(write_mapping.second->path(message->target.path()));
+                           const fURI_p rewrite = furi_p(write_mapping.second->segment(message->target.path()));
                            const Obj_p payload = message->payload;
                            router()->pull_exec(id_p(*rewrite), payload);
                          })));
