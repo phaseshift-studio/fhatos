@@ -281,9 +281,9 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "
-    <any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;
-    <queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
+    STRING(CONCAT HEADER_FILES
+            "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;"
+            "<queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
     MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
