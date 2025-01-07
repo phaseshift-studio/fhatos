@@ -137,7 +137,7 @@
             # IF(BUILD_MQTT_TESTS)
             #     MAKE_TESTS(structure/stype/mqtt "test_mqtt" , true)
             # ENDIF()
-            MAKE_TESTS(. "test_main;test_furi" false)
+            MAKE_TESTS(. "test_main;test_furi;test_kernel" true)
             # MAKE_TESTS(model "test_fs" true)
             MAKE_TESTS(util "test_string_helper" true)
         ENDIF()

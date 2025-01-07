@@ -117,6 +117,21 @@ namespace mmadt {
       return parser_p;
     }
 
+    static void *import(const ID &id = "/mmadt/lib/parser") {
+      // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
+      InstBuilder::build(id.extend("create"))
+          ->type_args(x(0, "pattern", ___))
+          //->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            /*OBJ_PARSER = [](const string &obj_string) {
+              return Parser::singleton()->parse(obj_string);
+            };*/
+            Parser::singleton(args->arg(0)->uri_value());
+            return dool(true);
+          })->save();
+      return nullptr;
+    }
+
   private:
     Definition
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,

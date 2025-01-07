@@ -34,6 +34,13 @@ namespace fhatos {
       return kernel_p;
     }
 
+    static ptr<Kernel> with_bcode(const BCode_p &bcode) {
+      LOG(INFO, "with_bcode: %s\n", bcode->toString().c_str());
+      const Objs_p objs = BCODE_PROCESSOR(bcode)->to_objs();
+      LOG(INFO, "after_bcode: %s\n", objs->toString().c_str());
+      return Kernel::build();
+    }
+
     static ptr<Kernel> with_log_level(const LOG_TYPE level) {
       Options::singleton()->log_level(level);
       return Kernel::build();
@@ -70,7 +77,7 @@ namespace fhatos {
       StringHelper::lower_case(machine_model);
       printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n",
                           fhatos.c_str(), machine_sub_os.c_str(), machine_arch.c_str());
-      if (!machine_model.empty())
+      if(!machine_model.empty())
         printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
       return Kernel::build();
     }
@@ -138,7 +145,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> install(const Obj_p &obj) {
-      if (obj->vid()) {
+      if(obj->vid()) {
         ROUTER_WRITE(obj->vid(), obj,RETAIN);
         LOG_KERNEL_OBJ(INFO, router(), "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
       }
