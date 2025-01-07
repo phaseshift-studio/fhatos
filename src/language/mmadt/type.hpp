@@ -288,7 +288,7 @@ namespace mmadt {
               if(counter >= max)
                 break;
               if(!value->is_noobj()) {
-                objs->add_obj(value->apply(key, lhs));
+                objs->add_obj(value->apply(key));
                 ++counter;
               }
             }

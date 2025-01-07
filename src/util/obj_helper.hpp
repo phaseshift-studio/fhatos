@@ -24,6 +24,7 @@
 
 namespace fhatos {
   using std::make_pair;
+  using std::vector;
 
   class ObjHelper {
     ObjHelper() = delete;
@@ -38,6 +39,11 @@ namespace fhatos {
         return false;
       }
       return true;
+    }
+
+    static bool check_noobj(const ID_p &type_id) {
+      const vector<string> coef = type_id->query_values(FOS_RNG_COEF);
+      return coef.empty() || stoi(coef.front()) == 0;
     }
   };
 
@@ -79,11 +85,9 @@ namespace fhatos {
                               const IntCoefficient &range_coefficient) {
       this->type_ = id_p(this->type_->query({
         {FOS_DOMAIN, domain->toString()},
-        {FOS_DC_MIN, to_string(domain_coefficient.first)},
-        {FOS_DC_MAX, to_string(domain_coefficient.second)},
+        {FOS_DOM_COEF, to_string(domain_coefficient.first).append(",").append(to_string(domain_coefficient.second))},
         {FOS_RANGE, range->toString()},
-        {FOS_RC_MIN, to_string(range_coefficient.first)},
-        {FOS_RC_MAX, to_string(range_coefficient.second)}}));
+        {FOS_RNG_COEF, to_string(range_coefficient.first).append(",").append(to_string(range_coefficient.second))}}));
       if(!this->seed_)
         this->seed_ = domain_coefficient.second > 1 ? Obj::to_objs() : Obj::to_noobj();
       return this;

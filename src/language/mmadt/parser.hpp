@@ -226,11 +226,9 @@ namespace mmadt {
         const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(vs[2]);
         const fURI_p dom_rng = furi_p(any_cast<fURI_p>(vs[0])->query({
           {FOS_DOMAIN, ROUTER_RESOLVE(*df)->toString()},
-          {FOS_DC_MIN, to_string(dc.first)},
-          {FOS_DC_MAX, to_string(dc.second)},
+          {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
           {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()},
-          {FOS_RC_MIN, to_string(rc.first)},
-          {FOS_RC_MAX, to_string(rc.second)}}));
+          {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
 
@@ -387,7 +385,7 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("_oO"), zom(seq(npd(lit("Oo_")), dot())), lit("Oo_"), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(ncls("#"), dot())), lit("###"), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+")))), ">"), furi_action;
+      FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+,")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
                             oom(cho(cls("a-zA-Z:/%?_#+"), seq(lit("`.")))),
                             zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/%?_=&#+")))))),

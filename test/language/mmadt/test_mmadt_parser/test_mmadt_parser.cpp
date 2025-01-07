@@ -196,10 +196,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DOMAIN));
     TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RANGE));
-    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DC_MIN));
-    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DC_MAX));
-    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RC_MIN));
-    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RC_MAX));
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_DOM_COEF));
+    TEST_ASSERT_TRUE(ncount_inst->tid()->has_query(FOS_RNG_COEF));
     FOS_TEST_ASSERT_EQUAL_FURI(*OBJS_FURI, *ncount_inst->domain());
     FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
   //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),

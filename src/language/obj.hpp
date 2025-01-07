@@ -426,6 +426,10 @@ namespace fhatos {
                                  std::get<1>(std::any_cast<InstValue>(value)),
                                  this->is_gather() ? Obj::to_objs() : Obj::to_noobj());
       }
+      if(otype == OType::INST && type_id->has_query(FOS_RANGE) && type_id->no_query().equals(
+           ID(type_id->query_value(FOS_RANGE).value()))) {
+        throw fError("the range of an inst can not be its type: %s", type_id->toString().c_str());
+      }
       if(value.has_value()) { // value token
         TYPE_CHECKER(this, type_id, true);
         this->tid_ = type_id;
@@ -876,17 +880,14 @@ namespace fhatos {
     }
 
 
-    // type?dom=xxx,dc_min=1,dc_max=2,rng=yyy,rc
     [[nodiscard]] IntCoefficient domain_coefficient() const {
-      int min = std::stoi(this->tid_->query_value(FOS_DC_MIN).value_or("1"));
-      int max = std::stoi(this->tid_->query_value(FOS_DC_MAX).value_or("1"));
-      return {min, max};
+      const std::vector<string> coef = this->tid_->query_values(FOS_DOM_COEF);
+      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{std::stoi(coef.at(0)), std::stoi(coef.at(1))};
     }
 
     [[nodiscard]] IntCoefficient range_coefficient() const {
-      int min = std::stoi(this->tid_->query_value(FOS_RC_MIN).value_or("1"));
-      int max = std::stoi(this->tid_->query_value(FOS_RC_MAX).value_or("1"));
-      return {min, max};
+      const std::vector<string> coef = this->tid_->query_values(FOS_RNG_COEF);
+      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{std::stoi(coef.at(0)), std::stoi(coef.at(1))};
     }
 
     [[nodiscard]] ID_p range() const {
@@ -1840,11 +1841,8 @@ namespace fhatos {
     }
 
     static Obj_p to_noobj() {
-      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, id_p(NOOBJ_FURI->query(
-                                        {{"dmin", "0"},
-                                          {"dmax", "0"},
-                                          {"rmin", "0"},
-                                          {"rmax", "0"}})));
+      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ,
+                                      id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
       return noobj;
     }
 

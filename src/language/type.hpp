@@ -91,6 +91,13 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
+        // TODO: need to get coefficient data in dom/rng ids
+        /*if(obj->is_noobj()) {
+          if(const vector<string> coef = type_id->query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {
+          LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
+            return true;
+          }
+        }*/
         if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
           return true;
         // if the type is a base type and the base types match, then type check passes
