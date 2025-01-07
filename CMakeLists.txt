@@ -281,7 +281,9 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>")
+    SET(HEADER_FILES "
+    <any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;
+    <queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
     MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
@@ -311,16 +313,19 @@ ENDIF()
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
 MESSAGE(CHECK_START "${.y}making ordered map library${..}")
-FETCHCONTENT_DECLARE(
-        ordered_map
-        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-        GIT_TAG v1.1.0
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}ordered-map${..} distributed w/ ${.FHATOS} via ${.b}util/tsl/ordered-map.h${..}.")
+IF(DO_NOT)
+    FETCHCONTENT_DECLARE(
+            ordered_map
+            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+            GIT_TAG v1.1.0
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
+    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+ENDIF()
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 
 ####################################
@@ -350,7 +355,7 @@ FETCHCONTENT_DECLARE(
 ##################################################################
 IF(USE_PAHO_MQTT_HACK)
     MESSAGE(CHECK_START "${.r}performing paho-mqtt build hack ${.g}[${.y}PART 1${.g}]${..}")
-    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}mqtt${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
+    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}mqtt${..} build hack ${.r}may required${..} to be built ${.r}twice${..}.")
     SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
     FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
     FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
@@ -426,7 +431,7 @@ ENDIF()
 ####################################
 ### PEGLIB: A C++ PEG PARSER
 MESSAGE(CHECK_START "${.y}making cpp-peglib library${..}")
-MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
+MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
 IF(DO_NOT)
     SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
     FETCHCONTENT_DECLARE(
