@@ -85,6 +85,9 @@ namespace mmadt {
       } else if(c == '>') {
         if(last[0] != '-' && last[0] != '=') // -> =>
           angles--;
+      } else if(c == '-') {
+        if(last[0] == '>') // >-
+          angles++;
       } else if(c == '{')
         braces++;
       else if(c == '}')

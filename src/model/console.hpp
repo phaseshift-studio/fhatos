@@ -104,8 +104,7 @@ namespace fhatos {
               value->toString().c_str()));
           } else {
             to_out->append(StringHelper::format(
-              "%s!c%s!m=>!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-              key->toString().c_str()));
+              "!c%s!m=>!!", key->toString().c_str()));
             this->print_result(value, depth + 1, to_out, true);
           }
         }
@@ -215,7 +214,7 @@ namespace fhatos {
           ->create()},
         {":prompt", InstBuilder::build(
             value_id.extend(":prompt"))
-          ->domain_range(STR_FURI, {1,1}, NOOBJ_FURI, {0,0})
+          ->domain_range(STR_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
           ->type_args(
             x(0, "code", Obj::to_type(STR_FURI)))
           ->inst_f([this](
