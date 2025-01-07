@@ -25,6 +25,7 @@
 #include "fhatos.hpp"
 //
 #include <sstream>
+#include <ostream>
 #include "util/string_helper.hpp"
 
 namespace fhatos {
@@ -288,22 +289,25 @@ namespace fhatos {
       return this->query(query_string.c_str());
     }
 
-    [[nodiscard]] List<string> query_values(const char *key) const {
+    template<typename T = std::string>
+    [[nodiscard]] List<T> query_values(const char *key) const {
       const Option<string> v = this->query_value(key);
       if(!v.has_value())
         return {};
-      auto *ss = new std::stringstream(v.value());
+      auto ss = std::stringstream(v.value());
       string token;
-      List<string> list;
-      while(!(token = StringHelper::next_token(',', ss)).empty()) {
+      List<T> list;
+      while(!(token = StringHelper::next_token(',', &ss)).empty()) {
         StringHelper::trim(token);
-        list.push_back(token);
+        T var;
+        std::stringstream(token) >> var;
+        list.push_back(var);
       }
-      delete ss;
       return list;
     }
 
-    [[nodiscard]] Option<string> query_value(const char *key) const {
+    template<typename T = std::string>
+    [[nodiscard]] Option<T> query_value(const char *key) const {
       if(!this->query_)
         return {};
       const char *index = strstr(this->query_, key);
@@ -322,7 +326,9 @@ namespace fhatos {
         c = index[strlen(key) + counter];
       }
       StringHelper::trim(value);
-      return {value};
+      T var;
+      std::stringstream(value) >> var;
+      return {var};
     }
 
     /// FRAGMENT
@@ -487,7 +493,7 @@ namespace fhatos {
       return false;
     }
 
-    [[nodiscard]] fURI add_component(const fURI& component) const {
+    [[nodiscard]] fURI add_component(const fURI &component) const {
       return this->extend("::").extend(component);
     }
 

@@ -881,13 +881,13 @@ namespace fhatos {
 
 
     [[nodiscard]] IntCoefficient domain_coefficient() const {
-      const std::vector<string> coef = this->tid_->query_values(FOS_DOM_COEF);
-      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{std::stoi(coef.at(0)), std::stoi(coef.at(1))};
+      const std::vector<int> coef = this->tid_->query_values<int>(FOS_DOM_COEF);
+      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{coef.at(0), coef.at(1)};
     }
 
     [[nodiscard]] IntCoefficient range_coefficient() const {
-      const std::vector<string> coef = this->tid_->query_values(FOS_RNG_COEF);
-      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{std::stoi(coef.at(0)), std::stoi(coef.at(1))};
+      const std::vector<int> coef = this->tid_->query_values<int>(FOS_RNG_COEF);
+      return coef.empty() ? IntCoefficient{1, 1} : IntCoefficient{coef.at(0), coef.at(1)};
     }
 
     [[nodiscard]] ID_p range() const {
