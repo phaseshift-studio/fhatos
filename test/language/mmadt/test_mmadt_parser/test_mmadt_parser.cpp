@@ -103,10 +103,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("../../a"), PROCESS("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), PROCESS("abc/cba"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), PROCESS("aBc_cBa"));
-    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[aaa_bbb/ccc/`.`./ddd]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("<aaa_bbb/ccc/../ddd>"));
-    FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), PROCESS("aaa_bbb/ccc/`./ddd"));
   }
 
   void test_lst_parsing() {
@@ -133,6 +131,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("[=>]", rec()->toString(NO_ANSI_PRINTER).c_str());
     FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[]"));
     FOS_TEST_OBJ_EQUAL(rec(), PROCESS("rec[[=>]]"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_rec({{"a",jnt(1)},{"b",jnt(2)}}), PROCESS("[<a>=>1,<b>=>2]"));
     FOS_TEST_OBJ_NTEQL(rec(), PROCESS("[a=>1]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),str("b")},{jnt(3),str("c")}}),
                        PROCESS("[1=>'a',2=>'b',3=>'c']"));

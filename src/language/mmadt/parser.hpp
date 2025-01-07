@@ -69,14 +69,9 @@ namespace mmadt {
     char track(const char c) {
       if(c != '\'' && quotes) {
         // do nothing
-      } else if(c == '\'') {
+      } else if(c == '\'')
         quotes = !quotes;
-      } else if((c == '=' || c == '-')) {
-        if(last[0] == '<') // <- <=
-          angles--;
-        else if(last[0] == '>') // >- >=
-          angles++;
-      } else if(c == '(')
+      else if(c == '(')
         parens++;
       else if(c == ')')
         parens--;
@@ -201,7 +196,7 @@ namespace mmadt {
         int counter = 0;
         const auto args = Obj::to_inst_args();
         for(const auto &kv: *args_struct->lst_value()) {
-          args->rec_value()->insert({vri(to_string(counter++).insert(0, "_")), kv});
+          args->rec_value()->insert({vri(to_string(counter++)), kv});
         }
         return args;
       };
@@ -222,9 +217,13 @@ namespace mmadt {
       };
 
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
-        const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(vs[1]);
-        const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(vs[2]);
-        const fURI_p dom_rng = furi_p(any_cast<fURI_p>(vs[0])->query({
+        if(vs.choice() == 0)
+          return furi_p("");
+        const bool anonymous = vs.size() == 2;
+        const fURI_p name = anonymous ? furi_p("") : any_cast<fURI_p>(vs[0]);
+        const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[0] : vs[1]);
+        const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[1] : vs[2]);
+        const fURI_p dom_rng = furi_p(name->query({
           {FOS_DOMAIN, ROUTER_RESOLVE(*df)->toString()},
           {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
           {FOS_RANGE, ROUTER_RESOLVE(*rf)->toString()},
@@ -387,13 +386,16 @@ namespace mmadt {
       ////////////////////// FURI VARIANTS ///////////////////////////
       FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+,")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
-                            oom(cho(cls("a-zA-Z:/%?_#+"), seq(lit("`.")))),
-                            zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/%?_=&#+")))))),
+                            oom(cls("a-zA-Z:/%?_#+")),
+                            zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))),
                           ">"), furi_action;
-      FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/%_.#+")),
+      FURI_NO_Q <= WRAP("<", tok(seq(
+                          oom(cls("a-zA-Z:/%_.#+")),
                           zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))),
                         ">"), furi_action;
-      DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">"), dom_rng_action;
+      DOM_RNG <= cho(
+        seq(lit("<"), lit(">")),
+        WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////

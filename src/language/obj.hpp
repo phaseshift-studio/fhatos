@@ -1551,11 +1551,9 @@ namespace fhatos {
       return !this->is_initial() && rmin == 0 && rmax > 0;
     }
 
-
     bool is_indexed_arg() const {
       if(!this->is_uri()) return false;
-      const string s = this->uri_value().toString();
-      return s[0] == '_' && StringHelper::is_integer(s.substr(1));
+      return StringHelper::is_integer(this->uri_value().toString());
     }
 
     bool is_indexed_args() const {
@@ -1566,7 +1564,7 @@ namespace fhatos {
       int counter = 0;
       for(const auto &[k,v]: *this->rec_value()) {
         if(!(k->is_uri() &&
-             k->uri_value().toString() == to_string(counter++).insert(0, "_")))
+             k->uri_value().toString() == to_string(counter++)))
           return false;
       }
       return true;
@@ -1946,7 +1944,7 @@ namespace fhatos {
     static InstArgs to_inst_args(const List<Obj_p> &args) {
       const Rec_p inst_args = Obj::to_rec();
       for(size_t i = 0; i < args.size(); i++) {
-        inst_args->rec_value()->insert({Obj::to_uri(string("_").append(to_string(i))), args.at(i)});
+        inst_args->rec_value()->insert({Obj::to_uri(to_string(i)), args.at(i)});
       }
       return inst_args;
     }
@@ -2249,11 +2247,11 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
-    return from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
+    return from(Obj::to_uri(to_string(arg_num)), default_arg);
   }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
-    return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
+    return from(Obj::to_uri(ID(to_string(arg_num)).query(arg_name)), default_arg);
   }
 
   /* [[maybe_unused]] static Inst_p x(const string &arg_name, const Obj_p &default_arg = noobj()) {
@@ -2261,6 +2259,5 @@ namespace fhatos {
    }*/
 
   static BCode_p ___ = Obj::to_bcode();
-  static NoObj_p _noobj_ = Obj::to_noobj();
 } // namespace fhatos
 #endif

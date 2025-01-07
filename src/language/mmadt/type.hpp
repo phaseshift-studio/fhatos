@@ -74,8 +74,10 @@ namespace mmadt {
       InstBuilder::build(MMADT_SCHEME "/as")
           ->type_args(x(0, "type"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            // TODO: weird hack for uri or obj type
-            return lhs->as(args->arg(0)->is_uri() ? id_p(args->arg(0)->uri_value()) : args->arg(0)->tid());
+            // uri or obj (for type obj)
+            return lhs->as(args->arg(0)->is_uri()
+                             ? id_p(*ROUTER_RESOLVE(args->arg(0)->uri_value()))
+                             : args->arg(0)->tid());
           })
           ->save();
 
@@ -226,7 +228,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/from")
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
+          ->type_args(x(0, "rhs", ___), x(1, "default", Obj::to_noobj()))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p result = ROUTER_READ(args->arg(0)->uri_p_value<fURI>());
             return result->is_noobj() ? args->arg(1) : result;
@@ -237,7 +239,7 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "rhs"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            return args->arg(0)->bool_value() ? lhs : _noobj_;
+            return args->arg(0)->bool_value() ? lhs : Obj::to_noobj();
           })
 
           ->save();

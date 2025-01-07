@@ -65,15 +65,15 @@ namespace fhatos {
 
     InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                            const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
-      this->args_->rec_set("_0", arg0);
+      this->args_->rec_set(vri("0"), arg0);
       if(arg1)
-        this->args_->rec_set("_1", arg1);
+        this->args_->rec_set(vri("1"), arg1);
       if(arg2)
-        this->args_->rec_set("_2", arg2);
+        this->args_->rec_set(vri("2"), arg2);
       if(arg3)
-        this->args_->rec_set("_3", arg3);
+        this->args_->rec_set(vri("3"), arg3);
       if(arg4)
-        this->args_->rec_set("_4", arg4);
+        this->args_->rec_set(vri("4"), arg4);
       return this;
     }
 
