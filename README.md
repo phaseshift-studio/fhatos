@@ -36,5 +36,7 @@ The following processors and platforms have been tested:
   - Zero RP2040
   - RP2040 USB
   - NanoPi NEO Air
+- **RISC-V** (gcc/vendor_framework)
+  - LicheeRV Nano
 
 [![CMake FhatOS using Ubuntu](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml/badge.svg)](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml)
