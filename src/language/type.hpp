@@ -126,72 +126,89 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
+        using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
         Log::LOGGER(DEBUG, Typer::singleton().get(), " !yresolving!! !yinst!! %s [!gSTART!!]\n",
                     inst->toString().c_str());
         if(inst->is_noobj())
           return inst;
-        const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
+        if(!lhs->is_noobj())
+          ObjHelper::check_coefficients(lhs->range_coefficient(), inst->domain_coefficient(), true);
+        const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));
           while(true) {
+            Inst_p maybe;
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
-            Inst_p maybe = ROUTER_READ(inst_type_id);
-            if(derivation_tree)
-              derivation_tree->emplace_back(fURI("auto_prefix/").extend(*inst_type_id));
-            if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
-              return maybe;
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid()) {
               Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                           inst_type_id->toString().c_str());
-              if(derivation_tree)
-                derivation_tree->emplace_back(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
-              maybe = ROUTER_READ(id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id)));
-              if(!maybe->is_noobj())
+              const ID_p next_inst_type_id = id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
+              maybe = ROUTER_READ(next_inst_type_id);
+              if(dt)
+                dt->emplace_back(current_obj->vid(), next_inst_type_id, maybe);
+              if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
                 return maybe;
             }
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
             Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                         inst_type_id->toString().c_str());
-            if(derivation_tree)
-              derivation_tree->emplace_back(current_obj->tid()->equals(*OBJ_FURI)
-                                              ? fURI(*inst_type_id)
-                                              : current_obj->tid()->extend(C_INST_C).extend(*inst_type_id));
-            maybe = ROUTER_READ(id_p(current_obj->tid()->equals(*OBJ_FURI)
-                                       ? fURI(*inst_type_id) // drop back to flat namespace
-                                       : current_obj->tid()->extend(C_INST_C).extend(*inst_type_id)));
-            if(!maybe->is_noobj())
+            const ID_p next_inst_type_id = id_p(current_obj->tid()->equals(*OBJ_FURI)
+                                                  ? fURI(*inst_type_id) // drop back to flat namespace
+                                                  : current_obj->tid()->no_query().extend(C_INST_C).extend(
+                                                    *inst_type_id));
+            maybe = ROUTER_READ(next_inst_type_id);
+            if(dt)
+              dt->emplace_back(id_p(current_obj->tid()->no_query()), next_inst_type_id, maybe);
+            if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
-            if(current_obj->tid()->equals(*(current_obj = ROUTER_READ(current_obj->tid()))->tid()))
+            if(current_obj->tid()->equals(*(current_obj = ROUTER_READ(current_obj->tid()))->tid())) {
               // infinite loop (i.e. base type)
               return noobj();
+            }
           }
         };
-        Inst_p final_inst;
-        // if(inst->inst_f() == nullptr) {
-        // inst is a token placeholder from a parse or dynamic generation (dynamic dispatch required)
-        List<ID> derivation_tree;
-        final_inst = TEMP(lhs, inst, &derivation_tree);
-        if(final_inst->is_noobj()) {
-          const Obj_p type_obj = ROUTER_READ(lhs->tid());
-          derivation_tree.push_back(*final_inst->tid());
-          final_inst = TEMP(lhs->as(lhs->type()->domain()), inst, &derivation_tree);
-          if(final_inst->is_noobj()) {
-            //////////////////// print derivation tree in the error message ////////////////////
-            string error_message;
-            int counter = 0;
-            for(const auto &id: derivation_tree) {
-              counter = inst->tid()->equals(id) ? 1 : counter + 1;
-              error_message.append(StringHelper::format("\n\t!m%s>!!" FURI_WRAP,
-                                                        StringHelper::repeat(counter, "--").c_str(),
-                                                        id.toString().c_str()));
+        //////////////////////////////////////
+        //////////////////////////////////////
+        /////////////////////////////////////
+        auto dt = DerivationTree();
+        dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
+        ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));;
+        Inst_p final_inst = ROUTER_READ(inst_type_id);
+        dt.emplace_back(id_p(""), inst_type_id, final_inst);
+        if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+          dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
+          final_inst = TEMP(lhs, inst, &dt);
+          if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+            const Obj_p next_lhs = ROUTER_READ(lhs->tid());
+            const ID_p next_id = id_p(next_lhs->range()->no_query());
+            const Obj_p next_obj = ROUTER_READ(next_id);
+            dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
+            final_inst = TEMP(next_obj, inst, &dt);
+            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+              if(inst->inst_f())
+                final_inst = inst;
             }
-            if(!inst->inst_f())
+            //////////////////// generated printable derivation tree ////////////////////
+            string derivation_string;
+            int counter = 0;
+            for(const auto &oir: dt) {
+              counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
+              if(counter != 0) {
+                string indent = StringHelper::repeat(counter, "-").append("!g>!!");
+                derivation_string.append(StringHelper::format("\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+                                                              indent.c_str(),
+                                                              std::get<0>(oir)->toString().c_str(),
+                                                              std::get<1>(oir)->toString().c_str(),
+                                                              std::get<2>(oir)->toString().c_str()));
+              }
+            }
+            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f())
               throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
-                           inst->tid()->toString().c_str(), error_message.c_str());
-            final_inst = inst;
+                           inst->tid()->toString().c_str(), derivation_string.c_str());
+            LOG_OBJ(DEBUG, lhs.get(), "!binst!! !yderivation tree!! traversal %s\n", derivation_string.c_str());
             ////////////////////////////////////////////////////////////////////////////////
           }
         }

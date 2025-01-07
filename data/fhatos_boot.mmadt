@@ -1,12 +1,39 @@
-[
-  :deployment => [
-    mmadt:type[[
-        :structure => /type/# -> heap[],
-        :process => /type/ -> coroutine[]
-    ]],
-    mmadt:parser[[
-      :structure => /parser/ -> heap[],
-      :process   => /parser/ -> coroutine[]
-    ]]
-  ]
- ]
+   ->displaying_notes("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+            ->using_router(Router::singleton("/sys/router"))
+            ////////////////// SYS STRUCTURE
+            ->mount(Heap<ALLOC>::create("/sys/#"))
+            ->import(Scheduler::import())
+            ->import(Router::import())
+            ////////////////// USER STRUCTURE(S)
+            ->displaying_notes("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
+            ->mount(Heap<>::create("/type/#"))
+            ->mount(Heap<>::create(FOS_SCHEME "/#"))
+            ->mount(Heap<>::create(MMADT_SCHEME "/#"))
+            ->import(FhatOSCoreDriver::import())
+            ->install(Typer::singleton(FOS_SCHEME "/type"))
+            ->import(mmadt::mmADT::import())
+            ->displaying_notes("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
+            ->mount(Heap<>::create("/io/#"))
+            ->import(Log::import("/io/lib/log"))
+            ->import(Console::import("/io/lib/console"))
+            ->install(Terminal::singleton("/io/terminal"))
+            ->install(Log::create("/io/log"))
+            ->install(mmadt::Parser::singleton("/io/parser"))
+            ->mount(Heap<>::create("+/#"))
+
+print('!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!');
+/sys/lib/heap/.[
+  create(+type/#),
+  create(+fos/#),
+  create(+mmadt/#),
+  create(++/#)];
+/lang/lib/mmadt/create(/mmadt/);
+/fos/lib/common();
+/io/lib/.[
+  +terminal => create(/io/terminal),
+  +log      => create(/io/log)
+                 .config/DEBUG.@(_) + |[#],
+  +console  => create(/io/console)
+                 .config/nest.@(_) 4
+]

@@ -1223,57 +1223,46 @@ namespace fhatos {
         }
       }
       if(!this->is_noobj() &&
-         ////
          (this->is_type() ||
           this->is_inst() ||
-          (obj_printer->show_type && this->is_code() //&&
-            /* (this->itype() != IType::ONE_TO_ONE || !this->domain()->equals(*OBJ_FURI) || !this->range()->
-              equals(*OBJ_FURI)))*/)) ||
-         ////
-         (obj_printer->show_type && !this->is_base_type()) ||
-         ////
-         (obj_printer->strict && this->is_uri())) {
+          (obj_printer->show_type && !this->is_base_type()))) {
         string typing;
         if(this->is_type())
           typing += "!m[!!";
-        typing += this->is_base_type() && !this->is_code() && !this->is_type()
+        typing += this->is_base_type() && !this->is_inst() && !this->is_type() && !this->is_uri()
                     ? ""
-                    : string("!B").append(this->is_bcode()
-                                            ? "!!"
-                                            : (obj_printer->strict ? this->tid_->toString() : this->tid_->name()))
-                    .append("!!");
+                    : string("!b")
+                    .append(obj_printer->strict ? this->tid_->toString() : this->tid_->name()).append("!!");
         // TODO: remove base_type check
-        if(obj_printer->show_domain_range && !this->is_base_type()) {
-          string dom_str = this->has_domain(1, 1)
-                             ? ""
-                             : this->has_domain(0, 1)
-                                 ? "?"
-                                 : this->has_domain(0,INT_MAX)
-                                     ? "+"
-                                     : this->is_initial()
-                                         ? "."
-                                         : this->is_gather()
-                                             ? "*"
-                                             : to_string(this->domain_coefficient().first)
-                                             .append(",")
-                                             .append(to_string(this->domain_coefficient().second));
-          string rng_str = this->has_range(1, 1)
-                             ? ""
-                             : this->has_range(0, 1)
-                                 ? "?"
-                                 : this->has_range(0,INT_MAX)
-                                     ? "+"
-                                     : this->is_terminal()
-                                         ? "."
-                                         : this->is_scatter()
-                                             ? "*"
-                                             : to_string(this->range_coefficient().first)
-                                             .append(",")
-                                             .append(to_string(this->range_coefficient().second));
+        if(obj_printer->show_domain_range) {
+          const string dom_str = this->has_domain(1, 1) && !obj_printer->strict
+                                   ? ""
+                                   : this->has_domain(0, 1)
+                                       ? "?"
+                                       : this->has_domain(0,INT_MAX)
+                                           ? "+"
+                                           : this->is_initial()
+                                               ? "."
+                                               : this->is_gather()
+                                                   ? "*"
+                                                   : to_string(this->domain_coefficient().first)
+                                                   .append(",")
+                                                   .append(to_string(this->domain_coefficient().second));
+          const string rng_str = this->has_range(1, 1) && !obj_printer->strict
+                                   ? ""
+                                   : this->has_range(0, 1)
+                                       ? "?"
+                                       : this->has_range(0,INT_MAX)
+                                           ? "+"
+                                           : this->is_terminal()
+                                               ? "."
+                                               : this->is_scatter()
+                                                   ? "*"
+                                                   : to_string(this->range_coefficient().first)
+                                                   .append(",")
+                                                   .append(to_string(this->range_coefficient().second));
 
-          if(!(this->domain()->equals(*OBJ_FURI) &&
-               this->range()->equals(*OBJ_FURI) &&
-               dom_str.empty() && rng_str.empty())) {
+          if(!dom_str.empty() || !rng_str.empty()) {
             typing = typing.append("!m?!!")
                 .append("!c").append(obj_printer->strict ? this->range()->toString() : this->range()->name())
                 .append(rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
@@ -1395,7 +1384,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool equals(const Obj &other) const {
-      if(this->otype_ != other.otype_ || !this->tid_->equals(*other.tid_))
+      if(this->otype_ != other.otype_ || !this->tid_->no_query().equals(other.tid_->no_query()))
         return false;
       switch(this->otype_) {
         case OType::NOOBJ: return true;
@@ -1597,10 +1586,6 @@ namespace fhatos {
       return result;
     }
 
-    Obj_p apply() const {
-      return this->apply(Obj::to_noobj());
-    }
-
     Obj_p apply(const Obj_p &lhs) const {
       if(lhs->is_error())
         return lhs;
@@ -1612,13 +1597,28 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       if(lhs->is_type()) {
         auto next = lhs->type_value();
-        if(!this->is_code()) {
-          next = next->add_inst(Obj::to_inst(Obj::to_inst_args({this->shared_from_this()}), id_p("map")), false);
-        } else if(this->is_bcode()) {
+        if(this->is_inst()) {
+          LOG(INFO, "apply type to inst: %s => %s\n", lhs->toString().c_str(), this->toString().c_str());
+          TYPE_CHECKER(lhs.get(), this->domain(), true);
+          if(lhs->range_coefficient().first < this->domain_coefficient().first) {
+            throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
+                         lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
+                         this->toString().c_str(), this->domain_coefficient().first, this->domain_coefficient().second);
+          }
+          if(lhs->range_coefficient().second > this->domain_coefficient().second) {
+            throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
+                         lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
+                         this->toString().c_str(), this->domain_coefficient().first, this->domain_coefficient().second);
+          }
+          const Inst_p resolved = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          next = next->add_inst(resolved);
+        } else {
+          throw fError("only inst currently supported: %s", this->toString().c_str());
+        } /*else if(this->is_bcode()) {
           next = next->add_bcode(this->shared_from_this(), false);
         } else {
           next = next->add_inst(this->shared_from_this(), false);
-        }
+        }*/
         // TYPE_CHECKER(this, lhs->tid(), true);
         return Obj::to_type(this->range(), next, lhs->vid());
       }
@@ -1840,7 +1840,11 @@ namespace fhatos {
     }
 
     static Obj_p to_noobj() {
-      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
+      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, id_p(NOOBJ_FURI->query(
+                                        {{"dmin", "0"},
+                                          {"dmax", "0"},
+                                          {"rmin", "0"},
+                                          {"rmax", "0"}})));
       return noobj;
     }
 

@@ -26,7 +26,7 @@
 namespace fhatos {
   inline auto stdout_mutex = std::mutex();
 
-  enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
+  enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6, OFF = 7 };
 
   static const auto LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
     {TRACE, "TRACE"},
@@ -34,7 +34,8 @@ namespace fhatos {
     {INFO, "INFO"},
     {WARN, "WARN"},
     {ERROR, "ERROR"},
-    {NONE, "NONE"}});
+    {NONE, "NONE"},
+    {OFF, "OFF"}});
 
   class Logger {
   public:

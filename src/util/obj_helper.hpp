@@ -25,6 +25,22 @@
 namespace fhatos {
   using std::make_pair;
 
+  class ObjHelper {
+    ObjHelper() = delete;
+
+  public:
+    static bool check_coefficients(const IntCoefficient a, const IntCoefficient b, bool throw_on_error = true) {
+      if(a.first < b.first || a.second > b.second) {
+        if(throw_on_error) {
+          throw fError("lhs coefficient not within rhs coefficient: {%i,%i} <> {%i,%i}", a.first, a.second, b.first,
+                       b.second);
+        }
+        return false;
+      }
+      return true;
+    }
+  };
+
   class InstBuilder {
     explicit InstBuilder(const TypeO_p &type) : type_(type), seed_(nullptr) {
     }

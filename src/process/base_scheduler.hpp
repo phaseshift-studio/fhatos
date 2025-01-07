@@ -130,23 +130,25 @@ namespace fhatos {
 
   protected:
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
-      // ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
       scheduler
+          ->this_add("/lib", Obj::to_rec())
+          //->this_add("/lib/thread", OBJ_PARSER("thread?rec<=obj(loop=>_)[[loop=>*loop]]"))
           ///// INSTRUCTIONS
-          ->this_add("/spawn",
-                     InstBuilder::build(scheduler->vid()->add_component("spawn"))
-                     ->type_args(x(0, "thread", ___))
-                     ->domain_range(OBJ_FURI, THREAD_FURI)
-                     ->inst_f([](const Obj_p &, const InstArgs &args) {
-                       const Obj_p &proc = args->arg(0);
-                       if(!proc->vid())
-                         throw fError("value id required to spawn %s", proc->toString().c_str());
-                       // if(proc->tid()->has_path("thread"))
-                       return SCHEDULER_SPAWN(proc);
-                       // throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
-                     })
-                     // ->doc("spawn a parallel thread of execution")
-                     ->create())
+          ->
+          this_add("/spawn",
+                   InstBuilder::build(scheduler->vid()->add_component("spawn"))
+                   ->type_args(x(0, "thread", ___))
+                   ->domain_range(OBJ_FURI, THREAD_FURI)
+                   ->inst_f([](const Obj_p &, const InstArgs &args) {
+                     const Obj_p &proc = args->arg(0);
+                     if(!proc->vid())
+                       throw fError("value id required to spawn %s", proc->toString().c_str());
+                     // if(proc->tid()->has_path("thread"))
+                     return SCHEDULER_SPAWN(proc);
+                     // throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
+                   })
+                   // ->doc("spawn a parallel thread of execution")
+                   ->create())
           ->this_add("/stop",
                      InstBuilder::build("stop")
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
@@ -156,7 +158,7 @@ namespace fhatos {
                      ->domain_range(OBJ_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
                      ->create())
           ///// OBJECTS
-          ->this_add("/lib/process", Obj::to_rec())
+
           ->this_add("/lib/thread", Obj::to_rec())
           ->save();
       return nullptr;

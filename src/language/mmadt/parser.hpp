@@ -123,7 +123,7 @@ namespace mmadt {
     Definition
         WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
         FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_OBJ, NO_MATCH,
-        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SET, OBJS, OBJ, TYPE_ID,
+        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SIGNATURE, OBJS, OBJ, TYPE_ID,
         COEFFICIENT, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
 #ifndef FOS_SUGARLESS_MMADT
@@ -239,42 +239,44 @@ namespace mmadt {
       };
 
       static auto coefficient_action = [](const SemanticValues &vs) -> IntCoefficient {
-        int left;
-        int right;
+        int min;
+        int max;
         // INT_MAX means "or more"
-        const string card_chr = vs.token_to_string();
-        StringHelper::trim(card_chr);
-        if(card_chr.empty()) {
-          left = 1;
-          right = 1;
-        } else if(card_chr == "*") {
-          left = 0;
-          right = INT_MAX;
-        } else if(card_chr == "?") {
-          left = 0;
-          right = 1;
-        } else if(card_chr == "+") {
-          left = 1;
-          right = INT_MAX;
-        } else if(card_chr == ".") {
-          left = 0;
-          right = 0;
+        const string coefficient_string = vs.token_to_string();
+        StringHelper::trim(coefficient_string);
+        if(coefficient_string.empty()) {
+          min = 1;
+          max = 1;
+        } else if(coefficient_string == "*") {
+          min = 0;
+          max = INT_MAX;
+        } else if(coefficient_string == "?") {
+          min = 0;
+          max = 1;
+        } else if(coefficient_string == "+") {
+          min = 1;
+          max = INT_MAX;
+        } else if(coefficient_string == ".") {
+          min = 0;
+          max = 0;
         } else {
-          const List<int> components = StringHelper::tokenize<int>(',', card_chr, [](const string &s) {
+          const List<int> components = StringHelper::tokenize<int>(',', coefficient_string, [](const string &s) {
             return StringHelper::is_integer(s) ? stoi(s) : INT_MAX;
           });
           if(0 == components.size()) { // I believe this first part is an unreachable branch
-            left = 1;
-            right = 1;
+            min = 1;
+            max = 1;
           } else if(1 == components.size()) {
-            left = components[0];
-            right = left;
+            min = components[0];
+            max = min;
           } else {
-            left = components[0];
-            right = components[1];
+            min = components[0];
+            max = components[1];
           }
         }
-        return {left, right};
+        if(min > max)
+          throw fError("coefficient min can not be larger than max: %i > %i", min, max);
+        return {min, max};
       };
 
 
@@ -393,7 +395,7 @@ namespace mmadt {
       FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/%_.#+")),
                           zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))),
                         ">"), furi_action;
-      DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SET, /*opt(COEF),*/ lit("<="), SET), ">"), dom_rng_action;
+      DOM_RNG <= WRAP("<", seq(FURI_NO_Q, chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">"), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
@@ -421,7 +423,7 @@ namespace mmadt {
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
       COEFFICIENT <= tok(cho(cls("?*+."), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
       //zoo,zom,oom
-      SET <= seq(FURI_NO_Q, opt(seq(lit("{"), COEFFICIENT, lit("}")))),
+      SIGNATURE <= seq(FURI_NO_Q, opt(seq(lit("{"), COEFFICIENT, lit("}")))),
           [](const SemanticValues &vs) -> Pair<fURI_p, IntCoefficient> {
             const auto furi = any_cast<fURI_p>(vs[0]);
             const auto coefficient = 1 == vs.size() ? IntCoefficient(1, 1) : any_cast<IntCoefficient>(vs[1]);
