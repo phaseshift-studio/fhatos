@@ -22,7 +22,7 @@
 #include <chrono>
 #include <thread>
 #include <fhatos.hpp>
-#include <process/process.hpp>
+#include "../../process.hpp"
 
 namespace fhatos {
   class Thread : public Process {

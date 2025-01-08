@@ -23,6 +23,8 @@
 #include "../furi.hpp"
 #include "../util/string_helper.hpp"
 #include "../language/mmadt/parser.hpp"
+#include "../util/string_helper.hpp"
+#include "terminal.hpp"
 
 #include FOS_PROCESS(thread.hpp)
 

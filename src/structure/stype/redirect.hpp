@@ -20,10 +20,10 @@
 #ifndef fhatos_redirect_hpp
 #define fhatos_redirect_hpp
 
-#include "fhatos.hpp"
-#include "language/obj.hpp"
-#include "structure/pubsub.hpp"
-#include "structure/router.hpp"
+#include "../../fhatos.hpp"
+#include "../../language/obj.hpp"
+#include "../pubsub.hpp"
+#include "../router.hpp"
 
 namespace fhatos {
   class Redirect {

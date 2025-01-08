@@ -20,13 +20,13 @@
 #ifndef fhatos_heaped_hpp
 #define fhatos_heaped_hpp
 
-#include <fhatos.hpp>
+#include "../../fhatos.hpp"
 #include <shared_mutex>
-#include <language/obj.hpp>
-#include <structure/structure.hpp>
+#include "../../language/obj.hpp"
+#include "../structure.hpp"
 
 #ifdef ESP_ARCH
-#include <util/esp/psram_allocator.hpp>
+#include "../../util/esp/psram_allocator.hpp"
 #endif
 
 namespace fhatos {

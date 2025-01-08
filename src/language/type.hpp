@@ -21,8 +21,7 @@
 
 #include "../fhatos.hpp"
 #include "obj.hpp"
-
-#include "model/log.hpp"
+#include "../model/log.hpp"
 
 #include FOS_MQTT(mqtt.hpp)
 
