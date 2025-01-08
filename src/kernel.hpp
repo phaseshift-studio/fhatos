@@ -19,12 +19,9 @@
 #ifndef fhatos_kernel_hpp
 #define fhatos_kernel_hpp
 
-#include <model/program.hpp>
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <model/terminal.hpp>
 #include <process/process.hpp>
-#include <language/type.hpp>
 
 namespace fhatos {
   class Kernel {

@@ -19,8 +19,9 @@
 #ifndef fhatos_log_hpp
 #define fhatos_log_hpp
 
-#include <fhatos.hpp>
-#include <furi.hpp>
+#include "../fhatos.hpp"
+#include "../furi.hpp"
+#include "../util/obj_helper.hpp"
 
 #define OBJ_ID_WRAP "!g[!b%s!g]!!"
 #define SYS_ID_WRAP "!g[!y%s!g]!!"

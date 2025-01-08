@@ -19,11 +19,11 @@
 #ifndef fhatos_console_hpp
 #define fhatos_console_hpp
 
-#include <fhatos.hpp>
-#include <furi.hpp>
+#include "../fhatos.hpp"
+#include "../furi.hpp"
 #include <language/fluent.hpp>
-#include <util/string_helper.hpp>
-
+#include "../util/string_helper.hpp"
+#include "terminal.hpp"
 #include "language/mmadt/parser.hpp"
 
 #include FOS_PROCESS(thread.hpp)

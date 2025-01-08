@@ -20,8 +20,8 @@
 #define fhatos_processor_hpp
 
 #include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
-#include "../../language/rewrite/rewriter.hpp"
+#include "../obj.hpp"
+#include "../compiler/rewrite/rewriter.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////

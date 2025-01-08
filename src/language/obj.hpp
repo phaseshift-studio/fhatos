@@ -47,10 +47,11 @@
 // #define FOS_BASE_TYPE_INDEX 1
 
 #include "../fhatos.hpp"
-#include <utility>
-#include <variant>
 #include "../furi.hpp"
 #include "../util/tsl/ordered_map.h"
+#include "compiler/compiler.hpp"
+#include <utility>
+#include <variant>
 
 namespace fhatos {
   /// @brief The base types of mm-ADT

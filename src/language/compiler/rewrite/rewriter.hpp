@@ -19,12 +19,10 @@
 #ifndef fhatos_rewrite_hpp
 #define fhatos_rewrite_hpp
 
-#include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
-#include "../../util/string_printer.hpp"
-#include "../../language/insts.hpp"
-
-#include "../../language/mmadt/type.hpp"
+#include "../../../fhatos.hpp"
+#include "../../obj.hpp"
+#include "../../../util/string_printer.hpp"
+#include "../../mmadt/type.hpp"
 
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;
