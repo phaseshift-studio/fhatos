@@ -15,13 +15,8 @@ FhatOS: A Distributed Operating System
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-#pragma once
-#ifndef fhatos_compiler_cpp
-#define fhatos_compiler_cpp
 
-//
 #include "compiler.hpp"
-#include "../obj.hpp"
 
 using std::tuple;
 using std::vector;
@@ -102,4 +97,3 @@ namespace fhatos {
     }
 
 };
-#endif

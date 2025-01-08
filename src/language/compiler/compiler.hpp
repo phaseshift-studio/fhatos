@@ -21,6 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../../furi.hpp"
+#include "../obj.hpp"
 
 template<typename T>
 class Coefficient;
