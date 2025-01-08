@@ -19,7 +19,7 @@
 #ifndef fhatos_argv_parser_hpp
 #define fhatos_argv_parser_hpp
 
-#include <fhatos.hpp>
+#include "../fhatos.hpp"
 
 namespace fhatos {
   class ArgvParser {

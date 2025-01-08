@@ -22,10 +22,10 @@
 #include <fhatos.hpp>
 //
 #include <atomic>
-#include <furi.hpp>
-#include <process/process.hpp>
-#include <structure/router.hpp>
-#include <util/mutex_deque.hpp>
+#include "../furi.hpp"
+#include "process.hpp"
+#include "../structure/router.hpp"
+#include "../util/mutex_deque.hpp"
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {

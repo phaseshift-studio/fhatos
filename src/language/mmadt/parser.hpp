@@ -20,7 +20,7 @@ FhatOS: A Distributed Operating System
 #define mmadt_parser_hpp
 
 #include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
+#include "../obj.hpp"
 #include "../util/peglib.h"
 
 using namespace peg;

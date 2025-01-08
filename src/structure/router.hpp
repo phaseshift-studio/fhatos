@@ -25,11 +25,11 @@
 #endif
 
 #include "../fhatos.hpp"
-#include "../structure/structure.hpp"
+#include "structure.hpp"
 #include FOS_MQTT(mqtt.hpp)
 #include "../language/obj.hpp"
-#include "../structure/stype/heap.hpp"
-#include "../structure/stype/frame.hpp"
+#include "stype/heap.hpp"
+#include "stype/frame.hpp"
 
 
 namespace fhatos {

@@ -21,10 +21,8 @@
 
 #include "../fhatos.hpp"
 #include "../furi.hpp"
-#include <language/fluent.hpp>
 #include "../util/string_helper.hpp"
-#include "terminal.hpp"
-#include "language/mmadt/parser.hpp"
+#include "../language/mmadt/parser.hpp"
 
 #include FOS_PROCESS(thread.hpp)
 

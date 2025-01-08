@@ -19,7 +19,7 @@
 #ifndef fhatos_mutex_deque_hpp
 #define fhatos_mutex_deque_hpp
 
-#include  "../../src/fhatos.hpp"
+#include  "../fhatos.hpp"
 #include <shared_mutex>
 
 namespace fhatos {

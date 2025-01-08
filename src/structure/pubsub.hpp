@@ -19,8 +19,8 @@
 #ifndef fhatos_pubsub_hpp
 #define fhatos_pubsub_hpp
 
-#include "../../src/fhatos.hpp"
-#include  "../../src/language/obj.hpp"
+#include "../fhatos.hpp"
+#include  "../language/obj.hpp"
 
 namespace fhatos {
 #define RETAIN true

@@ -19,8 +19,8 @@
 #ifndef fhatos_types_hpp
 #define fhatos_types_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
+#include "../fhatos.hpp"
+#include "obj.hpp"
 
 #include "model/log.hpp"
 

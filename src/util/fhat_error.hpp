@@ -21,7 +21,7 @@
 
 #include <exception>
 #include <string>
-#include <util/string_helper.hpp>
+#include "string_helper.hpp"
 #include <memory>
 
 using std::string;

@@ -16,11 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <fhatos.hpp>
-#include <boot_loader.hpp>
-#include <kernel.hpp>
-#include <util/argv_parser.hpp>
-#include <model/tool.hpp>
+#include "fhatos.hpp"
+#include "boot_loader.hpp"
+#include "kernel.hpp"
+#include "util/argv_parser.hpp"
 //include <model/soc/rpi/rpi_pinout.hpp>
 
 #define HELP "  --!b%-15s!!= %5s\n"

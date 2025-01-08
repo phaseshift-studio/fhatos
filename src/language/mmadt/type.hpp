@@ -20,8 +20,8 @@
 #define mmadt_types_hpp
 
 #include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
-#include "../../language/type.hpp"
+#include "../obj.hpp"
+#include "../type.hpp"
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 100
