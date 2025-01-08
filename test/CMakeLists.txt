@@ -94,7 +94,7 @@
                                 unity paho-mqttpp3)
                         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
                     ELSE()
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqttpp3 peglib)
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqtt3a paho-mqttpp3 paho-mqttpp3 peglib)
                     ENDIF()
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
