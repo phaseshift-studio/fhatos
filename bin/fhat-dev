@@ -61,38 +61,57 @@ else
     FHATOS_HOME=$(pwd)
 
   fi
-     echo -e " ${LB}fhatos ${GREEN}FHATOS_HOME=${FHATOS_HOME}${NC}${RB}";
-    cd "${FHATOS_HOME}" || exit 1
-
-
+  echo -e " ${LB}fhatos            ${GREEN}FHATOS_HOME=${FHATOS_HOME}${NC}${RB}";
+  cd "${FHATOS_HOME}" || exit 1
   echo -e " ${LB}working directory ${GREEN}$working_directory${NC}${RB}"
+
+  # create bash key/value pairs for all provided args
+  for ARGUMENT in "$@"
+  do
+   KEY=$(echo $ARGUMENT | cut -f1 -d=)
+   KEY_LENGTH=${#KEY}
+   VALUE="${ARGUMENT:$KEY_LENGTH+1}"
+   export "$KEY"="$VALUE"
+  done
+
+  if [[ -z $j ]]; then
+    export j=6
+  fi
+  export CMAKE_BUILD_PARALLEL_LEVEL="$j"
+
+  if [[ -z $o ]]; then
+    export o=1
+  fi
 
   if [[ -z $1  ]]; then
     filter=" "
     echo -e " ${LB}no target${RB}"
     exit 1
   else
-    echo -e " ${LB}target ${GREEN}$1${NC}${RB}"
+    echo -e " ${LB}target            ${GREEN}$1${NC}${RB}"
   fi
 
   if [[ -z $2 ]]; then
     environ=" "
     platform=" "
-    echo -e " ${LB}platform ${GREEN}all environments${NC}${RB}"
+    echo -e " ${LB}platform          ${GREEN}all environments${NC}${RB}"
   else
     environ="--environment $2"
     platform="$2"
-    echo -e " ${LB}platform ${GREEN}$environ${NC}${RB}"
+    echo -e " ${LB}platform          ${GREEN}$environ${NC}${RB}"
   fi
 
   if [[ -z $3  ]]; then
     filter=" "
-    echo -e " ${LB}configuration ${GREEN}<none>${NC}${RB}"
+    echo -e " ${LB}configuration     ${GREEN}<none>${NC}${RB}"
   else
     filter="${@:3}"
-    echo -e " ${LB}configuration ${GREEN}$filter${NC}${RB}"
+    echo -e " ${LB}configuration     ${GREEN}$filter${NC}${RB}"
   fi
+    echo -e " ${LB}parallel          ${GREEN}j=$j${NC}${RB}"
+    echo -e " ${LB}optimization      ${GREEN}o=$o${NC}${RB}"
 
+  echo -e " ${MAGENTA}---------${NC}"
   echo -e " ${LB}dependency ${GREEN}libpaho-mqtt-dev${NC}${RB}"
   found=$(ldconfig -p | grep -q libpaho-mqtt-dev)
   if [ ! "${found}" ]; then
@@ -113,7 +132,7 @@ status_check() {
      echo -e "${GREEN}[ OK ]${NC} ${YELLOW}$message${NC}"
    else
      echo -e "${RED}[ERROR]${NC} ${YELLOW}$message${NC}"
-    cd "${working_directory}"
+    cd "${working_directory}" || exit 1
     exit 1
    fi
 }
@@ -154,12 +173,12 @@ make_native() {
     shift
     local extra_args=${@:1}
     mkdir -p build
-    cd build
+    cd build || exit 1;
     status_check $? "mkdir and cd build"
-    echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF ${extra_args}; make -j6 -o1${RB}"
+    echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF --parallel ${j} ${extra_args}; make -j${j} -o${o}${RB}"
     cmake .. -DBUILD_DOCS=OFF ${extra_args};
     status_check $? "cmake"
-    make -j6 -o1; # j6 parallel and o1 low optimization level
+    make -j"${j}" -o"${o}"; # j parallel and o1 low optimization level
     status_check $? "make"
     cd ..;
   fi
@@ -243,9 +262,9 @@ build_docs() {
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args};
+    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args} --parallel=${j};
     status_check $? "cmake docs"
-    make -j6 -o1; # j6 parallel and o1 low optimization level
+    make -j${j} -o1; # j6 parallel and o1 low optimization level
     status_check $? "make docs"
     cd ..;
 }
