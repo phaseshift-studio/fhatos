@@ -51,7 +51,7 @@ namespace fhatos {
                : router()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
     }
 
-    void print_exception(const std::exception &ex) const {
+  void print_exception(const std::exception &ex) const {
       this->write_stdout(str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())));
     }
 
@@ -64,15 +64,13 @@ namespace fhatos {
       LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
-        //////////////////////// OBJS ///////////////////////////
         for(Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth, to_out);
         }
       } else if(obj->is_lst() && nest_value > depth) {
-        //////////////////////// LST ///////////////////////////
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? obj->tid()->name().append("!g[").c_str() : "") + "!m[!!\n");
+                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
@@ -84,15 +82,13 @@ namespace fhatos {
           }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? "!g]" : "") + "!m]!!");
-        if(obj->vid())
-          to_out->append("!m@!b").append(obj->vid()->toString());
-        to_out->append("!!\n");
+                       (obj->tid()->path_length() > 2
+                          ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
+                          : "") + "!m]!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
-        //////////////////////// REC ///////////////////////////
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->tid()->path_length() > 2 ? obj->tid()->name().append("!g[").c_str() : ""));
+                         (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
         }
         to_out->append("!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -104,13 +100,14 @@ namespace fhatos {
               value->toString().c_str()));
           } else {
             to_out->append(StringHelper::format(
-              "!c%s!m=>!!", key->toString().c_str()));
+              "%s!c%s!m=>!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+              key->toString().c_str()));
             this->print_result(value, depth + 1, to_out, true);
           }
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            (obj->tid()->path_length() > 2 ? "!g]" : "") +
+            //(obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
             "!m]";
         if(obj->vid()) {
           obj_string += "!m@!b";
@@ -119,16 +116,16 @@ namespace fhatos {
         obj_string += "!!\n";
         to_out->append(obj_string);
       } else {
-        //////////////////////// ALL OTHER OBJS ///////////////////////////
         if(parent_rec)
           to_out->append(obj->toString().c_str()).append("\n");
         else {
-          to_out->append(string("!g") + StringHelper::repeat(depth, "="));
-          to_out->append(StringHelper::format("==>!!%s\n",
+         // to_out->append(string("!g") + StringHelper::repeat(depth, "="));
+          to_out->append(StringHelper::format("!g==>!!%s\n",
                                               obj->toString().c_str()));
         }
       }
     }
+
 
     void process_line(string line) const {
       /////////////////////////////////////////////////////////////
