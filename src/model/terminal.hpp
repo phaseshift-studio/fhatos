@@ -21,7 +21,7 @@
 #define fhatos_terminal_hpp
 
 #include "../fhatos.hpp"
-#include "../language/type.hpp"
+#include "../lang/type.hpp"
 
 namespace fhatos {
   class Terminal final : public Rec {

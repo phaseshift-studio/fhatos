@@ -23,7 +23,7 @@
 #include <atomic>
 #include "../fhatos.hpp"
 #include "../furi.hpp"
-#include "../language/obj.hpp"
+#include "../lang/obj.hpp"
 #include "../util/enums.hpp"
 #include "../util/obj_helper.hpp"
 #include "../structure/pubsub.hpp"

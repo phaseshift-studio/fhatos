@@ -20,11 +20,9 @@
 #ifndef fhatos_scheduler_hpp
 #define fhatos_scheduler_hpp
 
-#include <fhatos.hpp>
-#include <language/insts.hpp>
-///
+#include "../../../fhatos.hpp"
 // #include <esp_heap_trace.h>
-#include <process/base_scheduler.hpp>
+#include "../../base_scheduler.hpp"
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 

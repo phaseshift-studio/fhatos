@@ -21,7 +21,7 @@
 #define fhatos_redirect_hpp
 
 #include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
+#include "../lang/obj.hpp"
 #include "../pubsub.hpp"
 #include "../router.hpp"
 

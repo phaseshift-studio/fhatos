@@ -21,7 +21,7 @@
 #define fhatos_structure_hpp
 
 #include "../fhatos.hpp"
-#include "../language/obj.hpp"
+#include "../lang/obj.hpp"
 #include "../process/process.hpp"
 #include "pubsub.hpp"
 #include "../util/enums.hpp"

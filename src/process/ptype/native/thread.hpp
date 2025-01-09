@@ -21,7 +21,7 @@
 
 #include <chrono>
 #include <thread>
-#include <fhatos.hpp>
+#include "../../../fhatos.hpp"
 #include "../../process.hpp"
 
 namespace fhatos {

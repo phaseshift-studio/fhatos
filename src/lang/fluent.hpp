@@ -21,8 +21,8 @@
 
 #include "../fhatos.hpp"
 //
-#include "../language/obj.hpp"
-#include "../language/processor/processor.hpp"
+#include "../lang/obj.hpp"
+#include "../lang/processor/processor.hpp"
 
 namespace fhatos {
   class Fluent {

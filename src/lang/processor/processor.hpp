@@ -21,7 +21,7 @@
 
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
-#include "../compiler/rewrite/rewriter.hpp"
+#include "../mmadt/rewriter.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////

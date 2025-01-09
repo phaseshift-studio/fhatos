@@ -22,7 +22,7 @@
 #ifdef NATIVE
 
 #include <mqtt/async_client.h>
-#include <structure/stype/mqtt/base_mqtt.hpp>
+#include "../base_mqtt.hpp"
 #include <unistd.h>
 
 namespace fhatos {

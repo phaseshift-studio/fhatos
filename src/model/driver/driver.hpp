@@ -21,7 +21,7 @@ FhatOS: A Distributed Operating System
 #define fhatos_driver_hpp
 
 #include "../../fhatos.hpp"
-#include "../../language/obj.hpp"
+#include "../../lang/obj.hpp"
 #include "../../furi.hpp"
 
 /*

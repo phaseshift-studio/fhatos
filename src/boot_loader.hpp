@@ -24,15 +24,16 @@
 #include "structure/router.hpp"
 #include "util/argv_parser.hpp"
 #include FOS_PROCESS(scheduler.hpp)
-#include "language/mmadt/type.hpp"
-#include "language/type.hpp"
-#include "language/mmadt/parser.hpp"
+#include "lang/mmadt/type.hpp"
+#include "lang/type.hpp"
+#include "lang/mmadt/parser.hpp"
 #include "model/console.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include "structure/stype/heap.hpp"
+#include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/driver.hpp"
 #include "model/driver/fhatos/core_driver.hpp"

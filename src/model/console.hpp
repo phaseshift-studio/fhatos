@@ -22,7 +22,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/string_helper.hpp"
-#include "../language/mmadt/parser.hpp"
+#include "../lang/mmadt/parser.hpp"
 #include "../util/string_helper.hpp"
 #include "terminal.hpp"
 

@@ -30,9 +30,9 @@
 #include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
 #include "../src/util/options.hpp"
-#include "../src/language/obj.hpp"
+#include "../src/lang/obj.hpp"
 #include "../src/furi.hpp"
-#include "../src/language/fluent.hpp"
+#include "../src/lang/fluent.hpp"
 #include "../src/util/fhat_error.hpp"
 #include "../src/structure/stype/heap.hpp"
 #include "../src/util/logger.hpp"
@@ -42,7 +42,7 @@
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());
 #ifdef FOS_DEPLOY_PROCESSOR
-#include "../src/language/processor/processor.hpp"
+#include "../src/lang/processor/processor.hpp"
 #define FOS_DEPLOY_PROCESSOR_2 load_processor();
 #else
 #define FOS_DEPLOY_PROCESSOR_2 ;
@@ -59,7 +59,7 @@
 #endif
 #ifdef FOS_DEPLOY_ROUTER
 #include "../src/structure/router.hpp"
-#include "../src/language/fluent.hpp"
+#include "../src/lang/fluent.hpp"
 #include "../src/model/driver/fhatos/core_driver.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
   Options::singleton()->router<Router>(Router::singleton());  \
@@ -71,7 +71,7 @@
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
 #ifdef FOS_DEPLOY_PARSER
-#include "../src/language/mmadt/parser.hpp"
+#include "../src/lang/mmadt/parser.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
   router()->attach(Heap<>::create(Pattern("/parser/#"))); \
@@ -80,8 +80,8 @@
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
 #ifdef FOS_DEPLOY_TYPE
-#include "../src/language/type.hpp"
-#include "../src/language/mmadt/type.hpp"
+#include "../src/lang/type.hpp"
+#include "../src/lang/mmadt/type.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap<>::create(Pattern("/mmadt/#"))); \

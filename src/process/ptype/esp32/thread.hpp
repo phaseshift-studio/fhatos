@@ -19,9 +19,8 @@
 #ifndef fhatos_thread_hpp
 #define fhatos_thread_hpp
 
-#include <fhatos.hpp>
-//
-#include <process/process.hpp>
+#include "../../../fhatos.hpp"
+#include "../../process.hpp"
 
 namespace fhatos {
   class Thread : public Process {

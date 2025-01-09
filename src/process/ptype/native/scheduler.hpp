@@ -16,15 +16,14 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#include "language/processor/processor.hpp"
 #if defined(NATIVE)
 #ifndef fhatos_scheduler_hpp
 #define fhatos_scheduler_hpp
 
-#include <fhatos.hpp>
-///
-#include <process/base_scheduler.hpp>
-#include <process/process.hpp>
+#include "../../../fhatos.hpp"
+#include "../../../lang/processor/processor.hpp"
+#include "../../../process/base_scheduler.hpp"
+#include "../../../process/process.hpp"
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
 

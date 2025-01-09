@@ -23,25 +23,25 @@ FhatOS: A Distributed Operating System
 #include "../test_fhatos.hpp"
 #include "../../src/kernel.hpp"
 #include "../../src/model/driver/fhatos/core_driver.hpp"
-#include "../../src/language/mmadt/parser.hpp"
-#include "../../src/language/mmadt/type.hpp"
-#include <fhatos.hpp>
-#include <kernel.hpp>
-#include <structure/router.hpp>
-#include <util/argv_parser.hpp>
+#include "../../src/lang/mmadt/parser.hpp"
+#include "../../src/lang/mmadt/type.hpp"
+#include "../../src/fhatos.hpp"
+#include "../../src/kernel.hpp"
+#include "../../src/structure/router.hpp"
+#include "../../src/util/argv_parser.hpp"
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/mmadt/type.hpp>
-#include <language/type.hpp>
-#include <language/mmadt/parser.hpp>
-#include <model/console.hpp>
-#include <model/terminal.hpp>
-#include <model/log.hpp>
+#include "../../src/lang/mmadt/type.hpp"
+#include "../../src/lang/type.hpp"
+#include "../../src/lang/mmadt/parser.hpp"
+#include "../../src/model/console.hpp"
+#include "../../src/model/terminal.hpp"
+#include "../../src/model/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
-#include <structure/stype/heap.hpp>
+#include "../../src/structure/stype/heap.hpp"
 ///////////// COMMON MODELS /////////////
-#include <model/driver/driver.hpp>
-#include <model/driver/fhatos/core_driver.hpp>
+#include "../../src/model/driver/driver.hpp"
+#include "../../src/model/driver/fhatos/core_driver.hpp"
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
 // #include <model/pin/gpio.hpp>
@@ -49,10 +49,10 @@ FhatOS: A Distributed Operating System
 // #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
-#include <util/esp/psram_allocator.hpp>
+#include "../../src/util/esp/psram_allocator.hpp"
 // #include FOS_BLE(ble.hpp)
-#include <model/soc/esp/wifi.hpp>
-#include <model/soc/memory/esp32/memory.hpp>
+#include "../../src/model/soc/esp/wifi.hpp"
+#include "../../src/model/soc/memory/esp32/memory.hpp"
 // #include FOS_TIMER(timer.hpp)
 // #include <structure/stype/redirect.hpp>
 #endif

@@ -23,7 +23,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include "model/terminal.hpp"
 #include "process/process.hpp"
-#include "language/type.hpp"
+#include "lang/type.hpp"
 
 namespace fhatos {
   class Kernel {

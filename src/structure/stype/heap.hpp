@@ -22,7 +22,7 @@
 
 #include "../../fhatos.hpp"
 #include <shared_mutex>
-#include "../../language/obj.hpp"
+#include "../../lang/obj.hpp"
 #include "../structure.hpp"
 
 #ifdef ESP_ARCH

@@ -20,7 +20,7 @@
 #define fhatos_core_driver_hpp
 
 #include "../../../fhatos.hpp"
-#include "../../../language/obj.hpp"
+#include "../../../lang/obj.hpp"
 #include FOS_PROCESS(thread.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include FOS_PROCESS(scheduler.hpp)
