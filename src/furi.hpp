@@ -1074,6 +1074,11 @@ namespace fhatos {
   using ValueO_p = ID_p;
   using ID = ID;
   using TypeO_p = ID_p;
+
+  inline std::ostream &operator <<(std::ostream &os, const fURI &value) {
+    os << value.toString();
+    return os;
+  }
 } // namespace fhatos
 
 #endif

@@ -2259,6 +2259,11 @@ namespace fhatos {
      from(Obj::to_uri(arg_name), default_arg);
    }*/
 
+  inline std::ostream &operator <<(std::ostream &os, const Obj &value) {
+    os << value.toString();
+    return os;
+  }
+
   static BCode_p ___ = Obj::to_bcode();
 } // namespace fhatos
 #endif

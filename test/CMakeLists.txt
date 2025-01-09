@@ -3,6 +3,7 @@
     ENDIF()
     IF(BUILD_TESTS)
         MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
+        SET(CATCH_TESTS tests)
         ENABLE_TESTING()
         MESSAGE(CHECK_START "${.y}searching for MQTT broker${..}")
         SET(MQTT_BROKER_PORT 1883)
@@ -60,6 +61,19 @@
         FETCHCONTENT_MAKEAVAILABLE(unity)
         INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
         INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/unity)
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+        ####################################
+        ###### CATCH TEST FRAMEWORK ########
+        ####################################
+        MESSAGE(CHECK_START "${.y}making catch2 test framework${..}")
+        FETCHCONTENT_DECLARE(
+                Catch2
+                GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+                GIT_TAG        v3.4.0 # or a later release
+        )
+        FETCHCONTENT_MAKEAVAILABLE(Catch2)
+        ADD_EXECUTABLE(${CATCH_TESTS} test_basic.cpp)
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE Catch2::Catch2WithMain)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
         ########### TEST SUITE BUILDER ############

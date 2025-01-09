@@ -177,9 +177,7 @@ namespace fhatos {
                 this->new_input_ = false;
                 //// READ CHAR INPUT ONE-BY-ONE
                 int x;
-                if((x = this->tracker_.track(
-                      this->read_stdin()->int_value())) ==
-                   EOF)
+                if((x = this->tracker_.track(this->read_stdin()->int_value())) == EOF)
                   return noobj();
                 if('\n' == static_cast<char>(x) || '\r' == static_cast<char>(x)) {
                   this->new_input_ = true;
@@ -190,13 +188,13 @@ namespace fhatos {
                 }
                 StringHelper::trim(this->line_);
                 if(this->line_.empty() ||
-                   this->line_[this->line_.length() - 1] ==
-                   ';' ||
+                   this->line_[this->line_.length() - 1] == ';' ||
                    // specific to end-step and imperative simulation
                    !this->tracker_.closed()) {
                   ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
                   return noobj();
                 }
+                // prepare the user input for processing
                 this->tracker_.clear();
                 StringHelper::trim(this->line_);
                 this->process_line(this->line_);

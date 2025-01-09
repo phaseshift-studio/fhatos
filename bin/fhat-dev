@@ -231,6 +231,8 @@ test_native() {
     status_check $? "cd build/test"
     ctest ${extra_args}
     status_check $? "ctest"
+    ./tests --colour-mode ansi --success --durations yes --benchmark-samples 10 --verbosity high "${extra_args}"
+    status_check $? "catch2 tests"
     cd ../..
   fi
 }
