@@ -102,7 +102,7 @@ namespace fhatos {
     static void *import(const ID &id = "/io/lib/log") {
       // ROUTER_WRITE(id_p(id), Obj::to_rec({{"allow", Obj::to_type(REC_FURI)}}), true);
       InstBuilder::build(ID(id.extend("create")))
-          ->domain_range(OBJ_FURI,{0, 1}, id_p(id), {1, 1})
+          ->domain_range(OBJ_FURI, {0, 1}, id_p(id), {1, 1})
           ->type_args(
             x(0, "install_location", vri(id)),
             x(1, "config", noobj()))

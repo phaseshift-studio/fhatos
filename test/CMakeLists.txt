@@ -69,7 +69,7 @@
         FETCHCONTENT_DECLARE(
                 Catch2
                 GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-                GIT_TAG        v3.4.0 # or a later release
+                GIT_TAG        v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
         ADD_EXECUTABLE(${CATCH_TESTS} test_basic.cpp)
@@ -101,14 +101,10 @@
                     ENDIF()
                     IF(USE_PAHO_MQTT_HACK)
                         MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}TEST SUITE${.g}]${..}")
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC
-                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
-                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
-                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                                unity paho-mqttpp3)
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC unity paho-mqttpp3 paho-mqtt3a)
                         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
                     ELSE()
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqtt3a paho-mqttpp3 paho-mqttpp3 peglib)
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqtt3a paho-mqttpp3)
                     ENDIF()
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

@@ -106,8 +106,8 @@ namespace fhatos {
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
             ->install(Terminal::singleton("/io/terminal"))
-            ->install(Log::create("/io/log"))
             ->install(mmadt::Parser::singleton("/io/parser"))
+            ->install(Log::create("/io/log"))
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
             ->mount(

@@ -30,6 +30,19 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
+  void test_tracker() {
+  	Tracker tracker = Tracker();
+    TEST_ASSERT_TRUE(tracker.track("a.plus(b)")->closed());
+    tracker.clear();
+    TEST_ASSERT_FALSE(tracker.track("a.plus(b")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("func?int<=int(a=>45)[[a=>2].plus([b=>*a])]")->closed());
+    tracker.clear();
+    TEST_ASSERT_FALSE(tracker.track("func?int<=int(a=>45)[[a>2].plus([b=>*a])]")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("func?int{1,1}<=int{?}(a=>45)[[<a>=>2].plus([b=>*(<a>.plus(<../a>))])]")->closed());
+  }
+
   void test_comment_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("_oO a single line comment Oo_"));
     //FOS_TEST_ERROR("_oO\nsdfOo_asdf Oo_");
@@ -320,6 +333,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+    FOS_RUN_TEST(test_tracker); //
     //FOS_RUN_TEST(test_comment_parsing); //
     FOS_RUN_TEST(test_noobj_parsing); //
     FOS_RUN_TEST(test_type_parsing); //

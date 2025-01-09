@@ -43,10 +43,11 @@ namespace mmadt {
   public:
     Tracker() = default;
 
-    void track(const string &line) {
+    Tracker* track(const string &line) {
       for(const auto &c: line) {
         track(c);
       }
+      return this;
     }
 
 
@@ -79,7 +80,10 @@ namespace mmadt {
         brackets++;
       else if(c == ']')
         brackets--;
-      else if(c == '<') {
+      else if(c == '=') {
+        if(last[0] == '<' && angles > 0) // <=
+          angles--;
+      } else if(c == '<') {
         if(last[0] != '-' && last[0] != '=') // -< =<
           angles++;
       } else if(c == '>') {
