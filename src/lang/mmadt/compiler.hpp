@@ -21,7 +21,6 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../../furi.hpp"
-#include "../obj.hpp"
 
 template<typename T>
 class Coefficient;
@@ -44,13 +43,12 @@ namespace fhatos {
   public:
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 
-    Compiler();
+    Compiler() = default;
 
     //Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
     //Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
     //void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
 
-  protected:
     Inst_p resolve_inst(const Obj_p &source, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
 
     Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
@@ -59,7 +57,7 @@ namespace fhatos {
 
     Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt = nullptr) const;
 
-    bool type_check(const Obj_p &value_obj, const Obj_p &type_obj, DerivationTree *dt = nullptr);
+    bool type_check(const Obj_p &value_obj, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
 
     Obj_p save_type(const ID_p &type_id, const Obj_p &type_obj);
 

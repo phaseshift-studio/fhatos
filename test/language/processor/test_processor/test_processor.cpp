@@ -27,7 +27,7 @@
 #define FOS_DEPLOY_PROCESSOR
 
 #include "../../../test_fhatos.hpp"
-#include "../../../src/util/obj_helper.hpp"
+#include "../../../../src/util/obj_helper.hpp"
 
 namespace fhatos {
   //////////////////////////////////////////////////////////

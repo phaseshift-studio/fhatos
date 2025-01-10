@@ -25,8 +25,8 @@
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY /test/#
-#include <../test/test_fhatos.hpp>
-#include FOS_PROCESS(thread.hpp)
+#include "../test/test_fhatos.hpp"
+#include "../../../src/process/ptype/native/scheduler.hpp"
 
 namespace fhatos {
   void test_threads() {

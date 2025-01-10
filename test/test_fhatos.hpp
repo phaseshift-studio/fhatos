@@ -49,7 +49,7 @@
 #endif
 
 #ifdef FOS_DEPLOY_SCHEDULER
-#include FOS_PROCESS(scheduler.hpp)
+#include "../src/process/ptype/native/scheduler.hpp"
 #define FOS_DEPLOY_SCHEDULER_2  \
   Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
   router()->write(id_p("/sys/router"), router());

@@ -23,7 +23,7 @@
 #include "obj.hpp"
 #include "../model/log.hpp"
 
-#include FOS_MQTT(mqtt.hpp)
+#include "../structure/stype/mqtt/native/mqtt.hpp"
 
 #define TOTAL_INSTRUCTIONS 75
 
@@ -112,6 +112,7 @@ namespace fhatos {
           return true;
         // get the type definition and match it to the obj
         if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
+          ObjHelper::check_coefficients(obj->range_coefficient(),type->domain_coefficient());
           // if(type->is_type() && !obj->apply(type)->is_noobj())
           //   return true;
           if(obj->match(type, false))

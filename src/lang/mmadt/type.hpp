@@ -22,7 +22,7 @@
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../type.hpp"
-#include FOS_MQTT(mqtt.hpp)
+#include "../../structure/stype/mqtt/native/mqtt.hpp"
 
 #define TOTAL_INSTRUCTIONS 100
 
@@ -520,6 +520,24 @@ namespace mmadt {
             return rec;
           })->save();
 
+      InstBuilder::build(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/inspect")
+          ->domain_range(LST_FURI, REC_FURI)
+          ->type_args(x(0, "inspected", ___))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            const Rec_p rec = build_inspect_rec(args->arg(0));
+            args->arg(0)->lst_set("size", args->arg(0)->lst_size());
+            bool embeddable = true;
+         //   for(const auto &element: *args->arg(0)->lst_value()) {
+              /* if(i->is_rec() && i->is_indexed_args()) {
+                 embeddable = false;
+                 break;
+               }*/ // TODO: walk data structure in search of non-uri keyed recs (if any)
+         //   }
+            rec->rec_set("embeddable", dool(embeddable));
+            return rec;
+          })->save();
+
+
       InstBuilder::build(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/inspect")
           ->domain_range(REC_FURI, REC_FURI)
           ->type_args(x(0, "inspected", ___))
@@ -842,8 +860,14 @@ namespace mmadt {
       const Rec_p rec = Obj::to_rec();
       rec->rec_set("type/type_id", vri(lhs->tid()));
       rec->rec_set("type/obj", Obj::to_type(lhs->tid()));
-      rec->rec_set("type/domain", vri(lhs->domain()));
-      rec->rec_set("type/range", vri(lhs->range()));
+      rec->rec_set("type/dom/id", vri(lhs->domain()));
+      rec->rec_set("type/dom/coeff", lst({
+                     jnt(lhs->domain_coefficient().first),
+                     jnt(lhs->domain_coefficient().second)}));
+      rec->rec_set("type/rng/id", vri(lhs->range()));
+      rec->rec_set("type/rng/coeff", lst({
+                     jnt(lhs->range_coefficient().first),
+                     jnt(lhs->range_coefficient().second)}));
       if(lhs->vid()) {
         rec->rec_set("value/value_id", vri(lhs->vid()));
         if(const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub"))); !subs->is_noobj())

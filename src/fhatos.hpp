@@ -313,11 +313,11 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #ifndef FOS_MACHINE_MODEL
 #define FOS_MACHINE_MODEL
 #endif
-#define FOS_PROCESS(__process__) <process/ptype/native/__process__>
-#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
-#define FOS_UTIL(__util__) <util/std/__util__>
-#define FOS_FILE_SYSTEM(__fs__) <model/fs/native/__fs__>
-#define FOS_MEMORY(__memory__) <model/soc/memory/native/__memory__>
+#define FOS_PROCESS(__process__) STR(../process/ptype/native/__process__)
+#define FOS_MQTT(__mqtt__) STR(structure/stype/mqtt/native/__mqtt__)
+#define FOS_UTIL(__util__) STR(util/std/__util__)
+#define FOS_FILE_SYSTEM(__fs__) STR(model/fs/native/__fs__)
+#define FOS_MEMORY(__memory__) STR(model/soc/memory/native/__memory__)
 #define DRAM_ATTR
 #define IRAM_ATTR
 #else

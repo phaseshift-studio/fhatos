@@ -23,7 +23,7 @@
 #include "kernel.hpp"
 #include "structure/router.hpp"
 #include "util/argv_parser.hpp"
-#include FOS_PROCESS(scheduler.hpp)
+#include "process/ptype/native/scheduler.hpp"
 #include "lang/mmadt/type.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
@@ -31,7 +31,7 @@
 #include "model/terminal.hpp"
 #include "model/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
-#include FOS_MQTT(mqtt.hpp)
+#include "structure/stype/mqtt/native/mqtt.hpp"
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////

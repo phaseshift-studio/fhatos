@@ -21,7 +21,7 @@
 
 #include <chrono>
 #include <thread>
-#include "process/process.hpp"
+#include "../../process.hpp"
 
 namespace fhatos {
   class Fiber : public Process {

@@ -26,7 +26,6 @@
 
 #include "../fhatos.hpp"
 #include "structure.hpp"
-#include FOS_MQTT(mqtt.hpp)
 #include "../lang/obj.hpp"
 #include "stype/heap.hpp"
 #include "stype/frame.hpp"

@@ -49,7 +49,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/tsl/ordered_map.h"
-//#include "compiler/compiler.hpp"
+#include "mmadt/compiler.hpp"
 #include <utility>
 #include <variant>
 
@@ -103,7 +103,6 @@ namespace fhatos {
     {OType::ERROR, "error"}});
 
   class Obj;
-
 
   using Obj_p = shared_ptr<const Obj>;
   using Obj_wp = weak_ptr<Obj>;
@@ -1658,8 +1657,10 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          if(!lhs->is_code())
+          if(!lhs->is_code()) {
             TYPE_CHECKER(lhs.get(), inst->domain(), true);
+           // Compiler().type_check(lhs, inst->domain(),nullptr);
+          }
           // compute args
           InstArgs remake;
           if(this->inst_op() == "block" ||
@@ -2193,7 +2194,7 @@ namespace fhatos {
 
   [[maybe_unused]] static Lst_p lst() { return Obj::to_lst(make_shared<Obj::LstList>()); }
 
-  [[maybe_unused]] static Lst_p lst(const List<Obj_p> &list) { return Obj::to_lst(share(list)); }
+  [[maybe_unused]] static Lst_p lst(const List<Obj_p> &list) { return Obj::to_lst(make_shared<Obj::LstList>(list)); }
 
   [[maybe_unused]] static Lst_p lst(const List_p<Obj_p> &list) { return Obj::to_lst(list); }
 

@@ -114,7 +114,7 @@ namespace fhatos {
     }
 
     void native_mqtt_disconnect() override {
-      std::erase_if(*MQTT_VIRTUAL_CLIENTS, [this](const Mqtt *m) { return m == this; });
+      //std::erase_if(*MQTT_VIRTUAL_CLIENTS, [this](const Mqtt *m) { return m == this; });
       if(MQTT_VIRTUAL_CLIENTS->empty() && MQTT_CONNECTION->is_connected())
         MQTT_CONNECTION->disconnect();
     }

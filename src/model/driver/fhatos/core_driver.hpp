@@ -21,9 +21,9 @@
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
-#include FOS_PROCESS(thread.hpp)
-#include FOS_MQTT(mqtt.hpp)
-#include FOS_PROCESS(scheduler.hpp)
+#include "../../../process/ptype/native/scheduler.hpp"
+#include "../../../structure/stype/mqtt/native/mqtt.hpp"
+#include "../../../process/ptype/native/scheduler.hpp"
 
 #define TOTAL_INSTRUCTIONS 75
 

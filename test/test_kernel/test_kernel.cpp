@@ -29,7 +29,7 @@ FhatOS: A Distributed Operating System
 #include "../../src/kernel.hpp"
 #include "../../src/structure/router.hpp"
 #include "../../src/util/argv_parser.hpp"
-#include FOS_PROCESS(scheduler.hpp)
+#include "../../src/process/ptype/native/scheduler.hpp"
 #include "../../src/lang/mmadt/type.hpp"
 #include "../../src/lang/type.hpp"
 #include "../../src/lang/mmadt/parser.hpp"
@@ -37,7 +37,7 @@ FhatOS: A Distributed Operating System
 #include "../../src/model/terminal.hpp"
 #include "../../src/model/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
-#include FOS_MQTT(mqtt.hpp)
+#include "../../src/structure/stype/mqtt/native/mqtt.hpp"
 #include "../../src/structure/stype/heap.hpp"
 ///////////// COMMON MODELS /////////////
 #include "../../src/model/driver/driver.hpp"

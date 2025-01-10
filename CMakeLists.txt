@@ -1,9 +1,16 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.25.0)  # CMake version check
+######## The fHatTy #########
+PROJECT(fhatos) #############
+#############################
 ###### CMAKE INCLUDES
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 INCLUDE(ExternalProject)
-###### CMAKE CPACK INCLUDE ######
+###### CTEST INCLUDE ######
+IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    INCLUDE(CTest)
+ENDIF()
+###### CPACK INCLUDE ######
 STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" is_top_level)
 OPTION(TOP_LEVEL_INCLUDE_PACKAGING "include project packaging rules" "${is_top_level}")
 IF(TOP_LEVEL_INCLUDE_PACKAGING)
@@ -11,11 +18,9 @@ IF(TOP_LEVEL_INCLUDE_PACKAGING)
     SET(CPACK_SET_DESTDIR ${CMAKE_BINARY_DIR})
     INCLUDE(CPack)
 ENDIF()
-#################################
-
-######## The fHatTy #########
-PROJECT(fhatos) #############
-#############################
+##############################################
+##############################################
+##############################################
 
 ##############################################
 ############ RELEASE DEFINITIONS #############
@@ -26,6 +31,7 @@ ADD_DEFINITIONS("-DFOS_NAME=${FOS_NAME}")
 ADD_DEFINITIONS("-DFOS_VERSION=${FOS_VERSION}")
 ##############################################
 ##############################################
+##############################################
 
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
@@ -33,13 +39,13 @@ ADD_DEFINITIONS("-DFOS_VERSION=${FOS_VERSION}")
 IF(NOT WIN32)
     STRING(ASCII 27 Esc)
     SET(.. "${Esc}[m")
-    SET(.r "${Esc}[31m") # red
-    SET(.g "${Esc}[32m") # green
-    SET(.y "${Esc}[33m") # yellow
-    SET(.b "${Esc}[34m") # blue
-    SET(.m "${Esc}[35m") # magenta
-    SET(.c "${Esc}[36m") # cyan
-    SET(.w "${Esc}[37m") # white
+    SET(.r "${Esc}[31m")   # red
+    SET(.g "${Esc}[32m")   # green
+    SET(.y "${Esc}[33m")   # yellow
+    SET(.b "${Esc}[34m")   # blue
+    SET(.m "${Esc}[35m")   # magenta
+    SET(.c "${Esc}[36m")   # cyan
+    SET(.w "${Esc}[37m")   # white
     SET(.R "${Esc}[1;31m") # bold versions of colors above
     SET(.G "${Esc}[1;32m")
     SET(.Y "${Esc}[1;33m")
@@ -72,6 +78,11 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
 MESSAGE(CHECK_START "${.y}setting default values${..}")
 ####################################################################
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
+IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+    ADD_SUBDIRECTORY(src)
+ENDIF()
+#########################################
 IF(NOT DEFINED CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE DEBUG)
 ENDIF()
@@ -118,7 +129,7 @@ ELSEIF(LINUX)
         ENDIF()
     ENDIF()
 ENDIF()
-#########################################
+#######################################################################################################################
 IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
     SET(CMAKE_CXX_FLAGS "-fsanitize=address -O1 -fno-omit-frame-pointer -g ${CMAKE_CXX_FLAGS}")
 ENDIF()
@@ -132,6 +143,7 @@ ELSE()
 ENDIF()
 ################################
 SET(ENV{no-dev})
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_C_COMPILER_VERSION 14)
 SET(CMAKE_CXX_COMPILER_VERSION 14)
@@ -148,9 +160,14 @@ OPTION(BUILD_TESTS "build fhatos tests" OFF)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
 OPTION(USE_CCACHE "use ccache" ON)
-OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+####################################################################
+######################## CTEST TESTING #############################
+####################################################################
+IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
+    SET(BUILD_TESTING ON)
+ENDIF()
 ####################################################################
 ####################### CPACK PACKAGING ############################
 ####################################################################
@@ -195,7 +212,6 @@ MESSAGE(NOTICE "
 \t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
 \t  ${.g}SANITIZER${..}          : ${SANITIZER}
 \t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
-\t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
 
 \t  \t${.m}-----${.c}S${.y}T${.r}A${.c}T${.m}I${.b}C ${.r}pR${.m}OP${.y}Er${.g}tI${.r}eS${.m}-----${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}
@@ -258,255 +274,29 @@ IF(CHECK_INTERNET)
 ELSE()
     SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
 ENDIF()
-#############################################################################################################
-#############################################################################################################
-#############################################################################################################
-######## PROJECT LIBRARY (NATIVE)
+
 OPTION(BUILD_NATIVE "build native" ON) # ON/OFF
 IF(BUILD_NATIVE)
-    IF(APPLE)
-        SET(CMAKE_MACOSX_RPATH 1)
-    ENDIF()
-    MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
-    MESSAGE(CHECK_START "${.y}making ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
-    MESSAGE(STATUS "${.y}build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
-    IF(USE_CCACHE)
-        SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-    ENDIF()
-    INCLUDE_DIRECTORIES(src)
-    #FILE(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.hpp")
-    #IF(VERBOSE)
-    #    MESSAGE(NOTICE "${.g}adding source files${..}: ${SOURCE_FILES}")
-    #ENDIF()
-    ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp)
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-            OUTPUT_NAME ${PROJECT_NAME}
-            SUFFIX ".out"
-    )
-    TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
-    TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
-    ##### PRECOMPILED HEADERS #####
-    SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    STRING(CONCAT HEADER_FILES
-            "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;"
-            "<queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
-    MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADER_FILES}${..}")
-    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
-    ###############################
-    IF(APPLE)
-        ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
-    ENDIF()
-    ADD_DEFINITIONS(
-            -DNATIVE
-            -DBUILD_DOCS=${BUILD_DOCS}
-            -DFOS_LOGGING=${FOS_LOGGING}
-            -DFOS_MACHINE_SUBOS=${FOS_MACHINE_SUBOS}
-            -DFOS_MACHINE_ARCH=${FOS_MACHINE_ARCH}
-            -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
-    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
-    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
-##############################################################################################################
-##############################################################################################################
-##############################################################################################################
-
-####################################
-######## EXTERNAL LIBRARIES ########
-####################################
-
-####################################
-####################################
-### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-MESSAGE(CHECK_START "${.y}making ordered map library${..}")
-MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}ordered-map${..} distributed w/ ${.FHATOS} via ${.b}util/tsl/ordered-map.h${..}.")
-IF(DO_NOT)
-    FETCHCONTENT_DECLARE(
-            ordered_map
-            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-            GIT_TAG v1.1.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
-ENDIF()
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
-####################################
-####################################
-### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
-####################################
-MESSAGE(CHECK_START "${.y}making paho mqtt C library${..}")
-SET(PAHO_ENABLE_TESTING OFF)
-SET(PAHO_BUILD_TESTS OFF)
-SET(PAHO_BUILD_DOCUMENTATION OFF)
-FETCHCONTENT_DECLARE(
-        paho-mqtt3c
-        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
-        GIT_TAG v1.3.13
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-#################################### C++
-MESSAGE(CHECK_START "${.y}making paho mqtt C++ library${..}")
-FETCHCONTENT_DECLARE(
-        paho-mqttpp3
-        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
-        GIT_TAG v1.4.1
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-##################################################################
-##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
-##################################################################
-IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}performing paho-mqtt build hack ${.g}[${.y}PART 1${.g}]${..}")
-    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}paho${..}-${.b}mqtt${..} build hack ${.r}may required${..} to be built ${.r}twice${..}.")
-    SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
-    FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
-    FILE(RENAME ${PAHO_MQTTPP3_DIR}/CMakeLists-paho-mqtt-fix.txt ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
-    FILE(REMOVE ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-src-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR}/src)
-    FILE(RENAME ${PAHO_MQTTPP3_DIR}/src/CMakeLists-paho-mqtt-src-fix.txt ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
-##################################################################
-##################################################################
-##################################################################
-FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
-IF(USE_PAHO_MQTT_HACK)
-    MESSAGE(CHECK_START "${.r}performing paho-mqtt build hack ${.g}[${.y}PART DEUX${.g}]${..}")
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3a paho-mqttpp3)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ELSE()
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3c paho-mqttpp3)
-ENDIF()
-TARGET_LINK_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
-####################################
-### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
-IF(RASPBERRYPI)
-    MESSAGE(CHECK_START "${.y}making raspberry pi wiring library${..}")
-    IF(NANOPI)
-        SET(WIRINGXX_GIT_REPO https://github.com/friendlyarm/WiringNP)
-        SET(WIRINGXX_TAG master)
-        SET(XX NP)
-    ELSEIF(ORANGEPI)
-        SET(WIRINGXX_GIT_REPO https://github.com/orangepi-xunlong/wiringOP.git)
-        SET(WIRINGXX_TAG v0.2)
-        SET(XX OP)
-    ELSE()
-        SET(WIRINGXX_GIT_REPO https://github.com/WiringPi/WiringPi.git)
-        SET(WIRINGXX_TAG 3.10)
-        SET(XX PI)
-    ENDIF()
-    MESSAGE(NOTICE "${.y}building ${.g}Wiring${XX} ${.y}at ${.b}${WIRINGXX_GIT_REPO}${..}")
-    FETCHCONTENT_DECLARE(
-            wiringxx
-            GIT_REPOSITORY ${WIRINGXX_GIT_REPO}
-            GIT_TAG ${WIRINGXX_TAG}
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    FETCHCONTENT_MAKEAVAILABLE(wiringxx)
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/wiringxx-src/ DESTINATION ${CMAKE_BINARY_DIR}/include/wiringxx)
-    SET(WIRINGXX_LOCATION ${CMAKE_BINARY_DIR}/include/wiringxx)
-    EXECUTE_PROCESS(
-            WORKING_DIRECTORY ${WIRINGXX_LOCATION}
-            COMMAND ./build
-            OUTPUT_VARIABLE WIRINGXX_BUILD_RESULT
-    )
-    MESSAGE(NOTICE ${WIRINGXX_BUILD_RESULT})
-    FIND_LIBRARY(WIRINGXX_LIBRARIES NAMES wiringPi)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${WIRINGXX_LOCATION}/wiring${XX})
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC ${WIRINGXX_LIBRARIES})
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    #####################################################################################
+    ######################### FHATOS TARGET (EXECUTABLE) ################################
+    #####################################################################################
+    INCLUDE("${PROJECT_SOURCE_DIR}/cmake/fhatos_functions.cmake")
+    ADD_EXECUTABLE(${PROJECT_NAME} "src/main.cpp" ${HEADERS})
+    CREATE_TARGET(${PROJECT_NAME})
+    #####################################################################################
 ENDIF()
 
-####################################
-####################################
-### PEGLIB: A C++ PEG PARSER
-MESSAGE(CHECK_START "${.y}making cpp-peglib library${..}")
-MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
-IF(DO_NOT)
-    SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-    FETCHCONTENT_DECLARE(
-            peglib
-            GIT_REPOSITORY https://github.com/yhirose/cpp-peglib
-            GIT_TAG v1.9.1
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-    FETCHCONTENT_MAKEAVAILABLE(peglib)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC peglib)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/peglib)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/peglib)
-    TARGET_LINK_LIBRARIES(fhatos PRIVATE peglib)
-ENDIF()
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
-############################################################################################################
-######################################## UNUSED LIBRARIES ##################################################
-############################################################################################################
-
-IF(DO_NOT)
-    ####################################
-    ####################################
-    ### FMT: PRINT FORMATTING
-    MESSAGE(CHECK_START "${.y}making fmt library${..}")
-    FETCHCONTENT_DECLARE(
-            fmt
-            GIT_REPOSITORY https://github.com/fmtlib/fmt
-            GIT_TAG 11.1.1
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-    FETCHCONTENT_MAKEAVAILABLE(fmt)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE fmt::fmt)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/fmt)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ####################################
-    ####################################
-    ### FTXUI: ANSI C++ TERMINAL UI
-    MESSAGE(CHECK_START "${.y}making ftxui library${..}")
-    SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-    FETCHCONTENT_DECLARE(
-            ftxui
-            GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-            GIT_TAG v5.0.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-    FETCHCONTENT_MAKEAVAILABLE(ftxui)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
-    TARGET_LINK_LIBRARIES(fhatos
-            PRIVATE ftxui::screen
-            PRIVATE ftxui::dom
-            PRIVATE ftxui::component # Not needed for this example.
-    )
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
 ####################################
 ############# TESTING ##############
 ####################################
-IF(BUILD_TESTS)
+IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
+    INCLUDE_DIRECTORIES(src)
     ADD_SUBDIRECTORY(test)
 ENDIF()
 
 ####################################
 ########## DOCUMENTATION ###########
 ####################################
-IF(BUILD_DOCS)
+IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_DOCS)
     ADD_SUBDIRECTORY(docs)
 ENDIF()

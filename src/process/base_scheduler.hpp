@@ -19,7 +19,7 @@
 #ifndef fhatos_x_scheduler_hpp
 #define fhatos_x_scheduler_hpp
 
-#include <fhatos.hpp>
+#include "../fhatos.hpp"
 //
 #include <atomic>
 #include "../furi.hpp"

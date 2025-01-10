@@ -69,11 +69,11 @@
         FETCHCONTENT_DECLARE(
                 Catch2
                 GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-                GIT_TAG        v3.8.0 # or a later release
+                GIT_TAG v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
         ADD_EXECUTABLE(${CATCH_TESTS} test_basic.cpp)
-        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE Catch2::Catch2WithMain)
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE fhatos-lib Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
         ########### TEST SUITE BUILDER ############
@@ -89,6 +89,7 @@
                     MATH(EXPR COUNTER "${COUNTER}+1")
                     MESSAGE(CHECK_START "${.y}making ${PACKAGE_TEST}${..}")
                     ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
+                    TARGET_COMPILE_FEATURES(${PACKAGE_TEST} PRIVATE cxx_std_17)
                     ADD_DEFINITIONS(
                             -DNATIVE
                             -DFOS_LOGGING=INFO)
@@ -99,13 +100,7 @@
                         MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
-                    IF(USE_PAHO_MQTT_HACK)
-                        MESSAGE(CHECK_START "${.r}performing paho-MQTT build hack ${.g}[${.y}TEST SUITE${.g}]${..}")
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC unity paho-mqttpp3 paho-mqtt3a)
-                        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-                    ELSE()
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqtt3a paho-mqttpp3)
-                    ENDIF()
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE fhatos-lib unity paho-mqttpp3 paho-mqtt3a)
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

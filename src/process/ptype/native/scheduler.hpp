@@ -24,8 +24,8 @@
 #include "../../../lang/processor/processor.hpp"
 #include "../../../process/base_scheduler.hpp"
 #include "../../../process/process.hpp"
-#include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(thread.hpp)
+#include "fiber.hpp"
+#include "thread.hpp"
 
 namespace fhatos {
   class Sys;

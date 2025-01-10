@@ -20,10 +20,8 @@
 #define fhatos_kernel_hpp
 
 #include "fhatos.hpp"
-#include FOS_PROCESS(scheduler.hpp)
-#include "model/terminal.hpp"
+#include "process/ptype/native/scheduler.hpp"
 #include "process/process.hpp"
-#include "lang/type.hpp"
 
 namespace fhatos {
   class Kernel {

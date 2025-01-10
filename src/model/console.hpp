@@ -26,7 +26,7 @@
 #include "../util/string_helper.hpp"
 #include "terminal.hpp"
 
-#include FOS_PROCESS(thread.hpp)
+#include "../process/ptype/native/thread.hpp"
 
 namespace fhatos {
   class Console final : public Thread {
