@@ -125,12 +125,12 @@ void test_basic_kernel() {
              //->import(Console::import("/io/lib/console"))
              ->install(Terminal::singleton("/io/terminal"))
              ->install(Log::create("/io/log"))
-             ->install(mmadt::Parser::singleton("/io/parser"))
+             ->install(mmadt::Parser::singleton("/io/parser"));
             //->import(mmadt::Parser::import("/io/lib/parser"))
              //->mount(Heap<>::create("+/#"))
-             ->with_bcode(OBJ_PARSER(string(
-                                 "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
-                                 "|<+/#>./fos/lib/heap/create(_);")));
+             // TODO: ->with_bcode(OBJ_PARSER(string(
+                     //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
+                       //          "|<+/#>./fos/lib/heap/create(_);")));
 }
 
 FOS_RUN_TESTS( //

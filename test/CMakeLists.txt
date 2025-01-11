@@ -72,8 +72,9 @@
                 GIT_TAG v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
-        ADD_EXECUTABLE(${CATCH_TESTS} test_basic.cpp)
-        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE fhatos-lib Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a)
+        ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a)
+        ADD_TEST(${CATCH_TESTS} ${CMAKE_BINARY_DIR}/test/tests)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
         ########### TEST SUITE BUILDER ############
@@ -100,7 +101,7 @@
                         MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE fhatos-lib unity paho-mqttpp3 paho-mqtt3a)
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a)
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

@@ -310,9 +310,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    PROCESS(monoid)
-        ->
-        objs_value();
+    PROCESS(monoid)->objs_value();
     TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
     LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());

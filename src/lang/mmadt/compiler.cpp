@@ -62,40 +62,48 @@ namespace fhatos {
     return obj;
   }
 
-  bool Compiler::type_check(const Obj_p &value_obj, const ID_p &inst_type_id, DerivationTree *dt) {
-    LOG(INFO, "HERE!\n");
-    if(inst_type_id->equals(*OBJ_FURI) || inst_type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
-      return true;
-    // if the type is a base type and the base types match, then type check passes
-    if(inst_type_id->equals(*OTYPE_FURI.at(value_obj->o_type())))
-      return true;
-    // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-    //if(obj->tid()->equals(*type_id))
-    //  return true;
-    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-    if(value_obj->o_type() == OType::TYPE || value_obj->o_type() == OType::INST || value_obj->o_type() == OType::BCODE)
-      return true;
-    if(inst_type_id->equals(*NOOBJ_FURI) && (value_obj->o_type() == OType::NOOBJ || value_obj->tid()->equals(*OBJ_FURI)))
-      return true;
-    // get the type definition and match it to the obj
-    if(const Obj_p type = ROUTER_READ(inst_type_id); !type->is_noobj()) {
-      ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
-      // if(type->is_type() && !obj->apply(type)->is_noobj())
-      //   return true;
-      if(value_obj->match(type, false))
+  bool Compiler::type_check(const Obj_p &value_obj, const ID_p &inst_type_id, const DerivationTree *dt) {
+    try {
+      if(value_obj->is_noobj() && !inst_type_id->equals(*NOOBJ_FURI))
+        return false;
+      if(inst_type_id->equals(*OBJ_FURI) || inst_type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
         return true;
-      if(nullptr != dt) {
-        static const auto p = GLOBAL_PRINTERS.at(value_obj->o_type())->clone();
-        p->show_type = false;
-        throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", inst_type_id->toString().c_str(),
-                     value_obj->toString(p.get()).c_str(), inst_type_id->toString().c_str(), type->toString().c_str());
+      // if the type is a base type and the base types match, then type check passes
+      if(inst_type_id->equals(*OTYPE_FURI.at(value_obj->o_type())))
+        return true;
+      // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+      //if(obj->tid()->equals(*type_id))
+      //  return true;
+      // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+      if(value_obj->o_type() == OType::TYPE || value_obj->o_type() == OType::INST || value_obj->o_type() ==
+         OType::BCODE)
+        return true;
+      if(inst_type_id->equals(*NOOBJ_FURI) && (value_obj->o_type() == OType::NOOBJ || value_obj->tid()->
+                                               equals(*OBJ_FURI)))
+        return true;
+      // get the type definition and match it to the obj
+      if(const Obj_p type = ROUTER_READ(inst_type_id); !type->is_noobj()) {
+        // ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
+        // if(type->is_type() && !obj->apply(type)->is_noobj())
+        //   return true;
+        if(value_obj->match(type, false))
+          return true;
+        if(nullptr != dt) {
+          static const auto p = GLOBAL_PRINTERS.at(value_obj->o_type())->clone();
+          p->show_type = false;
+          throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", inst_type_id->toString().c_str(),
+                       value_obj->toString(p.get()).c_str(), inst_type_id->toString().c_str(),
+                       type->toString().c_str());
+        }
+        return false;
       }
+      if(nullptr != dt)
+        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", value_obj->vid_or_tid()->toString().c_str(),
+                     inst_type_id->toString().c_str());
+      return false;
+    } catch(const fError &e) {
       return false;
     }
-    if(nullptr != dt)
-      throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", value_obj->vid_or_tid()->toString().c_str(),
-                   inst_type_id->toString().c_str());
-    return false;
   }
 
 

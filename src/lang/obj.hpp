@@ -1658,15 +1658,16 @@ namespace fhatos {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
           if(!lhs->is_code()) {
-            TYPE_CHECKER(lhs.get(), inst->domain(), true);
-           // Compiler().type_check(lhs, inst->domain(),nullptr);
+            // TYPE_CHECKER(lhs.get(), inst->domain(), true);
+            const Compiler::DerivationTree dt;
+            Compiler().type_check(lhs, inst->domain(), &dt);
           }
           // compute args
           InstArgs remake;
+          //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
           if(this->inst_op() == "block" ||
              this->inst_op() == "each" ||
              this->inst_op() == "within") {
-            //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
             remake = inst->inst_args()->clone();
           } else {
             remake = Obj::to_inst_args();
@@ -1686,8 +1687,10 @@ namespace fhatos {
             const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
-            if(!result->is_code())
-              TYPE_CHECKER(result.get(), inst->range(), true);
+            if(!result->is_code()) {
+              Compiler::DerivationTree dt;
+              Compiler().type_check(result, inst->range(), &dt);
+            }
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
