@@ -23,33 +23,23 @@
 #include "kernel.hpp"
 #include "structure/router.hpp"
 #include "util/argv_parser.hpp"
-#include "process/ptype/native/scheduler.hpp"
+#include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "lang/mmadt/type.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/console.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
-//#include FOS_FILE_SYSTEM(fs.hpp)
-#include "structure/stype/mqtt/native/mqtt.hpp"
+#include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
-#include "model/driver/driver.hpp"
 #include "model/driver/fhatos/core_driver.hpp"
-//#include <model/driver/gpio/arduino_gpio_driver.hpp>
-//#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
-// #include <model/pin/gpio.hpp>
-// #include <model/pin/interrupt.hpp>
-// #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
-#include <util/esp/psram_allocator.hpp>
-// #include FOS_BLE(ble.hpp)
-#include <model/soc/esp/wifi.hpp>
-#include <model/soc/memory/esp32/memory.hpp>
-// #include FOS_TIMER(timer.hpp)
-// #include <structure/stype/redirect.hpp>
+#include "util/esp32/psram_allocator.hpp"
+#include "model/soc/esp/wifi.hpp"
+#include "model/soc/memory/esp32/memory.hpp"
 #endif
 
 #ifdef NATIVE
@@ -119,10 +109,10 @@ namespace fhatos {
              ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-            ->mount(Mqtt::create("//io/#",
-                                 Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
-                                 "/io/mqtt"))
+           // ->mount(Mqtt::create("//io/#",
+                        //         Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                         //                       args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
+                         //        "/io/mqtt"))
 #if defined(NATIVE)
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))

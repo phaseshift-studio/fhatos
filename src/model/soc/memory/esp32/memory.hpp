@@ -20,9 +20,8 @@
 #ifndef fhatos_memory_hpp
 #define fhatos_memory_hpp
 
-#include <fhatos.hpp>
-#include <language/type.hpp>
-#include <structure/stype/computed.hpp>
+#include "../../../../fhatos.hpp"
+#include "../../../../structure/stype/computed.hpp"
 
 namespace fhatos {
   // static constexpr char *MEMORY_REC_STRING = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";

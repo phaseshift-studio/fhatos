@@ -33,7 +33,7 @@ namespace fhatos {
                                                                 OType::REC,
                                                                 REC_FURI,
                                                                 id_p(value_id)) {
-      this->save();
+     // this->save();
       // this->rec_set("config", Obj::to_rec(this->rec_get("config")->rec_value(), id_p("/io/log/config_t")));
     }
 
@@ -43,7 +43,7 @@ namespace fhatos {
       const Obj *source,
       const char *format,
       const Args... args) {
-      std::lock_guard<std::mutex> lock(stdout_mutex);
+      std::lock_guard lock(stdout_mutex);
       if(type == NONE)
         printer<>()->print("");
       else if(type == ERROR)
@@ -67,14 +67,13 @@ namespace fhatos {
     static void LOGGER(const LOG_TYPE type, const Obj *source, const char *format, const Args... args) {
       bool match = false;
       const fURI furi = fURI("config").extend(LOG_TYPES.to_chars(type));
-      for(const auto &a: *Log::singleton()->
-          this_get(furi)->lst_value()) {
+      for(const auto &a: *Log::singleton()->this_get(furi)->lst_value()) {
         if(source->vid_or_tid()->matches(a->uri_value())) {
           match = true;
           break;
         }
       }
-      if(match) { // make it type once fully integrated
+      if(match) { // make it type based once fully integrated
         PRINT_LOG(INFO, source, format, args...);
       }
     }

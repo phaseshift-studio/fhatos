@@ -19,6 +19,7 @@ FhatOS: A Distributed Operating System
 #include "compiler.hpp"
 #include "../../util/obj_helper.hpp"
 #include "../obj.hpp"
+#include "../../structure/router.hpp"
 
 using std::tuple;
 using std::vector;

@@ -354,6 +354,11 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y"), fURI("//x/y?sub").query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/"), fURI("//x/y/?sub").query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/?sub"), fURI(fURI("//x/y/?sub").toString()));
+    /////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc"), fURI("abc").no_query());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc"), fURI("abc?a=2&b=3").no_query());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("?a=2&b=3").no_query());
+    TEST_ASSERT_TRUE(fURI("?a=2&b=3").no_query().empty());
   }
 
   void test_uri_query_value() {

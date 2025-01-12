@@ -47,24 +47,22 @@
 
 #ifdef ESP_ARCH
 #include <Arduino.h>
-#include <esp_heap_caps.h>
+//#include <esp_heap_caps.h>
 #ifndef FOS_SERIAL_BAUDRATE
 #define FOS_SERIAL_BAUDRATE 115200
 #endif
 #ifndef FOS_SERIAL_TIMEOUT
 #define FOS_SERIAL_TIMEOUT 10
 #endif
-#ifndef FOS_EXTERNAL_MEMORY_LIMIT
-#define FOS_EXTERNAL_MEMORY_LIMIT 128
-#endif
-//#include <structure/stype/esp32/allocator.hpp>
+//#ifndef FOS_EXTERNAL_MEMORY_LIMIT
+//#define FOS_EXTERNAL_MEMORY_LIMIT 128
+//#endif
+#include "util/esp32/psram_allocator.hpp"
 #endif
 
 //#define FMT_HEADER_ONLY
 //#include <fmt/core.h>
 #include "util/ansi.hpp"
-#include "util/fhat_error.hpp"
-
 // C++ standard template library common data structures
 #include <any>
 #include <atomic>
@@ -261,7 +259,12 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////
+
+////////////////////////////////////////////////////////
+////////////////////// ESP32 ///////////////////////////
+////////////////////////////////////////////////////////
 #if defined(ESP32)
+#define HARDWARE esp32
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp32
 #endif
@@ -284,20 +287,16 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_MACHINE_MODEL ESPH2
 #endif
 #endif
-#define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
-#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
-#define FOS_UTIL(__util__) <util/esp/__util__>
-#define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
-#define FOS_MEMORY(__memory__) <model/soc/memory/esp32/__memory__>
-#define FOS_BLE(__ble__) <structure/stype/ble/esp/__ble__>
-#define FOS_TIMER(__timer__) <model/timer/esp/__timer__>
+////////////////////////////////////////////////////////
+////////////////////// ESP8266 /////////////////////////
+////////////////////////////////////////////////////////
 #elif defined(ESP8266)
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp8266
 #endif
-#define FOS_PROCESS(__process__) <process/esp8266/__process__>
-#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
-#define FOS_UTIL(__util__) <util/esp/__util__>
+////////////////////////////////////////////////////////
+///////////////////// NATIVE ///////////////////////////
+////////////////////////////////////////////////////////
 #elif defined(NATIVE)
 #ifndef FOS_MACHINE_NAME
 #if defined(NANOPI)
@@ -313,11 +312,8 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #ifndef FOS_MACHINE_MODEL
 #define FOS_MACHINE_MODEL
 #endif
-#define FOS_PROCESS(__process__) STR(../process/ptype/native/__process__)
-#define FOS_MQTT(__mqtt__) STR(structure/stype/mqtt/native/__mqtt__)
-#define FOS_UTIL(__util__) STR(util/std/__util__)
+#define HARDWARE native
 #define FOS_FILE_SYSTEM(__fs__) STR(model/fs/native/__fs__)
-#define FOS_MEMORY(__memory__) STR(model/soc/memory/native/__memory__)
 #define DRAM_ATTR
 #define IRAM_ATTR
 #else

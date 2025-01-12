@@ -23,10 +23,9 @@
 #include "../furi.hpp"
 #include "../util/string_helper.hpp"
 #include "../lang/mmadt/parser.hpp"
-#include "../util/string_helper.hpp"
 #include "terminal.hpp"
+#include  STR(../process/ptype/HARDWARE/thread.hpp)
 
-#include "../process/ptype/native/thread.hpp"
 
 namespace fhatos {
   class Console final : public Thread {

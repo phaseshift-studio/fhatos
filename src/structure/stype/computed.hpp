@@ -19,10 +19,11 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_computed_hpp
 #define fhatos_computed_hpp
 
-#include <fhatos.hpp>
-#include <furi.hpp>
-#include <language/obj.hpp>
-#include <structure/structure.hpp>
+#include "../../fhatos.hpp"
+#include "../../furi.hpp"
+#include "../../lang/obj.hpp"
+#include "../structure.hpp"
+#include STR(../../process/ptype/HARDWARE/scheduler.hpp)
 
 namespace fhatos {
   class Computed : public Structure {
@@ -61,7 +62,7 @@ namespace fhatos {
       auto list = IdObjPairs();
       for(const auto &[furi2, func]: *this->read_functions_) {
         if(furi->bimatches(*furi2)) {
-          scheduler()->feed_local_watchdog();
+          Scheduler::singleton()->feed_local_watchdog();
           const IdObjPairs list2 = func(furi);
           list.insert(list.end(), list2.begin(), list2.end());
           scheduler()->feed_local_watchdog();

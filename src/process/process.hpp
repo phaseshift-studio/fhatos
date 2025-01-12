@@ -24,7 +24,6 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../lang/obj.hpp"
-#include "../util/enums.hpp"
 #include "../util/obj_helper.hpp"
 #include "../structure/pubsub.hpp"
 

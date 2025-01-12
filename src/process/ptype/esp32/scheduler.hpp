@@ -21,10 +21,9 @@
 #define fhatos_scheduler_hpp
 
 #include "../../../fhatos.hpp"
-// #include <esp_heap_trace.h>
 #include "../../base_scheduler.hpp"
-#include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(fiber.hpp)
+#include "thread.hpp"
+
 
 #ifndef FOS_ESP_THREAD_STACK_SIZE
 #define FOS_ESP_THREAD_STACK_SIZE 25000

@@ -26,7 +26,7 @@
 #include "../structure.hpp"
 
 #ifdef ESP_ARCH
-#include "../../util/esp/psram_allocator.hpp"
+#include "../../util/esp32/psram_allocator.hpp"
 #endif
 
 namespace fhatos {

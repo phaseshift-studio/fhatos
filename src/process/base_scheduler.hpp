@@ -26,7 +26,6 @@
 #include "process.hpp"
 #include "../structure/router.hpp"
 #include "../util/mutex_deque.hpp"
-#include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
   class Sys;

@@ -20,7 +20,7 @@
 #define fhatos_kernel_hpp
 
 #include "fhatos.hpp"
-#include "process/ptype/native/scheduler.hpp"
+#include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "process/process.hpp"
 
 namespace fhatos {
