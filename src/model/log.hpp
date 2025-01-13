@@ -33,8 +33,6 @@ namespace fhatos {
                                                                 OType::REC,
                                                                 REC_FURI,
                                                                 id_p(value_id)) {
-      // this->save();
-      // this->rec_set("config", Obj::to_rec(this->rec_get("config")->rec_value(), id_p("/io/log/config_t")));
     }
 
     template<typename... Args>
@@ -79,15 +77,14 @@ namespace fhatos {
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
-      /*Obj::to_rec({{"INFO", lst({Obj::to_type(URI_FURI)})},
-                    {"ERROR", lst({Obj::to_type(URI_FURI)})},
-                    {"DEBUG", lst()},
-                    {"TRACE", lst()}}, REC_FURI, id_p("/io/log/config_t"));*/
+      /* Obj::to_rec({{"INFO", lst({Obj::to_type(URI_FURI)})},
+                     {"ERROR", lst({Obj::to_type(URI_FURI)})},
+                     {"DEBUG", lst()},
+                     {"TRACE", lst()}}, REC_FURI, id_p("/io/log/config_t"));*/
       const auto log = ptr<Log>(new Log(id, config->is_noobj()
                                               ? Obj::to_rec(
                                                 {{"config",
-                                                  Obj::to_rec({
-                                                    {"INFO", lst({vri("#")})},
+                                                  Obj::to_rec({{"INFO", lst({vri("#")})},
                                                     {"ERROR", lst({vri("#")})},
                                                     {"DEBUG", lst()},
                                                     {"TRACE", lst()}})}})

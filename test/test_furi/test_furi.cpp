@@ -453,10 +453,27 @@ void test_uri_prepend() {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("/c/b/a/"), fURI("/a/").prepend("/b/").prepend("/c/"));
 }
 
-  void test_uri_retract_pattern() {
+void test_uri_retract() {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/b/c/").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/b/c").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/"), fURI("a/b/c/").retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a/b/c").retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a/b/c/#").retract().retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("a/b/c/d").retract().retract().retract().retract());
+  //
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/::/c/"), fURI("a/b/::/c/d/").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/::/c"), fURI("a/b/::/c/d").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/b/::/c/d/").retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/b/::/c/d").retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a/b/::/c/d").retract().retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("a/b/::/c/d/").retract().retract().retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("a/b/::/c/d").retract().retract().retract().retract());
+}
+
+void test_uri_retract_pattern() {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c/"), fURI("a/b/c/").retract_pattern());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c").retract_pattern());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c/#").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c/#").retract_pattern());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c/"), fURI("a/b/c/#/").retract_pattern());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/b/+/#").retract_pattern());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/b/+/#/").retract_pattern());
@@ -794,7 +811,7 @@ void test_uri_prepend() {
       //
       FOS_RUN_TEST(test_uri_extend); //
       FOS_RUN_TEST(test_uri_prepend); //
-      // TODO: FOS_RUN_TEST(test_uri_retract);
+      FOS_RUN_TEST(test_uri_retract);
       FOS_RUN_TEST(test_uri_retract_pattern);
       FOS_RUN_TEST(test_uri_remove_subpath);
       FOS_RUN_TEST(test_uri_is_relative); //

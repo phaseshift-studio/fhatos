@@ -21,6 +21,7 @@
 #define fhatos_furi_hpp
 
 #define FOS_MAX_PATH_SEGMENTS 15
+#define COMPONENT_SEPARATOR STR(::)
 
 #include "fhatos.hpp"
 //
@@ -365,7 +366,9 @@ namespace fhatos {
       for(uint8_t i = 0; i < new_uri.path_length_; i++) {
         new_uri.path_[i] = strdup(this->path_[i]);
       }
-      return new_uri;
+      return new_uri.path_length_ > 1 && 0 == strcmp(new_uri.path_[new_uri.path_length_ - 1], COMPONENT_SEPARATOR)
+               ? new_uri.retract()
+               : new_uri;
     }
 
     [[nodiscard]] fURI pretract() const {

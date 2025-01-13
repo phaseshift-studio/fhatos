@@ -766,7 +766,7 @@ namespace mmadt {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
-                             MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
+                             MMADT_SCHEME "/+/" COMPONENT_SEPARATOR MMADT_SCHEME "/+"));
     }
 
     static void *import() {

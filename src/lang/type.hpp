@@ -88,14 +88,16 @@ namespace fhatos {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
+      TYPE_CHECKER = [this](const Obj *obj, const ID_p &typex_id, const bool throw_on_fail) -> bool {
         // TODO: need to get coefficient data in dom/rng ids
-        /*if(obj->is_noobj()) {
-          if(const vector<string> coef = type_id->query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {
-          LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
+        if(obj->is_noobj()) {
+          if(const vector<string> coef = typex_id->query_values(FOS_RNG_COEF);
+            !coef.empty() && stoi(coef.front()) == 0) {
+            //LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
             return true;
           }
-        }*/
+        }
+        const ID_p type_id = id_p(typex_id->no_query());
         if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
           return true;
         // if the type is a base type and the base types match, then type check passes
@@ -149,7 +151,8 @@ namespace fhatos {
             if(current_obj->vid()) {
               Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                           inst_type_id->toString().c_str());
-              const ID_p next_inst_type_id = id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
+              const ID_p next_inst_type_id =
+                  id_p(current_obj->vid()->add_component(*inst_type_id));
               maybe = ROUTER_READ(next_inst_type_id);
               if(dt)
                 dt->emplace_back(current_obj->vid(), next_inst_type_id, maybe);
@@ -160,17 +163,17 @@ namespace fhatos {
             // check for inst on obj type (if not, walk up the obj type tree till root)
             Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                         inst_type_id->toString().c_str());
-            const ID_p next_inst_type_id = id_p(current_obj->tid()->equals(*OBJ_FURI)
+            const ID_p next_inst_type_id = id_p(current_obj->tid()->no_query().equals(*OBJ_FURI)
                                                   ? fURI(*inst_type_id) // drop back to flat namespace
-                                                  : current_obj->tid()->no_query().extend(C_INST_C).extend(
-                                                    *inst_type_id));
+                                                  : current_obj->tid()->no_query().add_component(*inst_type_id));
             maybe = ROUTER_READ(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid()->no_query()), next_inst_type_id, maybe);
             if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
-            if(current_obj->tid()->equals(*(current_obj = ROUTER_READ(current_obj->tid()))->tid())) {
+            if(current_obj->tid()->no_query().equals(
+              (current_obj = ROUTER_READ(id_p(current_obj->tid()->no_query())))->tid()->no_query())) {
               // infinite loop (i.e. base type)
               return noobj();
             }
@@ -179,44 +182,52 @@ namespace fhatos {
         //////////////////////////////////////
         //////////////////////////////////////
         /////////////////////////////////////
-        auto dt = DerivationTree();
-        dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
+        DerivationTree *dt = nullptr; //make_unique<DerivationTree>();
+        if(dt)
+          dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
         ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));;
         Inst_p final_inst = ROUTER_READ(inst_type_id);
-        dt.emplace_back(id_p(""), inst_type_id, final_inst);
+        if(dt)
+          dt->emplace_back(id_p(""), inst_type_id, final_inst);
         if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
-          dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
-          final_inst = TEMP(lhs, inst, &dt);
+          if(dt)
+            dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
+          final_inst = TEMP(lhs, inst, dt);
           if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
             const Obj_p next_lhs = ROUTER_READ(lhs->tid());
             const ID_p next_id = id_p(next_lhs->range()->no_query());
             const Obj_p next_obj = ROUTER_READ(next_id);
-            dt.push_back({id_p(""), id_p(""), Obj::to_noobj()});
-            final_inst = TEMP(next_obj, inst, &dt);
+            if(dt)
+              dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
+            final_inst = TEMP(next_obj, inst, dt);
             if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
               if(inst->inst_f())
                 final_inst = inst;
             }
             //////////////////// generated printable derivation tree ////////////////////
             string derivation_string;
-            int counter = 0;
-            for(const auto &oir: dt) {
-              counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
-              if(counter != 0) {
-                string indent = StringHelper::repeat(counter, "-").append("!g>!!");
-                derivation_string.append(StringHelper::format("\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
-                                                              indent.c_str(),
-                                                              std::get<0>(oir)->toString().c_str(),
-                                                              std::get<1>(oir)->toString().c_str(),
-                                                              std::get<2>(oir)->toString().c_str()));
+            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+              if(dt) {
+                int counter = 0;
+                for(const auto &oir: *dt) {
+                  counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
+                  if(counter != 0) {
+                    string indent = StringHelper::repeat(counter, "-").append("!g>!!");
+                    derivation_string.append(StringHelper::format(
+                      "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+                      indent.c_str(),
+                      std::get<0>(oir)->toString().c_str(),
+                      std::get<1>(oir)->toString().c_str(),
+                      std::get<2>(oir)->toString().c_str()));
+                  }
+                }
               }
-            }
-            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f())
+              derivation_string = dt ? derivation_string : "<no derivation>";
               throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
                            inst->tid()->toString().c_str(), derivation_string.c_str());
-            LOG_OBJ(DEBUG, lhs.get(), "!binst!! !yderivation tree!! traversal %s\n", derivation_string.c_str());
-            ////////////////////////////////////////////////////////////////////////////////
+            }
           }
+          ////////////////////////////////////////////////////////////////////////////////
         }
         if(final_inst->is_inst()) {
           LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
@@ -255,15 +266,13 @@ namespace fhatos {
             inst->inst_seed_supplier(),
             inst->tid(), inst->vid());
         }
-        // } else {
-        // final_inst = inst;
-        // }
         LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;
       };
     }
 
-  public:
+  public
+  :
     static ptr<Typer> singleton(const ID &id = FOS_SCHEME "/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       return types_p;

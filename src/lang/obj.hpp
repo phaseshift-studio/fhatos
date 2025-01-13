@@ -40,8 +40,7 @@
 #define FOS_STR_ENCODING sizeof(std::string::value_type)
 #endif
 
-#define C_INST_C STR(::)
-#define MMADT_INST_SCHEME C_INST_C MMADT_SCHEME
+#define MMADT_INST_SCHEME COMPONENT_SEPARATOR MMADT_SCHEME
 #define MMADT_SCHEME "/mmadt"
 #define FOS_SCHEME "/fos"
 
