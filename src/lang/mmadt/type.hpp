@@ -22,7 +22,6 @@
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../type.hpp"
-#include "../../structure/stype/mqtt/native/mqtt.hpp"
 
 #define TOTAL_INSTRUCTIONS 100
 

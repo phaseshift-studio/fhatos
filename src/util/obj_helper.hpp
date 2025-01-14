@@ -20,9 +20,9 @@
 #define fhatos_obj_helper_hpp
 
 #include <utility>
-
 #include  "../fhatos.hpp"
 #include "../lang/obj.hpp"
+
 
 namespace fhatos {
   using std::make_pair;

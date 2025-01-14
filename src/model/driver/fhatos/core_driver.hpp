@@ -21,9 +21,7 @@
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
-#include "../../../process/ptype/native/scheduler.hpp"
-#include "../../../structure/stype/mqtt/native/mqtt.hpp"
-#include "../../../process/ptype/native/scheduler.hpp"
+#include STR(../../../process/ptype/HARDWARE/scheduler.hpp)
 
 #define TOTAL_INSTRUCTIONS 75
 

@@ -93,8 +93,8 @@ namespace fhatos {
         {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
-    ID target() const {
-      return {this->rec_get(vri("target"))->uri_value()};
+    ID_p target() const {
+      return id_p(this->rec_get(vri("target"))->uri_value());
     }
 
     Obj_p payload() const {

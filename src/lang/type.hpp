@@ -24,8 +24,6 @@
 #include "../model/log.hpp"
 #include "../process/process.hpp"
 
-#include "../structure/stype/mqtt/native/mqtt.hpp"
-
 #define TOTAL_INSTRUCTIONS 75
 
 namespace fhatos {

@@ -26,7 +26,6 @@
 #include "terminal.hpp"
 #include  STR(../process/ptype/HARDWARE/thread.hpp)
 
-
 namespace fhatos {
   class Console final : public Thread {
   protected:

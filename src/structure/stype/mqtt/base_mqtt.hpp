@@ -80,7 +80,7 @@ namespace fhatos {
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
                     this->settings_.broker_.c_str(), this->settings_.client_.c_str(),
-                    this->settings_.will_.get() ? this->settings_.will_->target().toString().c_str() : "<none>",
+                    this->settings_.will_.get() ? this->settings_.will_->target()->toString().c_str() : "<none>",
                     this->settings_.will_.get() ? this->settings_.will_->payload()->toString().c_str() : "<none>",
                     this->settings_.will_.get() ? "1" : "<none>",
                     this->settings_.will_.get() ? FOS_BOOL_STR(this->settings_.will_->retain()) : "<none>");

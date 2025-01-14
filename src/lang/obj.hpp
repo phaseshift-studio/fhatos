@@ -1657,8 +1657,8 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           Inst_p inst = this->inst_f() ? this->shared_from_this() : TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          if(!inst || inst->is_noobj())
-            inst = this->shared_from_this();
+          // if(!inst || inst->is_noobj())
+          //   inst = this->shared_from_this();
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
             const Compiler::DerivationTree dt;
@@ -1674,10 +1674,8 @@ namespace fhatos {
           } else {
             remake = Obj::to_rec();
             //// apply lhs to args
-            if(inst->is_inst()) {
-              for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
-                remake->rec_value()->insert({k, v->apply(lhs)});
-              }
+            for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
+              remake->rec_value()->insert({k, v->apply(lhs)});
             }
           }
           ROUTER_PUSH_FRAME("+", remake);
@@ -1705,7 +1703,7 @@ namespace fhatos {
           }
         }
         case OType::BCODE: {
-          if(this->is_empty_bcode())return lhs;
+          if(this->is_empty_bcode()) return lhs;
           return BCODE_PROCESSOR(this->bcode_starts(to_objs({lhs})))->none_one_all();
         }
         case OType::OBJS: {
@@ -1739,7 +1737,6 @@ namespace fhatos {
         return false;
       if(require_same_type_id && (*this->tid_ != *type_obj->tid_))
         return false;
-
       switch(this->o_type()) {
         case OType::TYPE:
           return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj);
@@ -1849,8 +1846,8 @@ namespace fhatos {
     }
 
     static Obj_p to_noobj() {
-      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ,
-                                      id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
+      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
+                                     // id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
       return noobj;
     }
 

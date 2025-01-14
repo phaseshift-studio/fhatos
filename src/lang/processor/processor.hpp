@@ -101,7 +101,7 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p next(const int steps = -1) const {
       while(true) {
-        // Process::current_process()->feed_watchdog_via_counter();
+        Process::current_process()->feed_watchdog_via_counter();
         if(this->halted_->empty()) {
           if(this->running_->empty())
             return nullptr;
@@ -156,7 +156,7 @@ namespace fhatos {
     }
 
     static Objs_p compute(const BCode_p &bcode) {
-      //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
+      ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
       const Obj_p objs = Processor(bcode).to_objs();
       return objs;
     }

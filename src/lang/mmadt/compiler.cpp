@@ -73,7 +73,7 @@ namespace fhatos {
       if(inst_type_id->equals(*OTYPE_FURI.at(value_obj->o_type())))
         return true;
       // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-      //if(obj->tid()->equals(*type_id))
+      //if(value_obj->tid()->equals(*inst_type_id))
       //  return true;
       // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
       if(value_obj->o_type() == OType::TYPE || value_obj->o_type() == OType::INST || value_obj->o_type() ==
@@ -84,9 +84,9 @@ namespace fhatos {
         return true;
       // get the type definition and match it to the obj
       if(const Obj_p type = ROUTER_READ(inst_type_id); !type->is_noobj()) {
-        // ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
-        // if(type->is_type() && !obj->apply(type)->is_noobj())
-        //   return true;
+         ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
+         if(type->is_type() && !value_obj->apply(type)->is_noobj())
+           return true;
         if(value_obj->match(type, false))
           return true;
         if(nullptr != dt) {

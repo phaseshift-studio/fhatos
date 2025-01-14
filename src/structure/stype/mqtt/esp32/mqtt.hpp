@@ -23,10 +23,10 @@ FhatOS: A Distributed Operating System
 
 #include <PubSubClient.h>
 #include <WiFiClient.h>
-#include <fhatos.hpp>
-#include <structure/stype/mqtt/base_mqtt.hpp>
-#include <util/options.hpp>
-#include STR(../../../process/ptype/HARDWARE/scheduler.hpp)
+#include "../../../../fhatos.hpp"
+#include "../../../stype/mqtt/base_mqtt.hpp"
+#include "../../../../util/options.hpp"
+#include STR(../../../../process/ptype/HARDWARE/scheduler.hpp)
 
 // #ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
@@ -80,10 +80,10 @@ namespace fhatos {
           const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
-          const Message_p message = Message::create(ID(topic), payload, retained);
+          const Message_p message = Message::create(id_p(topic), payload, retained);
           LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
-            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
+            const List_p<Subscription_p> matches = client->get_matching_subscriptions(message->target());
             for (const Subscription_p &sub: *matches) {
               client->outbox_->push_back(make_shared<Mail>(sub, message));
             }
@@ -122,10 +122,10 @@ namespace fhatos {
 
     void native_mqtt_publish(const Message_p &message) override {
       if (message->payload()->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), nullptr, 0, message->retain());
+        MQTT_CONNECTION->publish(message->target()->toString().c_str(), nullptr, 0, message->retain());
       } else {
         const BObj_p source_payload = make_bobj(message->payload(), message->retain());
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), source_payload->second, source_payload->first,
+        MQTT_CONNECTION->publish(message->target()->toString().c_str(), source_payload->second, source_payload->first,
                                  message->retain());
       }
       FEED_WATCDOG();

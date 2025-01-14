@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../../lang/obj.hpp"
-#include "../../furi.hpp"
 
 /*
 #define LOG_DRIVER(logtype, driver, format, ...)                                                                       \

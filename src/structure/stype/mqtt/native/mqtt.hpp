@@ -68,7 +68,7 @@ namespace fhatos {
         if(this->settings_.will_.get()) {
           const BObj_p source_payload = this->settings_.will_->payload()->serialize();
           pre_connection_options = pre_connection_options.will(
-            message(this->settings_.will_->target().toString(), source_payload->second,
+            message(this->settings_.will_->target()->toString(), source_payload->second,
                     this->settings_.will_->retain()));
         }
         this->connection_options_ = pre_connection_options.finalize();
@@ -82,7 +82,7 @@ namespace fhatos {
           const Message_p message = Message::create(id_p(ID(mqtt_message->get_topic())), payload, retained);
           LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
-            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
+            const List_p<Subscription_p> matches = client->get_matching_subscriptions(message->target());
             for(const Subscription_p &sub: *matches) {
               client->outbox_->push_back(share(Mail{sub, message}));
             }
@@ -104,11 +104,11 @@ namespace fhatos {
 
     void native_mqtt_publish(const Message_p &message) override {
       if(message->payload()->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), const_cast<char *>(""), 0, 0, true)->wait();
+        MQTT_CONNECTION->publish(message->target()->toString().c_str(), const_cast<char *>(""), 0, 0, true)->wait();
       } else {
         const BObj_p source_payload = make_bobj(message->payload(), message->retain());
         MQTT_CONNECTION
-            ->publish(message->target().toString(), source_payload->second, source_payload->first, 0, message->retain())
+            ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0, message->retain())
             ->wait();
       }
     }

@@ -35,6 +35,7 @@
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/fhatos/core_driver.hpp"
+
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #ifdef CONFIG_SPIRAM_USE
@@ -109,10 +110,10 @@ namespace fhatos {
              ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-            // ->mount(Mqtt::create("//io/#",
-            //         Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
-            //                       args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
-            //        "/io/mqtt"))
+             ->mount(Mqtt::create("//io/#",
+                     Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                   args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
+                    "/io/mqtt"))
 #if defined(NATIVE)
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
