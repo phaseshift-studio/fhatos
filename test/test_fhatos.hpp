@@ -27,6 +27,8 @@
 #define FOS_TEST_SERIALIZATION false
 #endif
 
+#define RETAIN true
+
 #include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
 #include "../src/util/options.hpp"

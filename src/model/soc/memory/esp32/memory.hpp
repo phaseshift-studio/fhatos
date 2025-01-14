@@ -68,6 +68,7 @@ namespace fhatos {
                        percent_id)}});
           return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
         }});
+#ifdef CONFIG_SPIRAM_USE
       this->read_functions_->insert(
         {psram, [this, psram, percent_id](const fURI_p &) {
           const Rec_p r =
@@ -81,7 +82,7 @@ namespace fhatos {
                        percent_id)}});
           return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
         }});
-
+#endif
       this->read_functions_->insert(
         {hwm, [this, hwm, percent_id](const fURI_p &) {
           const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);

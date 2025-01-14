@@ -22,6 +22,7 @@
 #include "../fhatos.hpp"
 #include "obj.hpp"
 #include "../model/log.hpp"
+#include "../process/process.hpp"
 
 #include "../structure/stype/mqtt/native/mqtt.hpp"
 
@@ -41,18 +42,18 @@ namespace fhatos {
                                                                                                return dool(this->check_type(
                                                                                                    args.at(0).get(),
                                                                                                    furi_p(lhs->lst_value()->at(1)->uri_value())));
-                                                                                             }, {x(0, ___)}, INST_FURI,
+                                                                                             }, {x(0, Obj::to_bcode())}, INST_FURI,
                                                                                              id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
                                                                                {vri(":start_progress_bar"),
                                                                                 Obj::to_inst([this](const Int_p &, const InstArgs &args) {
                                                                                   this->start_progress_bar(args.at(0)->int_value());
                                                                                   return _noobj_;
-                                                                                }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+                                                                                }, {x(0, Obj::to_bcode())}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
                                                                                {vri(":end_progress_bar"),
                                                                                 Obj::to_inst([this](const Str_p &, const InstArgs &args) {
                                                                                   this->end_progress_bar(args.at(0)->str_value());
                                                                                   return _noobj_;
-                                                                                }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
+                                                                                }, {x(0, Obj::to_bcode())}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
                                                                   })),
                                                                 OType::REC,
                                                                 id_p(type_id),
@@ -112,7 +113,7 @@ namespace fhatos {
           return true;
         // get the type definition and match it to the obj
         if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
-          ObjHelper::check_coefficients(obj->range_coefficient(),type->domain_coefficient());
+          ObjHelper::check_coefficients(obj->range_coefficient(), type->domain_coefficient());
           // if(type->is_type() && !obj->apply(type)->is_noobj())
           //   return true;
           if(obj->match(type, false))

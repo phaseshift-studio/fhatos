@@ -268,6 +268,7 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp32
 #endif
+#define ALLOC(FIRST,SECOND) PSRAMAllocator<Pair<(FIRST), (SECOND)>>
 #ifndef FOS_MACHINE_MODEL
 #if CONFIG_IDF_TARGET_ESP32
   #define FOS_MACHINE_MODEL ESP32
@@ -307,6 +308,7 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_MACHINE_NAME fhatos_raspberrypi
 #else
 #define FOS_MACHINE_NAME fhatos_native
+#define ALLOC(FIRST,SECOND) std::allocator<std::pair<FIRST,SECOND>>
 #endif
 #endif
 #ifndef FOS_MACHINE_MODEL

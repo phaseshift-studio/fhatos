@@ -44,7 +44,7 @@ namespace fhatos {
                    {":on_recv", Obj::to_bcode()}}));
       TYPE_SAVER(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
       /*InstBuilder::build("~")
-          ->type_args(x(0, "bcode", ___))
+          ->type_args(x(0, "bcode", Obj::to_bcode()))
           ->domain_range(OBJ_FURI, {1,1}, THREAD_FURI,{1,1})
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             auto t = make_shared<Thread>(Obj::to_rec({{":loop", args->arg(0)}}));

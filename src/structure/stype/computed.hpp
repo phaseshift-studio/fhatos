@@ -55,7 +55,7 @@ namespace fhatos {
           }
         }
       }
-      this->distribute_to_subscribers(Message::create(*id, obj, retain));
+      this->distribute_to_subscribers(Message::create(id, obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI_p &furi) override {

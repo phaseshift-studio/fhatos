@@ -136,7 +136,7 @@ namespace fhatos {
           ->
           this_add("/spawn",
                    InstBuilder::build(scheduler->vid()->add_component("spawn"))
-                   ->type_args(x(0, "thread", ___))
+                   ->type_args(x(0, "thread", Obj::to_bcode()))
                    ->domain_range(OBJ_FURI, THREAD_FURI)
                    ->inst_f([](const Obj_p &, const InstArgs &args) {
                      const Obj_p &proc = args->arg(0);

@@ -277,7 +277,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] fURI no_query() const {
-      return this->query("");
+      const fURI furi_no_query = this->query("");
+      return furi_no_query;
     }
 
     [[nodiscard]] fURI query(const List<Pair<string, string>> &key_values) const {
@@ -289,25 +290,21 @@ namespace fhatos {
       return this->query(query_string.c_str());
     }
 
-    template<typename T = std::string>
-    [[nodiscard]] List<T> query_values(const char *key) const {
+    [[nodiscard]] List<string> query_values(const char *key) const {
       const Option<string> v = this->query_value(key);
       if(!v.has_value())
         return {};
       auto ss = std::stringstream(v.value());
       string token;
-      List<T> list;
+      List<string> list;
       while(!(token = StringHelper::next_token(',', &ss)).empty()) {
         StringHelper::trim(token);
-        T var;
-        std::stringstream(token) >> var;
-        list.push_back(var);
+        list.push_back(token);
       }
       return list;
     }
 
-    template<typename T = std::string>
-    [[nodiscard]] Option<T> query_value(const char *key) const {
+    [[nodiscard]] Option<string> query_value(const char *key) const {
       if(!this->query_)
         return {};
       const char *index = strstr(this->query_, key);
@@ -326,9 +323,7 @@ namespace fhatos {
         c = index[strlen(key) + counter];
       }
       StringHelper::trim(value);
-      T var;
-      std::stringstream(value) >> var;
-      return {var};
+      return {value};
     }
 
     /// FRAGMENT

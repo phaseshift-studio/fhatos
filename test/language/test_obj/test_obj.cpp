@@ -371,13 +371,13 @@ void test_bool() {
   }
 
 void test_inst() {
-  const Inst_p i1 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+  const Inst_p i1 = Obj::create(make_shared<InstValue>(make_tuple(Obj::to_rec({{"a",jnt(10)}}),
                                            make_shared<InstF>(Obj::to_bcode()) ,
-                                          noobj()),
+                                          noobj())),
                                 OType::INST,id_p("myinst"));
-  const Inst_p i2 = Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+  const Inst_p i2 = Obj::create(make_shared<InstValue>(make_tuple(Obj::to_rec({{"a",jnt(10)}}),
                                            make_shared<InstF>(make_shared<Cpp>([](const Obj_p& lhs, const InstArgs&) -> Obj_p {return lhs;})),
-                                    	    noobj()),
+                                    	    noobj())),
                                 OType::INST,id_p("myinst"));
   FOS_TEST_OBJ_NOT_EQUAL(i1,i2);
   FOS_TEST_ASSERT_EQUAL_FURI(*i1->tid(),*i2->tid());

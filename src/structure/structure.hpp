@@ -113,7 +113,7 @@ namespace fhatos {
         this->subscriptions_->remove_if(
           [source, target](const Subscription_p &sub) {
             const bool removing =
-                sub->source().equals(*source) && (sub->pattern().matches(*target));
+                sub->source()->equals(*source) && (sub->pattern()->matches(*target));
             if(removing)
               LOG_UNSUBSCRIBE(OK, source, target);
             return removing;
@@ -128,7 +128,7 @@ namespace fhatos {
       }
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-      this->recv_unsubscribe(id_p(subscription->source()), p_p(subscription->pattern()));
+      this->recv_unsubscribe(subscription->source(), subscription->pattern());
       if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
         this->subscriptions_->push_back(subscription);
@@ -139,12 +139,12 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern()));
+      const IdObjPairs list = this->read_raw_pairs(subscription->pattern());
       for(const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
-          if(id->matches(subscription->pattern())) {
+          if(id->matches(*subscription->pattern())) {
             FEED_WATCDOG();
-            subscription->on_recv()->apply(obj, make_shared<Message>(*id, obj,RETAIN));
+            subscription->on_recv()->apply(obj, make_shared<Message>(id, obj,RETAIN));
           }
         }
       }
@@ -326,7 +326,7 @@ namespace fhatos {
             if(key->is_uri()) {
               // uri key
               this->write(id_p(key->uri_value()), value, retain);
-              distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
+              distribute_to_subscribers(Message::create(id_p(key->uri_value()), value, retain));
               // may be wrong, should be outside recurssion
             } else // non-uri key
               remaining->insert({key, value});
@@ -366,7 +366,7 @@ namespace fhatos {
             const ID_p id_insert = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
             const Poly_p poly_insert = pair->second; //->clone();
             poly_insert->poly_set(vri(id_insert), obj);
-            distribute_to_subscribers(Message::create(ID(*furi), obj, retain));
+            distribute_to_subscribers(Message::create(id_p(*furi), obj, retain));
             LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
                 pair->first->toString().c_str(),
                 poly_insert->toString().c_str());
@@ -418,7 +418,7 @@ namespace fhatos {
         LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
                 this->subscriptions_->size());
         this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
-          if(message->target().matches(subscription->pattern()))
+          if(message->target().matches(*subscription->pattern()))
             this->outbox_->push_back(mail_p(subscription, message));
         });
       }
@@ -426,9 +426,9 @@ namespace fhatos {
 
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) const {
       return this->subscriptions_->exists([source,topic](const Subscription_p &sub) {
-        if(source && !source->equals(sub->source()))
+        if(source && !source->equals(*sub->source()))
           return false;
-        if(topic->equals(sub->pattern()))
+        if(topic->equals(*sub->pattern()))
           return true;
         return false;
       });
@@ -437,7 +437,7 @@ namespace fhatos {
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) const {
       const List_p<Subscription_p> matches = share(List<Subscription_p>());
       this->subscriptions_->forEach([topic,source,matches](const Subscription_p &subscription) {
-        if(!(source && !source->equals(subscription->source())) && topic->bimatches(subscription->pattern()))
+        if(!(source && !source->equals(*subscription->source())) && topic->bimatches(*subscription->pattern()))
           matches->push_back(subscription);
       });
       return matches;
@@ -446,7 +446,7 @@ namespace fhatos {
     Objs_p get_subscription_objs(const fURI_p &pattern = p_p("#")) const {
       const Objs_p objs = Obj::to_objs();
       this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
-        if(subscription->pattern().bimatches(*pattern)) {
+        if(subscription->pattern()->bimatches(*pattern)) {
           objs->add_obj(subscription);
         }
       });

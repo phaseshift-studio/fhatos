@@ -50,7 +50,7 @@ namespace fhatos {
                : router()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
     }
 
-  void print_exception(const std::exception &ex) const {
+    void print_exception(const std::exception &ex) const {
       this->write_stdout(str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())));
     }
 
@@ -118,7 +118,7 @@ namespace fhatos {
         if(parent_rec)
           to_out->append(obj->toString().c_str()).append("\n");
         else {
-         // to_out->append(string("!g") + StringHelper::repeat(depth, "="));
+          // to_out->append(string("!g") + StringHelper::repeat(depth, "="));
           to_out->append(StringHelper::format("!g==>!!%s\n",
                                               obj->toString().c_str()));
         }
@@ -177,13 +177,13 @@ namespace fhatos {
                 //// READ CHAR INPUT ONE-BY-ONE
                 int x;
                 if((x = this->tracker_.track(this->read_stdin()->int_value())) == EOF)
-                  return noobj();
+                  return Obj::to_noobj();
                 if('\n' == static_cast<char>(x) || '\r' == static_cast<char>(x)) {
                   this->new_input_ = true;
                   this->line_ += static_cast<char>(x);
                 } else {
                   this->line_ += static_cast<char>(x);
-                  return noobj();
+                  return Obj::to_noobj();
                 }
                 StringHelper::trim(this->line_);
                 if(this->line_.empty() ||
@@ -203,7 +203,7 @@ namespace fhatos {
                 this->line_.clear();
                 this->new_input_ = true;
               }
-              return noobj();
+              return Obj::to_noobj();
             })
           ->create()},
         {":prompt", InstBuilder::build(
@@ -238,9 +238,9 @@ namespace fhatos {
 
     static void *import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      InstBuilder::build(ID(id.extend(":create")))
+      /*InstBuilder::build(ID(id.extend(":create")))
           ->type_args(
-            x(0, "install_location", vri(id)),
+            x(0, "install_location", Obj::to_uri(id)),
             x(1, "config", Obj::to_rec({
                 {"terminal",
                   Obj::to_rec({
@@ -257,7 +257,7 @@ namespace fhatos {
               args->arg(1));
             return console;
           })
-          ->save();
+          ->save();*/
       return nullptr;
     }
   };

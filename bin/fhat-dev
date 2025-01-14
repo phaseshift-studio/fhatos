@@ -137,6 +137,15 @@ status_check() {
    fi
 }
 
+check_addr() {
+  if [[ $platform == esp32* || -z "${platform}"  ]]; then
+      shift
+      shift
+      local extra_args=${@:1}
+      addr2line -pr -e .pio/build/"${platform}"/firmware.elf -a "${extra_args}"
+  fi
+}
+
 clean_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
      mv build/_deps .
@@ -243,7 +252,7 @@ test_esp32() {
     shift
     local extra_args=${@:1}
     # platformio run --target clean
-    platformio test ${environ} -v "--filter=${filter}"
+    platformio test -e "${platform}" -vvv "--filter=${filter}"
     status_check $? "pio test"
   fi
 }
@@ -275,7 +284,9 @@ build_docs() {
 ########################################################################
 ########################################################################
 
-if [[ $1 == "clean" ]]; then
+if [[ $1 == "check" ]]; then
+  check_addr "${@}"
+elif [[ $1 == "clean" ]]; then
   clean_native
   clean_esp32
   clean_rpi

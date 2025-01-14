@@ -19,6 +19,8 @@
 #ifndef fhatos_obj_helper_hpp
 #define fhatos_obj_helper_hpp
 
+#include <utility>
+
 #include  "../fhatos.hpp"
 #include "../lang/obj.hpp"
 
@@ -27,9 +29,9 @@ namespace fhatos {
   using std::vector;
 
   class ObjHelper {
+  public:
     ObjHelper() = delete;
 
-  public:
     static bool check_coefficients(const IntCoefficient &a, const IntCoefficient &b, const bool throw_on_error = true) {
       if(a.first < b.first || a.second > b.second) {
         if(throw_on_error) {
@@ -48,12 +50,12 @@ namespace fhatos {
   };
 
   class InstBuilder {
-    explicit InstBuilder(const TypeO_p &type) : type_(type), seed_(nullptr) {
+    explicit InstBuilder(TypeO_p type) : type_(std::move(type)), args_(Obj::to_rec()), seed_(nullptr) {
     }
 
   protected:
     ID_p type_;
-    InstArgs args_{Obj::to_inst_args()};
+    InstArgs args_;
     InstF_p function_supplier_ = nullptr;
     Obj_p seed_;
     string doc_{};
@@ -118,15 +120,15 @@ namespace fhatos {
         if(const Inst_p maybe = ROUTER_READ(value_id); !maybe->is_noobj())
           return maybe;
       }
-      const Inst_p inst = Inst::create(make_tuple(
+      const Inst_p inst = Inst::create(make_shared<InstValue>(make_tuple(
                                          this->args_,
                                          this->function_supplier_,
-                                         this->seed_ ? this->seed_ : Obj::to_noobj()),
+                                         this->seed_ ? this->seed_ : Obj::to_noobj())),
                                        OType::INST, this->type_,
                                        root ? id_p(root->vid()->extend(*value_id)) : value_id);
       // if(!this->doc_.empty())
       // inst->doc_write(this->doc_);
-      delete this;
+      auto to_delete = unique_ptr<const InstBuilder>(this);
       return inst;
     }
   };

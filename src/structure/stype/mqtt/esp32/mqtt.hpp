@@ -109,7 +109,7 @@ namespace fhatos {
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
-      MQTT_CONNECTION->subscribe(subscription->pattern().toString().c_str(), 1);
+      MQTT_CONNECTION->subscribe(subscription->pattern()->toString().c_str(), 1);
       FEED_WATCDOG();
       MQTT_CONNECTION->loop();
     }

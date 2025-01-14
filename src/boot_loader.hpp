@@ -37,17 +37,17 @@
 #include "model/driver/fhatos/core_driver.hpp"
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
+#ifdef CONFIG_SPIRAM_USE
 #include "util/esp32/psram_allocator.hpp"
+#endif
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #endif
 
 #ifdef NATIVE
 #define FOS_FS_MOUNT string(getenv("FHATOS_HOME")).append("/data").c_str()
-#define ALLOC
 #else
 #define FOS_FS_MOUNT "/"
-#define ALLOC PSRAMAllocator<Pair<const ID_p, Obj_p>>
 #endif
 
 namespace fhatos {
@@ -59,7 +59,7 @@ namespace fhatos {
     static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
       std::srand(std::time(nullptr));
       try {
-#ifdef BOARD_HAS_PSRAM
+#ifdef CONFIG_SPIRAM_USE
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
@@ -80,7 +80,7 @@ namespace fhatos {
             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"))
             ////////////////// SYS STRUCTURE
-            ->mount(Heap<ALLOC>::create("/sys/#"))
+            ->mount(Heap<>::create("/sys/#"))
             ->import(Scheduler::import())
             ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
@@ -109,10 +109,10 @@ namespace fhatos {
              ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-           // ->mount(Mqtt::create("//io/#",
-                        //         Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                         //                       args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
-                         //        "/io/mqtt"))
+            // ->mount(Mqtt::create("//io/#",
+            //         Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
+            //                       args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
+            //        "/io/mqtt"))
 #if defined(NATIVE)
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
@@ -124,7 +124,7 @@ namespace fhatos {
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
 
 
-            ->mount(Heap<ALLOC>::create("/console/#"))
+            ->mount(Heap<>::create("/console/#"))
             ->process(Console::create("/console", Obj::to_rec({
                                         {"terminal",
                                           Obj::to_rec({

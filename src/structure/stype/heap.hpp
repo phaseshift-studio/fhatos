@@ -58,7 +58,7 @@ namespace fhatos {
         if(obj->is_noobj())this->data_->erase(id);
         else this->data_->insert_or_assign(id, obj);
       }
-      this->distribute_to_subscribers(Message::create(*id, obj, retain));
+      this->distribute_to_subscribers(Message::create(id, obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI_p &match) override {

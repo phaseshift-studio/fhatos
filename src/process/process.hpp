@@ -71,7 +71,7 @@ namespace fhatos {
                   //  ((Process*)lhs.get())->delay(args.at(0)->int_value());
                     Process::current_process()->sleep_ = args.at(0)->int_value();
                     return lhs;
-                  }, {x(0, ___)}, INST_FURI, make_shared<ID>(string(StringHelper::cxx_f_metadata(
+                  }, {x(0, Obj::to_bcode())}, INST_FURI, make_shared<ID>(string(StringHelper::cxx_f_metadata(
                       "/sys/scheduler/lib", "process",__LINE__))))
           },
           {
@@ -92,7 +92,7 @@ namespace fhatos {
           }
       }))) {
       ObjHelper::InstTypeBuilder::build("/type/process/inst/delay")
-          ->type_args(x(0, "milliseconds", ___))
+          ->type_args(x(0, "milliseconds", Obj::to_bcode()))
           ->inst_f([this](const Obj_p &, const InstArgs &args) {
             this->sleep_ = args.at(0)->int_value();
             return _noobj_;

@@ -43,7 +43,7 @@ namespace mmadt {
   public:
     Tracker() = default;
 
-    Tracker* track(const string &line) {
+    Tracker *track(const string &line) {
       for(const auto &c: line) {
         track(c);
       }
@@ -117,22 +117,22 @@ namespace mmadt {
   class Parser final : public Obj {
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
-      static auto parser_p = ptr<Parser>(new Parser(id));
+      static ptr<Parser> parser_p = ptr<Parser>(new Parser(id));
       return parser_p;
     }
 
     static void *import(const ID &id = "/mmadt/lib/parser") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      InstBuilder::build(id.extend("create"))
-          ->type_args(x(0, "pattern", ___))
+      /*InstBuilder::build(id.extend("create"))
+          ->type_args(x(0, "pattern", Obj::to_bcode()))
           //->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             /*OBJ_PARSER = [](const string &obj_string) {
               return Parser::singleton()->parse(obj_string);
             };*/
-            Parser::singleton(args->arg(0)->uri_value());
-            return dool(true);
-          })->save();
+      /*    Parser::singleton(args->arg(0)->uri_value());
+          return dool(true);
+        })->save();*/
       return nullptr;
     }
 
@@ -315,7 +315,7 @@ namespace mmadt {
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            return Obj::to_inst(InstValue(args, make_shared<InstF>(body), nullptr),
+            return Obj::to_inst(make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p,Cpp_p>(body)), nullptr)),
                                 type_id, value_id);
             // TODO: deduce itype from type_id
           }

@@ -96,7 +96,7 @@ namespace fhatos {
 
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
-      const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern()));
+      const bool mqtt_sub = !this->has_equal_subscription_pattern(subscription->pattern());
       Structure::recv_subscription(subscription);
       if(mqtt_sub) {
         LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
@@ -164,7 +164,7 @@ namespace fhatos {
       /*if(id == this->pattern()->retract_pattern()->extend("config/connected")) {
         this->
       }*/
-      native_mqtt_publish(Message::create(*id, obj, retain));
+      native_mqtt_publish(Message::create(id, obj, retain));
     }
 
     void publish_retained(const Subscription_p &) override {

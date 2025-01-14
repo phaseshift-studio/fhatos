@@ -27,7 +27,7 @@ namespace fhatos {
   class Terminal final : public Rec {
   protected:
     explicit Terminal(const ID &id) : Rec(rmap({{":stdout", InstBuilder::build(":stdout")
-                                              ->type_args(x(0, ___))
+                                              ->type_args(x(0, Obj::to_bcode()))
                                               ->inst_f([](const Str_p &obj, const InstArgs &args) {
                                                 FEED_WATCDOG();
                                                 STD_OUT_DIRECT(obj);
@@ -37,18 +37,18 @@ namespace fhatos {
                                               ->inst_f([](const Str_p &, const InstArgs &) {
                                                 return STD_IN_DIRECT();
                                               })->create()}}),
-                                          OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
+                                          OType::REC, /*id_p(REC_FURI->extend("terminal"))*/ REC_FURI, id_p(id)) {
     }
 
   public:
     static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
-      static bool setup = false;
-      if(!setup) {
+      //static bool setup = false;
+      /*if(!setup) {
         setup = true;
-        Typer::singleton()->save_type(id_p(REC_FURI->extend("terminal")), rec(
+        TYPE_SAVER(id_p(REC_FURI->extend("terminal")), rec(
                                         {{":stdout", Obj::to_bcode()},
                                           {":stdin", Obj::to_bcode()}}));
-      }
+      }*/
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }

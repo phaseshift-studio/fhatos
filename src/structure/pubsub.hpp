@@ -29,7 +29,7 @@ namespace fhatos {
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[on_recv:!!%s!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      (subscription)->source().toString().c_str(), (subscription)->pattern().toString().c_str(),                           \
+      (subscription)->source()->toString().c_str(), (subscription)->pattern()->toString().c_str(),                           \
       (subscription)->on_recv()->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
@@ -87,7 +87,7 @@ namespace fhatos {
     explicit Message(const Rec_p &rec) : Rec(*rec) {
     }
 
-    explicit Message(const ID &target, const Obj_p &payload, const bool retain) : Rec(rmap({
+    explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) : Rec(rmap({
         {"target", vri(target)},
         {"payload", payload},
         {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
@@ -105,7 +105,7 @@ namespace fhatos {
       return this->rec_get(vri("retain"))->bool_value();
     }
 
-    static Message_p create(const ID &target, const Obj_p &payload, const bool retain) {
+    static Message_p create(const ID_p &target, const Obj_p &payload, const bool retain) {
       return std::make_shared<Message>(target, payload, retain);
     }
   };
@@ -143,12 +143,12 @@ namespace fhatos {
       }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
-    ID source() const {
-      return {this->rec_get("source")->uri_value()};
+    ID_p source() const {
+      return id_p(this->rec_get("source")->uri_value());
     }
 
-    Pattern pattern() const {
-      return {this->rec_get("pattern")->uri_value()};
+    Pattern_p pattern() const {
+      return p_p(this->rec_get("pattern")->uri_value());
     }
 
     BCode_p on_recv() const {
