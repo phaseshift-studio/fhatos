@@ -245,6 +245,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/map")
           ->type_args(x(0, "mapping"))
+          ->domain_range(OBJ_FURI,{0,1},OBJ_FURI,{0,1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0);
           })

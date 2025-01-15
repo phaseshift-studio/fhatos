@@ -25,6 +25,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_SHARED_MEMORY /compiler/#
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
+#include "../../../../src/util/string_helper.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -59,26 +60,47 @@ namespace fhatos {
     FOS_TEST_COMPILER_FALSE(jnt(43),id_p("/compiler/truth"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(str("true"),id_p("/compiler/truth"),compiler.type_check);
     // int
-    TYPE_SAVER(id_p("/compiler/nat"),mmadt::Parser::singleton()->parse("is(gt(0))"));
+    for(const auto& TYPE_MAKER : List<BiConsumer<string,string>>({
+             [](const string id, const string source){  TYPE_SAVER(id_p(id.c_str()),mmadt::Parser::singleton()->parse(source));},
+             [](const string id, const string source){  PROCESS(StringHelper::format("%s -> |%s",id.c_str(),source.c_str())); }})) {
+    TYPE_MAKER("/compiler/nat","is(gt(0))");
     FOS_TEST_COMPILER_TRUE(jnt(1),id_p("/compiler/nat"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(jnt(-1),id_p("/compiler/nat"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(1.46),id_p("/compiler/nat"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.46),id_p("/compiler/nat"),compiler.type_check);
-   PROCESS("/compiler/nat2 -> |/compiler/nat2?int<=int(=>)[is(gt(0))]");
+    TYPE_MAKER("/compiler/nat2","/compiler/nat2?int<=int(=>)[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1),id_p("/compiler/nat2"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(jnt(-1),id_p("/compiler/nat2"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.23),id_p("/compiler/nat2"),compiler.type_check);
-    PROCESS("/compiler/nat3 -> |/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
-    //TYPE_SAVER(id_p("/compiler/nat3"),mmadt::Parser::singleton()->parse("/compiler/nat3?int{?}<=int(=>)[is(gt(0))]"));
+    TYPE_MAKER("/compiler/nat3","/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1),id_p("/compiler/nat3"),compiler.type_check);
     FOS_TEST_COMPILER_TRUE(jnt(-1),id_p("/compiler/nat3"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(1.23),id_p("/compiler/nat3"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.23),id_p("/compiler/nat3"),compiler.type_check);
+    }
   }
+
+  void test_type_check_derived_poly_types() {
+    Compiler compiler = Compiler();
+    compiler.throw_on_miss = false;
+    // lst
+    PROCESS("/compiler/lst_alias -> |[lst][]");
+    FOS_TEST_COMPILER_TRUE(lst(),id_p("/compiler/lst_alias"),compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(lst({jnt(1),jnt(2)}),id_p("/compiler/lst_alias"),compiler.type_check);
+    PROCESS("/compiler/lst_swap_name -> |/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
+    FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
+    //FOS_TEST_COMPILER_FALSE(lst({str("one")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
+    PROCESS("/compiler/lst_swap_name2 -> |/compiler/lst_swap_name2?lst<=lst()[==[as(str),as(str)]]");
+    FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),id_p("/compiler/lst_swap_name2"),compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}),id_p("/compiler/lst_swap_name2"),compiler.type_check);
+    //FOS_TEST_COMPILER_FALSE(lst({str("one")}),id_p("/compiler/lst_swap_name2"),compiler.type_check);
+    }
 
   FOS_RUN_TESTS( //
     FOS_RUN_TEST(test_type_check_base_types); //
     FOS_RUN_TEST(test_type_check_derived_mono_types); //
+    FOS_RUN_TEST(test_type_check_derived_poly_types); //
   )
 } // namespace fhatos
 

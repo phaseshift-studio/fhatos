@@ -163,7 +163,7 @@ namespace mmadt {
       LOG(DEBUG, "parsing complete: %s\n", mmadt.c_str());
       if(ret.ret) {
         LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
-        return result;
+        return result->is_bcode() && result->bcode_value()->size() == 1 ? result->bcode_value()->front() : result;
       } else {
         ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
         throw fError("parse failed: %s\n", mmadt.c_str());
@@ -381,7 +381,7 @@ namespace mmadt {
         for(const auto &obj: vs.transform<Obj_p>()) {
           if(!obj->is_code()) {
             const bool as_start = nullptr == prev || /*is_terminal(prev->itype()) ||*/ prev->inst_op() == "end";
-            prev = Obj::to_inst({as_start ? Obj::to_objs({obj}) : obj}, id_p(as_start ? "start" : "map"));
+            prev = Obj::to_inst({as_start ? Obj::to_objs({obj}) : obj}, id_p(as_start ? "map" : "map"));
             insts->push_back(prev);
           } else if(obj->is_inst()) {
             insts->push_back(obj);
