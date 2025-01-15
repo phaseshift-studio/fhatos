@@ -31,6 +31,7 @@ using std::make_tuple;
 
 namespace fhatos {
   class Obj;
+  using IntCoefficient = std::pair<int,int>;
   using InstArgs = std::shared_ptr<const Obj>;
   using Obj_p = std::shared_ptr<const Obj>;
   using Inst_p = std::shared_ptr<const Obj>;
@@ -55,6 +56,9 @@ namespace fhatos {
     Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
+
+    template<typename COEF = IntCoefficient>
+    bool coefficient_check(const COEF &lhs, const COEF &rhs);
 
     bool type_check(const Obj_p &value_obj, const ID_p &type_id, const DerivationTree *dt = nullptr);
 

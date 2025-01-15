@@ -23,6 +23,7 @@
 #include "obj.hpp"
 #include "../model/log.hpp"
 #include "../process/process.hpp"
+#include "mmadt/compiler.hpp"
 
 #define TOTAL_INSTRUCTIONS 75
 
@@ -137,10 +138,12 @@ namespace fhatos {
         using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
         Log::LOGGER(DEBUG, Typer::singleton().get(), " !yresolving!! !yinst!! %s [!gSTART!!]\n",
                     inst->toString().c_str());
+        Compiler compiler;
+        compiler.throw_on_miss = true;
         if(inst->is_noobj())
           return inst;
         if(!lhs->is_noobj())
-          ObjHelper::check_coefficients(lhs->range_coefficient(), inst->domain_coefficient(), true);
+          compiler.coefficient_check(lhs->range_coefficient(), inst->domain_coefficient());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));
