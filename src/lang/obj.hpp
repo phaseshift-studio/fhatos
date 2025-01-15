@@ -1729,8 +1729,12 @@ namespace fhatos {
         return true;
       if(type_obj->is_type())
         return IS_TYPE_OF(this->tid_, type_obj->tid_, {}) && !this->clone()->apply(type_obj->type_value())->is_noobj();
-      if(type_obj->is_code() && !this->is_code())
-        return !type_obj->apply(this->clone())->is_noobj();
+      if(type_obj->is_code() && !this->is_code()) {
+        if(type_obj->is_code() && !this->is_code()) {
+          const Obj_p result = type_obj->apply(this->clone());
+          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true  : !result->is_noobj();
+        }
+      }
       /* if(!type_obj->value_.has_value() &&
           (type_obj->tid()->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid()->no_query()) && FURI_OTYPE.at(
                                                      type_obj->tid()->no_query()) == this->otype_)))

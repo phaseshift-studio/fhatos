@@ -64,13 +64,16 @@ namespace fhatos {
     FOS_TEST_COMPILER_FALSE(jnt(-1),id_p("/compiler/nat"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(1.46),id_p("/compiler/nat"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.46),id_p("/compiler/nat"),compiler.type_check);
-    TYPE_SAVER(id_p("/compiler/nat2"),mmadt::Parser::singleton()->parse("/compiler/nat2?int<=int()[is(gt(0))]"));
+   PROCESS("/compiler/nat2 -> |/compiler/nat2?int<=int(=>)[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1),id_p("/compiler/nat2"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(jnt(-1),id_p("/compiler/nat2"),compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.23),id_p("/compiler/nat2"),compiler.type_check);
-    TYPE_SAVER(id_p("/compiler/nat3"),mmadt::Parser::singleton()->parse("/compiler/nat3?int{?}<=int(=>)[is(gt(0))]"));
+    PROCESS("/compiler/nat3 -> |/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
+    //TYPE_SAVER(id_p("/compiler/nat3"),mmadt::Parser::singleton()->parse("/compiler/nat3?int{?}<=int(=>)[is(gt(0))]"));
     FOS_TEST_COMPILER_TRUE(jnt(1),id_p("/compiler/nat3"),compiler.type_check);
-    // TODO: FOS_TEST_COMPILER_TRUE(jnt(-1),id_p("/compiler/nat3"),compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(jnt(-1),id_p("/compiler/nat3"),compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(real(1.23),id_p("/compiler/nat3"),compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(real(-1.23),id_p("/compiler/nat3"),compiler.type_check);
   }
 
   FOS_RUN_TESTS( //

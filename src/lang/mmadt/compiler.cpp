@@ -67,6 +67,101 @@ namespace fhatos {
     return obj;
   }
 
+  bool Compiler::match(const Obj_p &lhs, const Obj_p &rhs, const DerivationTree *dt) {
+     // LOG(TRACE, "!ymatching!!: %s ~ %s\n", lhs->toString().c_str(), type->toString().c_str());
+      if(rhs->is_empty_bcode())
+        return true;
+      if(rhs->is_type())
+        return IS_TYPE_OF(lhs->tid_, rhs->tid_, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
+      if(rhs->is_code() && !lhs->is_code()) {
+        Obj_p result = rhs->apply(lhs->clone());
+        if(result->is_noobj()) {
+          if(rhs->range_coefficient().first == 0)
+            return true;
+          else return false;
+        }
+        return !result->is_noobj();
+      }
+      /* if(!rhs->value_.has_value() &&
+          (rhs->tid()->equals(*OBJ_FURI) || (FURI_OTYPE.count(rhs->tid()->no_query()) && FURI_OTYPE.at(
+                                                     rhs->tid()->no_query()) == lhs->otype_)))
+         return true;*/
+      if(lhs->o_type() != rhs->o_type())
+        return false;
+     // if(require_same_type_id && (*lhs->tid_ != *rhs->tid_))
+      //  return false;
+      switch(lhs->o_type()) {
+        case OType::TYPE:
+          return lhs->type_value()->match(rhs->is_type() ? rhs->type_value() : rhs);
+        case OType::NOOBJ:
+          return true;
+        case OType::BOOL:
+          return lhs->bool_value() == rhs->bool_value();
+        case OType::INT:
+          return lhs->int_value() == rhs->int_value();
+        case OType::REAL:
+          return lhs->real_value() == rhs->real_value();
+        case OType::URI:
+          return lhs->uri_value().matches(rhs->uri_value());
+        case OType::STR:
+          return lhs->str_value() == rhs->str_value();
+        case OType::LST: {
+          const auto objs_a = lhs->lst_value();
+          const auto objs_b = rhs->lst_value();
+          if(objs_a->size() != objs_b->size())
+            return false;
+          auto b = objs_b->begin();
+          for(const auto &a: *objs_a) {
+            if(!a->match(*b))
+              return false;
+            ++b;
+          }
+          return true;
+        }
+        case OType::REC: {
+          const auto pairs_a = lhs->rec_value();
+          const auto pairs_b = rhs->rec_value();
+          for(const auto &[b_id, b_obj]: *pairs_b) {
+            bool found = false;
+            for(const auto &[a_id, a_obj]: *pairs_a) {
+              if((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
+                   a_id->match(b_id) && a_obj->match(b_obj))) {
+                found = true;
+                break;
+              }
+            }
+            if(!found)
+              return false;
+          }
+          return true;
+        }
+        case OType::INST: {
+          const auto args_a = lhs->inst_args();
+          if(const auto args_b = rhs->inst_args(); !args_a->match(args_b))
+            return false;
+          if(lhs->domain_coefficient() != rhs->domain_coefficient() ||
+             lhs->range_coefficient() != rhs->range_coefficient())
+            return false;
+          return true;
+        }
+        case OType::BCODE: {
+          /*const auto insts_a = lhs->bcode_value();
+          const auto insts_b = rhs->bcode_value();
+          if (insts_a->size() != insts_b->size())
+            return false;
+          const auto b = insts_b->begin();
+          for (const auto &a: *insts_a) {
+            if (!a->match(*b))
+              return false;
+          }*/
+          return true;
+        }
+        default:
+          throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->o_type()).c_str());
+      }
+  }
+
+
   bool Compiler::type_check(const Obj_p &value_obj, const ID_p &type_id, const DerivationTree *dt) {
     if(value_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
       return false;

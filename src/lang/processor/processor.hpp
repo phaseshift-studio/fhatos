@@ -54,7 +54,7 @@ namespace fhatos {
       } else {
         // if a single inst, wrap in bcode
         if(this->bcode_->is_inst())
-          this->bcode_ = Obj::to_bcode({this->bcode_}, this->bcode_->tid());
+          this->bcode_ = Obj::to_bcode({this->bcode_});
         // process bcode inst pipeline
         this->bcode_ = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
         // setup global behavior around barriers, initials, and terminals

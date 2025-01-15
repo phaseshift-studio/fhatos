@@ -1000,10 +1000,9 @@ namespace fhatos {
   };
 
   class Typed : public BaseTyped {
-  protected:
+  public:
     ID_p tid_;
 
-  public:
     explicit Typed(const ID_p &type) : tid_(type) {
     }
 
@@ -1027,10 +1026,10 @@ namespace fhatos {
   };
 
   class Valued : public BaseValued {
-  protected:
-    ID_p vid_;
 
   public:
+    ID_p vid_;
+
     explicit Valued(const ID_p &id) : vid_(id) {
     }
 
