@@ -134,7 +134,7 @@
             MAKE_TESTS(play "play" , true)
         ELSE()
             MAKE_TESTS(language "test_obj" true)
-            MAKE_TESTS(language/mmadt "test_mmadt_parser;test_mmadt_inst" true)
+            MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst" true)
             MAKE_TESTS(language/processor "test_processor" true)
             # MAKE_TESTS(process "test_scheduler;test_process" true)
             MAKE_TESTS(structure "test_structure" true)

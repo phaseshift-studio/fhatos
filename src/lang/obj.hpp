@@ -1655,7 +1655,9 @@ namespace fhatos {
         }
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
-          Inst_p inst = this->inst_f() ? this->shared_from_this() : TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          const Inst_p inst = this->inst_f()
+                                ? this->shared_from_this()
+                                : TYPE_INST_RESOLVER(lhs, this->shared_from_this());
           // if(!inst || inst->is_noobj())
           //   inst = this->shared_from_this();
           if(!lhs->is_code()) {
@@ -1846,7 +1848,7 @@ namespace fhatos {
 
     static Obj_p to_noobj() {
       static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
-                                     // id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
+      // id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
       return noobj;
     }
 
