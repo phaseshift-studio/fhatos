@@ -88,7 +88,7 @@ namespace fhatos {
         List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
         if(furi.has_components()) {
           for(const auto &c: furi.components()) {
-            components.emplace_back(fURI(c));
+            components.emplace_back(c);
           }
         }
         bool first = true;

@@ -155,7 +155,7 @@ namespace mmadt {
                    column - 1, message.c_str(), line, column, rule.c_str());
     };
 
-  protected:
+  public:
     Obj_p parse(const string &mmadt) const {
       Obj_p result;
       LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
@@ -170,6 +170,7 @@ namespace mmadt {
       }
     }
 
+  protected:
     explicit Parser(const ID &id = ID("/parser/")) : Obj(make_shared<RecMap<>>(),
                                                          OType::REC,
                                                          REC_FURI,
@@ -315,9 +316,9 @@ namespace mmadt {
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            return Obj::to_inst(make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p,Cpp_p>(body)), nullptr)),
-                                type_id, value_id);
-            // TODO: deduce itype from type_id
+            return Obj::to_inst(
+              make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p, Cpp_p>(body)), nullptr)),
+              type_id, value_id);
           }
           case 2: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);
@@ -439,9 +440,10 @@ namespace mmadt {
       INST <= cho(SUGAR_INST, NORMAL_INST);
       NORMAL_INST <= seq(TYPE_ID, ARGS, opt(VALUE_ID)), inst_action;
       ARGS <= cho(ARGS_REC, ARGS_LST), args_action;
-      ARGS_REC <= cho(lit("(=>)"), seq(lit("("), START, lit("=>"), START,
-                                       zom(seq(lit(","), START, lit("=>"), START)), lit(")"))), rec_action;
-      ARGS_LST <= cho(lit("()"), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
+      ARGS_REC <= cho(seq(lit("("), lit("=>"), lit(")")),
+                      seq(lit("("), START, lit("=>"), START, zom(seq(lit(","), START, lit("=>"), START)),
+                          lit(")"))), rec_action;
+      ARGS_LST <= cho(seq(lit("("), lit(")")), seq(lit("("), START, zom(seq(lit(","), START)), lit(")"))), lst_action;
       //////////////////////////////////////////////////////////////////////////////////////// TODO: stream ring theory
       COEFFICIENT <= tok(cho(cls("?*+."), seq(opt(INT), opt(lit(",")), opt(INT)))), coefficient_action;
       //zoo,zom,oom

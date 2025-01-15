@@ -51,6 +51,7 @@
 #include <utility>
 #include <variant>
 
+
 namespace fhatos {
   /// @brief The base types of mm-ADT
   enum class OType {

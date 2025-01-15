@@ -39,11 +39,11 @@ namespace fhatos {
 
   class Compiler {
 
-
   public:
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;
-    Compiler() = default;
+    bool throw_on_miss;
+    Compiler();
 
     //Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
     //Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
@@ -57,7 +57,7 @@ namespace fhatos {
 
     Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt = nullptr) const;
 
-    bool type_check(const Obj_p &value_obj, const ID_p &inst_type_id, const DerivationTree *dt = nullptr);
+    bool type_check(const Obj_p &value_obj, const ID_p &type_id, const DerivationTree *dt = nullptr);
 
     Obj_p save_type(const ID_p &type_id, const Obj_p &type_obj);
 
