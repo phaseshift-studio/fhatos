@@ -280,7 +280,7 @@ namespace fhatos {
             // bcode for on_recv
             this->recv_subscription(Subscription::create(
               Process::current_process() ? *Process::current_process()->vid() : *SCHEDULER_ID, *pattern, obj));
-          } else if(obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
+          } else if(obj->is_rec() && Compiler(false,false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
             // complete sub[=>] record
             this->recv_subscription(make_shared<Subscription>(obj));
           }

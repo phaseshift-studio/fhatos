@@ -31,7 +31,7 @@ using std::make_tuple;
 
 namespace fhatos {
   class Obj;
-  using IntCoefficient = std::pair<int,int>;
+  using IntCoefficient = std::pair<int, int>;
   using InstArgs = std::shared_ptr<const Obj>;
   using Obj_p = std::shared_ptr<const Obj>;
   using Inst_p = std::shared_ptr<const Obj>;
@@ -43,30 +43,44 @@ namespace fhatos {
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;
+    ///////////////////////////////////////////////////////
     bool throw_on_miss;
+    ptr<DerivationTree> dt;
 
-    Compiler();
+    explicit Compiler(bool throw_on_miss = true, bool with_derivation = false);
 
     //Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
     //Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
     //void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
 
-    Inst_p resolve_inst(const Obj_p &source, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
+    void print_derivation_tree(string *derivation_string) const;
 
-    Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt = nullptr);
+    void clear_derivation_tree() {
+      if(dt) dt->clear();
+    }
+
+    Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
+
+    Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
+
+    Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id) const;
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
 
     template<typename COEF = IntCoefficient>
-    bool coefficient_check(const COEF &lhs, const COEF &rhs);
+    bool coefficient_check(const COEF &lhs, const COEF &rhs) const;
 
-    bool type_check(const Obj_p &value_obj, const ID_p &type_id, const DerivationTree *dt = nullptr);
+    bool type_check(const Obj *value_obj, const ID_p &type_id) const;
 
-    bool match(const Obj_p &lhs, const Obj_p &rhs, const DerivationTree *dt = nullptr);
+    [[nodiscard]] bool type_check(const Obj_p& value_obj, const ID_p &type_id) const {
+      return this->type_check(value_obj.get(), type_id);
+    }
+
+    bool match(const Obj_p &lhs, const Obj_p &rhs);
 
     Obj_p save_type(const ID_p &type_id, const Obj_p &type_obj);
 
-    Obj_p super_type(const Obj_p &value_obj);
+    [[nodiscard]] Obj_p super_type(const Obj_p &value_obj) const;
   };
 }
 #endif

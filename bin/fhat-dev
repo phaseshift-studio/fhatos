@@ -121,6 +121,17 @@ else
     sudo apt-get install -y libpaho-mqtt-dev rlwrap
     [ $? -eq 0 ]  || exit 1
   fi
+    echo -e " ${LB}dependency ${GREEN}libavahi-client-dev${NC}${RB}"
+    found=$(ldconfig -p | grep -q libavahi-client-dev)
+    if [ ! "${found}" ]; then
+      echo -e "   libavahi-client-dev ${GREEN}FOUND${NC}"
+    else
+      echo -e " ${LB}libavahi-client-dev${RB} ${RED}NOT FOUND${NC}"
+      sudo apt-get install -y libavahi-client-dev rlwrap
+      [ $? -eq 0 ]  || exit 1
+    fi
+
+
 fi
 ########################################################################
 ########################################################################

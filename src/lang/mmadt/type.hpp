@@ -245,7 +245,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/map")
           ->type_args(x(0, "mapping"))
-          ->domain_range(OBJ_FURI,{0,1},OBJ_FURI,{0,1})
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0);
           })
@@ -527,12 +527,12 @@ namespace mmadt {
             const Rec_p rec = build_inspect_rec(args->arg(0));
             args->arg(0)->lst_set("size", args->arg(0)->lst_size());
             bool embeddable = true;
-         //   for(const auto &element: *args->arg(0)->lst_value()) {
-              /* if(i->is_rec() && i->is_indexed_args()) {
-                 embeddable = false;
-                 break;
-               }*/ // TODO: walk data structure in search of non-uri keyed recs (if any)
-         //   }
+            //   for(const auto &element: *args->arg(0)->lst_value()) {
+            /* if(i->is_rec() && i->is_indexed_args()) {
+               embeddable = false;
+               break;
+             }*/ // TODO: walk data structure in search of non-uri keyed recs (if any)
+            //   }
             rec->rec_set("embeddable", dool(embeddable));
             return rec;
           })->save();
@@ -719,8 +719,9 @@ namespace mmadt {
                   const auto new_v = make_shared<Obj::LstList>();
                   for(int i = 0; i < lhs_v->size(); i++) {
                     for(int j = 0; j < rhs_v->size(); j++) {
+                      const auto compiler = Compiler(true, false);
                       new_v->push_back(
-                        TYPE_INST_RESOLVER(
+                        compiler.resolve_inst(
                           lhs_v->at(i),
                           Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))
                         ->apply(rhs_v->at(j)));
@@ -751,11 +752,12 @@ namespace mmadt {
                   const Obj::RecMap_p<> lhs_v = lhs->rec_value();
                   const Obj::RecMap_p<> rhs_v = args->arg(0)->rec_value();
                   const auto new_v = make_shared<Obj::RecMap<>>();
+                  const auto compiler = Compiler(true, false);
                   for(const auto &[k1,v1]: *lhs_v) {
                     for(const auto &[k2,v2]: *rhs_v) {
                       new_v->insert_or_assign(
-                        TYPE_INST_RESOLVER(k1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(k2),
-                        TYPE_INST_RESOLVER(v1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(v2));
+                        compiler.resolve_inst(k1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(k2),
+                         compiler.resolve_inst(v1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(v2));
                     }
                   }
                   return Obj::to_rec(new_v, lhs->tid(), lhs->vid());

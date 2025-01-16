@@ -162,7 +162,8 @@ using namespace fhatos;
       FOS_DEPLOY_PARSER_2                                                                                              \
       FOS_DEPLOY_TYPE_2                                                                                                \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
-      FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
+      FOS_DEPLOY_COMPILER_2																							   \
+      FOS_DEPLOY_FILE_SYSTEM_2  																					   \
       UNITY_BEGIN();                                                                                                   \
       /*uint32_t __test_freeSketch;                                                                                    \
       uint32_t __test_freeHeap;  */                                                                                    \

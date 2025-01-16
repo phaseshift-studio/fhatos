@@ -20,10 +20,6 @@
 #ifndef fhatos_router_hpp
 #define fhatos_router_hpp
 
-#ifndef FOS_NAMESPACE_PREFIX_ID
-#define FOS_NAMESPACE_PREFIX_ID MMADT_SCHEME "/uri/ns/prefix/"
-#endif
-
 #include "../fhatos.hpp"
 #include "structure.hpp"
 #include "../lang/obj.hpp"
@@ -36,34 +32,34 @@ namespace fhatos {
 
   class Router final : public Rec {
   protected:
-    const ID_p namespace_prefix_;
-    // List<fURI> prefixes = List<fURI>();
     const unique_ptr<MutexDeque<Structure_p>> structures_ = make_unique<MutexDeque<Structure_p>>();
 
   protected:
-    explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) : Rec(rmap({
-          {"structure", to_lst()},
-          {"resolve", to_rec({
-            {"namespace", to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")}, {"math:", vri("/mmadt/ext/math")}})},
-            {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})}}),
-        /*{":stop", to_inst(
-          [this](const Obj_p &, const InstArgs &) {
-            this->write(this->vid_, _noobj_);
-            this->stop();
-            return noobj();
-          }, %s, INST_FURI,
-          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
-        {":attach", to_inst(
-          [this](const Obj_p &obj, const InstArgs &args) {
-            if(args->arg(0)->tid()->name() == "heap")
-              this->attach(make_shared<Heap<>>(obj));
-            else if(args->arg(0)->tid()->name() == "mqtt")
-              this->attach(make_shared<Mqtt>(obj));
-            return noobj();
-          }, {x(0, Obj::to_bcode())}, INST_FURI,
-          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
-        OType::REC, REC_FURI, id_p(id)),
-      namespace_prefix_(id_p(namespace_prefix)) {
+    explicit Router(const ID &id) : Rec(rmap({
+                                          {"structure", to_lst()},
+                                          {"resolve", to_rec({
+                                            {"namespace",
+                                              to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")},
+                                                {"math:", vri("/mmadt/ext/math")}})},
+                                            {"auto_prefix",
+                                              to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})}}),
+                                        /*{":stop", to_inst(
+                                          [this](const Obj_p &, const InstArgs &) {
+                                            this->write(this->vid_, _noobj_);
+                                            this->stop();
+                                            return noobj();
+                                          }, %s, INST_FURI,
+                                          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
+                                        {":attach", to_inst(
+                                          [this](const Obj_p &obj, const InstArgs &args) {
+                                            if(args->arg(0)->tid()->name() == "heap")
+                                              this->attach(make_shared<Heap<>>(obj));
+                                            else if(args->arg(0)->tid()->name() == "mqtt")
+                                              this->attach(make_shared<Mqtt>(obj));
+                                            return noobj();
+                                          }, {x(0, Obj::to_bcode())}, INST_FURI,
+                                          make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
+                                        OType::REC, REC_FURI, id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_ID = this->vid_;
       ////////////////////////////////////////////////////////////////////////////////////
@@ -140,9 +136,8 @@ namespace fhatos {
     }
 
   public:
-    static ptr<Router> singleton(const Pattern &pattern = "/sys/router/",
-                                 const ID &namespace_prefix = ID(FOS_NAMESPACE_PREFIX_ID)) {
-      static auto router_p = ptr<Router>(new Router(pattern, namespace_prefix));
+    static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
+      static auto router_p = ptr<Router>(new Router(pattern));
       return router_p;
     }
 
@@ -288,7 +283,7 @@ namespace fhatos {
     }
 
   private:
-    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, const bool throw_exception = true) {
+    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, const bool throw_exception = true) const {
       const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
       const List<Structure_p> list = this->structures_->find_all(
         [pattern, temp](const Structure_p &structure) {
@@ -308,21 +303,44 @@ namespace fhatos {
       return s;
     }
 
-    [[nodiscard]] fURI_p resolve_namespace_prefix(const fURI_p &type_id) {
-      fURI_p type_id_resolved;
-      if(strlen(type_id->scheme()) > 0) {
-        const Obj_p resolved_uri = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
-        LOG_KERNEL_OBJ(DEBUG, this, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n", type_id->scheme(),
-                       type_id->path().c_str(),
-                       resolved_uri->toString().c_str());
-        if(!resolved_uri->is_noobj()) {
-          if(resolved_uri->is_uri()) {
-            return id_p(resolved_uri->uri_value().extend((string(":").append(type_id->path())).c_str()));
-          } else
-            throw fError("namespace prefixes must be uris: !y%s!!:!b%s!!", resolved_uri->toString().c_str());
+  public:
+    [[nodiscard]] fURI_p resolve(const fURI &furi) const {
+      if(!furi.headless() && !furi.has_components())
+        return furi_p(furi);
+      List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
+      if(furi.has_components()) {
+        for(const auto &c: furi.components()) {
+          components.emplace_back(c);
         }
       }
-      return type_id; // no resolution available
+      bool first = true;
+      fURI_p test = nullptr;
+      for(const auto &c: components) {
+        List_p<Uri_p> prefixes = this->rec_get("resolve")->rec_get("auto_prefix")->lst_value();
+        // TODO: make this an exposed property of /sys/router
+        fURI_p found = nullptr;
+        for(const auto &prefix: *prefixes) {
+          const fURI_p x = furi_p(prefix->uri_value().extend(c));
+          if(const Structure_p structure = this->get_structure(p_p(*x), false); structure && structure->has(x)) {
+            LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
+                           furi.toString().c_str(),
+                           structure->toString().c_str(),
+                           x->toString().c_str());
+            found = x;
+            break;
+          }
+        }
+        if(!found) {
+          LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b%s!!\n", c.toString().c_str());
+        }
+        if(first) {
+          first = false;
+          test = furi_p(fURI(found ? *found : c));
+        } else {
+          test = furi_p(test->extend("::").extend(found ? *found : fURI(c)));
+        }
+      }
+      return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
     }
   };
 

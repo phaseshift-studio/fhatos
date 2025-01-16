@@ -89,57 +89,56 @@ namespace fhatos {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_CHECKER = [this](const Obj *obj, const ID_p &typex_id, const bool throw_on_fail) -> bool {
-        // TODO: need to get coefficient data in dom/rng ids
-        if(obj->is_noobj()) {
-          if(const vector<string> coef = typex_id->query_values(FOS_RNG_COEF);
-            !coef.empty() && stoi(coef.front()) == 0) {
-            //LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
-            return true;
+        TYPE_CHECKER = [this](const Obj *obj, const ID_p &typex_id, const bool throw_on_fail) -> bool {
+          // TODO: need to get coefficient data in dom/rng ids
+          if(obj->is_noobj()) {
+            if(const vector<string> coef = typex_id->query_values(FOS_RNG_COEF);
+              !coef.empty() && stoi(coef.front()) == 0) {
+              //LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
+              return true;
+            }
           }
-        }
-        const ID_p type_id = id_p(typex_id->no_query());
-        if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
-          return true;
-        // if the type is a base type and the base types match, then type check passes
-        if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
-          return true;
-        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-        //if(obj->tid()->equals(*type_id))
-        //  return true;
-        // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-        if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
-          return true;
-        if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
-          return true;
-        // get the type definition and match it to the obj
-        if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
-          ObjHelper::check_coefficients(obj->range_coefficient(), type->domain_coefficient());
-          // if(type->is_type() && !obj->apply(type)->is_noobj())
-          //   return true;
-          if(obj->match(type, false))
+          const ID_p type_id = id_p(typex_id->no_query());
+          if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
             return true;
-          if(throw_on_fail) {
-            static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
-            p->show_type = false;
-            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
-                         obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
+          // if the type is a base type and the base types match, then type check passes
+          if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
+            return true;
+          // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+          //if(obj->tid()->equals(*type_id))
+          //  return true;
+          // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+          if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+            return true;
+          if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
+            return true;
+          // get the type definition and match it to the obj
+          if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
+            ObjHelper::check_coefficients(obj->range_coefficient(), type->domain_coefficient());
+            // if(type->is_type() && !obj->apply(type)->is_noobj())
+            //   return true;
+            if(obj->match(type, false))
+              return true;
+            if(throw_on_fail) {
+              static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
+              p->show_type = false;
+              throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
+                           obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
+            }
+            return false;
           }
+          if(throw_on_fail)
+            throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+                         type_id->toString().c_str());
           return false;
-        }
-        if(throw_on_fail)
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
-                       type_id->toString().c_str());
-        return false;
-      };
+        };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
         using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
         Log::LOGGER(DEBUG, Typer::singleton().get(), " !yresolving!! !yinst!! %s [!gSTART!!]\n",
                     inst->toString().c_str());
-        Compiler compiler;
-        compiler.throw_on_miss = true;
+        Compiler compiler = Compiler(true,false);
         if(inst->is_noobj())
           return inst;
         if(!lhs->is_noobj())

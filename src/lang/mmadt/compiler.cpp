@@ -20,6 +20,7 @@ FhatOS: A Distributed Operating System
 #include "../../util/obj_helper.hpp"
 #include "../obj.hpp"
 #include "../../structure/router.hpp"
+#include "../../model/log.hpp"
 
 using std::tuple;
 using std::vector;
@@ -30,34 +31,115 @@ namespace fhatos {
   // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
   // void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
 
-  Compiler::Compiler() {
-    this->throw_on_miss = true;
+  Compiler::Compiler(const bool throw_on_miss, const bool with_derivation) {
+    this->throw_on_miss = throw_on_miss;
+    this->dt = with_derivation ? make_shared<DerivationTree>() : nullptr;
   }
 
-  Inst_p Compiler::resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id, DerivationTree *dt) {
-    const Inst_p maybe = ROUTER_READ(furi_p(vid_or_tid->add_component(*inst_type_id)));
-    if(dt) dt->push_back({vid_or_tid, inst_type_id, maybe});
+  void Compiler::print_derivation_tree(string *derivation_string) const {
+    derivation_string->clear();
+    if(this->dt) {
+      int counter = 0;
+      for(const auto &oir: *this->dt) {
+        counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
+        if(counter != 0) {
+          string indent = StringHelper::repeat(counter, "-").append("!g>!!");
+          derivation_string->append(StringHelper::format(
+            "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+            indent.c_str(),
+            std::get<0>(oir)->toString().c_str(),
+            std::get<1>(oir)->toString().c_str(),
+            std::get<2>(oir)->toString().c_str()));
+        }
+      }
+    } else {
+      derivation_string->append("<no derivation tree>");
+    }
+  }
+
+
+  Inst_p Compiler::resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id) const {
+    const Inst_p maybe = Router::singleton()->read(furi_p(vid_or_tid->add_component(*inst_type_id)));
+    if(this->dt) this->dt->emplace_back(vid_or_tid, inst_type_id, maybe);
     return maybe;
   }
 
 
-  Inst_p Compiler::resolve_inst(const Obj_p &source, const ID_p &inst_type_id, DerivationTree *dt) {
-    const ID_p inst_type_id_resolved = id_p(*ROUTER_RESOLVE(fURI(*inst_type_id)));
-    Obj_p inst_obj = ROUTER_READ(inst_type_id_resolved);
-    if(inst_obj->is_noobj())
-      inst_obj = resolve_inst_to_id(source->vid(), inst_type_id_resolved, dt);
-    if(inst_obj->is_noobj())
-      inst_obj = resolve_inst_to_id(source->tid(), inst_type_id_resolved, dt);
-    if(inst_obj->is_noobj()) {
-      Obj_p super = this->super_type(source);
-      while(!super->is_noobj()) {
-        inst_obj = resolve_inst_to_id(super->tid(), inst_type_id_resolved, dt);
-      }
+  Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
+    if(inst->inst_f() || inst->is_noobj())
+      return inst;
+    if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
+      return inst;
+    const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid()));
+    Obj_p inst_obj = Router::singleton()->read(inst_type_id_resolved);
+    if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
+    if(lhs->vid_ && (inst_obj->is_noobj() || nullptr == inst_obj->inst_f())) {
+      inst_obj = resolve_inst_to_id(lhs->vid(), inst_type_id_resolved);
+      if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
     }
-    return inst_obj;
+    if(inst_obj->is_noobj() || nullptr == inst_obj->inst_f()) {
+      inst_obj = resolve_inst_to_id(lhs->tid(), inst_type_id_resolved);
+      if(dt) dt->emplace_back(lhs->tid_, inst_type_id_resolved, inst_obj);
+    }
+    if(inst_obj->is_noobj() || nullptr == inst_obj->inst_f())
+      inst_obj = resolve_inst(this->super_type(lhs), inst_obj);
+
+    if(this->throw_on_miss && (inst_obj->is_noobj() || nullptr == inst_obj->inst_f())) {
+      string derivation_string;
+      this->print_derivation_tree(&derivation_string);
+      throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
+                   inst->tid()->toString().c_str(), derivation_string.c_str());
+    }
+    return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
 
-  Obj_p Compiler::super_type(const Obj_p &value_obj) {
+  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const {
+    Inst_p inst_c;
+    if(inst_b->is_inst()) {
+      LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
+          inst_b->toString().c_str(),
+          inst_a->toString().c_str(),
+          "SIGNATURE HERE");
+      const auto merged_args = Obj::to_inst_args();
+      int counter = 0;
+      for(const auto &[k,v]: *inst_b->inst_args()->rec_value()) {
+        if(inst_a->has_arg(k))
+          merged_args->rec_value()->insert({k, inst_a->arg(k)});
+        else if(inst_a->is_indexed_args() && counter < inst_a->inst_args()->rec_value()->size())
+          merged_args->rec_value()->insert({k, inst_a->arg(counter)});
+        else
+          merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
+        // TODO: hack to get the default from from();
+        ++counter;
+      }
+      // TODO: recurse off inst for all inst_arg getter/setters
+
+      inst_c = Obj::to_inst(
+        inst_b->inst_op(),
+        merged_args,
+        inst_b->inst_f(),
+        inst_b->inst_seed_supplier(),
+        inst_b->tid(),
+        inst_a->vid());
+      /// TODO ^--- inst->vid());
+    } else {
+      inst_c = Obj::to_inst(
+        inst_a->inst_op(),
+        inst_a->inst_args(),
+        make_shared<InstF>(make_shared<Cpp>(
+          [x = inst_b->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+            return x->apply(lhs, args);
+          })),
+        inst_a->inst_seed_supplier(),
+        inst_a->tid(), inst_a->vid());
+    }
+    if(dt) this->dt->emplace_back(inst_b->tid_, inst_c->tid_, inst_c);
+    LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
+    return inst_c;
+  }
+
+
+  Obj_p Compiler::super_type(const Obj_p &value_obj) const {
     Obj_p obj = ROUTER_READ(value_obj->tid());
     if(obj->is_noobj() || obj->equals(*value_obj)) {
       obj = ROUTER_READ(value_obj->domain());
@@ -67,7 +149,7 @@ namespace fhatos {
     return obj;
   }
 
-  bool Compiler::match(const Obj_p &lhs, const Obj_p &rhs, const DerivationTree *dt) {
+  bool Compiler::match(const Obj_p &lhs, const Obj_p &rhs) {
     // LOG(TRACE, "!ymatching!!: %s ~ %s\n", lhs->toString().c_str(), type->toString().c_str());
     if(rhs->is_empty_bcode())
       return true;
@@ -162,7 +244,7 @@ namespace fhatos {
   }
 
   template<typename COEF>
-  bool Compiler::coefficient_check(const COEF &lhs, const COEF &rhs) {
+  bool Compiler::coefficient_check(const COEF &lhs, const COEF &rhs) const {
     if((lhs.first < rhs.first || lhs.second < rhs.first) || (lhs.first > rhs.second || lhs.second > rhs.second)) {
       if(this->throw_on_miss)
         throw fError("lhs coefficient not within rhs coefficient: {%i,%i} <> {%i,%i}", lhs.first, lhs.second, rhs.first,
@@ -173,8 +255,7 @@ namespace fhatos {
     return true;
   }
 
-
-  bool Compiler::type_check(const Obj_p &value_obj, const ID_p &type_id, const DerivationTree *dt) {
+  bool Compiler::type_check(const Obj *value_obj, const ID_p &type_id) const {
     if(value_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
       return false;
     if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
@@ -208,7 +289,7 @@ namespace fhatos {
     if(!this->coefficient_check(value_obj->range_coefficient(), type_obj->domain_coefficient()))
       return false;
     try {
-      if(type_obj->is_type() && !type_obj->apply(value_obj)->is_noobj())
+      if(type_obj->is_type() && !type_obj->apply(value_obj->shared_from_this())->is_noobj())
         return true;
       if(value_obj->match(type_obj, false))
         return true;

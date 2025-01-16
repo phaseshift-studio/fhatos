@@ -25,6 +25,14 @@
 #include "../base_mqtt.hpp"
 #include <unistd.h>
 
+/*
+#include <avahi-client/client.h>
+#include <avahi-client/lookup.h>
+#include <avahi-common/simple-watch.h>
+#include <avahi-common/malloc.h>
+#include <avahi-common/error.h>
+*/
+
 namespace fhatos {
   using namespace mqtt;
   class Mqtt;
@@ -39,6 +47,7 @@ namespace fhatos {
     connect_options connection_options_{};
 
     bool exists() const override {
+
       return MQTT_CONNECTION && MQTT_CONNECTION->is_connected() &&
              MQTT_CONNECTION->get_server_uri() == this->settings_.broker_;
     }

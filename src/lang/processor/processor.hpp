@@ -22,6 +22,7 @@
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../mmadt/rewriter.hpp"
+#include "../mmadt/compiler.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
@@ -34,6 +35,7 @@ namespace fhatos {
     class MonadSet;
     class Monad;
     using Monad_p = ptr<Processor::Monad>;
+    uptr<Compiler> compiler_;
 
   protected:
     BCode_p bcode_;
@@ -45,7 +47,7 @@ namespace fhatos {
 
     explicit Processor(const BCode_p &bcode) : Obj(Any(), OType::OBJ, REC_FURI,
                                                    id_p(to_string(rand()).insert(0, "/sys/processor/").c_str())),
-                                               bcode_(bcode) {
+                                               compiler_(make_unique<Compiler>(true, false)), bcode_(bcode) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {
           // monad halts immediately on a non-bcode submission
@@ -203,7 +205,9 @@ namespace fhatos {
             this->halt();
           }
         } else {
-          const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj, this->inst);
+          //const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj, this->inst);
+
+          const Inst_p current_inst_resolved = this->processor_->compiler_->resolve_inst(this->obj, this->inst);
           LOG_OBJ(TRACE, this->processor_, "monad %s applying to resolved inst %s !m=>!! %s [!m%s!!]\n",
                   this->toString().c_str(),
                   this->inst->toString().c_str(),

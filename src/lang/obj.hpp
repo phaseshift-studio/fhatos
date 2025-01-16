@@ -342,7 +342,7 @@ namespace fhatos {
   };
   static Function<const fURI, const fURI_p> ROUTER_RESOLVE = [](const fURI &furi) {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
-    return id_p(furi);
+    return nullptr;
   };
   static TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
       [](const fURI_p &, const Obj_p &, const bool retain) -> void {
@@ -420,7 +420,8 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
                  const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
-                                                   Valued(value_id), otype_(otype),
+                                                   Valued(value_id),
+                                                   otype_(otype),
                                                    value_(value) {
       if(otype == OType::INST && nullptr == std::get<2>(*std::any_cast<InstValue_p>(value))) {
         this->value_ = make_shared<InstValue>(make_tuple(std::get<0>(*std::any_cast<InstValue_p>(value)),
@@ -668,7 +669,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          TYPE_CHECKER(this, this->tid_, true);
+          Compiler(true, false).type_check(this, this->tid_);
         } catch(const fError &) {
           this->lst_set(index, undo);
           LOG_OBJ(WARN, this, "!blst!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
@@ -774,7 +775,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          TYPE_CHECKER(this, this->tid_, true);
+          Compiler(true, false).type_check(this, this->tid_);
         } catch(const fError &) {
           this->rec_set(key, undo);
           LOG_OBJ(WARN, this, "!brec!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
@@ -1601,7 +1602,7 @@ namespace fhatos {
         auto next = lhs->type_value();
         if(this->is_inst()) {
           LOG(INFO, "apply type to inst: %s => %s\n", lhs->toString().c_str(), this->toString().c_str());
-          TYPE_CHECKER(lhs.get(), this->domain(), true);
+          Compiler(true, false).type_check(lhs, this->domain());
           if(lhs->range_coefficient().first < this->domain_coefficient().first) {
             throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
                          lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
@@ -1612,7 +1613,8 @@ namespace fhatos {
                          lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
                          this->toString().c_str(), this->domain_coefficient().first, this->domain_coefficient().second);
           }
-          const Inst_p resolved = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          //   const Inst_p resolved = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          const Inst_p resolved = Compiler(true, true).resolve_inst(lhs, this->shared_from_this());
           next = next->add_inst(resolved);
         } else {
           throw fError("only inst currently supported: %s", this->toString().c_str());
@@ -1656,15 +1658,15 @@ namespace fhatos {
         }
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
+          const auto compiler = Compiler(true, false);
           const Inst_p inst = this->inst_f()
                                 ? this->shared_from_this()
-                                : TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+                                : compiler.resolve_inst(lhs, this->shared_from_this());
           // if(!inst || inst->is_noobj())
           //   inst = this->shared_from_this();
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
-            const Compiler::DerivationTree dt;
-            Compiler().type_check(lhs, inst->domain(), &dt);
+            Compiler(true, true).type_check(lhs, inst->domain());
           }
           // compute args
           InstArgs remake;
@@ -1692,8 +1694,7 @@ namespace fhatos {
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code()) {
-              Compiler::DerivationTree dt;
-              Compiler().type_check(result, inst->range(), &dt);
+              Compiler(true, true).type_check(result, inst->range());
             }
             ROUTER_POP_FRAME();
             return result;
@@ -1732,7 +1733,7 @@ namespace fhatos {
       if(type_obj->is_code() && !this->is_code()) {
         if(type_obj->is_code() && !this->is_code()) {
           const Obj_p result = type_obj->apply(this->clone());
-          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true  : !result->is_noobj();
+          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
         }
       }
       /* if(!type_obj->value_.has_value() &&
