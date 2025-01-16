@@ -42,7 +42,7 @@ for filename in glob.iglob('src' + '**/**', recursive=True):
     if "native" not in filename:
         src_filter.append(filename)
     else:
-        print("\t{M}adding{N} to {B}build_src_filter{N}: {G}{FILE}{N}".format(R=colors.RED, M=colors.PURPLE,
+        print("   {M}excluding{N} from {B}build_src_filter{N}: {G}{FILE}{N}".format(R=colors.RED, M=colors.PURPLE,
                                                                               B=colors.BLUE,
                                                                               G=colors.GREEN, LM=colors.LIGHT_PURPLE,
                                                                               N=colors.END,

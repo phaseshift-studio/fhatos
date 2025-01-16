@@ -280,7 +280,7 @@ namespace fhatos {
             // bcode for on_recv
             this->recv_subscription(Subscription::create(
               Process::current_process() ? *Process::current_process()->vid() : *SCHEDULER_ID, *pattern, obj));
-          } else if(obj->is_rec() && Compiler(false,false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
+          } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
             // complete sub[=>] record
             this->recv_subscription(make_shared<Subscription>(obj));
           }
@@ -309,11 +309,12 @@ namespace fhatos {
       }
 
       //// WRITES
-      if(furi->is_branch()) {
+      const fURI_p new_furi = !furi->has_query() ? furi : furi_p(furi->no_query());
+      if(new_furi->is_branch()) {
         // BRANCH (POLYS)
         if(obj->is_noobj()) {
           // nobj
-          const IdObjPairs ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+          const IdObjPairs ids = this->read_raw_pairs(furi_p(new_furi->extend("+")));
           for(const auto &[key, value]: ids) {
             this->write_raw_pairs(key, obj, retain);
           }
@@ -333,23 +334,23 @@ namespace fhatos {
           }
           if(!remaining->empty()) {
             // non-uri keyed pairs written to /0
-            this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
+            this->write_raw_pairs(id_p(new_furi->extend("0")), Obj::to_rec(remaining), retain);
           }
         } else if(obj->is_lst()) {
           // lst /0,/1,/2 indexing
           const List_p<Obj_p> list = obj->lst_value();
           for(size_t i = 0; i < list->size(); i++) {
-            this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
+            this->write_raw_pairs(id_p(new_furi->extend(to_string(i))), list->at(i), retain);
           }
         } else {
           // BRANCH (MONOS)
           // monos written to /0
-          this->write_raw_pairs(id_p(*furi), obj, retain);
+          this->write_raw_pairs(id_p(*new_furi), obj, retain);
         }
       } else {
         // NODE PATTERN
-        if(furi->is_pattern()) {
-          const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
+        if(new_furi->is_pattern()) {
+          const IdObjPairs matches = this->read_raw_pairs(new_furi);
           for(const auto &[key, value]: matches) {
             this->write(key, obj, retain);
           }
@@ -358,21 +359,21 @@ namespace fhatos {
         /////////////////////////////////////// WRITE NODE ID ////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         else {
-          LOG(TRACE, "searching for base poly of: %s\n", furi->toString().c_str());
-          if(const auto pair = this->locate_base_poly(furi_p(furi->retract())); pair.has_value()) {
+          LOG(TRACE, "searching for base poly of: %s\n", new_furi->toString().c_str());
+          if(const auto pair = this->locate_base_poly(furi_p(new_furi->retract())); pair.has_value()) {
             LOG(TRACE, "base poly found at %s: %s\n",
                 pair->first->toString().c_str(),
                 pair->second->toString().c_str());
-            const ID_p id_insert = id_p(furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
+            const ID_p id_insert = id_p(new_furi->remove_subpath(pair->first->as_branch().toString(), true).to_node());
             const Poly_p poly_insert = pair->second; //->clone();
             poly_insert->poly_set(vri(id_insert), obj);
-            distribute_to_subscribers(Message::create(id_p(*furi), obj, retain));
+            distribute_to_subscribers(Message::create(id_p(*new_furi), obj, retain));
             LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
                 pair->first->toString().c_str(),
                 poly_insert->toString().c_str());
             this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
           } else {
-            this->write_raw_pairs(id_p(*furi), obj, retain);
+            this->write_raw_pairs(id_p(*new_furi), obj, retain);
           }
         }
       }

@@ -61,7 +61,7 @@ namespace fhatos {
                                           make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
                                         OType::REC, REC_FURI, id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////
-      ROUTER_ID = this->vid_;
+      ROUTER_ID = id_p(id);
       ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
         THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
@@ -219,10 +219,10 @@ namespace fhatos {
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       try {
         const fURI_p resolved_furi = this->resolve(*furi);
-       // const bool query = resolved_furi->has_query("structure");
+        // const bool query = resolved_furi->has_query("structure");
         const Structure_p structure = this->get_structure(p_p(*resolved_furi));
-       // if(query)
-       //   return structure->shared_from_this();
+        // if(query)
+        //   return structure->shared_from_this();
         const Objs_p objs = structure->read(resolved_furi);
         LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
@@ -272,8 +272,8 @@ namespace fhatos {
     }
 
     static void *import() {
-      ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
-      InstBuilder::build(ROUTER_ID->extend("detach"))
+      ROUTER_WRITE(Router::singleton()->vid_, Router::singleton(),RETAIN);
+      InstBuilder::build(Router::singleton()->vid_->extend("detach"))
           ->domain_range(URI_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             Router::singleton()->get_structure(p_p(lhs->uri_value()))->stop();

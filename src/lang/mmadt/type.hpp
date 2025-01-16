@@ -86,8 +86,7 @@ namespace mmadt {
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const ID_p at_id = id_p(args->arg(0)->uri_value());
             const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
-            const Obj_p ret = new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
-            return ret;
+            return (new_lhs->is_noobj() || new_lhs->vid_) ? new_lhs : new_lhs->at(at_id);
           })
           ->save();
 
@@ -233,6 +232,16 @@ namespace mmadt {
             return result->is_noobj() ? args->arg(1) : result;
           })
           ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/lock")
+          ->domain_range(OBJ_FURI, OBJ_FURI)
+          ->type_args(x(0, "user", Obj::to_noobj()))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const string user = args->arg(0)->is_noobj()
+                                  ? Process::current_process()->vid_->toString()
+                                  : args->arg(0)->str_value();
+            return lhs->is_locked() ? lhs->unlock(user) : lhs->lock(user);
+          })->save();
 
       InstBuilder::build(MMADT_SCHEME "/is") // TODO: figure out how to get the opcode in obj insts
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
@@ -757,7 +766,7 @@ namespace mmadt {
                     for(const auto &[k2,v2]: *rhs_v) {
                       new_v->insert_or_assign(
                         compiler.resolve_inst(k1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(k2),
-                         compiler.resolve_inst(v1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(v2));
+                        compiler.resolve_inst(v1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(v2));
                     }
                   }
                   return Obj::to_rec(new_v, lhs->tid(), lhs->vid());

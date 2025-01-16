@@ -23,7 +23,7 @@
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_SHARED_MEMORY /obj/#
 
 #include "../../test_fhatos.hpp"
 #include "../../../src/util/obj_helper.hpp"
@@ -32,6 +32,27 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
+
+	void test_lock() {
+		Int_p i = jnt(10,INT_FURI,id_p("/obj/abc"));
+        TEST_ASSERT_FALSE(i->is_locked());
+		i = i->lock("fhat");
+        TEST_ASSERT_TRUE(i->is_locked());
+		FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=fhat"))
+        ///////
+        i = i->unlock("fhat");
+        TEST_ASSERT_FALSE(i->is_locked());
+        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
+        ///////
+        i = i->lock("pig");
+        TEST_ASSERT_TRUE(i->is_locked());
+        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=pig"))
+        FOS_TEST_EXCEPTION_CXX(i->unlock("fhat"));
+        TEST_ASSERT_TRUE(i->is_locked());
+        i = i->unlock("pig");
+        TEST_ASSERT_FALSE(i->is_locked());
+        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
+    }
 
   /*void test_int() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
@@ -142,14 +163,14 @@ namespace fhatos {
 
 
   void test_uri() {
-    Typer::singleton()->save_type(id_p("webpage"), Obj::to_bcode());
-    Typer::singleton()->save_type(id_p("ftp"), Obj::to_bcode());
+    Typer::singleton()->save_type(id_p("/obj/webpage"), Obj::to_bcode());
+    Typer::singleton()->save_type(id_p("/obj/ftp"), Obj::to_bcode());
     const Uri_p uriA = Obj::to_uri("home/web/html/index.html");
     const Uri_p uriB = vri("home/web/html/index.html");
-    const Uri_p uriC = Obj::to_uri("home/web/html/index.html", id_p("webpage"));
-    const Uri_p uriD = Obj::to_uri("ftp://localhost:23/", id_p("ftp"));
+    const Uri_p uriC = Obj::to_uri("home/web/html/index.html", id_p("/obj/webpage"));
+    const Uri_p uriD = Obj::to_uri("ftp://localhost:23/", id_p("/obj/ftp"));
     ///
-    const Uri_p uriE = Obj::to_uri(fURI("http://index.org/index.html"), id_p("webpage"));
+    const Uri_p uriE = Obj::to_uri(fURI("http://index.org/index.html"), id_p("/obj/webpage"));
 
     TEST_ASSERT_FALSE(uriA->is_bcode());
     FOS_TEST_ASSERT_EQUAL_FURI(*URI_FURI, *uriA->tid());
@@ -160,26 +181,26 @@ namespace fhatos {
     TEST_ASSERT_TRUE(uriA->match(uriB));
     TEST_ASSERT_FALSE(uriA->match(vri("http://nothing.org")));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*uriC->tid(), *uriA->as(id_p("webpage"))->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(*uriC->tid(), *uriA->as(id_p("/obj/webpage"))->tid());
     FOS_TEST_OBJ_EQUAL(uriA, uriB);
     FOS_TEST_OBJ_EQUAL(uriB, uriA);
-    FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(id_p("webpage")));
-    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("webpage")));
-    FOS_TEST_OBJ_EQUAL(uriC, uriB->as(id_p("webpage")));
+    FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(id_p("/obj/webpage")));
+    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("/obj/webpage")));
+    FOS_TEST_OBJ_EQUAL(uriC, uriB->as(id_p("/obj/webpage")));
     FOS_TEST_OBJ_EQUAL(uriA, uriC->as(URI_FURI));
     FOS_TEST_OBJ_EQUAL(uriA, uriA->as(URI_FURI));
     /// apply
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriB));
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriA));
-    FOS_TEST_OBJ_EQUAL(uriA->as(id_p("webpage")), uriA->as(id_p("webpage"))->apply(uriB));
-    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("webpage"))->apply(uriB));
+    FOS_TEST_OBJ_EQUAL(uriA->as(id_p("/obj/webpage")), uriA->as(id_p("/obj/webpage"))->apply(uriB));
+    FOS_TEST_OBJ_EQUAL(uriC, uriA->as(id_p("/obj/webpage"))->apply(uriB));
     /// relations // TODO
     // TEST_ASSERT_GREATER_THAN_INT(uriA->as("ftp")->uri_value(), uriD->int_value());
     // TEST_ASSERT_LESS_THAN_INT(uriD->uri_value(), uriB->as(FOS_TYPE_PREFIX "int/nat")->int_value());
     /// match
     TEST_ASSERT_TRUE(vri("example.com")->match(Obj::to_uri("example.com")));
-    TEST_ASSERT_TRUE(vri("/fhatos/index.html")->as(id_p("webpage"))->match(vri("/+/index.html")->as(id_p("webpage"))));
-    TEST_ASSERT_FALSE(vri("/fhatos/index")->as(id_p("webpage"))->match(vri("/fhatos/index")->as(id_p("ftp"))));
+    TEST_ASSERT_TRUE(vri("/fhatos/index.html")->as(id_p("/obj/webpage"))->match(vri("/+/index.html")->as(id_p("/obj/webpage"))));
+    TEST_ASSERT_FALSE(vri("/fhatos/index")->as(id_p("/obj/webpage"))->match(vri("/fhatos/index")->as(id_p("/obj/ftp"))));
 
   }
 
@@ -265,18 +286,18 @@ void is_a_testing(const OType o_type, const Obj_p obj) {
 }
 
 void test_bool() {
-    Typer::singleton()->save_type(id_p("truth"), Obj::to_bcode()); //
-    const Bool_p bool_a = Obj::to_bool(true,id_p("truth"));
-    const Bool_p bool_b = Obj::to_bool(false, id_p("truth"));
+    Typer::singleton()->save_type(id_p("/obj/truth"), Obj::to_bcode()); //
+    const Bool_p bool_a = Obj::to_bool(true,id_p("/obj/truth"));
+    const Bool_p bool_b = Obj::to_bool(false, id_p("/obj/truth"));
     is_a_testing(OType::BOOL,bool_a);
     is_a_testing(OType::BOOL,bool_b);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("truth"), *bool_a->tid());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("truth"), *bool_b->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_a->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_b->tid());
     FOS_TEST_OBJ_NTEQL(bool_a, bool_b);
     FOS_TEST_OBJ_NTEQL(bool_b, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_b, bool_b);
-    FOS_TEST_OBJ_NTEQL(Obj::to_bool(false,id_p("truth")), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
+    FOS_TEST_OBJ_NTEQL(Obj::to_bool(false,id_p("/obj/truth")), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
     FOS_TEST_OBJ_EQUAL(Obj::to_bool(false), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
     TEST_ASSERT_TRUE(bool_a->bool_value());
     TEST_ASSERT_FALSE(bool_a->is_bcode());
@@ -287,9 +308,9 @@ void test_bool() {
   }
 
  void test_str() {
-    Typer::singleton()->save_type(id_p("first_name"), Obj::to_type(STR_FURI)); //
-    Typer::singleton()->save_type(id_p("letter"),Obj::to_type(STR_FURI)); //
-    const Str_p strA = Obj::to_str("fhat", id_p("first_name"));
+    Typer::singleton()->save_type(id_p("/obj/first_name"), Obj::to_type(STR_FURI)); //
+    Typer::singleton()->save_type(id_p("/obj/letter"),Obj::to_type(STR_FURI)); //
+    const Str_p strA = Obj::to_str("fhat", id_p("/obj/first_name"));
     TEST_ASSERT_FALSE(strA->is_bcode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
     TEST_ASSERT_EQUAL(OType::STR, strA->o_type());
@@ -299,7 +320,7 @@ void test_bool() {
   }
 
   void test_lst() {
-    Typer::singleton()->save_type(id_p("ones"), Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
+    Typer::singleton()->save_type(id_p("/obj/ones"), Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
     const Lst lstA = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
     const Lst lstB = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
     const Lst lstC = *Obj::to_lst({jnt(2), jnt(3), jnt(4)});
@@ -323,7 +344,7 @@ void test_bool() {
       FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstD.lst_get(jnt(i)));
     }
     const Lst_p lstE = Obj::to_lst({jnt(1), jnt(1), jnt(1)});
-    FOS_TEST_OBJ_EQUAL(Obj::to_uri("ones"), Obj::to_uri(*lstE->as(id_p("ones"))->tid()));
+    FOS_TEST_OBJ_EQUAL(Obj::to_uri("/obj/ones"), Obj::to_uri(*lstE->as(id_p("/obj/ones"))->tid()));
     try {
       Obj_p x = lstA.as(id_p("ones"));
       LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
@@ -418,6 +439,7 @@ void test_inst() {
   }
 
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_lock); //
     //  FOS_RUN_TEST(test_int); //
     //  FOS_RUN_TEST(test_real); //
      FOS_RUN_TEST(test_uri); //
