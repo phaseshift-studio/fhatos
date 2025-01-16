@@ -1284,10 +1284,12 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
-        if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f())) {
+        if(this->is_inst() && this->inst_f()) {
           obj_string = obj_string
               .append("!g[!!")
-              .append(std::get<Obj_p>(*this->inst_f())->toString())
+              .append(std::holds_alternative<Obj_p>(*this->inst_f())
+                        ? std::get<Obj_p>(*this->inst_f())->toString()
+                        : "!ycpp!!")
               .append("!g]!!");
         }
       }
@@ -1658,15 +1660,11 @@ namespace fhatos {
         }
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
-          const auto compiler = Compiler(true, false);
-          const Inst_p inst = this->inst_f()
-                                ? this->shared_from_this()
-                                : compiler.resolve_inst(lhs, this->shared_from_this());
-          // if(!inst || inst->is_noobj())
-          //   inst = this->shared_from_this();
+          auto compiler = Compiler(true, false);
+          const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
-            Compiler(true, true).type_check(lhs, inst->domain());
+            compiler.reset(true, true)->type_check(lhs, inst->domain());
           }
           // compute args
           InstArgs remake;
@@ -1694,7 +1692,7 @@ namespace fhatos {
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code()) {
-              Compiler(true, true).type_check(result, inst->range());
+              compiler.reset(true, true)->type_check(result, inst->range());
             }
             ROUTER_POP_FRAME();
             return result;

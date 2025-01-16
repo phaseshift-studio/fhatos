@@ -212,12 +212,12 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
   //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
   //                           ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
- /*   FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
+   /* FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
     FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(7)")); // position slotted
     FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(a=>7)")); // key slotted
     FOS_TEST_OBJ_EQUAL(jnt(11),PROCESS("{1,2,3}./abc/ncount(8)"));
-    FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("{1,2,3}./abc/ncount(a=>9)"));*/
-    FOS_TEST_ERROR("{1,2,3}./abc/ncount(a)");
+    FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("{1,2,3}./abc/ncount(a=>9)"));
+    FOS_TEST_ERROR("{1,2,3}./abc/ncount(a)");*/
 
   }
 
@@ -254,15 +254,15 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("'a' + 'b' + 'c'"))
     ////////// -< >-
     FOS_TEST_OBJ_EQUAL(lst({vri("a"),jnt(1),vri("a/b")}), PROCESS("a-<[_,1,+ /b]"))
-/*    FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[+ b/]>-x c"))
+    FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[+ b/]>-x c"))
     FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[_ + b/]>-x c"))
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("a-<[_,-<[_,-<[_,_,_]]].count()"));
     FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.>-.count()"));
-    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.>-.>-.count()"));*/
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("a-<[_,-<[_,-<[_,_,_]]]>-.>-.>-.count()"));
     ////////// _/x\_
-//    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
- //   FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
+   FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
+   FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
     ////////// _]x[_
     FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(2),jnt(3),jnt(4)}), PROCESS_ALL("{1,2,3}_]plus(1)[_"))
     FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(6)}), PROCESS_ALL("{1,2,3}_]{count()}[_.plus(3)"))

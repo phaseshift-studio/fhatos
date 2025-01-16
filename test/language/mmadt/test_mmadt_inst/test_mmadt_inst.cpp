@@ -50,7 +50,6 @@ namespace fhatos {
     // TODO: FOS_TEST_ERROR("-5.as([int][is(gt(0))])");
   }
 
-
   void test_inst_args() {
     InstArgs args = Obj::to_inst_args();
     TEST_ASSERT_TRUE(args->is_indexed_args());
@@ -140,8 +139,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("35.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("{67,35,2465}.is(gt(40)).count()"));
-//    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
-   // FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("'fhat'-<[_,_,_,_,_]>-_]{count()}[_"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("'fhat'-<[_,_,_,_,_]>-_]{count()}[_"));
   }
 
   void test_drop_inst() {

@@ -218,11 +218,11 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       try {
-        const fURI_p resolved_furi = ROUTER_RESOLVE(*furi);
-        const bool query = resolved_furi->has_query("structure");
+        const fURI_p resolved_furi = this->resolve(*furi);
+       // const bool query = resolved_furi->has_query("structure");
         const Structure_p structure = this->get_structure(p_p(*resolved_furi));
-        if(query)
-          return structure->shared_from_this();
+       // if(query)
+       //   return structure->shared_from_this();
         const Objs_p objs = structure->read(resolved_furi);
         LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
@@ -337,7 +337,7 @@ namespace fhatos {
           first = false;
           test = furi_p(fURI(found ? *found : c));
         } else {
-          test = furi_p(test->extend("::").extend(found ? *found : fURI(c)));
+          test = furi_p(test->add_component(found ? *found : fURI(c)));
         }
       }
       return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;

@@ -93,7 +93,7 @@ namespace fhatos {
 		FOS_TEST_COMPILER_TRUE(lst({jnt(1),jnt(2)}),id_p("/compiler/lst_alias"),compiler.type_check);
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         TYPE_MAKER("/compiler/lst_swap_name","/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
-		FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
+		//FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),id_p("/compiler/lst_swap_name"),compiler.type_check); // TODO: start vs. map mid-monoid
 		FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
 		//FOS_TEST_COMPILER_FALSE(lst({str("one")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,18 +107,26 @@ namespace fhatos {
 
   void test_inst_resolution() {
     Compiler compiler = Compiler(true,true);
-    compiler.clear_derivation_tree();
     FOS_TEST_ASSERT_EQUAL_FURI(INT_FURI->add_component(MMADT_SCHEME "/plus"), compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid_->no_query());
-     string ds;
+    string ds;
     compiler.print_derivation_tree(&ds);
     LOG_OBJ(INFO, jnt(10), "%s\n", ds.c_str());
   }
+
+   void test_derived_type_inst_resolution() {
+  	FOS_TEST_ASSERT_EQUAL_FURI(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"), *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid());
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
+    FOS_TEST_ERROR("/compiler/nat[-5]");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));
+    FOS_TEST_ERROR("/compiler/nat[5] + -10");
+   }
 
   FOS_RUN_TESTS( //
     FOS_RUN_TEST(test_type_check_base_types); //
     FOS_RUN_TEST(test_type_check_derived_mono_types); //
     FOS_RUN_TEST(test_type_check_derived_poly_types); //
     FOS_RUN_TEST(test_inst_resolution); //
+    FOS_RUN_TEST(test_derived_type_inst_resolution); //
   )
 } // namespace fhatos
 

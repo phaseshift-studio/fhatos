@@ -55,15 +55,22 @@ namespace fhatos {
 
     void print_derivation_tree(string *derivation_string) const;
 
-    void clear_derivation_tree() {
+    [[nodiscard]] const Compiler *reset() const {
       if(dt) dt->clear();
+      return this;
+    }
+
+    const Compiler *reset(const bool throw_on_miss, const bool with_derivation) {
+      if(dt) dt->clear();
+      if(!with_derivation)
+        this->dt = nullptr;
+      this->throw_on_miss = throw_on_miss;
+      return this;
     }
 
     Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
 
     Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
-
-    Inst_p resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id) const;
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
 
@@ -72,7 +79,7 @@ namespace fhatos {
 
     bool type_check(const Obj *value_obj, const ID_p &type_id) const;
 
-    [[nodiscard]] bool type_check(const Obj_p& value_obj, const ID_p &type_id) const {
+    [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID_p &type_id) const {
       return this->type_check(value_obj.get(), type_id);
     }
 

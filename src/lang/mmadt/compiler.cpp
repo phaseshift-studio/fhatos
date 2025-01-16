@@ -57,36 +57,49 @@ namespace fhatos {
     }
   }
 
-
-  Inst_p Compiler::resolve_inst_to_id(const ID_p &vid_or_tid, const ID_p &inst_type_id) const {
-    const Inst_p maybe = Router::singleton()->read(furi_p(vid_or_tid->add_component(*inst_type_id)));
-    if(this->dt) this->dt->emplace_back(vid_or_tid, inst_type_id, maybe);
-    return maybe;
-  }
-
-
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
+    //LOG(INFO,"HERE %s\n",lhs->toString().c_str());
+    //this->reset();
     if(inst->inst_f() || inst->is_noobj())
       return inst;
     if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
       return inst;
     const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid()));
-    Obj_p inst_obj = Router::singleton()->read(inst_type_id_resolved);
-    if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
-    if(lhs->vid_ && (inst_obj->is_noobj() || nullptr == inst_obj->inst_f())) {
-      inst_obj = resolve_inst_to_id(lhs->vid(), inst_type_id_resolved);
+    Obj_p inst_obj = inst;
+    if(lhs->vid_ && (inst_obj->is_noobj() || !inst_obj->inst_f())) {
+      inst_obj = Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved)));
       if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
     }
-    if(inst_obj->is_noobj() || nullptr == inst_obj->inst_f()) {
-      inst_obj = resolve_inst_to_id(lhs->tid(), inst_type_id_resolved);
+    if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      inst_obj = Router::singleton()->read(furi_p(lhs->tid_->add_component(*inst_type_id_resolved)));
       if(dt) dt->emplace_back(lhs->tid_, inst_type_id_resolved, inst_obj);
     }
-    if(inst_obj->is_noobj() || nullptr == inst_obj->inst_f())
-      inst_obj = resolve_inst(this->super_type(lhs), inst_obj);
+    if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      inst_obj = Router::singleton()->read(inst_type_id_resolved);
+      if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
+    }
 
-    if(this->throw_on_miss && (inst_obj->is_noobj() || nullptr == inst_obj->inst_f())) {
+    if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
+        inst_obj = resolve_inst(parent, inst_obj);
+      }
+    }
+    if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      inst_obj = this->resolve_inst(
+        Router::singleton()->read(id_p(
+          Router::singleton()->read(id_p(*
+            Router::singleton()->resolve(lhs->tid()->no_query())))->domain()->no_query())),
+        inst_obj);
+    }
+
+    if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->inst_f())) {
       string derivation_string;
-      this->print_derivation_tree(&derivation_string);
+      if(dt) this->print_derivation_tree(&derivation_string);
+      else {
+        auto c = Compiler(false, true);
+        c.resolve_inst(lhs, inst);
+        c.print_derivation_tree(&derivation_string);
+      }
       throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
                    inst->tid()->toString().c_str(), derivation_string.c_str());
     }
@@ -140,13 +153,11 @@ namespace fhatos {
 
 
   Obj_p Compiler::super_type(const Obj_p &value_obj) const {
-    Obj_p obj = ROUTER_READ(value_obj->tid());
-    if(obj->is_noobj() || obj->equals(*value_obj)) {
-      obj = ROUTER_READ(value_obj->domain());
+    Obj_p type_obj = Router::singleton()->read(furi_p(value_obj->tid_->no_query()));
+    if(type_obj->tid_->no_query().equals(value_obj->tid_->no_query())) {
+      return Obj::to_noobj();
     }
-    if(obj->equals(*value_obj))
-      return noobj();
-    return obj;
+    return type_obj;
   }
 
   bool Compiler::match(const Obj_p &lhs, const Obj_p &rhs) {
