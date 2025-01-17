@@ -88,7 +88,7 @@ namespace fhatos {
               std::make_shared<BObj>(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
           const auto [payload, retained] = make_payload(bobj);
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
-          const Message_p message = Message::create(id_p(ID(mqtt_message->get_topic())), payload, retained);
+          const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
           LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(message->target());

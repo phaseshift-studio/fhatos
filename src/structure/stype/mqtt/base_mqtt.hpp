@@ -125,23 +125,18 @@ namespace fhatos {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
-      const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
+      const Pattern_p temp = furi->is_branch() ? p_p(furi->extend("+")) : p_p(*furi);
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
-      const auto source_id = ID(this->settings_.client_.c_str());
+      const auto source_id = id_p(this->settings_.client_.c_str());
       this->recv_subscription(
         Subscription::create(source_id, temp,
                              InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-                             ->type_args(x(0, "ex"))
+                             ->type_args(from(vri("target")), from(vri("payload")), from(vri("retain")))
                              ->inst_f(
                                [this, furi, thing](const Obj_p &lhs, const InstArgs &args) {
-                                 const auto message = make_shared<Message>(lhs);
-                                 LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
-                                               furi->toString().c_str(),
-                                               message->toString().c_str());
-                                 ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
-                                 thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
-                                   message->rec_get(vri("payload"))});
-                                 return noobj();
+                                 thing->load()->push_back({id_p(args->arg(0)->uri_value()), args->arg(1)});
+                                 // TODO: make inst args accessible via name within on_recv
+                                 return lhs;
                                })->create()));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
@@ -152,8 +147,8 @@ namespace fhatos {
         this->loop();
       }
       ///////////////////////////////////////////////
-      this->recv_unsubscribe(id_p(source_id), furi_p(temp));
-      const IdObjPairs list = IdObjPairs(*thing->load());
+      this->recv_unsubscribe(id_p(source_id), temp);
+      const auto list = IdObjPairs(*thing->load());
       delete thing;
       return list;
     }

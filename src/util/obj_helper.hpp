@@ -69,6 +69,11 @@ namespace fhatos {
     }
 
 
+    InstBuilder *inst_args(const Rec_p &args) {
+      this->args_ = args;
+      return this;
+    }
+
     InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                            const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
       this->args_->rec_set(vri("0"), arg0);

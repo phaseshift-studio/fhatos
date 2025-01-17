@@ -136,7 +136,7 @@ namespace fhatos {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {
     }
 
-    explicit Subscription(const ID &source, const Pattern &pattern, const Obj_p &on_recv) : Rec(rmap({
+    explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) : Rec(rmap({
         {"source", vri(source)},
         {"pattern", vri(pattern)},
         {"on_recv", on_recv}
@@ -155,7 +155,7 @@ namespace fhatos {
       return this->rec_get("on_recv");
     }
 
-    static Subscription_p create(const ID &source, const Pattern &pattern, const Obj_p &on_recv) {
+    static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) {
       return make_shared<Subscription>(source, pattern, on_recv->clone());
     }
   };

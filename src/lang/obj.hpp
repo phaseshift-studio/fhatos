@@ -1574,7 +1574,12 @@ namespace fhatos {
     }
 
     Obj_p apply(const Obj_p &lhs, const InstArgs &args) const {
-      ROUTER_PUSH_FRAME("+", args);
+      Rec_p remake = Obj::to_rec();
+      //// apply lhs to args
+      for(const auto &[k,v]: *args->rec_value()) {
+        remake->rec_value()->insert({k, v->apply(lhs)});
+      }
+      ROUTER_PUSH_FRAME("+", remake);
       const Obj_p result = this->apply(lhs);
       ROUTER_POP_FRAME();
       return result;
@@ -2286,6 +2291,10 @@ namespace fhatos {
           const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
           return result->is_noobj() ? args->arg(1) : result;
         })));
+  }
+
+  [[maybe_unused]] static Inst_p block(const Obj_p &arg) {
+    return Obj::to_inst({arg}, id_p("block"));
   }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {

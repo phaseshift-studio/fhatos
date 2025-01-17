@@ -90,7 +90,11 @@ namespace fhatos {
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
-        subscription->on_recv()->apply(message->payload(), {message});
+        subscription->on_recv()->apply(message->payload(), Obj::to_rec({
+                                         {"target", block(vri(message->target()))},
+                                         {"payload", block(message->payload())},
+                                         {"retain", block(dool(message->retain()))}
+                                       }));
         mail = this->outbox_->pop_front();
       }
     }
@@ -279,7 +283,7 @@ namespace fhatos {
           } else if(obj->is_code()) {
             // bcode for on_recv
             this->recv_subscription(Subscription::create(
-              Process::current_process() ? *Process::current_process()->vid() : *SCHEDULER_ID, *pattern, obj));
+              Process::current_process() ? Process::current_process()->vid() : SCHEDULER_ID, pattern, obj));
           } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
             // complete sub[=>] record
             this->recv_subscription(make_shared<Subscription>(obj));
@@ -416,8 +420,8 @@ namespace fhatos {
 
     virtual void distribute_to_subscribers(const Message_p &message) {
       if(!message->payload()->is_noobj()) {
-       // LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
-       //         this->subscriptions_->size());
+        // LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
+        //         this->subscriptions_->size());
         this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
           if(message->target()->matches(*subscription->pattern()))
             this->outbox_->push_back(mail_p(subscription, message));

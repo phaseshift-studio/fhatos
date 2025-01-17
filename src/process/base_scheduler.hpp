@@ -48,6 +48,14 @@ namespace fhatos {
       };
       SCHEDULER_ID = this->vid_;
       LOG_KERNEL_OBJ(INFO, this, "!yscheduler!! started\n");
+      // TODO: broadcast when online to trigger bootstrap of other models
+      /*Router::singleton()->write(Router::singleton()->vid_, vri(this->vid_), false);
+      Router::singleton()->route_subscription(Subscription::create(
+        this->vid_,
+        p_p(*Router::singleton()->vid_),
+        to_inst("on_recv", to_rec({{"msg", to_bcode()}}), [](const Obj_p &lhs, const InstArgs &args) {
+          return to_noobj();
+        })));*/
     }
 
     ~BaseScheduler() override {
@@ -130,33 +138,39 @@ namespace fhatos {
 
   protected:
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
-      scheduler
-          ->this_add("/lib", Obj::to_rec())
-          //->this_add("/lib/thread", OBJ_PARSER("thread?rec<=obj(loop=>_)[[loop=>*loop]]"))
-          ///// INSTRUCTIONS
-          ->
-          this_add("/spawn",
-                   InstBuilder::build(scheduler->vid()->add_component("spawn"))
-                   ->type_args(x(0, "thread", Obj::to_bcode()))
-                   ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
-                   ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-                     const auto &proc = ptr<Process>((Process *) args->arg(0).get());
-                     scheduler->spawn(proc);
-                     return proc;
-                   })
-                   // ->doc("spawn a parallel thread of execution")
-                   ->create())
-          ->this_add("/stop",
-                     InstBuilder::build("stop")
+      scheduler->this_add("/:spawn",
+                          InstBuilder::build(scheduler->vid()->add_component(":spawn"))
+                          ->type_args(x(0, "thread", Obj::to_bcode()))
+                          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+                          ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+                            const auto &p = make_shared<Process>(args->arg(0));
+                            p.get()->vid_ = args->arg(0)->vid_;
+                            scheduler->spawn(p);
+                            return p;
+                          })
+                          // ->doc("spawn a parallel thread of execution")
+                          ->create())
+          ->this_add("/:stop",
+                     InstBuilder::build(":stop")
+                     ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
                        scheduler->stop();
                        return noobj();
                      })
-                     ->domain_range(OBJ_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
                      ->create())
           ///// OBJECTS
-
-          ->this_add("/lib/thread", Obj::to_rec())
+          ->this_add("/lib/thread", Obj::to_inst(
+                       make_shared<InstValue>(make_tuple<InstArgs, InstF_p, Obj_p>(
+                         Obj::to_rec({{"loop", Obj::to_bcode()}}),
+                         make_shared<std::variant<Obj_p, Cpp_p>>(Obj::to_rec({
+                           {":loop", from(vri("loop"), Obj::to_noobj())}})),
+                         Obj::to_noobj())),
+                       id_p(ID(scheduler->vid_->toString().append("lib/thread")).query({
+                         {"dom", OBJ_FURI->toString()},
+                         {"dc", "0,1"},
+                         {"rng", REC_FURI->toString()},
+                         {"rc", "1,1"}
+                       }))))
           ->save();
       return nullptr;
     }

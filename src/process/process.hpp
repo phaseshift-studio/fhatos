@@ -121,9 +121,8 @@ namespace fhatos {
       if(this_process)
         return this_process.load();
       else {
-        //LOG(TRACE, "loop_task process\n");
         static auto proc = new Process();
-        proc->vid_ = id_p("sys/scheduler");
+        proc->vid_ = id_p("/sys/scheduler");
         return proc;
       }
     }

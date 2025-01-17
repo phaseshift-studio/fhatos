@@ -95,8 +95,8 @@ namespace fhatos {
         // get the type definition and match it to the obj
         if(const Obj_p type = Router::singleton()->read(type_id); !type->is_noobj()) {
           ObjHelper::check_coefficients(obj->range_coefficient(), type->domain_coefficient());
-          // if(type->is_type() && !obj->apply(type)->is_noobj())
-          //   return true;
+          if(type->is_code())
+             return !obj->apply(type)->is_noobj();
           if(obj->match(type, false))
             return true;
           if(throw_on_fail) {
