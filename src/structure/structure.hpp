@@ -416,8 +416,8 @@ namespace fhatos {
 
     virtual void distribute_to_subscribers(const Message_p &message) {
       if(!message->payload()->is_noobj()) {
-        LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
-                this->subscriptions_->size());
+       // LOG_OBJ(DEBUG, this, "distributing message %s to subscribers [size:%i]\n", message->toString().c_str(),
+       //         this->subscriptions_->size());
         this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
           if(message->target()->matches(*subscription->pattern()))
             this->outbox_->push_back(mail_p(subscription, message));

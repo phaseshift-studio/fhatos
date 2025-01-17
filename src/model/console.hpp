@@ -40,13 +40,13 @@ namespace fhatos {
       if(this->direct_stdin_out)
         Terminal::STD_OUT_DIRECT(s);
       else
-        ROUTER_WRITE(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
+         Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
     }
 
     Int_p read_stdin() const {
       return this->direct_stdin_out
                ? Terminal::STD_IN_DIRECT()
-               : router()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
+               : Router::singleton()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
     }
 
     void print_exception(const std::exception &ex) const {

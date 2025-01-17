@@ -958,16 +958,16 @@ namespace fhatos {
 
     ID(const char *furi_characters) : fURI(furi_characters) {
       if(strchr(furi_characters, '#')) {
-        throw fError("IDs can not contain pattern symbols: !b#!!: %s", furi_characters);
+        throw fError("ids can not contain pattern symbols: !b#!!: %s", furi_characters);
       } else if(strchr(furi_characters, '+')) {
-        throw fError("IDs can not contain pattern symbols: !b+!!: %s", furi_characters);
+        throw fError("ids can not contain pattern symbols: !b+!!: %s", furi_characters);
       }
     }
 
     // const bool isPattern() const override { return false; }
   };
 
-  class Pattern : public fURI {
+  class Pattern final : public fURI {
   public:
     Pattern(const Pattern &uri) : fURI(uri) {
     }
@@ -1059,6 +1059,8 @@ namespace fhatos {
   [[maybe_unused]] static ID_p id_p(const ID &id) { return make_shared<ID>(id); }
 
   [[maybe_unused]] static ID_p id_p(const fURI &id) { return make_shared<ID>(id); }
+
+  [[maybe_unused]] static ID_p id_p(const fURI_p &id) { return make_shared<ID>(*id); }
 
   [[maybe_unused]] static Pattern_p p_p(const char *pattern_chars) { return make_shared<Pattern>(pattern_chars); }
 

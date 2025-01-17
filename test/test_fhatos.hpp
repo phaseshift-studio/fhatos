@@ -63,11 +63,11 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/process/ptype/native/scheduler.hpp"
 #define FOS_STOP_ON_BOOT  \
-  router()->stop(); \
+  Router::singleton()->stop(); \
   scheduler()->stop();
 #define FOS_DEPLOY_SCHEDULER_2  \
   Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
-  router()->write(id_p("/sys/router"), router());
+  Router::singleton()->write(id_p("/sys/router"), Router::singleton());
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #define FOS_STOP_ON_BOOT ;
@@ -79,10 +79,10 @@
 #include "../src/model/driver/fhatos/core_driver.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
   Options::singleton()->router<Router>(Router::singleton());  \
-  router()->attach(Heap<>::create(Pattern("/sys/#")));        \
-  router()->attach(Heap<>::create(Pattern("/fos/#")));        \
+  Router::singleton()->attach(Heap<>::create(Pattern("/sys/#")));        \
+  Router::singleton()->attach(Heap<>::create(Pattern("/fos/#")));        \
   void* x = fhatos::FhatOSCoreDriver::import();               \
-  router()->attach(Heap<>::create(Pattern("/io/log/#")));
+  Router::singleton()->attach(Heap<>::create(Pattern("/io/log/#")));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
@@ -91,8 +91,8 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
-  router()->attach(Heap<>::create(Pattern("/parser/#"))); \
-  router()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
+  Router::singleton()->attach(Heap<>::create(Pattern("/parser/#"))); \
+  Router::singleton()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -109,8 +109,8 @@
 #include "../src/lang/mmadt/type.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
-  router()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
-  router()->write(id_p("/mmadt/"),Typer::singleton("/mmadt/")); \
+  Router::singleton()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
+  Router::singleton()->write(id_p("/mmadt/"),Typer::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
 #define FOS_DEPLOY_TYPE_2 ;
@@ -119,7 +119,7 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  router()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  Router::singleton()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
   STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
@@ -130,7 +130,7 @@
 #include FOS_FILE_SYSTEM(fs.hpp)
 #define FOS_DEPLOY_FILE_SYSTEM_2 \
   ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp"); \
-  router()->attach(fs); \
+  Router::singleton()->attach(fs); \
   fs->setup();
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
@@ -381,8 +381,8 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   }
   if(!expectedReferences.empty()) {
     /* TEST_ASSERT_EQUAL_INT_MESSAGE(
-         expectedReferences.size(), router()->retainSize(),
-         (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
+         expectedReferences.size(), Router::singleton()->retainSize(),
+         (string("Router retain message count: ") + Router::singleton()->pattern()->toString()).c_str());*/
 /*    for(const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       ROUTER_SUBSCRIBE(
@@ -391,7 +391,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
                              InstBuilder::build()->inst_f([temp](const ptr<Rec> &message, const InstArgs &args) {
                                TEST_ASSERT_TRUE_MESSAGE(temp == *args->arg(0),
                                                         (string("Router retain message payload equality: ") +
-                                                          router()->vid()->toString() + " " + temp.toString() +
+                                                          Router::singleton()->vid()->toString() + " " + temp.toString() +
                                                           " != " + message->rec_get("payload")->toString())
                                                         .c_str());
                                return noobj();

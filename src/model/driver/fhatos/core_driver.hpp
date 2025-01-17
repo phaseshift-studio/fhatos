@@ -32,15 +32,15 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->start_progress_bar(6);
-      TYPE_SAVER(MESSAGE_FURI, Obj::to_rec({
-                   {"target", Obj::to_type(URI_FURI)},
-                   {"payload", Obj::to_bcode()},
-                   {"retain", Obj::to_type(BOOL_FURI)}}));
-      TYPE_SAVER(SUBSCRIPTION_FURI, Obj::to_rec({
-                   {"source", Obj::to_type(URI_FURI)},
-                   {"pattern", Obj::to_type(URI_FURI)},
-                   {":on_recv", Obj::to_bcode()}}));
-      TYPE_SAVER(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
+      Typer::singleton()->save_type( id_p(FOS_SCHEME "/msg"), Obj::to_rec({
+                                      {"target", Obj::to_type(URI_FURI)},
+                                      {"payload", Obj::to_bcode()},
+                                      {"retain", Obj::to_type(BOOL_FURI)}}));
+      Typer::singleton()->save_type(id_p(FOS_SCHEME "/sub"), Obj::to_rec({
+                                      {"source", Obj::to_type(URI_FURI)},
+                                      {"pattern", Obj::to_type(URI_FURI)},
+                                      {":on_recv", Obj::to_bcode()}}));
+      //Typer::singleton()->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
       /*InstBuilder::build("~")
           ->type_args(x(0, "bcode", Obj::to_bcode()))
           ->domain_range(OBJ_FURI, {1,1}, THREAD_FURI,{1,1})
@@ -52,13 +52,13 @@ namespace fhatos {
 
 
       Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-      InstBuilder::build("/fos/lib/heap/create")
+      InstBuilder::build(id_p("/fos/lib/heap/create"))
           ->type_args(x(0, "pattern"))
-          ->domain_range(OBJ_FURI,{0, 1}, HEAP_FURI,{1,1})
+          ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Pattern pattern = args->arg(0)->uri_value();
             const ptr<Heap<>> heap = Heap<>::create(pattern);
-            router()->attach(heap);
+            Router::singleton()->attach(heap);
             return heap;
           })->save();
 

@@ -90,7 +90,7 @@ namespace fhatos {
         if(p->running)
           p->stop();
       }
-      router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
+      Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       list->clear();
       delete list;
       this->running_ = false;
@@ -111,7 +111,7 @@ namespace fhatos {
         LOG_KERNEL_OBJ(INFO, this, message);
       while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
             && (this->barrier_.first && this->barrier_.second)) {
-        router()->loop();
+        Router::singleton()->loop();
         this->feed_local_watchdog();
       }
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
@@ -138,14 +138,11 @@ namespace fhatos {
           this_add("/spawn",
                    InstBuilder::build(scheduler->vid()->add_component("spawn"))
                    ->type_args(x(0, "thread", Obj::to_bcode()))
-                   ->domain_range(OBJ_FURI,{0,1}, THREAD_FURI,{1,1})
-                   ->inst_f([](const Obj_p &, const InstArgs &args) {
-                     const Obj_p &proc = args->arg(0);
-                     if(!proc->vid())
-                       throw fError("value id required to spawn %s", proc->toString().c_str());
-                     // if(proc->tid()->has_path("thread"))
-                     return SCHEDULER_SPAWN(proc);
-                     // throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
+                   ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+                   ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+                     const auto &proc = ptr<Process>((Process *) args->arg(0).get());
+                     scheduler->spawn(proc);
+                     return proc;
                    })
                    // ->doc("spawn a parallel thread of execution")
                    ->create())

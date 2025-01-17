@@ -55,7 +55,7 @@ namespace fhatos {
       else if(type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
       printer<>()->print(StringHelper::format(
-        (source->vid()->equals(*ROUTER_ID) || source->vid()->equals(*SCHEDULER_ID)) ? SYS_ID_WRAP : OBJ_ID_WRAP,
+        (source->vid()->equals(*Router::singleton()->vid_) /*|| source->vid()->equals(*SCHEDULER_ID)*/) ? SYS_ID_WRAP : OBJ_ID_WRAP,  // TODO: once scheduler.hpp and .cpp are split
         source->vid_or_tid()->toString().c_str()).c_str());
       printer<>()->print(StringHelper::format(format, args...).c_str());
     }

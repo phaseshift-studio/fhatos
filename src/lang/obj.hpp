@@ -313,63 +313,51 @@ namespace fhatos {
     {OType::ERROR, DEFAULT_OBJ_PRINTER},
   };
 
-  static Runnable ROUTER_POP_FRAME = []() {
+  inline Runnable ROUTER_POP_FRAME = []() {
     LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
   };
-  static BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &frame_data) {
+  inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &frame_data) {
     LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
-  static TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
+  inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
       [](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
     LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
-  static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
+  inline TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
       [](const Obj *, const ID_p &type_id, const bool = true) -> bool {
     LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return true;
   };
-
-  //static ptr<Ansi<>> PRINTER = nullptr;
-
-  static Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
+  inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static Function<BCode_p, Objs_p> BCODE_PROCESSOR = [](const BCode_p &) {
+  inline Function<BCode_p, Objs_p> BCODE_PROCESSOR = [](const BCode_p &) {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static Function<const fURI, const fURI_p> ROUTER_RESOLVE = [](const fURI &furi) {
+  inline Function<const fURI, const fURI_p> ROUTER_RESOLVE = [](const fURI &furi) {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
-    return nullptr;
+    return furi_p(furi);
   };
-  static TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
+  inline TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
       [](const fURI_p &, const Obj_p &, const bool retain) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
-  static Function<const fURI_p &, const Obj_p> ROUTER_READ = [](const fURI_p &) -> Obj_p {
+  inline Function<const fURI_p &, const Obj_p> ROUTER_READ = [](const fURI_p &) -> Obj_p {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static BiConsumer<const ID_p, const Obj_p> TYPE_SAVER = [](const ID_p &type_id, const Obj_p &obj) {
+  inline BiConsumer<const ID_p, const Obj_p> TYPE_SAVER = [](const ID_p &type_id, const Obj_p &obj) {
     LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
-  struct Subscription;
-  static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &) {
-    LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");
-  };
-  static BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
+  inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
       ](const Obj_p &lhs, const Inst_p &old_inst) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static Function<const Obj_p &, Obj_p> SCHEDULER_SPAWN = [](const Obj_p &) {
-    LOG(TRACE, "!ySCHEDULER_SPAWN!! undefined at this point in bootstrap.\n");
-    return nullptr;
-  };
-
 
   class ObjsSet;
 

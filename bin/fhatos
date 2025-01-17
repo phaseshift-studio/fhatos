@@ -46,7 +46,8 @@ RLWRAP_BASE="--quote-characters \"\\\"'\" -n --always-readline --ansi-colour-awa
 if [[ $1 == esp32* ]]; then
   rlwrap ${RLWRAP_BASE} pio device monitor -e $1 -b 115200 -f direct -f esp32_exception_decoder -d ${FHATOS_HOME} --echo
 elif [ ! -f $FHATOS_HOME/build/fhatos.out ]; then
-    echo -e "${RED}ERROR${NC} ${FHATOS} unable to locate ${BLUE}${FHATOS_HOME}/build/fhatos.out${NC}. Ensure ${FHATOS} has been built using ${BLUE}bin/fhat-dev${NC}."
+    echo -e "${RED}ERROR${NC} ${FHATOS} unable to locate ${BLUE}${FHATOS_HOME}/build/fhatos.out${NC}."
+    echo -e "  Ensure ${FHATOS} has been built using ${BLUE}bin/fhat-dev${NC}."
 else
   rlwrap ${RLWRAP_BASE} "${FHATOS_HOME}"/build/fhatos.out "$@"
 fi

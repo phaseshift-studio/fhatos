@@ -136,23 +136,23 @@ namespace fhatos {
     }*/
 
     static ptr<Kernel> mount(const Structure_p &structure) {
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      router()->attach(structure);
+       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      Router::singleton()->attach(structure);
       return Kernel::build();
     }
 
     static ptr<Kernel> install(const Obj_p &obj) {
       if(obj->vid()) {
-        ROUTER_WRITE(obj->vid(), obj,RETAIN);
-        LOG_KERNEL_OBJ(INFO, router(), "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
+        Router::singleton()->write(obj->vid(), obj,RETAIN);
+        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
       }
       return Kernel::build();
     }
 
     static ptr<Kernel> process(const Process_p &process) {
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      ROUTER_WRITE(process->vid(), process,RETAIN);
-      scheduler()->spawn(process);
+    Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+     // ROUTER_WRITE(process->vid(), process,RETAIN);
+      Scheduler::singleton()->spawn(process);
       return Kernel::build();
     }
 

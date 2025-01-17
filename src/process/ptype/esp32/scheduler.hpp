@@ -21,7 +21,10 @@
 #define fhatos_scheduler_hpp
 
 #include "../../../fhatos.hpp"
-#include "../../base_scheduler.hpp"
+#include "../../../lang/processor/processor.hpp"
+#include "../../../process/base_scheduler.hpp"
+#include "../../../process/process.hpp"
+#include "fiber.hpp"
 #include "thread.hpp"
 
 
@@ -61,6 +64,8 @@ namespace fhatos {
     }
 
     virtual bool spawn(const Process_p &process) override {
+      if(!process->vid())
+        throw fError("value id required to spawn %s", process->toString().c_str());
       if (this->count(*process->vid())) {
         LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
         return false;

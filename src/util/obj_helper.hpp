@@ -19,10 +19,9 @@
 #ifndef fhatos_obj_helper_hpp
 #define fhatos_obj_helper_hpp
 
-#include <utility>
 #include  "../fhatos.hpp"
+#include "../structure/router.hpp"
 #include "../lang/obj.hpp"
-
 
 namespace fhatos {
   using std::make_pair;
@@ -62,8 +61,13 @@ namespace fhatos {
 
   public:
     static InstBuilder *build(const ID &type_id = *INST_FURI) {
-      return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id))));
+      return new InstBuilder(id_p(Router::singleton()->resolve(type_id)));
     }
+
+    static InstBuilder *build(const fURI_p &type_id = INST_FURI) {
+      return new InstBuilder(id_p(type_id));
+    }
+
 
     InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                            const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
@@ -117,7 +121,7 @@ namespace fhatos {
 
     [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {
       if(value_id) {
-        if(const Inst_p maybe = ROUTER_READ(value_id); !maybe->is_noobj())
+        if(const Inst_p maybe = Router::singleton()->read(value_id); !maybe->is_noobj())
           return maybe;
       }
       const Inst_p inst = Inst::create(make_shared<InstValue>(make_tuple(

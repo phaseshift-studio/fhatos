@@ -24,8 +24,6 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../lang/obj.hpp"
-#include "../util/obj_helper.hpp"
-#include "../structure/pubsub.hpp"
 
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
@@ -132,13 +130,13 @@ namespace fhatos {
 
     virtual void setup() {
       this_process = this;
-      ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"),
+      /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"),
                                             InstBuilder::build(this->vid_->extend(":loop"))
                                             ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
                                               this->rec_set(":loop", lhs);
                                               return noobj();
                                             })
-                                            ->create()));
+                                            ->create()));*/
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
       if(setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");

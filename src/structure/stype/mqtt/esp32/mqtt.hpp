@@ -169,6 +169,7 @@ namespace fhatos {
         }
       } catch (const fError &e) {
         LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
+        this->stop();
       }
     }
   };

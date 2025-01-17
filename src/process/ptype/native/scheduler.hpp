@@ -32,15 +32,14 @@ namespace fhatos {
   static atomic_int FIBER_COUNT;
 
   class Scheduler final : public BaseScheduler {
-    friend Sys;
 
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")): BaseScheduler(id) {
-      SCHEDULER_SPAWN = [this](const Obj_p &threadable) -> Obj_p {
+     /* SCHEDULER_SPAWN = [this](const Obj_p &threadable) -> Obj_p {
         const auto thread = make_shared<Thread>(threadable);
         this->spawn(thread);
         return thread;
-      };
+      };*/
     }
 
   public:
@@ -67,6 +66,8 @@ namespace fhatos {
     }
 
     bool spawn(const Process_p &process) override {
+      if(!process->vid())
+        throw fError("value id required to spawn %s", process->toString().c_str());
       if(this->count(*process->vid())) {
         LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
         return false;

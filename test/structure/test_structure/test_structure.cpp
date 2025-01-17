@@ -34,7 +34,7 @@ namespace fhatos {
    // in fhatos namespace
    void setUp(void) {
     static bool first = true;
-    if(first) router()->attach(test_heap);
+    if(first) Router::singleton()->attach(test_heap);
     first =false;
    }
 
