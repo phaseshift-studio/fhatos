@@ -391,7 +391,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
                              InstBuilder::build()->inst_f([temp](const ptr<Rec> &message, const InstArgs &args) {
                                TEST_ASSERT_TRUE_MESSAGE(temp == *args->arg(0),
                                                         (string("Router retain message payload equality: ") +
-                                                          Router::singleton()->vid()->toString() + " " + temp.toString() +
+                                                          Router::singleton()->vid_->toString() + " " + temp.toString() +
                                                           " != " + message->rec_get("payload")->toString())
                                                         .c_str());
                                return noobj();

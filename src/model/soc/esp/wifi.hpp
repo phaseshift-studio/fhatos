@@ -212,7 +212,7 @@ namespace fhatos {
        "\t!yBroadcast:       !m%s\n"
        "\t!yChannel:         !m%i\n"
        "\t!yMax connections: !m%i!!\n",
-       this->vid()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
+       this->vid_->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
        WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
        WiFi.channel(), maxConnections);
  }

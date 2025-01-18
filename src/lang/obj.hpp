@@ -316,11 +316,11 @@ namespace fhatos {
   inline Runnable ROUTER_POP_FRAME = []() {
     LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
   };
-  inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &frame_data) {
+  inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &) {
     LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
   inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
-      [](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
+      [](const ID_p &is_type_id, const ID_p &, List<ID_p> *) {
     LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
@@ -342,7 +342,7 @@ namespace fhatos {
     return furi_p(furi);
   };
   inline TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
-      [](const fURI_p &, const Obj_p &, const bool retain) -> void {
+      [](const fURI_p &, const Obj_p &, const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
   inline Function<const fURI_p &, const Obj_p> ROUTER_READ = [](const fURI_p &) -> Obj_p {
@@ -354,7 +354,7 @@ namespace fhatos {
     ROUTER_WRITE(type_id, obj, true);
   };
   inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
-      ](const Obj_p &lhs, const Inst_p &old_inst) {
+      ](const Obj_p &, const Inst_p &) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -585,7 +585,7 @@ namespace fhatos {
           return Obj::to_noobj();
         //   throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
         //                index->uri_value().toString().c_str());
-        if(i >= this->lst_value()->size())
+        if(i >= static_cast<int>(this->lst_value()->size()))
           return to_noobj();
         const Obj_p segment_value = Obj::to_objs();
         if(i == -1) {
@@ -1355,7 +1355,7 @@ namespace fhatos {
         case OType::URI:
           return Uri(this->uri_value().retract(), OType::URI, this->tid_, this->vid_);
         // case OType::STR:
-        //  return Obj(string(this->str_value()).replace(string(rhs.str_value()), this->vid());
+        //  return Obj(string(this->str_value()).replace(string(rhs.str_value()), this->vid_);
         case OType::LST: {
           auto list = std::make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
@@ -1598,7 +1598,8 @@ namespace fhatos {
         auto next = lhs->type_value();
         if(this->is_inst()) {
           LOG(INFO, "apply type to inst: %s => %s\n", lhs->toString().c_str(), this->toString().c_str());
-          Compiler(true, false).type_check(lhs, this->domain());
+          if(Compiler(true, false).type_check(lhs, this->domain())) {
+          }
           if(lhs->range_coefficient().first < this->domain_coefficient().first) {
             throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
                          lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
@@ -1619,15 +1620,15 @@ namespace fhatos {
         } else {
           next = next->add_inst(this->shared_from_this(), false);
         }*/
-        // TYPE_CHECKER(this, lhs->tid(), true);
-        return Obj::to_type(this->range(), next, lhs->vid());
+        // TYPE_CHECKER(this, lhs->tid_, true);
+        return Obj::to_type(this->range(), next, lhs->vid_);
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       switch(this->o_type()) {
         case OType::TYPE:
-          return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
+          return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid_);
         case OType::BOOL:
         case OType::INT:
         case OType::REAL:
@@ -1655,10 +1656,11 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           auto compiler = Compiler(true, false);
-          const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
+          const Inst_p inst = compiler.resolve_inst(lhs, this->clone());
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
-            compiler.reset(true, true)->type_check(lhs, inst->domain());
+            if(compiler.reset(true, true)->type_check(lhs, inst->domain())) {
+            }
           }
           // compute args
           InstArgs remake;
@@ -1686,7 +1688,8 @@ namespace fhatos {
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code()) {
-              compiler.reset(true, true)->type_check(result, inst->range());
+              if(compiler.reset(true, true)->type_check(result, inst->range())) {
+              }
             }
             ROUTER_POP_FRAME();
             return result;
@@ -1729,8 +1732,8 @@ namespace fhatos {
         }
       }
       /* if(!type_obj->value_.has_value() &&
-          (type_obj->tid()->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid()->no_query()) && FURI_OTYPE.at(
-                                                     type_obj->tid()->no_query()) == this->otype_)))
+          (type_obj->tid_->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid_->no_query()) && FURI_OTYPE.at(
+                                                     type_obj->tid_->no_query()) == this->otype_)))
          return true;*/
       if(this->o_type() != type_obj->o_type())
         return false;
@@ -1815,7 +1818,7 @@ namespace fhatos {
       return Obj::create(this->value_, this->otype_, type_id, this->vid_);
     }
 
-    [[nodiscard]] Obj_p at(const ID_p &value_id) const {
+    Obj_p at(const ID_p &value_id) const {
       if(value_id == nullptr && this->vid_ == nullptr)
         return this->shared_from_this();
       return Obj::create(this->value_, this->otype_, this->tid_, value_id);
@@ -2055,7 +2058,7 @@ namespace fhatos {
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
       switch(this->o_type()) {
-        case OType::NOOBJ: return this->shared_from_this();
+        case OType::NOOBJ: return Obj::to_noobj();
         case OType::OBJ:
         case OType::ERROR:
         case OType::BOOL:

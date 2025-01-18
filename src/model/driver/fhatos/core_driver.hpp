@@ -23,8 +23,6 @@
 #include "../../../lang/obj.hpp"
 #include STR(../../../process/ptype/HARDWARE/scheduler.hpp)
 
-#define TOTAL_INSTRUCTIONS 75
-
 namespace fhatos {
   class FhatOSCoreDriver final {
     explicit FhatOSCoreDriver() = delete;

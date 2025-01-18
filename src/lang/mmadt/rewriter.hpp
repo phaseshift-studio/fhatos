@@ -92,14 +92,14 @@ namespace fhatos {
           bool found = false;
           List<Inst_p> newInsts;
           for(const Inst_p &inst: *bcode->bcode_value()) {
-            if(inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
+            if(inst->tid_->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
               found = true;
               //  if(!done)
               //  throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
               //              prev->toString().c_str(), inst->toString().c_str());
               // rewrite inst
               newInsts.pop_back();
-              newInsts.push_back(Obj::to_inst(prev->inst_args(), prev->tid()));
+              newInsts.push_back(Obj::to_inst(prev->inst_args(), prev->tid_));
             } else {
               newInsts.push_back(inst);
             }

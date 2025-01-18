@@ -17,7 +17,6 @@
  ******************************************************************************/
 
 #include "router.hpp"
-#include "stype/frame.hpp"
 #include "../util/obj_helper.hpp"
 
 namespace fhatos {
@@ -38,9 +37,9 @@ namespace fhatos {
                                        make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
                                      {":attach", to_inst(
                                        [this](const Obj_p &obj, const InstArgs &args) {
-                                         if(args->arg(0)->tid()->name() == "heap")
+                                         if(args->arg(0)->tid_->name() == "heap")
                                            this->attach(make_shared<Heap<>>(obj));
-                                         else if(args->arg(0)->tid()->name() == "mqtt")
+                                         else if(args->arg(0)->tid_->name() == "mqtt")
                                            this->attach(make_shared<Mqtt>(obj));
                                          return noobj();
                                        }, {x(0, Obj::to_bcode())}, INST_FURI,
@@ -138,7 +137,7 @@ namespace fhatos {
       this->structures_->remove_if([this](const Structure_p &structure) {
         if(!structure->available()) {
           LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                         structure->tid()->name().c_str());
+                         structure->tid_->name().c_str());
           return true;
         }
         return false;
@@ -149,7 +148,7 @@ namespace fhatos {
   void Router::stop() const {
     auto map = make_shared<Map<string, int>>();
     this->structures_->forEach([map](const Structure_p &structure) {
-      const string name = structure->tid()->name();
+      const string name = structure->tid_->name();
       int count = map->count(name) ? map->at(name) : 0;
       count++;
       if(map->count(name))
@@ -160,13 +159,13 @@ namespace fhatos {
       LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
     }
     this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
-    LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
+    LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid_->toString().c_str());
   }
 
   void Router::attach(const Structure_p &structure) const {
     if(structure->pattern()->equals(Pattern(""))) {
       LOG_KERNEL_OBJ(INFO, this, "!b%s !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
-                     structure->tid()->name().c_str());
+                     structure->tid_->name().c_str());
     } else {
       this->structures_->forEach([structure, this](const Structure_p &s) {
         if(structure->pattern()->bimatches(*s->pattern())) {
@@ -181,10 +180,10 @@ namespace fhatos {
       structure->setup();
       if(structure->available()) {
         LOG_KERNEL_OBJ(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                       structure->tid()->name().c_str());
+                       structure->tid_->name().c_str());
       } else {
         LOG_KERNEL_OBJ(ERROR, this, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
-                       structure->tid()->name().c_str());
+                       structure->tid_->name().c_str());
         this->structures_->pop_back();
       }
     }
@@ -223,8 +222,8 @@ namespace fhatos {
     try {
       const Structure_p structure = this->get_structure(p_p(*furi));
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                     Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
-                     furi->toString().c_str(), obj->tid()->toString().c_str(),
+                     Process::current_process()->vid_->toString().c_str(), retain ? "retained" : "transient",
+                     furi->toString().c_str(), obj->tid_->toString().c_str(),
                      structure->pattern()->toString().c_str());
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
@@ -278,7 +277,7 @@ namespace fhatos {
       if(list.size() > 1)
         throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
       if(list.empty())
-        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
+        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid_->toString().c_str(),
                      pattern->toString().c_str());
       const Structure_p s = list.at(0);
       return s;

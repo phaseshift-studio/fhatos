@@ -22,6 +22,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/obj_helper.hpp"
+#include "../structure/router.hpp"
 
 #define OBJ_ID_WRAP "!g[!b%s!g]!!"
 #define SYS_ID_WRAP "!g[!y%s!g]!!"
@@ -55,7 +56,7 @@ namespace fhatos {
       else if(type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
       printer<>()->print(StringHelper::format(
-        (source->vid()->equals(*Router::singleton()->vid_) /*|| source->vid()->equals(*SCHEDULER_ID)*/) ? SYS_ID_WRAP : OBJ_ID_WRAP,  // TODO: once scheduler.hpp and .cpp are split
+        (source->vid_->equals(*Router::singleton()->vid_) /*|| source->vid_->equals(*SCHEDULER_ID)*/) ? SYS_ID_WRAP : OBJ_ID_WRAP,  // TODO: once scheduler.hpp and .cpp are split
         source->vid_or_tid()->toString().c_str()).c_str());
       printer<>()->print(StringHelper::format(format, args...).c_str());
     }

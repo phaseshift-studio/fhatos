@@ -114,7 +114,7 @@ namespace fhatos {
   }
 
    void test_derived_type_inst_resolution() {
-  	FOS_TEST_ASSERT_EQUAL_FURI(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"), *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid());
+  	FOS_TEST_ASSERT_EQUAL_FURI(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"), *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid_);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
     FOS_TEST_ERROR("/compiler/nat[-5]");
     FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));

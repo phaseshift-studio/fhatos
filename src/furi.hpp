@@ -992,14 +992,8 @@ namespace fhatos {
   ///////////////////////////////////////////////////
   ///////////////// TYPED FURI OBJ /////////////////
   //////////////////////////////////////////////////
-  class BaseTyped {
-  public:
-    virtual ~BaseTyped() = default;
 
-    [[nodiscard]] virtual ID_p tid() const = 0;
-  };
-
-  class Typed : public BaseTyped {
+  class Typed {
   public:
     ID_p tid_;
 
@@ -1008,24 +1002,13 @@ namespace fhatos {
 
     explicit Typed(const ID &id) : Typed(make_shared<ID>(id)) {
     }
-
-    [[nodiscard]] ID_p tid() const override { return this->tid_; }
   };
 
   ////////////////////////////////////////////////////
   ///////////////// VALUED FURI OBJ /////////////////
   ///////////////////////////////////////////////////
 
-  class BaseValued {
-  public:
-    virtual ~BaseValued() = default;
-
-    [[nodiscard]] virtual ID_p vid() const = 0;
-
-    [[nodiscard]] virtual bool equals(const BaseValued &) const { return false; }
-  };
-
-  class Valued : public BaseValued {
+  class Valued  {
 
   public:
     ID_p vid_;
@@ -1036,12 +1019,6 @@ namespace fhatos {
     explicit Valued(const ID &id) : Valued(make_shared<ID>(id)) {
     }
 
-  public:
-    [[nodiscard]] ID_p vid() const override { return this->vid_; }
-
-    [[nodiscard]] bool equals(const BaseValued &other) const override {
-      return this->vid_->equals(*other.vid());
-    }
   };
 
   struct furi_p_less : std::less<fURI_p> {

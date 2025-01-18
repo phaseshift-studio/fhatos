@@ -125,8 +125,8 @@ namespace fhatos {
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
 
 
-            ->mount(Heap<>::create("/console/#"))
-            ->process(Console::create("/console", Obj::to_rec({
+           // ->mount(Heap<>::create("/console/#"))
+            ->process(Console::create("/io/console", Obj::to_rec({
                                         {"terminal",
                                           Obj::to_rec({
                                             {"stdout", vri("/io/terminal/:stdout")},

@@ -39,7 +39,7 @@ namespace fhatos {
     Worker(const int index, MutexDeque<int> *mutex) :
         Thread(Obj::to_rec(rmap({{":setup", Obj::to_bcode([this](const Obj_p &obj) {
                                     TEST_ASSERT_FALSE(this->running);
-                                    FOS_TEST_MESSAGE("%s up and running", this->vid()->toString().c_str());
+                                    FOS_TEST_MESSAGE("%s up and running", this->vid_->toString().c_str());
                                     return noobj();
                                   })},
                                  {":loop", Obj::to_bcode([this](const Obj_p &obj) {
@@ -49,7 +49,7 @@ namespace fhatos {
                                     } else {
                                       this->stop();
                                       TEST_ASSERT_FALSE(this->running);
-                                      FOS_TEST_MESSAGE("%s done and stopping", this->vid()->toString().c_str());
+                                      FOS_TEST_MESSAGE("%s done and stopping", this->vid_->toString().c_str());
                                       return noobj();
                                     }
                                   })}}),

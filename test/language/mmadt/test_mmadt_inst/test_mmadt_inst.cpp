@@ -31,7 +31,7 @@ namespace fhatos {
   using namespace mmadt;
 
   void test_as_inst() {
-  	FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"), *PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid());
+  	FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"), *PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid_);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][is(gt(0))])"));
@@ -144,8 +144,8 @@ namespace fhatos {
   }
 
   void test_drop_inst() {
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI(MMADT_SCHEME "/from"), *PROCESS("/abc/drop_1 -> |*/abc/drop_2")->tid());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI(MMADT_SCHEME "/plus"), *PROCESS("/abc/drop_2 -> |plus(10)")->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI(MMADT_SCHEME "/from"), *PROCESS("/abc/drop_1 -> |*/abc/drop_2")->tid_);
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI(MMADT_SCHEME "/plus"), *PROCESS("/abc/drop_2 -> |plus(10)")->tid_);
     FOS_TEST_OBJ_EQUAL(jnt(33), PROCESS("23.drop(drop(*/abc/drop_1))"));
     // TODO: implement repeat(drop()).until(not_code)   drop_hard() :)
   }

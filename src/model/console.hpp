@@ -40,7 +40,7 @@ namespace fhatos {
       if(this->direct_stdin_out)
         Terminal::STD_OUT_DIRECT(s);
       else
-         Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
+        Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
     }
 
     Int_p read_stdin() const {
@@ -68,7 +68,7 @@ namespace fhatos {
         }
       } else if(obj->is_lst() && nest_value > depth) {
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n");
+                       (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : "") + "!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
@@ -80,13 +80,13 @@ namespace fhatos {
           }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid()->path_length() > 2
-                          ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
+                       (obj->tid_->path_length() > 2
+                          ? StringHelper::repeat(obj->tid_->name().length(), " ").c_str()
                           : "") + "!m]!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : ""));
+                         (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : ""));
         }
         to_out->append("!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -105,11 +105,11 @@ namespace fhatos {
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            //(obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
+            //(obj->tid_->path_length() > 2 ? StringHelper::repeat(obj->tid_->name().length(), " ").c_str() : "") +
             "!m]";
-        if(obj->vid()) {
+        if(obj->vid_) {
           obj_string += "!m@!b";
-          obj_string += obj->vid()->toString();
+          obj_string += obj->vid_->toString();
         }
         obj_string += "!!\n";
         to_out->append(obj_string);
@@ -123,7 +123,6 @@ namespace fhatos {
         }
       }
     }
-
 
     void process_line(string line) const {
       /////////////////////////////////////////////////////////////
@@ -157,94 +156,108 @@ namespace fhatos {
 
     bool first = true;
 
-    explicit Console(const ID &value_id, const Rec_p &config) : Thread(Obj::to_rec(rmap({
-        {"loop", InstBuilder::build(
-            value_id.extend(":loop"))
-          ->domain_range(NOOBJ_FURI, {0, 0}, NOOBJ_FURI, {0, 0})
-          ->inst_f([this](
-          const Obj_p &, const InstArgs &) -> Obj_p {
-              try {
-                if(this->first) {
-                  this->first = false;
-                  this->delay(500);
-                }
-                if(FOS_IS_DOC_BUILD)
-                  return noobj();
-                if(this->new_input_)
-                  this->print_prompt(!this->line_.empty());
-                this->new_input_ = false;
-                //// READ CHAR INPUT ONE-BY-ONE
-                int x;
-                if((x = this->tracker_.track(this->read_stdin()->int_value())) == EOF)
-                  return Obj::to_noobj();
-                if('\n' == static_cast<char>(x) || '\r' == static_cast<char>(x)) {
-                  this->new_input_ = true;
-                  this->line_ += static_cast<char>(x);
-                } else {
-                  this->line_ += static_cast<char>(x);
-                  return Obj::to_noobj();
-                }
-                StringHelper::trim(this->line_);
-                if(this->line_.empty() ||
-                   this->line_[this->line_.length() - 1] == ';' ||
-                   // specific to end-step and imperative simulation
-                   !this->tracker_.closed()) {
-                  ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                  return noobj();
-                }
-                // prepare the user input for processing
-                this->tracker_.clear();
-                StringHelper::trim(this->line_);
-                this->process_line(this->line_);
-                this->line_.clear();
-              } catch(std::exception &e) {
-                this->print_exception(e);
-                this->line_.clear();
-                this->new_input_ = true;
-              }
-              return Obj::to_noobj();
-            })
-          ->create()},
-        {":prompt", InstBuilder::build(
-            value_id.extend(":prompt"))
-          ->domain_range(STR_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
-          ->type_args(
-            x(0, "code", Obj::to_type(STR_FURI)))
-          ->inst_f([this](
-          const Obj_p &, const InstArgs &args) {
-              this->print_prompt();
-              Terminal::STD_OUT_DIRECT(
-                str(StringHelper::format(
-                  "%s\n",
-                  args->arg(0)->str_value().c_str())));
-              string code = args->arg(0)->str_value();
-              if(FOS_IS_DOC_BUILD)
-                StringHelper::replace(&code, "\\|", "|");
-              this->process_line(code);
-              return noobj();
-            })
-          ->create()},
-        {"config", config}}),
-      THREAD_FURI,
-      id_p(value_id))) {
+    explicit Console(const ID &value_id,
+                     const Rec_p &config) : Thread(id_p(value_id),
+                                                   Obj::to_rec({
+                                                                 {":loop", InstBuilder::build(
+                                                                     id_p(value_id.extend(":loop")))
+                                                                   ->domain_range(
+                                                                     NOOBJ_FURI, {0, 0}, NOOBJ_FURI, {0, 0})
+                                                                   ->inst_f([this](
+                                                                   const Obj_p &, const InstArgs &) -> Obj_p {
+                                                                       try {
+                                                                         if(this->first) {
+                                                                           this->first = false;
+                                                                           this->delay(500);
+                                                                         }
+                                                                         if(FOS_IS_DOC_BUILD)
+                                                                           return noobj();
+                                                                         if(this->new_input_)
+                                                                           this->print_prompt(
+                                                                             !this->line_.empty());
+                                                                         this->new_input_ = false;
+                                                                         //// READ CHAR INPUT ONE-BY-ONE
+                                                                         int x;
+                                                                         if((x = this->tracker_.track(
+                                                                               this->read_stdin()->
+                                                                               int_value())) == EOF)
+                                                                           return Obj::to_noobj();
+                                                                         if('\n' == static_cast<char>(x) ||
+                                                                            '\r' == static_cast<char>(x)) {
+                                                                           this->new_input_ = true;
+                                                                           this->line_ += static_cast<char>(
+                                                                             x);
+                                                                         } else {
+                                                                           this->line_ += static_cast<char>(
+                                                                             x);
+                                                                           return Obj::to_noobj();
+                                                                         }
+                                                                         StringHelper::trim(this->line_);
+                                                                         if(this->line_.empty() ||
+                                                                            this->line_[
+                                                                              this->line_.length() - 1] == ';'
+                                                                            ||
+                                                                            // specific to end-step and imperative simulation
+                                                                            !this->tracker_.closed()) {
+                                                                           ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                                                           return noobj();
+                                                                         }
+                                                                         // prepare the user input for processing
+                                                                         this->tracker_.clear();
+                                                                         StringHelper::trim(this->line_);
+                                                                         this->process_line(this->line_);
+                                                                         this->line_.clear();
+                                                                       } catch(std::exception &e) {
+                                                                         this->print_exception(e);
+                                                                         this->line_.clear();
+                                                                         this->new_input_ = true;
+                                                                       }
+                                                                       return Obj::to_noobj();
+                                                                     })
+                                                                   ->create()},
+                                                                 {":prompt", InstBuilder::build(
+                                                                     value_id.extend(":prompt"))
+                                                                   ->domain_range(
+                                                                     STR_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
+                                                                   ->type_args(
+                                                                     x(0, "code", Obj::to_type(STR_FURI)))
+                                                                   ->inst_f([this](
+                                                                   const Obj_p &, const InstArgs &args) {
+                                                                       this->print_prompt();
+                                                                       Terminal::STD_OUT_DIRECT(
+                                                                         str(StringHelper::format(
+                                                                           "%s\n",
+                                                                           args->arg(0)->str_value().
+                                                                           c_str())));
+                                                                       string code = args->arg(0)->
+                                                                           str_value();
+                                                                       if(FOS_IS_DOC_BUILD)
+                                                                         StringHelper::replace(
+                                                                           &code, "\\|", "|");
+                                                                       this->process_line(code);
+                                                                       return noobj();
+                                                                     })
+                                                                   ->create()},
+                                                                 {"config", config}}, THREAD_FURI,id_p(value_id))) {
     }
 
   public:
-    static ptr<Console> create(const ID &id, const Rec_p &settings) {
-      const auto console = ptr<Console>(new Console(id, settings));
+    static ptr<Console> create(const ID &id, const Rec_p &config) {
+      const auto console = ptr<Console>(new Console(id, config));
       return console;
     }
 
-    static void *import(const ID &id = "/io/lib/console") {
+    static void *import(const ID &lib_id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      /*InstBuilder::build(ID(id.extend(":create")))
+      InstBuilder::build(ID(lib_id.extend(":create")))
+          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->type_args(
-            x(0, "install_location", Obj::to_uri(id)),
+            x(0, "install_location", Obj::to_uri(lib_id)),
             x(1, "config", Obj::to_rec({
                 {"terminal",
                   Obj::to_rec({
-                    {"stdin", vri(Terminal::singleton()->vid()->extend(":stdin"))},
-                    {"stdout", vri(Terminal::singleton()->vid()->extend(":stdout"))}})},
+                    {"stdin", vri(Terminal::singleton()->vid_->extend(":stdin"))},
+                    {"stdout", vri(Terminal::singleton()->vid_->extend(":stdout"))}})},
                 {"nest", jnt(2)},
                 {"strict", dool(false)},
                 {"ansi", dool(true)},
@@ -256,7 +269,7 @@ namespace fhatos {
               args->arg(1));
             return console;
           })
-          ->save();*/
+          ->save();
       return nullptr;
     }
   };

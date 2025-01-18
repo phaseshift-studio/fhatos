@@ -25,8 +25,6 @@
 #include "../process/process.hpp"
 #include "mmadt/compiler.hpp"
 
-#define TOTAL_INSTRUCTIONS 75
-
 namespace fhatos {
   using std::const_pointer_cast;
   //TODO: MAKE THIS THREAD_LOCAL
@@ -85,12 +83,12 @@ namespace fhatos {
         if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
           return true;
         // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-        //if(obj->tid()->equals(*type_id))
+        //if(obj->tid_->equals(*type_id))
         //  return true;
         // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
         if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
           return true;
-        if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid()->equals(*OBJ_FURI)))
+        if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid_->equals(*OBJ_FURI)))
           return true;
         // get the type definition and match it to the obj
         if(const Obj_p type = Router::singleton()->read(type_id); !type->is_noobj()) {
@@ -102,13 +100,13 @@ namespace fhatos {
           if(throw_on_fail) {
             static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
             p->show_type = false;
-            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
+            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid_->toString().c_str(),
                          obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
           }
           return false;
         }
         if(throw_on_fail)
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid_->toString().c_str(),
                        type_id->toString().c_str());
         return false;
       };
@@ -125,19 +123,19 @@ namespace fhatos {
           compiler.coefficient_check(lhs->range_coefficient(), inst->domain_coefficient());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
-          const ID_p inst_type_id = id_p(Router::singleton()->resolve(*inst->tid()));
+          const ID_p inst_type_id = id_p(Router::singleton()->resolve(*inst->tid_));
           while(true) {
             Inst_p maybe;
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
-            if(current_obj->vid()) {
+            if(current_obj->vid_) {
               Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                           inst_type_id->toString().c_str());
               const ID_p next_inst_type_id =
-                  id_p(current_obj->vid()->add_component(*inst_type_id));
+                  id_p(current_obj->vid_->add_component(*inst_type_id));
               maybe = Router::singleton()->read(next_inst_type_id);
               if(dt)
-                dt->emplace_back(current_obj->vid(), next_inst_type_id, maybe);
+                dt->emplace_back(current_obj->vid_, next_inst_type_id, maybe);
               if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
                 return maybe;
             }
@@ -145,17 +143,17 @@ namespace fhatos {
             // check for inst on obj type (if not, walk up the obj type tree till root)
             Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                         inst_type_id->toString().c_str());
-            const ID_p next_inst_type_id = id_p(current_obj->tid()->no_query().equals(*OBJ_FURI)
+            const ID_p next_inst_type_id = id_p(current_obj->tid_->no_query().equals(*OBJ_FURI)
                                                   ? fURI(*inst_type_id) // drop back to flat namespace
-                                                  : current_obj->tid()->no_query().add_component(*inst_type_id));
+                                                  : current_obj->tid_->no_query().add_component(*inst_type_id));
             maybe = Router::singleton()->read(next_inst_type_id);
             if(dt)
-              dt->emplace_back(id_p(current_obj->tid()->no_query()), next_inst_type_id, maybe);
+              dt->emplace_back(id_p(current_obj->tid_->no_query()), next_inst_type_id, maybe);
             if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
-            if(current_obj->tid()->no_query().equals(
-              (current_obj = Router::singleton()->read(id_p(current_obj->tid()->no_query())))->tid()->no_query())) {
+            if(current_obj->tid_->no_query().equals(
+              (current_obj = Router::singleton()->read(id_p(current_obj->tid_->no_query())))->tid_->no_query())) {
               // infinite loop (i.e. base type)
               return noobj();
             }
@@ -167,7 +165,7 @@ namespace fhatos {
         DerivationTree *dt = nullptr; //make_unique<DerivationTree>();
         if(dt)
           dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
-        ID_p inst_type_id = id_p(Router::singleton()->resolve(*inst->tid()));
+        ID_p inst_type_id = id_p(Router::singleton()->resolve(*inst->tid_));
         Inst_p final_inst = Router::singleton()->read(inst_type_id);
         if(dt)
           dt->emplace_back(id_p(""), inst_type_id, final_inst);
@@ -176,7 +174,7 @@ namespace fhatos {
             dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
           final_inst = TEMP(lhs, inst, dt);
           if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
-            const Obj_p next_lhs = Router::singleton()->read(lhs->tid());
+            const Obj_p next_lhs = Router::singleton()->read(lhs->tid_);
             const ID_p next_id = id_p(next_lhs->range()->no_query());
             const Obj_p next_obj = Router::singleton()->read(next_id);
             if(dt)
@@ -205,8 +203,8 @@ namespace fhatos {
                 }
               }
               derivation_string = dt ? derivation_string : "<no derivation>";
-              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid()->toString().c_str(),
-                           inst->tid()->toString().c_str(), derivation_string.c_str());
+              throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid_->toString().c_str(),
+                           inst->tid_->toString().c_str(), derivation_string.c_str());
             }
           }
           ////////////////////////////////////////////////////////////////////////////////
@@ -234,9 +232,9 @@ namespace fhatos {
             merged_args,
             final_inst->inst_f(),
             final_inst->inst_seed_supplier(),
-            final_inst->tid(),
-            final_inst->vid());
-          /// TODO ^--- inst->vid());
+            final_inst->tid_,
+            final_inst->vid_);
+          /// TODO ^--- inst->vid_);
         } else {
           final_inst = Obj::to_inst(
             inst->inst_op(),
@@ -246,7 +244,7 @@ namespace fhatos {
                 return x->apply(lhs, args);
               })),
             inst->inst_seed_supplier(),
-            inst->tid(), inst->vid());
+            inst->tid_, inst->vid_);
         }
         LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;
@@ -281,7 +279,7 @@ namespace fhatos {
           Router::singleton()->write(type_id, type_def,RETAIN);
           type_progress_bar_->incr_count(type_id->toString());
           if(type_progress_bar_->done())
-            Router::singleton()->write(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+            Router::singleton()->write(this->vid_, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
         } else {
           Router::singleton()->write(type_id, type_def,RETAIN);
           if(current->is_noobj()) {

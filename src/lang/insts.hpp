@@ -341,14 +341,14 @@ namespace fhatos {
 
         static Rec_p build_inspect_rec(const Obj_p &lhs) {
           Rec_p rec = Obj::to_rec({
-              {vri("type_id"), vri(lhs->tid())},
+              {vri("type_id"), vri(lhs->tid_)},
               {vri("type"),
-               FURI_OTYPE.count(*lhs->tid())
-                 ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
-                 : ROUTER_READ(lhs->tid())}});
-          if (lhs->vid()) {
-            rec->rec_set("value_id", vri(lhs->vid()));
-            const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub")));
+               FURI_OTYPE.count(*lhs->tid_)
+                 ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid_)))
+                 : ROUTER_READ(lhs->tid_)}});
+          if (lhs->vid_) {
+            rec->rec_set("value_id", vri(lhs->vid_));
+            const Obj_p subs = ROUTER_READ(id_p(lhs->vid_->query("sub")));
             if (!subs->is_noobj())
               rec->rec_set("subscription", subs);
           }
@@ -493,7 +493,7 @@ namespace fhatos {
 
         static Uri_p type() {
           return Obj::to_inst(
-              "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->tid()); }; },
+              "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->tid_); }; },
               IType::ONE_TO_ONE);
         }
 
@@ -931,7 +931,7 @@ namespace fhatos {
                     return lhs->rec_get(args.at(0));
                   if (lhs->is_lst())
                     return lhs->lst_get(args.at(0));
-                  throw fError("from_get doesn't support {}", lhs->tid()->toString().c_str());
+                  throw fError("from_get doesn't support {}", lhs->tid_->toString().c_str());
                 };
               },
               IType::ONE_TO_ONE);

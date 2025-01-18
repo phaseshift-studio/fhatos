@@ -30,7 +30,7 @@ namespace fhatos {
     atomic_int *FIBER_COUNT;
 
     explicit Fiber(const Rec_p &setup_loop_stop) :
-      Process(setup_loop_stop), xthread(nullptr) {
+      Process(nullptr,setup_loop_stop), xthread(nullptr) { // TODO : gut fibers
     }
 
     void stop() override {

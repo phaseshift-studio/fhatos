@@ -26,6 +26,7 @@
 #include "process.hpp"
 #include "../structure/router.hpp"
 #include "../util/mutex_deque.hpp"
+#include STR(ptype/HARDWARE/thread.hpp)
 
 
 namespace fhatos {
@@ -58,7 +59,7 @@ namespace fhatos {
         })));*/
     }
 
-    ~BaseScheduler() override {
+   virtual  ~BaseScheduler() {
       delete processes_;
       FEED_WATCDOG = []() {
       };
@@ -69,7 +70,7 @@ namespace fhatos {
         return 0;
       auto *counter = new atomic_int(0);
       this->processes_->forEach([counter, process_pattern](const Process_p &proc) {
-        if(proc->vid()->matches(process_pattern) && proc->running)
+        if(proc->vid_->matches(process_pattern) && proc->running)
           counter->fetch_add(1);
       });
       const int c = counter->load();
@@ -81,7 +82,7 @@ namespace fhatos {
       auto map = make_shared<Map<string, int>>();
       auto list = new List<Process_p>();
       this->processes_->forEach([map,list](const Process_p &process) {
-        const string name = process->tid()->name();
+        const string name = process->tid_->name();
         int count = map->count(name) ? map->at(name) : 0;
         count++;
         if(map->count(name))
@@ -102,7 +103,7 @@ namespace fhatos {
       list->clear();
       delete list;
       this->running_ = false;
-      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid_->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
@@ -113,7 +114,7 @@ namespace fhatos {
 
     void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      this->barrier_ = {id_p(this->vid()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
+      this->barrier_ = {id_p(this->vid_->resolve("./barrier/").extend(name)), Obj::to_bcode()};
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if(message)
         LOG_KERNEL_OBJ(INFO, this, message);
@@ -131,7 +132,7 @@ namespace fhatos {
 
     void save() const override {
       const Lst_p procs = Obj::to_lst();
-      this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid())); });
+      this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid_)); });
       this->rec_set(vri("process"), procs);
       Obj::save();
     }
@@ -139,11 +140,11 @@ namespace fhatos {
   protected:
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
       scheduler->this_add("/:spawn",
-                          InstBuilder::build(scheduler->vid()->add_component(":spawn"))
+                          InstBuilder::build(scheduler->vid_->add_component(":spawn"))
                           ->type_args(x(0, "thread", Obj::to_bcode()))
                           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
                           ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-                            const auto &p = make_shared<Process>(args->arg(0));
+                            const auto &p = make_shared<Thread>(args->arg(0)->vid_, args->arg(0)->at(nullptr));
                             p.get()->vid_ = args->arg(0)->vid_;
                             scheduler->spawn(p);
                             return p;

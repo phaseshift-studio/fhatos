@@ -66,21 +66,21 @@ namespace fhatos {
     }
 
     bool spawn(const Process_p &process) override {
-      if(!process->vid())
+      if(!process->vid_)
         throw fError("value id required to spawn %s", process->toString().c_str());
-      if(this->count(*process->vid())) {
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+      if(this->count(*process->vid_)) {
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid_->toString().c_str());
         return false;
       }
       process->setup();
       if(!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
         return false;
       }
       ////////////////////////////////
-      //if(process->tid()->has_path("thread"))
+      //if(process->tid_->has_path("thread"))
         static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-      /*else if(process->tid()->has_path("fiber")) {
+      /*else if(process->tid_->has_path("fiber")) {
         if(!FIBER_THREAD_HANDLE) {
           FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
         }
@@ -88,12 +88,12 @@ namespace fhatos {
         static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
       } else {
         process->running = false;
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
         return false;
       }*/
       this->processes_->push_back(process);
       process->save();
-      LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !yprocess!! spawned\n", process->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !yprocess!! spawned\n", process->vid_->toString().c_str());
       this->save();
       return true;
     }
@@ -113,7 +113,7 @@ namespace fhatos {
       while(FIBER_COUNT > 0) {
         auto *fibers = new List<Process_p>();
         singleton()->processes_->forEach([fibers](const Process_p &process) {
-          if(process->tid()->has_path("fiber") && process->running)
+          if(process->tid_->has_path("fiber") && process->running)
             fibers->push_back(process);
         });
         FIBER_COUNT = 0;
@@ -124,10 +124,10 @@ namespace fhatos {
           }
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->tid()->has_path("fiber") && !fiber->running;
+          const bool remove = fiber->tid_->has_path("fiber") && !fiber->running;
           if(remove) {
             LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n",
-                                 fiber->vid()->toString().c_str());
+                                 fiber->vid_->toString().c_str());
           }
           return remove;
         });
@@ -143,16 +143,17 @@ namespace fhatos {
       auto thread = static_cast<Thread *>(vptr_thread);
       try {
         while(thread->running) {
-          thread->loop();
+          thread->loop(); // the thread loop
         }
       } catch(const fError &error) {
-        thread->stop();
+        thread->stop(); // exception shuts down the thread
         LOG_PROCESS(ERROR, thread, "processor loop error: %s\n", error.what());
       }
+      // when a thread dies, the entire thread pool is searched for stale threads and removes them along with this thread
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->vid()->equals(*thread->vid()) || !proc->running;
+        const bool remove = proc->vid_->equals(*thread->vid_) || !proc->running;
         if(remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", proc->vid()->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", proc->vid_->toString().c_str());
         }
         return remove;
       });

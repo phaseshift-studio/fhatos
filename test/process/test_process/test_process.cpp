@@ -38,7 +38,7 @@ namespace fhatos {
             ":setup=>/test/thread/a->345,"
             ":loop=>from(/test/thread/x,0).plus(1).to(/test/thread/x),"
             ":stop=>/test/thread/b->57]]");
-    process("%s/:spawn --> @/test/thread", Scheduler::singleton()->vid()->toString().c_str());
+    process("%s/:spawn --> @/test/thread", Scheduler::singleton()->vid_->toString().c_str());
     sleep(1);
    // TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread"));
     FOS_TEST_OBJ_EQUAL(jnt(345), process("*/test/thread/a")->objs_value()->at(0));
