@@ -99,7 +99,7 @@ namespace fhatos {
           c.resolve_inst(lhs, inst);
           c.print_derivation_tree(&derivation_string);
         }
-        throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution %s", lhs->tid_->toString().c_str(),
+        throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->tid_->toString().c_str(),
                      inst->tid_->toString().c_str(), derivation_string.c_str());
       }
         }

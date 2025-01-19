@@ -66,6 +66,18 @@ namespace fhatos {
       }
       return jnt(c);
     }
+
+    static Str_p STD_IN_LINE_DIRECT(const char until) {
+      string line;
+      int c = EOF;
+      while(c != until) {
+        while(-1 == (c = printer<>()->read())) {
+          Process::current_process()->yield();
+        }
+        line += static_cast<char>(c);
+      }
+      return str(line);
+    }
   };
 } // namespace fhatos
 #endif

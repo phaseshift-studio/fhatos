@@ -43,9 +43,9 @@ namespace fhatos {
         Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
     }
 
-    Int_p read_stdin() const {
+    Str_p read_stdin(const char until) const {
       return this->direct_stdin_out
-               ? Terminal::STD_IN_DIRECT()
+               ? Terminal::STD_IN_LINE_DIRECT(until)
                : Router::singleton()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
     }
 
@@ -59,7 +59,6 @@ namespace fhatos {
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool parent_rec = false) const {
-      //LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
         for(Obj_p &o: *obj->objs_value()) {
@@ -137,7 +136,7 @@ namespace fhatos {
       }
       /////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////
-      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
+      LOG_OBJ(DEBUG, this, "line to parse: %s\n", line.c_str());
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
       try {
@@ -148,7 +147,6 @@ namespace fhatos {
           return;
         }
         const Obj_p obj = OBJ_PARSER(line);
-        //LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
         string to_out;
         this->print_result(BCODE_PROCESSOR(obj), 0, &to_out);
         this->write_stdout(str(to_out));
@@ -156,7 +154,6 @@ namespace fhatos {
         this->print_exception(e);
       }
     }
-
 
 
     explicit Console(const ID &value_id,
@@ -181,19 +178,14 @@ namespace fhatos {
                                                                              !this->line_.empty());
                                                                          this->new_input_ = false;
                                                                          //// READ CHAR INPUT ONE-BY-ONE
-                                                                         int x;
-                                                                         if((x = this->tracker_.track(
-                                                                               this->read_stdin()->
-                                                                               int_value())) == EOF)
-                                                                           return Obj::to_noobj();
-                                                                         if('\n' == static_cast<char>(x) ||
-                                                                            '\r' == static_cast<char>(x)) {
+                                                                         const string x = this->read_stdin('\n')->
+                                                                             str_value();
+                                                                         this->tracker_.track(x);
+                                                                         if(this->tracker_.closed()) {
                                                                            this->new_input_ = true;
-                                                                           this->line_ += static_cast<char>(
-                                                                             x);
+                                                                           this->line_ += x;
                                                                          } else {
-                                                                           this->line_ += static_cast<char>(
-                                                                             x);
+                                                                           this->line_ += x;
                                                                            return Obj::to_noobj();
                                                                          }
                                                                          StringHelper::trim(this->line_);
@@ -242,7 +234,7 @@ namespace fhatos {
                                                                        return noobj();
                                                                      })
                                                                    ->create()},
-                                                                 {"config", config}}, THREAD_FURI,id_p(value_id))) {
+                                                                 {"config", config}}, THREAD_FURI, id_p(value_id))) {
     }
 
   public:
