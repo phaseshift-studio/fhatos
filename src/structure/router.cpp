@@ -18,10 +18,13 @@
 
 #include "router.hpp"
 #include "../util/obj_helper.hpp"
+#include "../structure/stype/frame.hpp"
 
 namespace fhatos {
+  inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
+
   ptr<Router> Router::singleton(const ID &value_id) {
-    static auto router_p = ptr<Router>(new Router(value_id));
+    static auto router_p = std::make_shared<Router>(value_id);
     return router_p;
   }
 
@@ -55,70 +58,39 @@ namespace fhatos {
     ROUTER_ID = id_p(this->vid_);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
-      THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-      //LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
-      //        THREAD_FRAME_STACK->full_frame()->toString().c_str());
+      this->push_frame(pattern, frame_data);
     };
     ROUTER_POP_FRAME = [this] {
-      if(nullptr == THREAD_FRAME_STACK)
-        throw fError("there are no more frames on the stack");
-      //LOG_OBJ(TRACE, this, "!ypopped!! from frame stack [!mdepth!!: %i]: %s\n",
-      //        THREAD_FRAME_STACK->depth(),
-      //        THREAD_FRAME_STACK->pattern()->toString().c_str());
-      THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
+      this->pop_frame();
     };
-
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_RESOLVE = [this](const fURI &furi) -> fURI_p {
-      if(!furi.headless() && !furi.has_components())
-        return furi_p(furi);
-      List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
-      if(furi.has_components()) {
-        for(const auto &c: furi.components()) {
-          components.emplace_back(c);
-        }
-      }
-      bool first = true;
-      fURI_p test = nullptr;
-      for(const auto &c: components) {
-        List_p<Uri_p> prefixes = this->rec_get("resolve")->rec_get("auto_prefix")->lst_value();
-        // TODO: make this an exposed property of /sys/router
-        fURI_p found = nullptr;
-        for(const auto &prefix: *prefixes) {
-          const fURI_p x = furi_p(prefix->uri_value().extend(c));
-          if(const Structure_p structure = this->get_structure(p_p(*x), false); structure && structure->has(x)) {
-            LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
-                           furi.toString().c_str(),
-                           structure->toString().c_str(),
-                           x->toString().c_str());
-            found = x;
-            break;
-          }
-        }
-        if(!found) {
-          LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b%s!!\n", c.toString().c_str());
-        }
-        if(first) {
-          first = false;
-          test = furi_p(fURI(found ? *found : c));
-        } else {
-          test = furi_p(test->extend("::").extend(found ? *found : fURI(c)));
-        }
-      }
-      return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
+      return this->resolve(furi);
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_READ = [this](const fURI_p &furix) -> Obj_p {
-      return this->read(furix);
+    ROUTER_READ = [this](const fURI_p &furi) -> Obj_p {
+      return this->read(furi);
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
-      this->write(furix, obj, retain);
-      return obj;
+    ROUTER_WRITE = [this](const fURI_p &furi, const Obj_p &obj, const bool retain) {
+      this->write(furi, obj, retain);
     };
     ////////////////////////////////////////////////////////////////////////////////////
     LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
   }
+
+  void Router::push_frame(const Pattern &pattern, const Rec_p &frame_data) {
+    THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
+    //LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
+    //        THREAD_FRAME_STACK->full_frame()->toString().c_str());
+  }
+
+  void Router::pop_frame() {
+    if(nullptr == THREAD_FRAME_STACK)
+      throw fError("there are no more frames on the stack");
+    THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
+  }
+
 
   void Router::loop() const {
     bool remove = false;
@@ -231,7 +203,7 @@ namespace fhatos {
     }
   }
 
-  void Router::route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
+  void Router::unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
     try {
       this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
         if(structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
@@ -245,7 +217,7 @@ namespace fhatos {
     }
   }
 
-  void Router::route_subscription(const Subscription_p &subscription) {
+  void Router::subscribe(const Subscription_p &subscription) {
     try {
       const Structure_p struc = this->get_structure(subscription->pattern());
       LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
@@ -266,14 +238,14 @@ namespace fhatos {
     return nullptr;
   }
 
-  Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_exception) const {
+  Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_on_error) const {
     const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     const List<Structure_p> list = this->structures_->find_all(
       [pattern, temp](const Structure_p &structure) {
         return pattern->matches(*structure->pattern()) || temp->matches(*structure->pattern());
       },
       true); // TODO: NO MUTEX!
-    if(throw_exception) {
+    if(throw_on_error) {
       if(list.size() > 1)
         throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
       if(list.empty())

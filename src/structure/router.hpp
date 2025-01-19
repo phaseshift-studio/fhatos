@@ -23,11 +23,9 @@
 #include "../fhatos.hpp"
 #include "structure.hpp"
 #include "../lang/obj.hpp"
-#include "stype/heap.hpp"
-#include "stype/frame.hpp"
 
 namespace fhatos {
-  inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
+
 
   class Router final : public Rec {
   protected:
@@ -56,14 +54,18 @@ namespace fhatos {
 
     void write(const fURI_p &furi, const Obj_p &obj, bool retain = RETAIN);
 
-    void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#"));
+    void unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#"));
 
-    void route_subscription(const Subscription_p &subscription);
+    void subscribe(const Subscription_p &subscription);
+
+    static void push_frame(const Pattern& pattern, const Rec_p& frame_data);
+
+    static void pop_frame();
 
     static void *import();
 
-  private:
-    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, bool throw_exception = true) const;
+  protected:
+    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, bool throw_on_error = true) const;
   };
 } // namespace fhatos
 
