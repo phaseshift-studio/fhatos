@@ -91,9 +91,9 @@ namespace fhatos {
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
         subscription->on_recv()->apply(message->payload(), Obj::to_rec({
-                                         {"target", block(vri(message->target()))},
-                                         {"payload", block(message->payload())},
-                                         {"retain", block(dool(message->retain()))}
+                                         {"target", vri(message->target())},
+                                         {"payload", message->payload()},
+                                         {"retain", dool(message->retain())}
                                        }));
         mail = this->outbox_->pop_front();
       }

@@ -28,29 +28,23 @@ namespace fhatos {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID_p &value_id, const Rec_p &setup_loop_stop) :
-    Process(value_id, setup_loop_stop->rec_merge(rmap({
-                                                                                 {"delay", InstBuilder::build(
-                                                                                     value_id->append("/:delay"))
-                                                                                   ->type_args(x(0, Obj::to_bcode()))
-                                                                                   ->domain_range(
-                                                                                     INT_FURI, {0, 1}, INT_FURI, {0, 1})
-                                                                                   ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
-                                                                                       //  ((Process*)lhs.get())->delay(args.at(0)->int_value());
-                                                                                       Process::current_process()->
-                                                                                           sleep_ = args->arg(0)->
-                                                                                           int_value();
-                                                                                       return lhs;
-                                                                                     })
-                                                                                   ->create()}}))),
-                                                                          xthread(nullptr) {
-      /*  ObjHelper::InstTypeBuilder::build(SCHEDULER_ID->extend("lib/thread/inst/delay"))
-            ->type_args(x(0, Obj::to_bcode()))
-            ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-              ((Thread*)lhs.get())->delay(args.at(0)->int_value());
-              return lhs;
-            })->create(id_p(SCHEDULER_ID->extend("lib/thread/inst/delay")));*/
-      //this->tid_ = PROCESS_FURI;
+    explicit Thread(const ID_p &value_id, const Rec_p &setup_loop_stop) : Process(
+       value_id, setup_loop_stop->rec_merge(rmap({
+         {"delay", InstBuilder::build(
+             value_id->append("/:delay"))
+           ->type_args(x(0, Obj::to_bcode()))
+           ->domain_range(
+             INT_FURI, {0, 1}, INT_FURI, {0, 1})
+           ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
+             //  ((Process*)lhs.get())->delay(args.at(0)->int_value());
+             Process::current_process()->
+                 sleep_ = args->arg(0)->
+                 int_value();
+             return lhs;
+           })
+           ->create()}}))),
+    xthread(nullptr) {
+//
     }
 
     ~Thread() override { delete this->xthread; }

@@ -59,7 +59,7 @@ namespace fhatos {
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool parent_rec = false) const {
-      LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
+      //LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       const int nest_value = this->this_get("config/nest")->int_value();
       if(obj->is_objs()) {
         for(Obj_p &o: *obj->objs_value()) {
@@ -67,8 +67,11 @@ namespace fhatos {
           this->print_result(o, depth, to_out);
         }
       } else if(obj->is_lst() && nest_value > depth) {
-        to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : "") + "!m[!!\n");
+        if(!parent_rec) {
+          to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+                         (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : ""));
+        }
+        to_out->append("!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
@@ -115,7 +118,7 @@ namespace fhatos {
         to_out->append(obj_string);
       } else {
         if(parent_rec)
-          to_out->append(obj->toString().c_str()).append("\n");
+          to_out->append(obj->toString()).append("\n");
         else {
           // to_out->append(string("!g") + StringHelper::repeat(depth, "="));
           to_out->append(StringHelper::format("!g==>!!%s\n",
@@ -145,7 +148,7 @@ namespace fhatos {
           return;
         }
         const Obj_p obj = OBJ_PARSER(line);
-        LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
+        //LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
         string to_out;
         this->print_result(BCODE_PROCESSOR(obj), 0, &to_out);
         this->write_stdout(str(to_out));
@@ -154,7 +157,7 @@ namespace fhatos {
       }
     }
 
-    bool first = true;
+
 
     explicit Console(const ID &value_id,
                      const Rec_p &config) : Thread(id_p(value_id),
@@ -166,8 +169,9 @@ namespace fhatos {
                                                                    ->inst_f([this](
                                                                    const Obj_p &, const InstArgs &) -> Obj_p {
                                                                        try {
-                                                                         if(this->first) {
-                                                                           this->first = false;
+                                                                         static bool first = true;
+                                                                         if(first) {
+                                                                           first = false;
                                                                            this->delay(500);
                                                                          }
                                                                          if(FOS_IS_DOC_BUILD)
@@ -249,7 +253,7 @@ namespace fhatos {
 
     static void *import(const ID &lib_id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      InstBuilder::build(ID(lib_id.extend(":create")))
+      /*InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->type_args(
             x(0, "install_location", Obj::to_uri(lib_id)),
@@ -269,7 +273,7 @@ namespace fhatos {
               args->arg(1));
             return console;
           })
-          ->save();
+          ->save();*/
       return nullptr;
     }
   };

@@ -23,16 +23,19 @@
 #include "../fhatos.hpp"
 #include "structure.hpp"
 #include "../lang/obj.hpp"
+#include "stype/heap.hpp"
 #include "stype/frame.hpp"
 
 namespace fhatos {
-  thread_local static ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
+  inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
 
   class Router final : public Rec {
   protected:
     const unique_ptr<MutexDeque<Structure_p>> structures_;
 
   public:
+    virtual ~Router() = default;
+
     explicit Router(const ID &id);
 
     static ptr<Router> singleton(const ID &value_id = "/sys/router/");
@@ -61,8 +64,6 @@ namespace fhatos {
 
   private:
     [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, bool throw_exception = true) const;
-
-
   };
 } // namespace fhatos
 

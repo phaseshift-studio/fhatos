@@ -272,7 +272,8 @@ namespace fhatos {
           { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
   }*/
 
-void is_a_testing(const OType o_type, const Obj_p obj) {
+void FOS_TEST_IS_A(const OType o_type, const Obj_p obj) {
+	FOS_TEST_MESSAGE("!ytesting otype!!: !b%s!! =!ris_a!!= !b%s!!",obj->toString().c_str(), OTypes.to_chars(o_type).c_str());
 		TEST_ASSERT_EQUAL(o_type == OType::BOOL, obj->is_bool());
                 TEST_ASSERT_EQUAL(o_type == OType::INT, obj->is_int());
                 TEST_ASSERT_EQUAL(o_type == OType::REAL, obj->is_real());
@@ -289,8 +290,8 @@ void test_bool() {
     Typer::singleton()->save_type(id_p("/obj/truth"), Obj::to_bcode()); //
     const Bool_p bool_a = Obj::to_bool(true,id_p("/obj/truth"));
     const Bool_p bool_b = Obj::to_bool(false, id_p("/obj/truth"));
-    is_a_testing(OType::BOOL,bool_a);
-    is_a_testing(OType::BOOL,bool_b);
+    FOS_TEST_IS_A(OType::BOOL,bool_a);
+    FOS_TEST_IS_A(OType::BOOL,bool_b);
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_a->tid_);
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_b->tid_);
     FOS_TEST_OBJ_NTEQL(bool_a, bool_b);
@@ -314,7 +315,7 @@ void test_bool() {
     TEST_ASSERT_FALSE(strA->is_bcode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
     TEST_ASSERT_EQUAL(OType::STR, strA->o_type());
-    is_a_testing(OType::STR,strA);
+    FOS_TEST_IS_A(OType::STR,strA);
     TEST_ASSERT_TRUE(strA->match(str("fhat"), false));
     TEST_ASSERT_FALSE(strA->match(str("fhat"), true));
   }
@@ -369,7 +370,7 @@ void test_bool() {
   TEST_ASSERT_TRUE(alst->lst_get("1/0")->is_lst());
   TEST_ASSERT_EQUAL_INT(1,alst->lst_get("1/0/0")->lst_value()->size());
   TEST_ASSERT_TRUE(alst->lst_get("1/0/0")->is_lst());
-  is_a_testing(OType::LST,alst);
+  FOS_TEST_IS_A(OType::LST,alst);
   }
 
   void test_rec_nested_set_get() {
@@ -388,7 +389,7 @@ void test_bool() {
   TEST_ASSERT_EQUAL_INT(1,arec->rec_get("b/c/d")->rec_value()->size());
   TEST_ASSERT_TRUE(arec->rec_get("b/c/d")->is_rec());
   TEST_ASSERT_TRUE(arec->rec_get("b")->is_rec());
-    is_a_testing(OType::REC,arec);
+    FOS_TEST_IS_A(OType::REC,arec);
   }
 
 void test_inst() {
@@ -409,8 +410,8 @@ void test_inst() {
         TEST_ASSERT_EQUAL_INT(i1->range_coefficient().second,i2->range_coefficient().second);
   TEST_ASSERT_NOT_EQUAL_INT(i1->toString(NO_ANSI_PRINTER).find("_"),string::npos);
   TEST_ASSERT_EQUAL_INT(i2->toString(NO_ANSI_PRINTER).find("_"),string::npos);
-    is_a_testing(OType::INST,i1);
-    is_a_testing(OType::INST,i2);
+    FOS_TEST_IS_A(OType::INST,i1);
+    FOS_TEST_IS_A(OType::INST,i2);
 }
 
   void test_serialization() {
@@ -442,9 +443,9 @@ void test_inst() {
       FOS_RUN_TEST(test_lock); //
     //  FOS_RUN_TEST(test_int); //
     //  FOS_RUN_TEST(test_real); //
-     FOS_RUN_TEST(test_uri); //
      FOS_RUN_TEST(test_bool); //
      FOS_RUN_TEST(test_str); //
+     FOS_RUN_TEST(test_uri); //
      FOS_RUN_TEST(test_lst); //
      FOS_RUN_TEST(test_lst_nested_set_get); //
      FOS_RUN_TEST(test_rec_nested_set_get); //

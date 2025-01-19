@@ -425,8 +425,8 @@ namespace fhatos {
         this->tid_ = type_id;
         if(value_id) {
           const Obj_p strip = this->clone();
-          if(!vid_->has_query())
-            const_cast<Obj *>(strip.get())->vid_ = nullptr;
+          //   if(!vid_->has_query())
+          const_cast<Obj *>(strip.get())->vid_ = nullptr;
           ROUTER_WRITE(value_id, strip, true);
         }
       } else {
@@ -701,9 +701,10 @@ namespace fhatos {
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj_p &key) const {
+    [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Obj_p &or_else = nullptr) const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      Obj_p result;
       if(key->is_uri()) {
         const auto segment = 0 == key->uri_value().path_length()
                                ? key->uri_value().toString()
@@ -716,24 +717,26 @@ namespace fhatos {
             segment_value->add_obj(v);
         }
         segment_value = segment_value->none_one_all();
-        return key->uri_value().path_length() <= 1
-                 ? segment_value
-                 : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
+        result = key->uri_value().path_length() <= 1
+                   ? segment_value
+                   : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
+      } else {
+        const Objs_p segment_value = Obj::to_objs();
+        for(const auto &[k, v]: *this->rec_value()) {
+          if(k->match(key))
+            segment_value->add_obj(v);
+        }
+        result = segment_value->none_one_all();
       }
-      const Objs_p segment_value = Obj::to_objs();
-      for(const auto &[k, v]: *this->rec_value()) {
-        if(k->match(key))
-          segment_value->add_obj(v);
-      }
-      return segment_value->none_one_all();
+      return result->is_noobj() && or_else ? or_else : result;
     }
 
-    [[nodiscard]] Obj_p rec_get(const fURI_p &key) const {
-      return rec_get(to_uri(*key));
+    [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Obj_p &or_else = nullptr) const {
+      return rec_get(to_uri(*key), or_else);
     }
 
-    [[nodiscard]] Obj_p rec_get(const char *uri_key) const {
-      return rec_get(to_uri(uri_key));
+    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
+      return rec_get(to_uri(uri_key), or_else);
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
@@ -1574,12 +1577,12 @@ namespace fhatos {
     }
 
     Obj_p apply(const Obj_p &lhs, const InstArgs &args) const {
-      Rec_p remake = Obj::to_rec();
+      const Rec_p remake = Obj::to_rec();
       //// apply lhs to args
       for(const auto &[k,v]: *args->rec_value()) {
         remake->rec_value()->insert({k, v->apply(lhs)});
       }
-      ROUTER_PUSH_FRAME("+", remake);
+      ROUTER_PUSH_FRAME("+", args);
       const Obj_p result = this->apply(lhs);
       ROUTER_POP_FRAME();
       return result;
@@ -1687,10 +1690,8 @@ namespace fhatos {
             const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
-            if(!result->is_code()) {
-              if(compiler.reset(true, true)->type_check(result, inst->range())) {
-              }
-            }
+            if(!result->is_code())
+              compiler.reset(true, true)->type_check(result, inst->range());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {

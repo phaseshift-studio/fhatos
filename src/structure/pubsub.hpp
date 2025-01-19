@@ -94,15 +94,15 @@ namespace fhatos {
     }
 
     ID_p target() const {
-      return id_p(this->rec_get(vri("target"))->uri_value());
+      return id_p(this->rec_get("target")->uri_value());
     }
 
     Obj_p payload() const {
-      return this->rec_get(vri("payload"));
+      return this->rec_get("payload");
     }
 
     bool retain() const {
-      return this->rec_get(vri("retain"))->bool_value();
+      return this->rec_get("retain")->bool_value();
     }
 
     static Message_p create(const ID_p &target, const Obj_p &payload, const bool retain) {

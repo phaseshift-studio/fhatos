@@ -79,7 +79,7 @@ namespace fhatos {
 
     bool type_check(const Obj *value_obj, const ID_p &type_id) const;
 
-    [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID_p &type_id) const {
+    bool type_check(const Obj_p &value_obj, const ID_p &type_id) const {
       return this->type_check(value_obj.get(), type_id);
     }
 

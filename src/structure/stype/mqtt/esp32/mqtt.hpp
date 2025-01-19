@@ -62,16 +62,16 @@ namespace fhatos {
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
 
-    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
+    explicit Mqtt(const Pattern &pattern, const Rec_p &config, const ID &id) : BaseMqtt(pattern, config, id) {
       if (this->exists()) {
-        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());
+        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", this->Obj::rec_get("config/broker")->toString().c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
-      } else if (this->settings_.broker_.empty()) {
+      } else if (this->Obj::rec_get("config/broker")->is_noobj()) {
         LOG_STRUCTURE(WARN, this, "mqtt disabled as no broker address provided\n");
       } else {
         WiFiClient *client = new WiFiClient();
         MQTT_CONNECTION = ptr<PubSubClient>(new PubSubClient(*client));
-        MQTT_CONNECTION->setServer(this->settings_.broker_.c_str(), 1883); // TODO: parse port from uri
+        MQTT_CONNECTION->setServer(this->Obj::rec_get("config/broker")->uri_value().toString().c_str(), 1883); // TODO: parse port from uri
         MQTT_CONNECTION->setBufferSize(MQTT_MAX_PACKET_SIZE);
         MQTT_CONNECTION->setSocketTimeout(1000); // may be too excessive
         MQTT_CONNECTION->setKeepAlive(1000); // may be too excessive
@@ -98,7 +98,7 @@ namespace fhatos {
       if (!MQTT_CONNECTION->connected()) {
         LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
-        if (!MQTT_CONNECTION->connect(this->settings_.client_.c_str())) {
+        if (!MQTT_CONNECTION->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str())) {
           Process::current_process()->delay(5000);
         }
       }
@@ -141,10 +141,10 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) {
+    static ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config, const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings, value_id));
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, config, value_id));
       return mqtt_p;
     }
 
@@ -155,11 +155,11 @@ namespace fhatos {
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          const bool pass = MQTT_CONNECTION->connect(this->settings_.client_.c_str());
+          const bool pass = MQTT_CONNECTION->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str());
           if (!pass) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
-            LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n", this->settings_.broker_.c_str());
+            LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n", this->Obj::rec_get("config/broker")->toString().c_str());
             Process::current_process()->delay(5000);
           }
           if (MQTT_CONNECTION->connected()) {
@@ -168,7 +168,7 @@ namespace fhatos {
           }
         }
       } catch (const fError &e) {
-        LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n", this->Obj::rec_get("config/broker")->toString().c_str(), e.what());
         this->stop();
       }
     }

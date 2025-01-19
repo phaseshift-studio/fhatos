@@ -47,38 +47,41 @@ namespace fhatos {
     connect_options connection_options_{};
 
     bool exists() const override {
-
       return MQTT_CONNECTION && MQTT_CONNECTION->is_connected() &&
-             MQTT_CONNECTION->get_server_uri() == this->settings_.broker_;
+             MQTT_CONNECTION->get_server_uri() == this->rec_get("config/broker")->uri_value().toString();
     }
 
   public:
     explicit Mqtt(const Rec_p &rec) : BaseMqtt(rec) {
     }
 
-    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) : BaseMqtt(
-      pattern, settings, value_id) {
-      this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"
-                                         ? this->settings_.broker_
-                                         : (string("mqtt://") + this->settings_.broker_));
+    explicit Mqtt(const Pattern &pattern, const Rec_p &config, const ID &value_id = ID("")) : BaseMqtt(
+      pattern, config, value_id) {
+      // const fURI new_broker = fURI(config->rec_get("broker")->toString().c_str()).scheme("mqtt");
+      // this->Obj::rec_get("config")->Obj::rec_set("broker", vri(new_broker));
       if(this->exists()) {
-        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", this->settings_.broker_.c_str());
+        LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n",
+                      this->Obj::rec_get("config/broker")->toString().c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
       } else {
         MQTT_CONNECTION =
-            std::make_shared<async_client>(this->settings_.broker_, this->settings_.client_, mqtt::create_options());
+            std::make_shared<async_client>(this->Obj::rec_get("config/broker")->uri_value().toString(),
+                                           this->Obj::rec_get("config/client")->uri_value().toString(),
+                                           mqtt::create_options());
         connect_options_builder pre_connection_options = connect_options_builder()
             .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
             .clean_start(true)
             .clean_session(true)
-            .user_name(this->settings_.client_)
+            //.mqtt_version(5)
+            .user_name(this->Obj::rec_get("config/client")->uri_value().toString())
             .keep_alive_interval(std::chrono::seconds(20))
             .automatic_reconnect();
-        if(this->settings_.will_.get()) {
-          const BObj_p source_payload = this->settings_.will_->payload()->serialize();
+        if(!this->Obj::rec_get("config/will")->is_noobj()) {
+          const BObj_p source_payload = this->Obj::rec_get("config/will")->rec_get("payload")->serialize();
           pre_connection_options = pre_connection_options.will(
-            message(this->settings_.will_->target()->toString(), source_payload->second,
-                    this->settings_.will_->retain()));
+            message(this->Obj::rec_get("config/will")->rec_get("target")->uri_value().toString(),
+                    source_payload->second,
+                    this->Obj::rec_get("config/will")->rec_get("retain")->bool_value()));
         }
         this->connection_options_ = pre_connection_options.finalize();
         //// MQTT MESSAGE CALLBACK
@@ -89,7 +92,7 @@ namespace fhatos {
           const auto [payload, retained] = make_payload(bobj);
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
           const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
-          LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
+          LOG_STRUCTURE(TRACE, this, "received message %s\n", message->toString().c_str());
           for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(message->target());
             for(const Subscription_p &sub: *matches) {
@@ -117,7 +120,8 @@ namespace fhatos {
       } else {
         const BObj_p source_payload = make_bobj(message->payload(), message->retain());
         MQTT_CONNECTION
-            ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0, message->retain())
+            ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0,
+                      message->retain())
             ->wait();
       }
     }
@@ -132,11 +136,11 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static unique_ptr<Mqtt> create(const Pattern &pattern, const Settings &settings,
+    static unique_ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config,
                                    const ID &value_id = ID("")) {
       if(!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      auto mqtt_p = make_unique<Mqtt>(pattern, settings,
+      auto mqtt_p = make_unique<Mqtt>(pattern, config,
                                       value_id.empty() ? ID(pattern.retract_pattern()) : value_id);
       return mqtt_p;
     }
@@ -151,14 +155,16 @@ namespace fhatos {
           if(!MQTT_CONNECTION->connect(this->connection_options_)->wait_for(1000)) {
             if(++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker_.c_str());
+            LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n",
+                          this->rec_get("config/broker")->uri_value().toString().c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if(MQTT_CONNECTION->is_connected())
             break;
         }
       } catch(const mqtt::exception &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n",
+                      this->rec_get("config/broker")->uri_value().toString().c_str(), e.what());
       }
     }
   };

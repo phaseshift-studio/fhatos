@@ -20,6 +20,11 @@
 #include "../util/obj_helper.hpp"
 
 namespace fhatos {
+  ptr<Router> Router::singleton(const ID &value_id) {
+    static auto router_p = ptr<Router>(new Router(value_id));
+    return router_p;
+  }
+
   Router::Router(const ID &id) : Rec(rmap({
                                        {"structure", to_lst()},
                                        {"resolve", to_rec({
@@ -51,15 +56,15 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-      LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
-              THREAD_FRAME_STACK->full_frame()->toString().c_str());
+      //LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
+      //        THREAD_FRAME_STACK->full_frame()->toString().c_str());
     };
     ROUTER_POP_FRAME = [this] {
       if(nullptr == THREAD_FRAME_STACK)
         throw fError("there are no more frames on the stack");
-      LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: %s\n",
-              THREAD_FRAME_STACK->depth(),
-              THREAD_FRAME_STACK->pattern()->toString().c_str());
+      //LOG_OBJ(TRACE, this, "!ypopped!! from frame stack [!mdepth!!: %i]: %s\n",
+      //        THREAD_FRAME_STACK->depth(),
+      //        THREAD_FRAME_STACK->pattern()->toString().c_str());
       THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
     };
 
@@ -104,11 +109,6 @@ namespace fhatos {
     };
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_READ = [this](const fURI_p &furix) -> Obj_p {
-      if(THREAD_FRAME_STACK) {
-        Obj_p frame_obj = THREAD_FRAME_STACK->read(furix);
-        if(nullptr != frame_obj)
-          return frame_obj;
-      }
       return this->read(furix);
     };
     ////////////////////////////////////////////////////////////////////////////////////
@@ -118,11 +118,6 @@ namespace fhatos {
     };
     ////////////////////////////////////////////////////////////////////////////////////
     LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
-  }
-
-  ptr<Router> Router::singleton(const ID &value_id) {
-    static auto router_p = ptr<Router>(new Router(value_id));
-    return router_p;
   }
 
   void Router::loop() const {
@@ -202,6 +197,11 @@ namespace fhatos {
 
   [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
     try {
+      if(THREAD_FRAME_STACK) {
+        const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
+        if(nullptr != frame_obj)
+          return frame_obj;
+      }
       const fURI_p resolved_furi = this->resolve(*furi);
       // const bool query = resolved_furi->has_query("structure");
       const Structure_p structure = this->get_structure(p_p(*resolved_furi));
@@ -272,15 +272,14 @@ namespace fhatos {
       [pattern, temp](const Structure_p &structure) {
         return pattern->matches(*structure->pattern()) || temp->matches(*structure->pattern());
       },
-      false); // TODO: NO MUTEX!
+      true); // TODO: NO MUTEX!
     if(throw_exception) {
       if(list.size() > 1)
         throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
       if(list.empty())
         throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid_->toString().c_str(),
                      pattern->toString().c_str());
-      const Structure_p s = list.at(0);
-      return s;
+      return list.at(0);
     }
     const Structure_p s = list.size() == 1 ? list.at(0) : nullptr;
     return s;

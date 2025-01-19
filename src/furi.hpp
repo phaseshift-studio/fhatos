@@ -995,6 +995,8 @@ namespace fhatos {
 
   class Typed {
   public:
+    virtual ~Typed() = default;
+
     ID_p tid_;
 
     explicit Typed(const ID_p &type) : tid_(type) {

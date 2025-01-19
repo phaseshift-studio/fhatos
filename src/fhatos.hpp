@@ -235,15 +235,15 @@ namespace fhatos {
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s\n", (obj)->vid_->toString().c_str(), (ex).what())
 #define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),(obj)->vid_->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(),(obj)->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid_->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid_->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!g[!c%s!g]!! ") + (format)).c_str(), (process)->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_OBJ(logtype, obj, format, ...)                                                                     \
 LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
+  LOG((logtype), (string("!g[!c%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
 #define FOS_DOMAIN "dom"
 #define FOS_DOM_COEF "dc"

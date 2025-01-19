@@ -30,7 +30,7 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->start_progress_bar(6);
-      Typer::singleton()->save_type( id_p(FOS_SCHEME "/msg"), Obj::to_rec({
+      Typer::singleton()->save_type(id_p(FOS_SCHEME "/msg"), Obj::to_rec({
                                       {"target", Obj::to_type(URI_FURI)},
                                       {"payload", Obj::to_bcode()},
                                       {"retain", Obj::to_type(BOOL_FURI)}}));
@@ -52,8 +52,10 @@ namespace fhatos {
 
       Typer::singleton()->save_type(MQTT_FURI, Obj::to_rec({
                                       {"pattern", Obj::to_type(URI_FURI)},
-                                      {"broker", Obj::to_type(URI_FURI)},
-                                      {"client", Obj::to_type(URI_FURI)}}));
+                                      {"config", Obj::to_rec({
+                                        {"broker", Obj::to_type(URI_FURI)},
+                                        {"client", Obj::to_type(URI_FURI)}})}
+                                    }));
       Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));

@@ -110,11 +110,12 @@ namespace fhatos {
              ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-             ->mount(Mqtt::create("//io/#",
-                     Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                   args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
-                    "/io/mqtt"))
 #if defined(NATIVE)
+        ->mount(Mqtt::create("//io/#", Obj::to_rec({{"broker", vri(args_parser->option_string(
+                                     "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                   {"client", vri(args_parser->option_string(
+                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}}), "/io/mqtt"))
+
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif
@@ -125,7 +126,7 @@ namespace fhatos {
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
 
 
-           // ->mount(Heap<>::create("/console/#"))
+            // ->mount(Heap<>::create("/console/#"))
             ->process(Console::create("/io/console", Obj::to_rec({
                                         {"terminal",
                                           Obj::to_rec({

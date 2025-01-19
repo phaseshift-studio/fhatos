@@ -244,7 +244,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
 }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
-  FOS_TEST_MESSAGE("<!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
+  FOS_TEST_MESSAGE("!ytesting equality!!: <!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
   TEST_ASSERT_TRUE_MESSAGE((x).equals(y),"Not equals()");                                                              \
@@ -252,7 +252,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
   TEST_ASSERT_EQUAL_STRING((x).toString().c_str(), (y).toString().c_str());
 
 #define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
-  FOS_TEST_MESSAGE("<!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                       \
+  FOS_TEST_MESSAGE("!ytesting non equal!!: <!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                       \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
   TEST_ASSERT_FALSE((x).equals(y));                                                                                    \
@@ -301,14 +301,14 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
-    FOS_TEST_MESSAGE("!yTesting equality!! : %s %s %s", (objA)->toString().c_str(), test ? "==" : "!=", (objB)->toString().c_str());  \
+    FOS_TEST_MESSAGE("!ytesting equality!! : %s %s %s", (objA)->toString().c_str(), test ? "==" : "!=", (objB)->toString().c_str());  \
     if (!test) TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                         \
   }
 #define FOS_TEST_OBJ_NTEQL(objA, objB) FOS_TEST_OBJ_NOT_EQUAL((objA),(objB))
 #define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
-    FOS_TEST_MESSAGE("!yTesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
+    FOS_TEST_MESSAGE("!ytesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
                      test ? "==" : "!=", (objB)->toString().c_str());                                                  \
     if (test)                                                                                                          \
      TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                   \
@@ -316,7 +316,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
 
 //#ifdef FOS_DEPLOY_PARSER
 static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_result = true) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s", bcode->toString().c_str());
+  FOS_TEST_MESSAGE("!ytesting!!: %s", bcode->toString().c_str());
   if(!bcode->is_bcode())
     return std::make_shared<List<Obj_p>>(List<Obj_p>{bcode});
   List_p<Obj_p> result = BCODE_PROCESSOR(bcode)->objs_value();
@@ -333,19 +333,19 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 //#endif
 
 #define FOS_TEST_OBJ_GT(obj_a, obj_b)                                                                                  \
-  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
+  FOS_TEST_MESSAGE("!ytesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
                    (*obj_a > *obj_b) ? ">" : "!=", obj_b->toString().c_str());                                         \
   if (!(*obj_a > *obj_b))                                                                                              \
     TEST_FAIL();
 
 #define FOS_TEST_OBJ_LT(obj_a, obj_b)                                                                                  \
-  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", obj_a->toString().c_str(),                                      \
+  FOS_TEST_MESSAGE("!ytesting less than!! : %s %s %s", obj_a->toString().c_str(),                                      \
   (*obj_a < *obj_b) ? "<" : "!=", obj_b->toString().c_str());                                                          \
   if (!(*obj_a < *obj_b))                                                                                              \
     TEST_FAIL();
 
 #define FOS_PRINT_OBJ(obj) \
-  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
+  FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
                    OTypes.to_chars(obj->o_type()).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
 
 #ifdef FOS_DEPLOY_PARSER
