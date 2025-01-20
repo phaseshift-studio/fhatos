@@ -58,7 +58,7 @@ namespace fhatos {
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
-    //LOG(INFO,"HERE %s\n",lhs->toString().c_str());
+    //LOG(INFO, "HERE %s\n", lhs->toString().c_str());
     //this->reset();
     if(inst->is_noobj())
       return inst;
@@ -71,16 +71,26 @@ namespace fhatos {
         inst_obj = Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved)));
         if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
       }
+      const Obj_p new_lhs = lhs->is_objs()
+                              ? lhs->objs_value()->empty()
+                                  ? lhs
+                                  : lhs->objs_value()->front()
+                                  ->domain_range(
+                                    lhs->objs_value()->front()->domain(),
+                                    lhs->domain_coefficient(),
+                                    lhs->objs_value()->front()->range(),
+                                    lhs->range_coefficient())
+                              : lhs;
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        inst_obj = Router::singleton()->read(furi_p(lhs->tid_->add_component(*inst_type_id_resolved)));
-        if(dt) dt->emplace_back(lhs->tid_, inst_type_id_resolved, inst_obj);
+        inst_obj = Router::singleton()->read(furi_p(new_lhs->tid_->add_component(*inst_type_id_resolved)));
+        if(dt) dt->emplace_back(new_lhs->tid_, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = Router::singleton()->read(inst_type_id_resolved);
         if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
+        if(const Obj_p parent = this->super_type(new_lhs); !parent->is_noobj()) {
           inst_obj = resolve_inst(parent, inst);
         }
       }
@@ -102,11 +112,11 @@ namespace fhatos {
         throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->tid_->toString().c_str(),
                      inst->tid_->toString().c_str(), derivation_string.c_str());
       }
-        }
-    return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
+    }
+    return inst_obj->is_inst() ? this->merge_inst(inst, inst_obj) : inst;
   }
 
-  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const {
+  Inst_p Compiler::merge_inst(const Inst_p &inst_a, const Inst_p &inst_b) const {
     Inst_p inst_c;
     if(inst_b->is_inst()) {
       LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
@@ -147,7 +157,7 @@ namespace fhatos {
         inst_a->tid_, inst_a->vid_);
     }
     if(dt) this->dt->emplace_back(inst_b->tid_, inst_c->tid_, inst_c);
-    LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
+    //  LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
     return inst_c;
   }
 
@@ -255,12 +265,25 @@ namespace fhatos {
   }
 
   template<typename COEF>
+  bool Compiler::coefficient_check(const Objs *lhs, const COEF &domain_coef) const {
+    const size_t lhs_size = lhs->objs_value()->size();
+    if(lhs_size < domain_coef.first || lhs_size > domain_coef.second) {
+      if(this->throw_on_miss)
+        throw fError("objs not within rhs coefficient: %i <> {%i,%i}",
+                     lhs_size,
+                     domain_coef.first,
+                     domain_coef.second);
+      return false;
+    }
+    return true;
+  }
+
+  template<typename COEF>
   bool Compiler::coefficient_check(const COEF &lhs, const COEF &rhs) const {
     if((lhs.first < rhs.first || lhs.second < rhs.first) || (lhs.first > rhs.second || lhs.second > rhs.second)) {
       if(this->throw_on_miss)
         throw fError("lhs coefficient not within rhs coefficient: {%i,%i} <> {%i,%i}", lhs.first, lhs.second, rhs.first,
                      rhs.second);
-
       return false;
     }
     return true;
@@ -299,6 +322,8 @@ namespace fhatos {
     }
     if(!this->coefficient_check(value_obj->range_coefficient(), type_obj->domain_coefficient()))
       return false;
+    if(value_obj->is_objs())
+      return true;
     try {
       if(type_obj->is_type() && !type_obj->apply(value_obj->shared_from_this())->is_noobj())
         return true;

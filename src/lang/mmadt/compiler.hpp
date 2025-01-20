@@ -35,6 +35,7 @@ namespace fhatos {
   using InstArgs = std::shared_ptr<const Obj>;
   using Obj_p = std::shared_ptr<const Obj>;
   using Inst_p = std::shared_ptr<const Obj>;
+  using Objs = Obj;
   using ID_p = std::shared_ptr<ID>;
 
 
@@ -70,9 +71,12 @@ namespace fhatos {
 
     Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
 
-    Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
+    Inst_p merge_inst(const Inst_p &inst_a, const Inst_p &inst_b) const;
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
+
+    template<typename COEF = IntCoefficient>
+    bool coefficient_check(const Objs *lhs, const COEF &domain_coef) const;
 
     template<typename COEF = IntCoefficient>
     bool coefficient_check(const COEF &lhs, const COEF &rhs) const;

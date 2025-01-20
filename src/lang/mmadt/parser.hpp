@@ -145,9 +145,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition
-        EMPTY_BCODE, AT, REPEAT, END, FROM, REF, PASS,
-        MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP,
-        SPLIT, EACH;
+        EMPTY_BCODE, AT, REPEAT, END, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {

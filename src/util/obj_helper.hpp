@@ -56,7 +56,7 @@ namespace fhatos {
     ID_p type_;
     InstArgs args_;
     InstF_p function_supplier_ = nullptr;
-    Obj_p seed_;
+    Obj_p seed_ = nullptr;
     string doc_{};
 
   public:
@@ -132,8 +132,9 @@ namespace fhatos {
       const Inst_p inst = Inst::create(make_shared<InstValue>(make_tuple(
                                          this->args_,
                                          this->function_supplier_,
-                                         this->seed_ ? this->seed_ : Obj::to_noobj())),
-                                       OType::INST, this->type_,
+                                         this->seed_ ? this->seed_ :  Obj::to_noobj())),
+                                       OType::INST,
+                                       this->type_,
                                        root ? id_p(root->vid_->extend(*value_id)) : value_id);
       // if(!this->doc_.empty())
       // inst->doc_write(this->doc_);

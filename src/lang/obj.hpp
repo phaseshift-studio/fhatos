@@ -866,6 +866,14 @@ namespace fhatos {
       return this->value<Pair<Obj_p, Inst_p>>();
     }
 
+    Obj_p domain_range(const ID_p &domain_id, const IntCoefficient &dc, const ID_p &range_id,
+                       const IntCoefficient &rc) const {
+      return Obj::create(this->value_, this->otype_, id_p(this->tid_->query({
+                           {FOS_DOMAIN, domain_id->toString()},
+                           {FOS_DOM_COEF, StringHelper::format("%i,%i", dc.first, dc.second)},
+                           {FOS_RANGE, range_id->toString()},
+                           {FOS_RNG_COEF, StringHelper::format("%i,%i", rc.first, rc.second)}})));
+    }
 
     [[nodiscard]] ID_p domain() const {
       return this->tid_->has_query(FOS_DOMAIN)
@@ -1236,7 +1244,7 @@ namespace fhatos {
                                    ? ""
                                    : this->has_domain(0, 1)
                                        ? "?"
-                                       : this->has_domain(0,INT_MAX)
+                                       : this->has_domain(1,INT_MAX)
                                            ? "+"
                                            : this->is_initial()
                                                ? "."
@@ -1249,7 +1257,7 @@ namespace fhatos {
                                    ? ""
                                    : this->has_range(0, 1)
                                        ? "?"
-                                       : this->has_range(0,INT_MAX)
+                                       : this->has_range(1,INT_MAX)
                                            ? "+"
                                            : this->is_terminal()
                                                ? "."

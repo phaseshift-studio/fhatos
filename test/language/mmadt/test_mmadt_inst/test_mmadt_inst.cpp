@@ -135,12 +135,21 @@ namespace fhatos {
   }
 
   void test_count_inst() {
-    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("{1,2,2,67}.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("35.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("{1,2,2,67}.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("{67,35,2465}.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("'fhat'-<[_,_,_,_,_]>-_]{count()}[_"));
+  }
+
+  void test_sum_inst() {
+    FOS_TEST_OBJ_EQUAL(jnt(35), PROCESS("35.sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("{1,2,2,67}.sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(2532), PROCESS("{67,35,2465}.is(gt(40)).sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("'fhat'-<[_,_,_,_,_]>-_]{sum()}[_"));
   }
 
   void test_drop_inst() {
@@ -159,6 +168,7 @@ FOS_RUN_TEST(test_as_inst); //
     FOS_RUN_TEST(test_plus_inst); //
     FOS_RUN_TEST(test_mult_inst); //
     FOS_RUN_TEST(test_count_inst); //
+    FOS_RUN_TEST(test_sum_inst); //
     FOS_RUN_TEST(test_drop_inst); //
   )
 } // namespace fhatos
