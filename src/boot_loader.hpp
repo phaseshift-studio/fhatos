@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#pragma once
 #ifndef fhatos_boot_loader_hpp
 #define fhatos_boot_loader_hpp
 
@@ -33,6 +34,7 @@
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
+//#include "boot_config.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/fhatos/core_driver.hpp"
 
@@ -82,6 +84,7 @@ namespace fhatos {
             ->using_router(Router::singleton("/sys/router"))
             ////////////////// SYS STRUCTURE
             ->mount(Heap<>::create("/sys/#"))
+            ->using_boot_config()
             ->import(Scheduler::import())
             ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
@@ -111,10 +114,15 @@ namespace fhatos {
             //->structure(BLE::create("/io/bt/#"))
 #endif
 #if defined(NATIVE)
-        ->mount(Mqtt::create("//io/#", Obj::to_rec({{"broker", vri(args_parser->option_string(
-                                     "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+            ->mount(Mqtt::create("//io/#", Router::singleton()
+                                 ->read(id_p("/sys/config"))
+                                 ->or_else(rec())
+                                 ->rec_get("mqtt")
+                                 ->or_else(Obj::to_rec({{"broker",
+                                     vri(args_parser->option_string(
+                                       "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
                                    {"client", vri(args_parser->option_string(
-                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}}), "/io/mqtt"))
+                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
 
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))

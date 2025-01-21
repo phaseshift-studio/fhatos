@@ -22,6 +22,7 @@ FhatOS: A Distributed Operating System
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../util/peglib.h"
+#include "../../boot_config.hpp"
 
 using namespace peg;
 using namespace std;
@@ -117,7 +118,7 @@ namespace mmadt {
   class Parser final : public Obj {
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
-      static ptr<Parser> parser_p = ptr<Parser>(new Parser(id));
+      static auto parser_p = ptr<Parser>(new Parser(id));
       return parser_p;
     }
 
@@ -149,54 +150,75 @@ namespace mmadt {
         MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP,
         SPLIT, EACH;
 #endif
-    QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
-        [](const size_t line, const size_t column, const string &message, const string &rule) {
-      throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
-                   column - 1, message.c_str(), line, column, rule.c_str());
-    };
 
   public:
-    Obj_p parse(const string &mmadt) const {
+    static void boot_config_parse() {
+      const auto proto = make_unique<Parser>();
+      const Obj_p result = proto->parse((const char *) boot_config_obj);
+      Router::singleton()->write(id_p(FOS_BOOT_CONFIG_VALUE_ID), result);
+    }
+
+    Obj_p parse(const char *source) {
+      static QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
+          [](const size_t line, const size_t column, const string &message, const string &rule) {
+        throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
+                     column - 1, message.c_str(), line, column, rule.c_str());
+      };
       Obj_p result;
-      Definition::Result ret = START.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
+      Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER);
       if(ret.ret) {
-        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(mmadt)->toString().c_str(),
+        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(source)->toString().c_str(),
                 result->toString().c_str());
-        return result->is_bcode() && result->bcode_value()->size() == 1 ? result->bcode_value()->front() : result;
+        return std::move(result->is_bcode() && result->bcode_value()->size() == 1
+                           ? result->bcode_value()->front()
+                           : result);
       } else {
-        ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
-        throw fError("parse failed: %s\n", mmadt.c_str());
+        ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
+        throw fError("parse failed: %s\n", source);
       }
     }
 
+    explicit Parser(): Obj(make_shared<RecMap<>>(),
+                           OType::REC,
+                           REC_FURI) {
+      initialize();
+    }
+
   protected:
-    explicit Parser(const ID &id = ID("/parser/")) : Obj(make_shared<RecMap<>>(),
-                                                         OType::REC,
-                                                         REC_FURI,
-                                                         id_p(id)) {
-      static auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> {
+    explicit Parser(const ID &id) : Obj(make_shared<RecMap<>>(),
+                                        OType::REC,
+                                        REC_FURI,
+                                        id_p(id)) {
+      initialize();
+      OBJ_PARSER = [](const string &obj_string) {
+        return Parser::singleton()->parse(obj_string.c_str());
+      };
+      Options::singleton()->parser<const Obj>(OBJ_PARSER);
+    }
+
+    void initialize() {
+      auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> {
         return {nullptr, OType::NOOBJ};
       };
-      static auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.choice() == 0, OType::BOOL};
       };
-      static auto int_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto int_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.token_to_number<FOS_INT_TYPE>(), OType::INT};
       };
-      static auto real_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto real_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.token_to_number<FOS_REAL_TYPE>(), OType::REAL};
       };
-      static auto str_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto str_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.token_to_string(), OType::STR};
       };
-      static auto uri_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto uri_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.choice() == 0 ? fURI("") : *any_cast<fURI_p>(vs[0]), OType::URI};
       };
-      static auto lst_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto lst_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {make_shared<List<Obj_p>>(vs.transform<Obj_p>()), OType::LST};
       };
-
-      static auto rec_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto rec_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         const auto map = make_shared<Obj::RecMap<>>();
         if(1 == vs.choice()) {
           for(int i = 0; i < vs.size(); i = i + 2) {
@@ -205,12 +227,10 @@ namespace mmadt {
         }
         return {map, OType::REC};
       };
-
-      static auto objs_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto objs_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {make_shared<List<Obj_p>>(vs.transform<Obj_p>()), OType::OBJS};
       };
-
-      static auto args_action = [](const SemanticValues &vs) -> InstArgs {
+      auto args_action = [](const SemanticValues &vs) -> InstArgs {
         const auto [v, o] = any_cast<Pair<Any, OType>>(vs[0]);
         const Obj_p args_struct = Obj::create(v, o, OTYPE_FURI.at(o));
         if(0 == vs.choice())
@@ -222,23 +242,20 @@ namespace mmadt {
         }
         return args;
       };
-
-      static auto inst_action = [](const SemanticValues &vs) -> Inst_p {
+      auto inst_action = [](const SemanticValues &vs) -> Inst_p {
         const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
         const InstArgs args = any_cast<InstArgs>(vs[1]);
         return Obj::to_inst(args, id_p(*Router::singleton()->resolve(*op)),
                             vs.size() == 3 ? id_p(*any_cast<fURI_p>(vs[2])) : nullptr);
       };
-
-      static auto furi_action = [](const SemanticValues &vs) {
+      auto furi_action = [](const SemanticValues &vs) {
         string s = vs.token_to_string();
         while(s.find("`.") != string::npos) {
           StringHelper::replace(&s, "`.", ".");
         }
         return furi_p((s[0] == '<' && s[s.length() - 1] == '>') ? s.substr(1, s.length() - 2) : s);
       };
-
-      static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
+      auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
         if(vs.choice() == 0)
           return furi_p("");
         const bool anonymous = vs.size() == 2;
@@ -252,12 +269,10 @@ namespace mmadt {
           {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
-
-      static auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
+      auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
         return Obj::to_bcode();
       };
-
-      static auto coefficient_action = [](const SemanticValues &vs) -> IntCoefficient {
+      auto coefficient_action = [](const SemanticValues &vs) -> IntCoefficient {
         int min;
         int max;
         // INT_MAX means "or more"
@@ -297,10 +312,7 @@ namespace mmadt {
           throw fError("coefficient min can not be larger than max: %i > %i", min, max);
         return {min, max};
       };
-
-
-      static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
-        LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
+      auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         switch(vs.choice()) {
           case 0: { // [a][b]@xyz
             const ID_p type_id = id_p(*Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
@@ -337,34 +349,34 @@ namespace mmadt {
         }
       };
       //////////////////////////////////////////////////////////////////////////
-      static auto enter_y = [](const string &rule) {
+      auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
-          LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+          LOG(TRACE, "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
         };
       };
       //////////////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
 
-      static const auto SUGAR_GENERATOR = [this](Definition &definition, const string &sugar, const string &opcode) {
+      const auto SUGAR_GENERATOR = [this](Definition &definition, const string &sugar, const string &opcode) {
         definition <= seq(lit(sugar.c_str()), WRAQ("(", OBJ, START, ")")),
             [opcode](const SemanticValues &vs) -> Inst_p const {
               return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve(opcode)));
             };
       };
-      static auto barrier_action = [](const SemanticValues &vs) -> Inst_p {
+      auto barrier_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve("barrier")));
       };
-      static auto within_action = [](const SemanticValues &vs) -> Inst_p {
+      auto within_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve("within")));
       };
-      static auto end_action = [](const SemanticValues &) -> Inst_p {
+      auto end_action = [](const SemanticValues &) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args(), id_p(*Router::singleton()->resolve("end")));
       };
-      static auto merge_action = [](const SemanticValues &vs) -> Inst_p {
+      auto merge_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
                             id_p(*Router::singleton()->resolve("merge")));
       };
-      static auto pass_action = [](const SemanticValues &vs) -> Inst_p {
+      auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
                             id_p(*Router::singleton()->resolve("to_inv")));
       };
@@ -372,7 +384,7 @@ namespace mmadt {
 
 #endif
 
-      static auto start_action = [](const SemanticValues &vs) {
+      auto start_action = [](const SemanticValues &vs) {
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
         const auto insts = make_shared<List<Inst_p>>();
@@ -395,7 +407,7 @@ namespace mmadt {
         return Obj::to_bcode(insts);
       };
 
-      static auto start_obj_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
+      auto start_obj_action = [start_action](const SemanticValues &vs) -> Pair<Any, OType> {
         const auto obj = start_action(vs);
         return {obj->value_, obj->o_type()};
       };
@@ -547,10 +559,6 @@ namespace mmadt {
       START.enablePackratParsing = true;
       START.eoi_check = false;
       /////////////////////////////////////////////////////////////////////////////////////
-      OBJ_PARSER = [](const string &obj_string) {
-        return Parser::singleton()->parse(obj_string);
-      };
-      Options::singleton()->parser<const Obj>(OBJ_PARSER);
     }
   };
 }

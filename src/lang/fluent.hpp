@@ -48,7 +48,7 @@ namespace fhatos {
     }
 
     ptr<List<Obj_p>> toList() const {
-      ptr<List<Obj_p>> list = share<List<Obj_p>>(List<Obj_p>());
+      ptr<List<Obj_p>> list = make_shared<List<Obj_p>>();
       this->forEach([list](const Obj_p &end) { list->push_back(end); });
       return list;
     }
@@ -76,9 +76,9 @@ namespace fhatos {
     [[nodiscard]] Fluent addInst(const Obj_p &inst) const {
       List<Obj_p> instList = List<Obj_p>();
       for(const auto &oldInst: *this->_bcode->bcode_value()) {
-        instList.push_back(share(Obj(*oldInst)));
+       // instList.push_back(share(Obj(*oldInst)));
       }
-      instList.push_back(share(Obj(*inst)));
+   //   instList.push_back(share(Obj(*inst)));
       return Fluent(Obj::to_bcode(instList));
     }
 

@@ -1010,17 +1010,19 @@ namespace fhatos {
   ///////////////// VALUED FURI OBJ /////////////////
   ///////////////////////////////////////////////////
 
-  class Valued  {
-
+  class Valued {
   public:
     ID_p vid_;
 
+    virtual ~Valued() = default;
+
     explicit Valued(const ID_p &id) : vid_(id) {
+      if(id && id->empty())
+        vid_ = nullptr;
     }
 
     explicit Valued(const ID &id) : Valued(make_shared<ID>(id)) {
     }
-
   };
 
   struct furi_p_less : std::less<fURI_p> {

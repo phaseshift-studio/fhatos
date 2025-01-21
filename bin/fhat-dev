@@ -268,6 +268,16 @@ test_esp32() {
   fi
 }
 
+build_boot_config() {
+  pushd .
+  cd "${FHATOS_HOME}"/conf || exit 1;
+  echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
+  printf '%b\n' "$(cat boot_config.obj)\n"
+  xxd -i boot_config.obj > "${FHATOS_HOME}"/src/boot_config.hpp
+  status_check $? "boot_config"
+  popd
+}
+
 build_rlwrap_completions() {
   # Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "from_get"), Insts::from_get(x(0)));
   (cat "${FHATOS_HOME}"/src/lang/mmadt/type.hpp |
@@ -310,14 +320,16 @@ elif [[ $1 == "test" ]]; then
 elif [[ $1 == "package" ]]; then
   package_native "${@}"
 elif [[ $1 == "build" ]]; then
+  build_boot_config
   make_native "${@}"
   make_esp32 "${@}"
   make_rpi "${@}"
   build_rlwrap_completions
 elif [[ $1 == "upload" ]]; then
+  build_boot_config
   # clean_esp32
   if [[ $3 != "--skip_fs" ]]; then
-    echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}Flash Memory Partition${NC}\n"
+    echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}flash memory partition${NC}\n"
     printf '%b\n' "$(cat board/partition/large_code.csv)\n"
     platformio run ${environ} --target buildfs
     status_check $? "pio buildfs"

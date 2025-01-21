@@ -32,7 +32,7 @@ namespace fhatos {
     const unique_ptr<MutexDeque<Structure_p>> structures_;
 
   public:
-    virtual ~Router() = default;
+    ~Router() override = default;
 
     explicit Router(const ID &id);
 

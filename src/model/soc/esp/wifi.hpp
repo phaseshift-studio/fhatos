@@ -103,7 +103,7 @@ namespace fhatos {
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
       this->write_functions_->insert(
-          {share(this->pattern()->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
+          {make_shared<fURI>(this->pattern()->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
              if (obj->is_bool()) {
                if (obj->bool_value()) {
                  if (!WiFi.isConnected())

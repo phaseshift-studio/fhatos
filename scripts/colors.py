@@ -1,11 +1,3 @@
-""" ANSI color codes """
-BLACK = '\u001b[0;30m'
-RED = '\u001b[0;31m'
-GREEN = '\u001b[0;32m'
-BROWN = '\u001b[0;33m'
-BLUE = '\u001b[0;34m'
-PURPLE = '\u001b[0;35m'
-CYAN = '\u001b[0;36m'
 #   FhatOS: A Distributed Operating System
 #   Copyright (c) 2024 PhaseShift Studio, LLC
 #
@@ -35,6 +27,15 @@ CYAN = '\u001b[0;36m'
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+""" ANSI color codes """
+BLACK = '\u001b[0;30m'
+RED = '\u001b[0;31m'
+GREEN = '\u001b[0;32m'
+BROWN = '\u001b[0;33m'
+BLUE = '\u001b[0;34m'
+PURPLE = '\u001b[0;35m'
+CYAN = '\u001b[0;36m'
 # LIGHT_GRAY = "\u001b[0;37m"
 # DARK_GRAY = "\u001b[1;30m"
 # LIGHT_RED = "\u001b[1;31m"

@@ -104,7 +104,6 @@ namespace fhatos {
   class Obj;
 
   using Obj_p = shared_ptr<const Obj>;
-  using Obj_wp = weak_ptr<Obj>;
   using NoObj = Obj;
   using NoObj_p = Obj_p;
   using Bool = Obj;
@@ -699,6 +698,12 @@ namespace fhatos {
     [[nodiscard]] Obj_p arg(const Obj_p &key) const {
       if(this->is_inst()) return this->inst_args()->arg(key);
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
+    }
+
+    [[nodiscard]] Obj_p arg(const string &key) const {
+      if(this->is_inst()) return this->inst_args()->arg(key);
+      const Uri_p uri_key = Obj::to_uri(key);
+      return this->rec_get(uri_key);
     }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Obj_p &or_else = nullptr) const {
@@ -1875,6 +1880,10 @@ namespace fhatos {
       return Obj::to_noobj();
     }
 
+    Obj_p or_else(const Obj_p &other) const {
+      return this->is_noobj() ? other : this->shared_from_this();
+    }
+
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Obj_p to_type(const ID_p &type_id,
                          const Obj_p &obj = Obj::create(make_shared<List<Inst_p>>(), OType::BCODE,
@@ -1930,7 +1939,7 @@ namespace fhatos {
                         const ID_p &value_id = nullptr) {
       const auto list = make_shared<LstList>();
       for(const auto &obj: xlst) {
-        list->push_back(share(obj));
+        list->push_back(obj.clone());
       }
       return to_lst(list, type_id, value_id);
     }
@@ -2025,7 +2034,7 @@ namespace fhatos {
     }
 
     static BCode_p to_bcode(const ID_p &type_id = BCODE_FURI, const ID_p &value_id = nullptr) {
-      return Obj::to_bcode(share<InstList>({}), type_id, value_id);
+      return Obj::to_bcode(make_shared<InstList>(), type_id, value_id);
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI, const ID_p &value_id = nullptr) {

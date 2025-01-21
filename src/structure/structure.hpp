@@ -326,7 +326,7 @@ namespace fhatos {
         // this->write_raw_pairs(id_p(*furi), obj, retain);
         /*}*/ else if(obj->is_rec()) {
           // rec
-          const auto remaining = share(Obj::RecMap<>());
+          const auto remaining = make_shared<RecMap<>>();
           for(const auto &[key, value]: *obj->rec_value()) {
             if(key->is_uri()) {
               // uri key
@@ -440,7 +440,7 @@ namespace fhatos {
     }
 
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) const {
-      const List_p<Subscription_p> matches = share(List<Subscription_p>());
+      const List_p<Subscription_p> matches = make_shared<List<Subscription_p>>();
       this->subscriptions_->forEach([topic,source,matches](const Subscription_p &subscription) {
         if(!(source && !source->equals(*subscription->source())) && topic->bimatches(*subscription->pattern()))
           matches->push_back(subscription);

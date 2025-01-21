@@ -71,10 +71,12 @@ namespace fhatos {
       } else {
         WiFiClient *client = new WiFiClient();
         MQTT_CONNECTION = ptr<PubSubClient>(new PubSubClient(*client));
-        MQTT_CONNECTION->setServer(this->Obj::rec_get("config/broker")->uri_value().toString().c_str(), 1883); // TODO: parse port from uri
+        string host = string(this->Obj::rec_get("config/broker")->uri_value().host());
+        int port = this->Obj::rec_get("config/broker")->uri_value().port();
+        MQTT_CONNECTION->setServer(host.c_str(), port);
         MQTT_CONNECTION->setBufferSize(MQTT_MAX_PACKET_SIZE);
-        MQTT_CONNECTION->setSocketTimeout(1000); // may be too excessive
-        MQTT_CONNECTION->setKeepAlive(1000); // may be too excessive
+        MQTT_CONNECTION->setSocketTimeout(100); // may be too excessive
+        MQTT_CONNECTION->setKeepAlive(100); // may be too excessive
         MQTT_CONNECTION->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
           ((char *) data)[length] = '\0';
           const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);

@@ -59,7 +59,6 @@
 //#endif
 #include "util/esp32/psram_allocator.hpp"
 #endif
-
 //#define FMT_HEADER_ONLY
 //#include <fmt/core.h>
 #include "util/ansi.hpp"
@@ -148,11 +147,6 @@ namespace fhatos {
   template<typename A>
   using wptr = std::weak_ptr<A>;
 
-  template<typename A>
-  ptr<A> share(const A a) {
-    return std::make_shared<A>(a);
-  }
-
   using Any = std::any;
   template<typename A>
   using Option = std::optional<A>;
@@ -194,6 +188,7 @@ namespace fhatos {
   ////////////
   // MACROS //
   ////////////
+#define FOS_BOOT_CONFIG_VALUE_ID "/sys/config"
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
     if ((p) != nullptr)                                                                                                \
@@ -229,7 +224,7 @@ namespace fhatos {
 #define FSTR(a) STR(a)
 #define FURI_WRAP "!g[!b%s!g]!!"
 #define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
-#define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
+#define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
@@ -260,9 +255,9 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////
 
-////////////////////////////////////////////////////////
-////////////////////// ESP32 ///////////////////////////
-////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  ////////////////////// ESP32 ///////////////////////////
+  ////////////////////////////////////////////////////////
 #if defined(ESP32)
 #define HARDWARE esp32
 #ifndef FOS_MACHINE_NAME
@@ -288,16 +283,16 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_MACHINE_MODEL ESPH2
 #endif
 #endif
-////////////////////////////////////////////////////////
-////////////////////// ESP8266 /////////////////////////
-////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  ////////////////////// ESP8266 /////////////////////////
+  ////////////////////////////////////////////////////////
 #elif defined(ESP8266)
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp8266
 #endif
-////////////////////////////////////////////////////////
-///////////////////// NATIVE ///////////////////////////
-////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  ///////////////////// NATIVE ///////////////////////////
+  ////////////////////////////////////////////////////////
 #elif defined(NATIVE)
 #ifndef FOS_MACHINE_NAME
 #if defined(NANOPI)

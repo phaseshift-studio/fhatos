@@ -240,21 +240,17 @@ namespace fhatos {
 
   Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_on_error) const {
     const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
-    const List<Structure_p> list = this->structures_->find_all(
-      [pattern, temp](const Structure_p &structure) {
-        return pattern->matches(*structure->pattern()) || temp->matches(*structure->pattern());
-      },
-      true); // TODO: NO MUTEX!
-    if(throw_on_error) {
-      if(list.size() > 1)
-        throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
-      if(list.empty())
-        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid_->toString().c_str(),
-                     pattern->toString().c_str());
-      return list.at(0);
+    Structure_p found = nullptr;
+    for(const Structure_p& s : *this->structures_) {
+      if(pattern->matches(*s->pattern()) || temp->matches(*s->pattern())) {
+        if(found && throw_on_error)
+          throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
+        found = s;
+      }
     }
-    const Structure_p s = list.size() == 1 ? list.at(0) : nullptr;
-    return s;
+    if(!found && throw_on_error)
+      throw fError(ROUTER_FURI_WRAP " no structure exists for !b%s!!", pattern->toString().c_str());
+    return found ? found : nullptr;
   }
 
 

@@ -22,6 +22,10 @@
 #include "fhatos.hpp"
 #include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "process/process.hpp"
+#include "lang/mmadt/parser.hpp"
+#ifdef ESP_ARCH
+#include "util/esp32/memory_helper.hpp"
+#endif
 
 namespace fhatos {
   class Kernel {
@@ -136,7 +140,7 @@ namespace fhatos {
     }*/
 
     static ptr<Kernel> mount(const Structure_p &structure) {
-       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Router::singleton()->attach(structure);
       return Kernel::build();
     }
@@ -150,14 +154,26 @@ namespace fhatos {
     }
 
     static ptr<Kernel> process(const Process_p &process) {
-    Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-     // ROUTER_WRITE(process->vid_, process,RETAIN);
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      // ROUTER_WRITE(process->vid_, process,RETAIN);
       Scheduler::singleton()->spawn(process);
       return Kernel::build();
     }
 
     static ptr<Kernel> eval(const Runnable &runnable) {
       runnable();
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> using_boot_config() {
+#ifdef ESP_ARCH
+      MemoryHelper::use_custom_stack(16384, mmadt::Parser::boot_config_parse);
+#else
+      mmadt::Parser::boot_config_parse();
+#endif
+      LOG_KERNEL_OBJ(INFO, Router::singleton(),
+                     "!bboot config!! !yobj!! loaded:\n" FOS_TAB_6 "%s\n",
+                     Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID))->toString().c_str());
       return Kernel::build();
     }
 
