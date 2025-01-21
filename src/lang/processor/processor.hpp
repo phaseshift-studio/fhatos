@@ -356,7 +356,7 @@ namespace fhatos {
       }
 
       [[nodiscard]] Monad_p front() const {
-        return std::move(*this->internal->begin());
+        return *this->internal->begin();
       }
 
       void pop_front() const {

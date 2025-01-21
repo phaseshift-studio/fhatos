@@ -154,8 +154,7 @@ namespace mmadt {
   public:
     static void boot_config_parse() {
       const auto proto = make_unique<Parser>();
-      const Obj_p result = proto->parse((const char *) boot_config_obj);
-      Router::singleton()->write(id_p(FOS_BOOT_CONFIG_VALUE_ID), result);
+      proto->parse((const char *) boot_config_obj);
     }
 
     Obj_p parse(const char *source) {

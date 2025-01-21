@@ -23,9 +23,7 @@
 #include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "process/process.hpp"
 #include "lang/mmadt/parser.hpp"
-#ifdef ESP_ARCH
-#include "util/esp32/memory_helper.hpp"
-#endif
+#include "util/memory_helper.hpp"
 
 namespace fhatos {
   class Kernel {
@@ -166,11 +164,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config() {
-#ifdef ESP_ARCH
-      MemoryHelper::use_custom_stack(16384, mmadt::Parser::boot_config_parse);
-#else
-      mmadt::Parser::boot_config_parse();
-#endif
+      MemoryHelper::use_custom_stack(mmadt::Parser::boot_config_parse,FOS_BOOT_CONFIG_MEM_USAGE);
       LOG_KERNEL_OBJ(INFO, Router::singleton(),
                      "!bboot config!! !yobj!! loaded:\n" FOS_TAB_6 "%s\n",
                      Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID))->toString().c_str());
@@ -178,7 +172,7 @@ namespace fhatos {
     }
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
-      Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
+      Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH
       esp_restart();

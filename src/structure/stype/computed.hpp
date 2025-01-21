@@ -25,6 +25,7 @@ FhatOS: A Distributed Operating System
 #include "../structure.hpp"
 #include STR(../../process/ptype/HARDWARE/scheduler.hpp)
 
+// TODO: rename to virtual. redesign using objs as functions so its runtime configurable
 namespace fhatos {
   class Computed : public Structure {
   protected:

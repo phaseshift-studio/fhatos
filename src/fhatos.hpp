@@ -113,7 +113,7 @@ namespace fhatos {
   ////////////////////
   /// LAMBDA TYPES ///
   ////////////////////
-  typedef void (*VoidPtr)();
+  typedef void (*Runnable_p)();
 
   using Runnable = std::function<void()>;
   template<typename A>
@@ -189,6 +189,7 @@ namespace fhatos {
   // MACROS //
   ////////////
 #define FOS_BOOT_CONFIG_VALUE_ID "/sys/config"
+#define FOS_BOOT_CONFIG_MEM_USAGE 16384
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
     if ((p) != nullptr)                                                                                                \
@@ -226,7 +227,7 @@ namespace fhatos {
 #define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
 #define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
-#define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
+#define FOS_BYTES_MB(a) a, (((float) (a)) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s\n", (obj)->vid_->toString().c_str(), (ex).what())
 #define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \

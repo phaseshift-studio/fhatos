@@ -261,6 +261,24 @@ namespace mmadt {
           })
           ->save();
 
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/str" MMADT_INST_SCHEME "/merge"))->domain_range(
+            STR_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
+          ->type_args(x(0, "count", jnt(INT32_MAX)))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const int max = args->arg(0)->int_value();
+            const Objs_p objs = Obj::to_objs();
+            int counter = 0;
+            const char *chars = lhs->str_value().c_str();
+            for(int i = 0; i < lhs->str_value().length(); i++) {
+              if(i >= max)
+                break;
+              const char x = chars[i];
+              objs->add_obj(str(string(1, x)));
+            }
+            return objs;
+          })
+          ->save();
+
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/lst" MMADT_INST_SCHEME "/merge"))->domain_range(
             LST_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "count", jnt(INT32_MAX)))
@@ -278,7 +296,6 @@ namespace mmadt {
             }
             return objs;
           })
-
           ->save();
 
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/merge"))->domain_range(
@@ -358,18 +375,21 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/within"))->type_args(x(0, "code"))
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/within"))
+          ->type_args(x(0, "code"))
           ->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/within"))->
-          type_args(x(0, "code"))
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/within"))
+          ->type_args(x(0, "code"))
+          ->domain_range(STR_FURI, {1, 1}, STR_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const auto chars = make_shared<List<Str_p>>();
             const string xstr = lhs->str_value();
-            for(uint8_t i = 0; i < xstr.length(); i++) {
+            for(size_t i = 0; i < xstr.length(); i++) {
               chars->push_back(str(xstr.substr(i, 1)));
             }
-            const Objs_p strs = BCODE_PROCESSOR(/*Obj::to_objs(chars), */args->arg(0));
+            const BCode_p code = args->arg(0)->bcode_starts(Obj::to_objs(chars));
+            const Objs_p strs = BCODE_PROCESSOR(code);
             string ret;
             for(const Str_p &s: *strs->objs_value()) {
               ret += s->str_value();
@@ -378,16 +398,18 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/within"))->
-          type_args(x(0, "code"))
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/within"))
+          ->type_args(x(0, "code"))
+          ->domain_range(LST_FURI, {1, 1}, LST_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const BCode_p starts_bcode = args->arg(0)->bcode_starts(Obj::to_objs(lhs->lst_value()));
             return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value(), lhs->tid_, lhs->vid_);
           })
           ->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/within"))->
-          type_args(x(0, "code"))
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/within"))
+          ->type_args(x(0, "code"))
+          ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Objs_p pairs = Obj::to_objs();
             for(const auto &pair: *lhs->rec_value()) {

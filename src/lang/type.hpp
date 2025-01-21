@@ -27,7 +27,6 @@
 
 namespace fhatos {
   using std::const_pointer_cast;
-  //TODO: MAKE THIS THREAD_LOCAL
   thread_local ptr<ProgressBar> type_progress_bar_;
 
   class Typer final : public Obj {
@@ -117,7 +116,7 @@ namespace fhatos {
         using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
         Log::LOGGER(DEBUG, Typer::singleton().get(), " !yresolving!! !yinst!! %s [!gSTART!!]\n",
                     inst->toString().c_str());
-        Compiler compiler = Compiler(true, false);
+        const auto compiler = Compiler(true, false);
         if(inst->is_noobj())
           return inst;
         if(!lhs->is_noobj())
