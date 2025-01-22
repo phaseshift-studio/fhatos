@@ -34,9 +34,9 @@
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
-//#include "boot_config.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/fhatos/core_driver.hpp"
+#include STR(model/soc/memory/HARDWARE/memory.hpp)
 
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
@@ -72,30 +72,34 @@ namespace fhatos {
             ->with_ansi_color(args_parser->option_bool("--ansi", true))
             ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
-          kp->displaying_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
-              ->displaying_architecture()
-              ->displaying_history()
-              ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
+          kp->display_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
+              ->display_reset_reason()
+              ->display_architecture()
+              ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
-        return kp
-            ->displaying_notes("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+        kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-            ->using_router(Router::singleton("/sys/router"))
-            ////////////////// SYS STRUCTURE
-            ->mount(Heap<>::create("/sys/#"))
+            ->using_router(Router::singleton("/sys/router"));
+        if(args_parser->option_bool("--headers", true)) {
+          kp->display_memory("inst memory", Memory::instruction_memory())
+              ->display_memory("main memory", Memory::main_memory())
+              ->display_memory("psram memory", Memory::psram_memory());
+        }
+        ////////////////// SYS STRUCTURE
+        return kp->mount(Heap<>::create("/sys/#"))
             ->using_boot_config()
             ->import(Scheduler::import())
             ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
-            ->displaying_notes("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
+            ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/type/#"))
             ->mount(Heap<>::create(FOS_SCHEME "/#"))
             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
             ->import(FhatOSCoreDriver::import())
             ->install(Typer::singleton(FOS_SCHEME "/type"))
             ->import(mmadt::mmADT::import())
-            ->displaying_notes("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
+            ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/io/#"))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
@@ -113,17 +117,17 @@ namespace fhatos {
              ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-#if defined(NATIVE)
-            ->mount(Mqtt::create("//io/#", Router::singleton()
-                                 ->read(id_p("/sys/config"))
-                                 ->or_else(rec())
-                                 ->rec_get("mqtt")
-                                 ->or_else(Obj::to_rec({{"broker",
-                                     vri(args_parser->option_string(
-                                       "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                   {"client", vri(args_parser->option_string(
-                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
 
+#if defined(NATIVE)
+        ->mount(Mqtt::create("//io/#", Router::singleton()
+                                ->read(id_p("/sys/config"))
+                                ->or_else(rec())
+                                ->rec_get("mqtt")
+                                ->or_else(Obj::to_rec({{"broker",
+                                    vri(args_parser->option_string(
+                                      "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                  {"client", vri(args_parser->option_string(
+                                    "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif

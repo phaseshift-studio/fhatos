@@ -1,3 +1,3 @@
 [mqtt=>[
- broker=><mqtt://chibi.local:1883>,
+ broker=><mqtt://192.168.10.127:1883>,
  client=>fhatos_client]]@/sys/config

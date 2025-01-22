@@ -30,18 +30,12 @@
 namespace fhatos {
   class Log final : public Rec {
   protected:
-    explicit Log(const ID &value_id, const Rec_p &config) : Rec(config->rec_value(),
-                                                                OType::REC,
-                                                                REC_FURI,
+    explicit Log(const ID &value_id, const Rec_p &config) : Rec(config->rec_value(), OType::REC, REC_FURI,
                                                                 id_p(value_id)) {
     }
 
     template<typename... Args>
-    static void PRINT_LOG(
-      const LOG_TYPE type,
-      const Obj *source,
-      const char *format,
-      const Args... args) {
+    static void PRINT_LOG(const LOG_TYPE type, const Obj *source, const char *format, const Args... args) {
       std::lock_guard lock(stdout_mutex);
       if(type == NONE)
         printer<>()->print("");
@@ -55,12 +49,11 @@ namespace fhatos {
         printer<>()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
-      printer<>()->print((StringHelper::format(
-                            (source->vid_->equals(*Router::singleton()->vid_)
-                              /*|| source->vid_->equals(*SCHEDULER_ID)*/)
-                              ? SYS_ID_WRAP
-                              : OBJ_ID_WRAP, // TODO: once scheduler.hpp and .cpp are split
-                            source->vid_or_tid()->toString().c_str()) + " ").c_str());
+      printer<>()->print((StringHelper::format((source->vid_->equals(*Router::singleton()->vid_)
+                                                 /*|| source->vid_->equals(*SCHEDULER_ID)*/)
+                                                 ? SYS_ID_WRAP
+                                                 : OBJ_ID_WRAP, // TODO: once scheduler.hpp and .cpp are split
+                                               source->vid_or_tid()->toString().c_str()) + " ").c_str());
       printer<>()->print(StringHelper::format(format, args...).c_str());
     }
 

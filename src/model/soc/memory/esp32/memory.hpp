@@ -44,67 +44,70 @@ namespace fhatos {
       ///////
       this->read_functions_->insert(
         {inst, [this, inst, percent_id](const fURI_p &) {
-          const Rec_p r =
-              rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
-                {"free", jnt(ESP.getFreeSketchSpace())},
-                {"used",
-                  real(ESP.getSketchSize() == 0
-                         ? 0.0f
-                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) /
-                                              static_cast<float>(ESP.getSketchSize() + ESP.getFreeSketchSpace())))),
-                       percent_id)}});
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, instruction_memory()}}));
         }});
       this->read_functions_->insert(
         {heap, [this, heap, percent_id](const fURI_p &) {
-          const Rec_p r =
-              rec({{"total", jnt(ESP.getHeapSize())},
-                {"free", jnt(ESP.getFreeHeap())},
-                {"used",
-                  real(static_cast<float>(ESP.getHeapSize()) == 0
-                         ? 0.0f
-                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<float>(ESP.
-                                                getHeapSize())))),
-                       percent_id)}});
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, main_memory()}}));
         }});
 #ifdef CONFIG_SPIRAM_USE
       this->read_functions_->insert(
         {psram, [this, psram, percent_id](const fURI_p &) {
-          const Rec_p r =
-              rec({{"total", jnt(ESP.getPsramSize())},
-                {"free", jnt(ESP.getFreePsram())},
-                {"used",
-                  real(static_cast<float>(ESP.getPsramSize()) == 0
-                         ? 0.0f
-                         : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
-                                                getPsramSize())))),
-                       percent_id)}});
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, psram_memory()}}));
         }});
 #endif
       this->read_functions_->insert(
         {hwm, [this, hwm, percent_id](const fURI_p &) {
-          const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-          const Rec_p r =
-              rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
-                {"min_free", jnt(free)},
-                {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
-                                               FOS_ESP_THREAD_STACK_SIZE))),
-                              percent_id)}});
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
+          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, high_water_mark()}}));
         }});
     }
 
     // TODO: flash/partition/0x4434
 
-
   public:
     static ptr<Memory> singleton(const Pattern &pattern, const ID &id = ID("")) {
       static auto mem_p = ptr<Memory>(new Memory(pattern, id));
       return mem_p;
+    }
+
+    //static const  Real_p percentage = REAL_FURI;;
+
+    static Rec_p instruction_memory() {
+      return Obj::to_rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
+        {"free", jnt(ESP.getFreeSketchSpace())},
+        {"used", real(ESP.getSketchSize() == 0
+                        ? 0.0f
+                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) / static_cast<float>(
+                                               ESP.getSketchSize() + ESP.getFreeSketchSpace())))), REAL_FURI)}});
+    }
+
+    static Rec_p main_memory() {
+      return Obj::to_rec({{"total", jnt(ESP.getHeapSize())},
+        {"free", jnt(ESP.getFreeHeap())},
+        {"used", real(static_cast<float>(ESP.getHeapSize()) == 0
+                        ? 0.0f
+                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<float>(ESP.
+                                               getHeapSize())))), REAL_FURI)}});
+    }
+
+    static Rec_p psram_memory() {
+      return Obj::to_rec({{"total", jnt(ESP.getPsramSize())},
+        {"free", jnt(ESP.getFreePsram())},
+        {"used",
+          real(static_cast<float>(ESP.getPsramSize()) == 0
+                 ? 0.0f
+                 : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
+                                        getPsramSize())))), REAL_FURI)}});
+    }
+
+    static Rec_p high_water_mark() {
+      const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+      return Obj::to_rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
+        {"min_free", jnt(free)},
+        {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
+                        ? 0.0f
+                        : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
+                                       FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
     }
   };
 } // namespace fhatos

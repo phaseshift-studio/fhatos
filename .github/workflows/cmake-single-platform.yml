@@ -17,23 +17,23 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: Action Information
+    - name: action information
       run: |
         whoami
         sudo chmod 777 --recursive /usr/local
 
-    - name: Install Python
+    - name: install python
       uses: actions/setup-python@v1
 
-    - name: Install markdown-code-runner
+    - name: install markdown-code-runner
       run: pip install markdown-code-runner
 
-    - name: Install PlatformIO
+    - name: install platform_io
       run: |
         python -m pip install --upgrade pip
         pip install platformio
 
-    - name: Created Faux WiFi Configuration
+    - name: create faux wifi configuration
       working-directory: ${{github.workspace}}
       run: |
         touch .wifi.ini
@@ -45,40 +45,41 @@ jobs:
         echo "        -DMQTT_BROKER_PORT=1833" >> .wifi.ini
         chmod 664 .wifi.ini
 
-    - name: Install PlatformIO Library
+    - name: install platform_io library
       run: |
         pio lib install
         export PATH=$PATH:$HOME/.local/bin
 
-    - name: Install MQTT C Library
+    - name: install mqtt library
       working-directory: ${{github.workspace}}
       run: |
         sudo apt-get install libpaho-mqtt-dev
+        sudo apt-get install libavahi-client-dev
 
-    - name: Fhat-Dev Build
+    - name: fhat-dev build
       working-directory: ${{github.workspace}}
       env:
         CC: clang
       run: |
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
-        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=OFF -DUSE_CCACHE=OFF
-        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON -DUSE_CCACHE=OFF
+        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DBUILD_TESTS=ON -DUSE_CCACHE=OFF
 
-    - name: Deploy MQTT Broker
+    - name: deploy mqtt broker
       working-directory: ${{github.workspace}}
       run: |
         sudo apt-get install mosquitto
         /usr/local/opt/mosquitto/sbin/mosquitto -c conf/mosquitto.conf &
 
-    - name: Fhat-Dev Test
+    - name: fhat-dev test
       working-directory: ${{github.workspace}}
       env:
         CC: clang
       run: |
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
-        sudo -E bin/fhat-dev test native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON -DUSE_CCACHE=OFF
+        cd build/test
+        ctest .
 
 #  chmod 777 bin/fhat-dev
   #        sudo bin/fhat-dev build

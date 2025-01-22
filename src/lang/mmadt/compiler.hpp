@@ -68,9 +68,9 @@ namespace fhatos {
       return this;
     }
 
-    Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
+    [[nodiscard]] Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
 
-    Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
+    [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
 
@@ -79,7 +79,7 @@ namespace fhatos {
 
     bool type_check(const Obj *value_obj, const ID_p &type_id) const;
 
-    bool type_check(const Obj_p &value_obj, const ID_p &type_id) const {
+    [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID_p &type_id) const {
       return this->type_check(value_obj.get(), type_id);
     }
 

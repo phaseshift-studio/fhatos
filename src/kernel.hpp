@@ -55,17 +55,17 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> displaying_splash(const char *splash) {
+    static ptr<Kernel> display_splash(const char *splash) {
       printer<>()->print(splash);
       return Kernel::build();
     }
 
-    static ptr<Kernel> displaying_notes(const char *notes) {
+    static ptr<Kernel> display_note(const char *notes) {
       printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
 
-    static ptr<Kernel> displaying_architecture() {
+    static ptr<Kernel> display_architecture() {
       string fhatos = STR(FOS_NAME) "-" STR(FOS_VERSION);
       string machine_sub_os = STR(FOS_MACHINE_SUBOS);
       string machine_arch = STR(FOS_MACHINE_ARCH);
@@ -81,7 +81,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> displaying_history() {
+    static ptr<Kernel> display_reset_reason() {
 #ifdef ESP_ARCH
       esp_reset_reason_t reason = esp_reset_reason();
       string r;
@@ -116,6 +116,12 @@ namespace fhatos {
       }
       printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n",r.c_str());
 #endif
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> display_memory(const string &label, const Rec_p &info) {
+      if(!info->is_noobj())
+        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! %s\n", label.c_str(), info->toString().c_str());
       return Kernel::build();
     }
 
