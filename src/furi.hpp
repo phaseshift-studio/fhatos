@@ -737,9 +737,12 @@ namespace fhatos {
             part = URI_PART::PATH;
           } else if(c == ':') {
             if(part == URI_PART::SCHEME) {
-              this->scheme_ = strdup(token.c_str());
+              if(!token.empty()) {
+                this->scheme_ = strdup(token.c_str());
+                token.clear();
+              } else
+                token += c;
               part = URI_PART::USER;
-              token.clear();
             } else if(part == URI_PART::USER) {
               if(hasUserInfo) {
                 this->user_ = strdup(token.c_str());

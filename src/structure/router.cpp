@@ -28,30 +28,8 @@ namespace fhatos {
     return router_p;
   }
 
-  Router::Router(const ID &id) : Rec(rmap({
-                                       {"structure", to_lst()},
-                                       {"resolve", to_rec({
-                                         {"namespace",
-                                           to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")},
-                                             {"math:", vri("/mmadt/ext/math")}})},
-                                         {"auto_prefix",
-                                           to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})}}),
-                                     /*{":stop", to_inst(
-                                       [this](const Obj_p &, const InstArgs &) {
-                                         this->write(this->vid_, _noobj_);
-                                         this->stop();
-                                         return noobj();
-                                       }, %s, INST_FURI,
-                                       make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
-                                     {":attach", to_inst(
-                                       [this](const Obj_p &obj, const InstArgs &args) {
-                                         if(args->arg(0)->tid_->name() == "heap")
-                                           this->attach(make_shared<Heap<>>(obj));
-                                         else if(args->arg(0)->tid_->name() == "mqtt")
-                                           this->attach(make_shared<Mqtt>(obj));
-                                         return noobj();
-                                       }, {x(0, Obj::to_bcode())}, INST_FURI,
-                                       make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
+  Router::Router(const ID &id) : Rec(rmap({{"structure", to_lst()}}),
+                                     //stop and attach
                                      OType::REC, REC_FURI, id_p(id)),
                                  structures_(make_unique<MutexDeque<Structure_p>>()) {
     ////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +67,18 @@ namespace fhatos {
     if(nullptr == THREAD_FRAME_STACK)
       throw fError("there are no more frames on the stack");
     THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
+  }
+
+  void Router::load_config(const ID &config_id) {
+    const Obj_p config = this->read(id_p(config_id));
+    if(config->is_noobj())
+      LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", FOS_BOOT_CONFIG_VALUE_ID);
+    if(!config->is_noobj()) {
+      const Rec_p router_config = config->rec_get(vri("router"));
+      for(auto [k, v]: *router_config->rec_value()) {
+        this->rec_set(k->clone(), v->clone());
+      }
+    }
   }
 
 
@@ -229,10 +219,12 @@ namespace fhatos {
 
   void *Router::import() {
     Router::singleton()->write(Router::singleton()->vid_, Router::singleton(),RETAIN);
-    InstBuilder::build(Router::singleton()->vid_->extend("detach"))
-        ->domain_range(URI_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
-        ->inst_f([](const Obj_p &lhs, const InstArgs &) {
-          Router::singleton()->get_structure(p_p(lhs->uri_value()))->stop();
+    Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
+    InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
+        ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+        ->type_args(x(0, ___()))
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
           return noobj();
         })->save();
     return nullptr;
@@ -241,15 +233,15 @@ namespace fhatos {
   Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_on_error) const {
     const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
-    for(const Structure_p& s : *this->structures_) {
+    for(const Structure_p &s: *this->structures_) {
       if(pattern->matches(*s->pattern()) || temp->matches(*s->pattern())) {
         if(found && throw_on_error)
-          throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern->toString().c_str());
+          throw fError("!b%s!! crosses multiple structures", pattern->toString().c_str());
         found = s;
       }
     }
     if(!found && throw_on_error)
-      throw fError(ROUTER_FURI_WRAP " no structure exists for !b%s!!", pattern->toString().c_str());
+      throw fError("!b%s!! !yuri!! has no structure", pattern->toString().c_str());
     return found ? found : nullptr;
   }
 

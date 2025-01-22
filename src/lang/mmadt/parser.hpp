@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../util/peglib.h"
-#include "../../boot_config.hpp"
+#include "../../boot_config_loader.hpp"
 
 using namespace peg;
 using namespace std;
@@ -157,7 +157,7 @@ namespace mmadt {
       proto->parse((const char *) boot_config_obj);
     }
 
-    Obj_p parse(const char *source) {
+    Obj_p parse(const char *source) const {
       static QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
           [](const size_t line, const size_t column, const string &message, const string &rule) {
         throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",

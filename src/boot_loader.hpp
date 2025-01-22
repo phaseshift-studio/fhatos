@@ -91,8 +91,8 @@ namespace fhatos {
         ////////////////// SYS STRUCTURE
         return kp->mount(Heap<>::create("/sys/#"))
             ->using_boot_config()
-            ->import(Scheduler::import())
             ->import(Router::import())
+            ->import(Scheduler::import())
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/type/#"))
@@ -123,15 +123,15 @@ namespace fhatos {
 #endif
 
 #if defined(NATIVE)
-        ->mount(Mqtt::create("//io/#", Router::singleton()
-                                ->read(id_p("/sys/config"))
-                                ->or_else(rec())
-                                ->rec_get("mqtt")
-                                ->or_else(Obj::to_rec({{"broker",
-                                    vri(args_parser->option_string(
-                                      "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                  {"client", vri(args_parser->option_string(
-                                    "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
+            ->mount(Mqtt::create("//io/#", Router::singleton()
+                                 ->read(id_p("/sys/config"))
+                                 ->or_else(rec())
+                                 ->rec_get("mqtt")
+                                 ->or_else(Obj::to_rec({{"broker",
+                                     vri(args_parser->option_string(
+                                       "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                   {"client", vri(args_parser->option_string(
+                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif

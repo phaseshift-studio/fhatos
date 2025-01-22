@@ -2037,6 +2037,10 @@ namespace fhatos {
       return Obj::to_bcode(make_shared<InstList>(), type_id, value_id);
     }
 
+    static BCode_p ___() {
+      return to_bcode();
+    }
+
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI, const ID_p &value_id = nullptr) {
       const auto list = make_shared<List<Obj_p>>();
       for(const auto &obj: *objs) {

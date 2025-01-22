@@ -25,8 +25,6 @@
 #include "../lang/obj.hpp"
 
 namespace fhatos {
-
-
   class Router final : public Rec {
   protected:
     const unique_ptr<MutexDeque<Structure_p>> structures_;
@@ -35,6 +33,8 @@ namespace fhatos {
     ~Router() override = default;
 
     explicit Router(const ID &id);
+
+    void load_config(const ID& config_id);
 
     static ptr<Router> singleton(const ID &value_id = "/sys/router/");
 
@@ -58,7 +58,7 @@ namespace fhatos {
 
     void subscribe(const Subscription_p &subscription);
 
-    static void push_frame(const Pattern& pattern, const Rec_p& frame_data);
+    static void push_frame(const Pattern &pattern, const Rec_p &frame_data);
 
     static void pop_frame();
 

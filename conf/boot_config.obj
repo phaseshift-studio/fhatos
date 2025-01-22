@@ -1,3 +1,8 @@
-[mqtt=>[
- broker=><mqtt://192.168.10.127:1883>,
- client=>fhatos_client]]@/sys/config
+[router=>[
+  resolve=>[
+   namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
+   auto_prefix=>[<>,/mmadt/,/fos/,/sys/]]],
+ mqtt=>[
+  broker=><mqtt://192.168.10.127:1883>,
+  client=>fhatos_client]
+]@/sys/config

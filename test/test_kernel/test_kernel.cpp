@@ -109,8 +109,9 @@ void test_basic_kernel() {
              ->using_router(Router::singleton("/sys/router"))
              ////////////////// SYS STRUCTURE
              ->mount(Heap<ALLOC>::create("/sys/#"))
-             ->import(Scheduler::import())
-             ->import(Router::import())
+            ->using_boot_config()
+            ->import(Router::import())
+            ->import(Scheduler::import())
              ////////////////// USER STRUCTURE(S)
              ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
              ->mount(Heap<>::create("/type/#"))

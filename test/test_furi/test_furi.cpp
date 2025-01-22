@@ -384,7 +384,7 @@ namespace fhatos {
   }
 
   void test_uri_scheme_path() {
-    TEST_ASSERT_TRUE(fURI(":root").is_scheme_path());
+    TEST_ASSERT_FALSE(fURI(":root").is_scheme_path());
     TEST_ASSERT_TRUE(fURI("fs:root").is_scheme_path());
     TEST_ASSERT_TRUE(fURI("fs:/root").is_scheme_path());
     TEST_ASSERT_TRUE(fURI("fs:/root/").is_scheme_path());
