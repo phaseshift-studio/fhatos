@@ -218,10 +218,10 @@ namespace mmadt {
             return lhs;
           })->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/from"))->domain_range(
-            OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->type_args(x(0, "rhs", Obj::to_bcode()), x(1, "default", Obj::to_noobj()))
-          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/from"))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->type_args(x(0, "uri", Obj::to_bcode()), x(1, "default", Obj::to_noobj()))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p result = Router::singleton()->read(args->arg(0)->uri_p_value<fURI>());
             return result->is_noobj() ? args->arg(1) : result;
           })

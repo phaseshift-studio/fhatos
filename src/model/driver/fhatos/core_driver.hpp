@@ -40,7 +40,7 @@ namespace fhatos {
                                       {":on_recv", Obj::to_bcode()}}));
 
       Typer::singleton()->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-      InstBuilder::build(id_p("/fos/lib/heap/create"))
+      InstBuilder::build(id_p("/fos/lib/heap/:create"))
           ->type_args(x(0, "pattern"))
           ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {

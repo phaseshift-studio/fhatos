@@ -68,7 +68,7 @@ namespace fhatos {
       } else if(obj->is_lst() && nest_value > depth) {
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : ""));
+                         (obj->is_base_type() ? "" : obj->tid_->name().c_str()));
         }
         to_out->append("!m[!!\n");
         for(const auto &e: *obj->lst_value()) {
@@ -82,13 +82,12 @@ namespace fhatos {
           }
         }
         to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->tid_->path_length() > 2
-                          ? StringHelper::repeat(obj->tid_->name().length(), " ").c_str()
-                          : "") + "!m]!!\n");
+                       (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid_->name().length(), " ").c_str()) +
+                       "!m]!!\n");
       } else if(obj->is_rec() && nest_value > depth) {
         if(!parent_rec) {
           to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->tid_->path_length() > 2 ? obj->tid_->name().c_str() : ""));
+                         (obj->is_base_type() ? "" : obj->tid_->name().c_str()));
         }
         to_out->append("!m[!!\n");
         for(const auto &[key, value]: *obj->rec_value()) {

@@ -101,7 +101,7 @@ namespace fhatos {
 
     virtual void stop() {
       if(!this->available_.load())
-        LOG_STRUCTURE(WARN, this, "!ystructure!! unavailable\n");
+        LOG_STRUCTURE(WARN, this, "!ystructure!! already stopped\n");
       this->subscriptions_->clear();
       this->outbox_->clear(false);
       this->available_ = false;

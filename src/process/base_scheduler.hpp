@@ -123,7 +123,7 @@ namespace fhatos {
         this->router_ = Router::singleton();
       while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
             && (this->barrier_.first && this->barrier_.second)) {
-        this->router_;
+        this->router_->loop();
         this->feed_local_watchdog();
       }
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());

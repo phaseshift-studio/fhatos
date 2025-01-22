@@ -206,7 +206,6 @@ namespace fhatos {
           }
         } else {
           //const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj, this->inst);
-
           const Inst_p current_inst_resolved = this->processor_->compiler_->resolve_inst(this->obj, this->inst);
           LOG_OBJ(TRACE, this->processor_, "monad %s applying to resolved inst %s !m=>!! %s [!m%s!!]\n",
                   this->toString().c_str(),

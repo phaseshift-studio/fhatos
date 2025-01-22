@@ -83,6 +83,7 @@
   Router::singleton()->attach(Heap<>::create(Pattern("/sys/#")));        \
   mmadt::Parser::boot_config_parse(); \
   Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID); \
+  Router::singleton()->import(); \
   Router::singleton()->attach(Heap<>::create(Pattern("/fos/#")));        \
   void* x = fhatos::FhatOSCoreDriver::import();               \
   Router::singleton()->attach(Heap<>::create(Pattern("/io/log/#")));

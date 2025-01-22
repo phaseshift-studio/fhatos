@@ -19,6 +19,7 @@
 #include "router.hpp"
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
+#include "stype/heap.hpp"
 
 namespace fhatos {
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
@@ -84,7 +85,7 @@ namespace fhatos {
 
   void Router::loop() const {
     bool remove = false;
-    for(Structure_p &s: *this->structures_) {
+    for(const Structure_p &s: *this->structures_) {
       if(!s->available())
         remove = true;
       else
@@ -93,12 +94,13 @@ namespace fhatos {
     if(remove) {
       this->structures_->remove_if([this](const Structure_p &structure) {
         if(!structure->available()) {
-          LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
+          LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!! detached\n", structure->pattern()->toString().c_str(),
                          structure->tid_->name().c_str());
           return true;
         }
         return false;
       });
+      this->save();
     }
   }
 
@@ -226,6 +228,14 @@ namespace fhatos {
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
           return noobj();
+        })->save();
+    InstBuilder::build(Router::singleton()->vid_->extend(":attach"))
+        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
+        ->type_args(x(0, ___()))
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const auto heap = make_shared<Heap<>>(args->arg(0));
+          Router::singleton()->attach(heap);
+          return heap;
         })->save();
     return nullptr;
   }

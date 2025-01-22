@@ -70,7 +70,7 @@ namespace fhatos {
 
     [[nodiscard]] Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
 
-    [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const;
+    [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const;
 
     Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
 

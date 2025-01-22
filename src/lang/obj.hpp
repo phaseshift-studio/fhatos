@@ -1635,8 +1635,7 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       switch(this->o_type()) {
-        case OType::TYPE:
-          return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid_);
+        case OType::TYPE: return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid_);
         case OType::BOOL:
         case OType::INT:
         case OType::REAL:
@@ -1664,7 +1663,7 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           auto compiler = Compiler(true, false);
-          const Inst_p inst = compiler.resolve_inst(lhs, this->clone());
+          const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
             if(compiler.reset(true, true)->type_check(lhs, inst->domain())) {
@@ -1708,6 +1707,8 @@ namespace fhatos {
         }
         case OType::BCODE: {
           if(this->is_empty_bcode()) return lhs;
+          if(!lhs->is_objs() && 1 == this->bcode_value()->size()) // TODO: this is because barriers
+            return this->bcode_value()->front()->apply(lhs);
           return BCODE_PROCESSOR(this->bcode_starts(to_objs({lhs})))->none_one_all();
         }
         case OType::OBJS: {
