@@ -103,7 +103,7 @@ namespace fhatos {
            return _noobj_;
          })->create(id_p("/sys/lib/scheduler/process/:stop"));*/
 
-    virtual ~Process() = default;
+    ~Process() override = default;
 
     void feed_watchdog_via_counter() {
       if(++this->wdt_timer_counter >= FOS_PROCESS_WDT_COUNTER) {

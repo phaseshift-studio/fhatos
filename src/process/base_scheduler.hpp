@@ -38,6 +38,7 @@ namespace fhatos {
     MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<scheduler_processes>");
     bool running_ = true;
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
+    ptr<Router> router_ = nullptr;
 
   public:
     explicit BaseScheduler(const ID &id = ID("/scheduler")) : Rec(rmap({
@@ -59,7 +60,7 @@ namespace fhatos {
         })));*/
     }
 
-   ~BaseScheduler() override {
+    ~BaseScheduler() override {
       delete processes_;
       FEED_WATCDOG = []() {
       };
@@ -118,9 +119,11 @@ namespace fhatos {
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if(message)
         LOG_KERNEL_OBJ(INFO, this, message);
+      if(!this->router_)
+        this->router_ = Router::singleton();
       while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
             && (this->barrier_.first && this->barrier_.second)) {
-        Router::singleton()->loop();
+        this->router_;
         this->feed_local_watchdog();
       }
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
