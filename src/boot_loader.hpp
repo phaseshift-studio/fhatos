@@ -36,6 +36,7 @@
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/fhatos/core_driver.hpp"
+
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 
 //////////// ESP SOC MODELS /////////////
@@ -45,6 +46,7 @@
 #endif
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
+#include "model/driver/gpio/arduino_gpio_driver.hpp"
 #endif
 
 #ifdef NATIVE
@@ -108,6 +110,7 @@ namespace fhatos {
             ->install(Log::create("/io/log"))
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
+            ->import(ArduinoGPIODriver::import("/io/lib/gpio"))
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
@@ -115,6 +118,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
             // ->mount(HeapPSRAM::create("/psram/#"))
              ->mount(Memory::singleton("/soc/memory/#"))
+
             //->structure(BLE::create("/io/bt/#"))
 #endif
 
