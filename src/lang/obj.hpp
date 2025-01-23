@@ -2311,6 +2311,10 @@ namespace fhatos {
         })));
   }
 
+  /*static Obj_p from(const string &uri, const Obj_p &default_arg = noobj()) {
+    return from(vri(uri),default_arg);
+  }*/
+
   [[maybe_unused]] static Inst_p block(const Obj_p &arg) {
     return Obj::to_inst({arg}, id_p("block"));
   }

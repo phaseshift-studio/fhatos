@@ -124,9 +124,7 @@ namespace fhatos {
 
 #if defined(NATIVE)
             ->mount(Mqtt::create("//io/#", Router::singleton()
-                                 ->read(id_p("/sys/config"))
-                                 ->or_else(rec())
-                                 ->rec_get("mqtt")
+                                 ->read(id_p("/sys/config/mqtt"))
                                  ->or_else(Obj::to_rec({{"broker",
                                      vri(args_parser->option_string(
                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
@@ -143,7 +141,9 @@ namespace fhatos {
 
 
             // ->mount(Heap<>::create("/console/#"))
-            ->process(Console::create("/io/console", Obj::to_rec({
+            ->process(Console::create("/io/console", Router::singleton()
+                                      ->read(id_p("/sys/config/console"))
+                                      ->or_else(Obj::to_rec({
                                         {"terminal",
                                           Obj::to_rec({
                                             {"stdout", vri("/io/terminal/:stdout")},
@@ -153,8 +153,8 @@ namespace fhatos {
                                           str(args_parser->option_string("--console:prompt", "!mfhatos!g>!! "))},
                                         {"strict", dool(args_parser->option_bool("--console:strict", false))},
                                         {"log", vri(args_parser->option_string("--log", "INFO"))}
-                                      })))
-            ->eval([args_parser] { delete args_parser; });
+                                      }))))
+              ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());

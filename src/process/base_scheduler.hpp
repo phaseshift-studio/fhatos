@@ -142,40 +142,48 @@ namespace fhatos {
 
   protected:
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
-      scheduler->this_add("/:spawn",
-                          InstBuilder::build(scheduler->vid_->add_component(":spawn"))
-                          ->type_args(x(0, "thread", Obj::to_bcode()))
-                          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
-                          ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-                            const auto &p = make_shared<Thread>(args->arg(0)->vid_, args->arg(0)->at(nullptr));
-                            p.get()->vid_ = args->arg(0)->vid_;
-                            scheduler->spawn(p);
-                            return p;
-                          })
-                          // ->doc("spawn a parallel thread of execution")
-                          ->create())
-          ->this_add("/:stop",
-                     InstBuilder::build(":stop")
-                     ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-                     ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
-                       scheduler->stop();
-                       return noobj();
-                     })
-                     ->create())
-          ///// OBJECTS
-          ->this_add("/lib/thread", Obj::to_inst(
-                       make_shared<InstValue>(make_tuple<InstArgs, InstF_p, Obj_p>(
-                         Obj::to_rec({{"loop", Obj::to_bcode()}}),
-                         make_shared<std::variant<Obj_p, Cpp_p>>(Obj::to_rec({
-                           {":loop", from(vri("loop"), Obj::to_noobj())}})),
-                         Obj::to_noobj())),
-                       id_p(ID(scheduler->vid_->toString().append("lib/thread")).query({
-                         {"dom", OBJ_FURI->toString()},
-                         {"dc", "0,1"},
-                         {"rng", REC_FURI->toString()},
-                         {"rc", "1,1"}
-                       }))))
+      InstBuilder::build(scheduler->vid_->extend(":spawn"))
+          ->type_args(x(0, "thread", Obj::to_bcode()))
+          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+          ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+            const auto &p = make_shared<Thread>(args->arg(0)->vid_, args->arg(0)->at(nullptr));
+            p.get()->vid_ = args->arg(0)->vid_;
+            scheduler->spawn(p);
+            return p;
+          })
+          // ->doc("spawn a parallel thread of execution")
           ->save();
+      InstBuilder::build(scheduler->vid_->extend(":stop"))
+          ->inst_args(rec())
+          ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+          ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
+            scheduler->stop();
+            return noobj();
+          })
+          ->save();
+      ///// OBJECTS
+      InstBuilder::build(scheduler->vid_->extend("/lib/thread"))
+          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+          ->type_args(rec({{"loop", Obj::___()}}))
+          ->inst_f(Obj::to_rec({{":loop", from(vri("loop"), Obj::to_noobj())}}))
+          //->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+          //  return Obj::to_rec({{":loop", args->arg("loop")}});
+          //})
+          ->save();
+      /*
+      scheduler->this_add("/lib/thread", Obj::to_inst(
+                            make_shared<InstValue>(make_tuple<InstArgs, InstF_p, Obj_p>(
+                              Obj::to_rec({{"loop", Obj::to_bcode()}}),
+                              make_shared<std::variant<Obj_p, Cpp_p>>(Obj::to_rec({
+                                {":loop", from(vri("loop"), Obj::to_noobj())}})),
+                              Obj::to_noobj())),
+                            id_p(ID(scheduler->vid_->toString().append("lib/thread")).query({
+                              {"dom", OBJ_FURI->toString()},
+                              {"dc", "0,1"},
+                              {"rng", REC_FURI->toString()},
+                              {"rc", "1,1"}
+                            }))));*/
+      scheduler->save();
       return nullptr;
     }
   };

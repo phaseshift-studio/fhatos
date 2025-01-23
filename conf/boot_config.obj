@@ -4,5 +4,15 @@
    auto_prefix=>[<>,/mmadt/,/fos/,/sys/]]],
  mqtt=>[
   broker=><mqtt://192.168.10.127:1883>,
-  client=>fhatos_client]
+  client=>fhatos_client],
+ console=>[
+  terminal=>[
+   stdout=>/io/terminal/:stdout,
+   stdin=>/io/terminal/:stdin
+  ],
+  nest=>2,
+  prompt=>'fhatos> ',
+  strict=>false,
+  log=>INFO
+ ]
 ]@/sys/config

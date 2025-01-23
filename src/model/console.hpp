@@ -217,7 +217,7 @@ namespace fhatos {
                                return noobj();
                              })
                              ->create()},
-                           {"config", config}}, THREAD_FURI, id_p(value_id))) {
+                           {"config", config->clone()}}, THREAD_FURI, id_p(value_id))) {
     }
 
   public:

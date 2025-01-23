@@ -237,6 +237,12 @@ namespace fhatos {
           Router::singleton()->attach(heap);
           return heap;
         })->save();
+    InstBuilder::build(Router::singleton()->vid_->extend(":stop"))
+        ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          Router::singleton()->stop();
+          return Obj::to_noobj();
+        })->save();
     return nullptr;
   }
 

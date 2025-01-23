@@ -395,6 +395,12 @@ namespace fhatos {
 
   void test_uri_colon_path() {
   TEST_ASSERT_EQUAL_STRING("/mmadt/int/::/zero",fURI("/mmadt/int::zero").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("",fURI("/sys/scheduler/:stop").scheme());
+  TEST_ASSERT_EQUAL_STRING("",fURI("/sys/scheduler/:stop").host());
+  TEST_ASSERT_EQUAL_STRING("",fURI("/sys/scheduler/:stop").user());
+  TEST_ASSERT_EQUAL_STRING("",fURI("/sys/scheduler/:stop").password());
+  TEST_ASSERT_EQUAL_STRING("/sys/scheduler/:stop",fURI("/sys/scheduler/:stop").path().c_str());
+  TEST_ASSERT_EQUAL_STRING(":stop",fURI("/sys/scheduler/:stop").name().c_str());
   //TEST_ASSERT_EQUAL_STRING("/mmadt/int//::/zero",fURI("/mmadt/int/::zero").toString().c_str());
   //TEST_ASSERT_EQUAL_STRING("/mmadt/int//:://zero",fURI("/mmadt/int/::/zero").toString().c_str());
   //TEST_ASSERT_EQUAL_STRING("/mmadt/int/:://zero",fURI("/mmadt/int::/zero").toString().c_str());

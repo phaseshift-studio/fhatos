@@ -66,8 +66,16 @@ namespace fhatos {
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
     if(!inst_obj->inst_f()) {
+      if(inst->vid_ && !inst->vid_->is_relative()) {
+        inst_obj = Router::singleton()->read(inst->vid_);
+        if(dt) dt->emplace_back(OBJ_FURI, inst->vid_, inst_obj);
+      }
+      /*if((inst_obj->is_noobj() || !inst_obj->inst_f()) && !inst->tid_->is_relative()) {
+        inst_obj = Router::singleton()->read(inst->tid_);
+        if(dt) dt->emplace_back(OBJ_FURI, inst->tid_, inst_obj);
+      }*/
       const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid_));
-      if(lhs->vid_) {
+      if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid_) {
         inst_obj = Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved)));
         if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
       }
@@ -95,31 +103,31 @@ namespace fhatos {
         string derivation_string;
         if(dt) this->print_derivation_tree(&derivation_string);
         else {
-          auto c = Compiler(false, true);
+          const auto c = Compiler(false, true);
           c.resolve_inst(lhs, inst);
           c.print_derivation_tree(&derivation_string);
         }
         throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->tid_->toString().c_str(),
                      inst->tid_->toString().c_str(), derivation_string.c_str());
       }
-        }
+    }
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
 
-  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_a, const Inst_p &inst_b) const {
+  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const {
     Inst_p inst_c;
-    if(inst_b->is_inst()) {
-      LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
-          inst_b->toString().c_str(),
-          inst_a->toString().c_str(),
+    if(inst_resolved->is_inst()) {
+      LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
+          inst_resolved->toString().c_str(),
+          inst_provided->toString().c_str(),
           "SIGNATURE HERE");
       const auto merged_args = Obj::to_inst_args();
       int counter = 0;
-      for(const auto &[k,v]: *inst_b->inst_args()->rec_value()) {
-        if(inst_a->has_arg(k))
-          merged_args->rec_value()->insert({k, inst_a->arg(k)});
-        else if(inst_a->is_indexed_args() && counter < inst_a->inst_args()->rec_value()->size())
-          merged_args->rec_value()->insert({k, inst_a->arg(counter)});
+      for(const auto &[k,v]: *inst_resolved->inst_args()->rec_value()) {
+        if(inst_provided->has_arg(k))
+          merged_args->rec_value()->insert({k, inst_provided->arg(k)});
+        else if(inst_provided->is_indexed_args() && counter < inst_provided->inst_args()->rec_value()->size())
+          merged_args->rec_value()->insert({k, inst_provided->arg(counter)});
         else
           merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
         // TODO: hack to get the default from from();
@@ -128,25 +136,26 @@ namespace fhatos {
       // TODO: recurse off inst for all inst_arg getter/setters
 
       inst_c = Obj::to_inst(
-        inst_b->inst_op(),
+        inst_resolved->inst_op(),
         merged_args,
-        inst_b->inst_f(),
-        inst_b->inst_seed_supplier(),
-        inst_b->tid_,
-        inst_b->vid_);
+        inst_resolved->inst_f(),
+        inst_resolved->inst_seed_supplier(),
+        inst_resolved->tid_,
+        inst_resolved->vid_);
       /// TODO ^--- inst->vid_);
     } else {
       inst_c = Obj::to_inst(
-        inst_a->inst_op(),
-        inst_a->inst_args(),
+        inst_provided->inst_op(),
+        inst_provided->inst_args(),
         make_shared<InstF>(make_shared<Cpp>(
-          [x = inst_b->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+          [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
             return x->apply(lhs, args);
           })),
-        inst_a->inst_seed_supplier(),
-        inst_a->tid_, inst_a->vid_);
+        inst_provided->inst_seed_supplier(),
+        inst_provided->tid_,
+        inst_provided->vid_);
     }
-    if(dt) this->dt->emplace_back(inst_b->tid_, inst_c->tid_, inst_c);
+    if(dt) this->dt->emplace_back(inst_resolved->tid_, inst_c->tid_, inst_c);
     LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
     return inst_c;
   }

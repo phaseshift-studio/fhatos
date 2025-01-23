@@ -210,7 +210,7 @@ namespace fhatos {
           ////////////////////////////////////////////////////////////////////////////////
         }
         if(final_inst->is_inst()) {
-          LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m&s!!]\n",
+          LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
               final_inst->toString().c_str(),
               inst->toString().c_str(),
               "SIGNATURE HERE");

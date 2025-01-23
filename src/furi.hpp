@@ -773,6 +773,8 @@ namespace fhatos {
             }
           } else if(c == '/') {
             if(part == URI_PART::PORT) {
+              if(!StringHelper::is_integer(token))
+                throw fError("uri port not an int: %s", token.c_str());
               this->port_ = stoi(token);
               part = URI_PART::PATH;
               this->sprefix_ = true;
@@ -865,6 +867,8 @@ namespace fhatos {
           } else if(part == URI_PART::HOST || part == URI_PART::USER) {
             this->host_ = strdup(token.c_str());
           } else if(part == URI_PART::PORT) {
+            if(!StringHelper::is_integer(token))
+              throw fError("!yuri!! port not an !bint!!: %s", token.c_str());
             this->port_ = stoi(token);
           } else if(part == URI_PART::QUERY) {
             free((void *) this->query_);
