@@ -62,8 +62,8 @@ namespace fhatos {
                                                                          nullptr), pattern_(p_p(pattern)) {
     }
 
-    explicit Structure(const Rec_p &structure_rec) : Obj(*structure_rec),
-                                                     pattern_(p_p(structure_rec->rec_get("pattern")->uri_value())) {
+    explicit Structure(const Rec_p &config) : Obj(*config),
+                                              pattern_(p_p(config->rec_get("pattern")->uri_value())) {
     }
 
     [[nodiscard]] Pattern_p pattern() const {
@@ -214,7 +214,11 @@ namespace fhatos {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
-      const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+").no_query()) : furi->has_query() ? furi_p(furi->no_query()) : furi;
+      const fURI_p temp = furi->is_branch()
+                            ? furi_p(furi->extend("+").no_query())
+                            : furi->has_query()
+                                ? furi_p(furi->no_query())
+                                : furi;
       const IdObjPairs matches = this->read_raw_pairs(temp);
       if(furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
@@ -267,8 +271,7 @@ namespace fhatos {
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
-        return;
+        throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s\n", obj->toString().c_str());
       }
       if(furi->has_query()) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

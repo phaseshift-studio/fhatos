@@ -44,7 +44,7 @@ namespace fhatos {
 
     template<typename... Args>
     static fError create(const std::string &type_id, const char * format, const Args... args) noexcept {
-      return fError(string("!g[!m").append(type_id).append("!g] ").append(format), args...);
+      return fError(string("!g[!m").append(type_id).append("!g] ").append(format).c_str(), args...);
     }
 
     [[nodiscard]] virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {

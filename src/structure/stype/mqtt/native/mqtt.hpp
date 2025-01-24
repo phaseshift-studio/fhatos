@@ -158,7 +158,7 @@ namespace fhatos {
               throw mqtt::exception(1);
             LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n",
                           this->rec_get("config/broker")->uri_value().toString().c_str());
-            usleep(FOS_MQTT_RETRY_WAIT * 1000);
+            Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if(MQTT_CONNECTION->is_connected())
             break;

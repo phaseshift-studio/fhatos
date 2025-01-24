@@ -121,7 +121,9 @@ namespace fhatos {
         LOG_KERNEL_OBJ(INFO, this, message);
       if(!this->router_)
         this->router_ = Router::singleton();
-      while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
+
+      while(((passPredicate && !passPredicate()) ||
+             (!passPredicate && this->running_ && !this->processes_->empty()))
             && (this->barrier_.first && this->barrier_.second)) {
         this->router_->loop();
         this->feed_local_watchdog();

@@ -23,6 +23,7 @@ FhatOS: A Distributed Operating System
 #include <chrono>
 #include "../../../fhatos.hpp"
 #include "../../structure.hpp"
+#include "../../../util/obj_helper.hpp"
 
 #ifndef FOS_MQTT_BROKER
 #define FOS_MQTT_BROKER localhost

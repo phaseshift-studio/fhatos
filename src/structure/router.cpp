@@ -167,10 +167,7 @@ namespace fhatos {
           return frame_obj;
       }
       const fURI_p resolved_furi = this->resolve(*furi);
-      // const bool query = resolved_furi->has_query("structure");
       const Structure_p structure = this->get_structure(p_p(*resolved_furi));
-      // if(query)
-      //   return structure->shared_from_this();
       const Objs_p objs = structure->read(resolved_furi);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                      this->vid_->toString().c_str(), resolved_furi->toString().c_str(), // make this the current process

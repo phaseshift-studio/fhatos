@@ -35,9 +35,33 @@ namespace fhatos {
     FOS_TEST_ERROR("/temp/abc -> 12");
   }
 
+  void test_retain_write() {
+    FOS_TEST_ERROR("/r/abc -> 'blah'");
+    FOS_TEST_ERROR("/abc -> 'blah'");
+    for(int i=0; i<100;i++) {
+      FOS_TEST_OBJ_EQUAL(jnt(i),PROCESS(string("/router/abc -> ") + to_string(i)));
+    }
+    FOS_TEST_OBJ_EQUAL(jnt(99), PROCESS("*/router/abc"));
+  }
+
+  void test_transient_write() {
+    PROCESS("/router/abc1 -> |(plus(10).to(/router/bcd))");
+    PROCESS("/router/abc2 -> |at(/router/cde)");
+    for(int i=0; i<100;i++) {
+      PROCESS(string("/router/abc1 --> ") + to_string(i));
+      PROCESS(string("/router/abc2 --> ") + to_string(i));
+      FOS_TEST_OBJ_EQUAL(jnt(i+10), PROCESS("*/router/bcd"));
+      FOS_TEST_OBJ_EQUAL(jnt(i), PROCESS("*/router/cde"));
+    }
+    FOS_TEST_OBJ_EQUAL(jnt(109), PROCESS("*/router/bcd"));
+    FOS_TEST_OBJ_EQUAL(jnt(99), PROCESS("*/router/cde"));
+  }
+
   FOS_RUN_TESTS( //
     FOS_RUN_TEST(test_router_config); //
     FOS_RUN_TEST(test_router_attach_detach); //
+    FOS_RUN_TEST(test_retain_write); //
+    FOS_RUN_TEST(test_transient_write); //
   )
 
 }
