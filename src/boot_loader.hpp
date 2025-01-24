@@ -107,7 +107,12 @@ namespace fhatos {
             ->import(Console::import("/io/lib/console"))
             ->install(Terminal::singleton("/io/terminal"))
             ->install(mmadt::Parser::singleton("/io/parser"))
-            ->install(Log::create("/io/log"))
+            ->install(Log::create("/io/log", Router::singleton()->read(id_p("/sys/config/log"))
+                                  ->or_else(Obj::to_rec({
+                                    {"INFO", lst({vri("#")})},
+                                    {"ERROR", lst({vri("#")})},
+                                    {"DEBUG", lst()},
+                                    {"TRACE", lst()}}))))
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIODriver::import("/io/lib/gpio"))
@@ -154,7 +159,7 @@ namespace fhatos {
                                         {"strict", dool(args_parser->option_bool("--console:strict", false))},
                                         {"log", vri(args_parser->option_string("--log", "INFO"))}
                                       }))))
-              ->eval([args_parser] { delete args_parser; });
+            ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());

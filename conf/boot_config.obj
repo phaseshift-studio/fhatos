@@ -11,8 +11,15 @@
    stdin=>/io/terminal/:stdin
   ],
   nest=>2,
-  prompt=>'fhatos> ',
+  prompt=>'!mfhatos!y>!! ',
   strict=>false,
   log=>INFO
+ ],
+ log=>[
+    ERROR=>[#],
+    INFO=>[#],
+    WARN=>[],
+    DEBUG=>[],
+    TRACE=>[]
  ]
 ]@/sys/config
