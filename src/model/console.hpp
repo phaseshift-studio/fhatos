@@ -24,6 +24,8 @@
 #include "../util/string_helper.hpp"
 #include "../lang/mmadt/parser.hpp"
 #include "terminal.hpp"
+#include "../util/print_helper.hpp"
+
 #include  STR(../process/ptype/HARDWARE/thread.hpp)
 
 namespace fhatos {
@@ -58,73 +60,6 @@ namespace fhatos {
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
-    void print_result(const Obj_p &obj, const uint8_t depth, string *to_out, const bool parent_rec = false) const {
-      const int nest_value = this->this_get("config/nest")->int_value();
-      if(obj->is_objs()) {
-        for(Obj_p &o: *obj->objs_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
-          this->print_result(o, depth, to_out);
-        }
-      } else if(obj->is_lst() && nest_value > depth) {
-        if(!parent_rec) {
-          to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->is_base_type() ? "" : obj->tid_->name().c_str()));
-        }
-        to_out->append("!m[!!\n");
-        for(const auto &e: *obj->lst_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
-          if(!e->is_poly()) {
-            to_out->append(StringHelper::format(
-              "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(), e->toString().c_str()));
-          } else {
-            //to_out->append("!m,!!");
-            this->print_result(e, depth + 1, to_out, false);
-          }
-        }
-        to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                       (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid_->name().length(), " ").c_str()) +
-                       "!m]!!\n");
-      } else if(obj->is_rec() && nest_value > depth) {
-        if(!parent_rec) {
-          to_out->append(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                         (obj->is_base_type() ? "" : obj->tid_->name().c_str()));
-        }
-        to_out->append("!m[!!\n");
-        for(const auto &[key, value]: *obj->rec_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
-          if(!value->is_poly()) {
-            to_out->append(StringHelper::format(
-              "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-              key->toString().c_str(),
-              value->toString().c_str()));
-          } else {
-            to_out->append(StringHelper::format(
-              "%s!c%s!m=>!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-              key->toString().c_str()));
-            this->print_result(value, depth + 1, to_out, true);
-          }
-        }
-        string obj_string =
-            string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            //(obj->tid_->path_length() > 2 ? StringHelper::repeat(obj->tid_->name().length(), " ").c_str() : "") +
-            "!m]";
-        if(obj->vid_) {
-          obj_string += "!m@!b";
-          obj_string += obj->vid_->toString();
-        }
-        obj_string += "!!\n";
-        to_out->append(obj_string);
-      } else {
-        if(parent_rec)
-          to_out->append(obj->toString()).append("\n");
-        else {
-          // to_out->append(string("!g") + StringHelper::repeat(depth, "="));
-          to_out->append(StringHelper::format("!g==>!!%s\n",
-                                              obj->toString().c_str()));
-        }
-      }
-    }
-
     void process_line(string line) const {
       /////////////////////////////////////////////////////////////
       ////////////// EXPERIMENTING WITH ANSI MOVEMENT /////////////
@@ -146,9 +81,13 @@ namespace fhatos {
           return;
         }
         const Obj_p obj = OBJ_PARSER(line);
-        string to_out;
-        this->print_result(BCODE_PROCESSOR(obj), 0, &to_out);
-        this->write_stdout(str(to_out));
+        std::stringbuf to_out;
+        PrintHelper::pretty_print_obj(BCODE_PROCESSOR(obj),
+                                         0,
+                                         this->this_get("config/nest")->int_value(),
+                                         false,
+                                         &to_out);
+        this->write_stdout(str(to_out.str()));
       } catch(std::exception &e) {
         this->print_exception(e);
       }
@@ -217,7 +156,7 @@ namespace fhatos {
                                return noobj();
                              })
                              ->create()},
-                           {"config", config->clone()}}, THREAD_FURI, id_p(value_id))) {
+                           {"config", config}}, THREAD_FURI, id_p(value_id))) {
     }
 
   public:

@@ -77,14 +77,11 @@ namespace fhatos {
       }
       ////////////////////////////////
       bool success = false;
-      const Int_p ss = process->rec_get("stack_size");
-      const uint16_t stack_size =
-          !ss->is_noobj() ? ss->int_value()
-          : process->tid_->has_path("fiber")
-              ? FOS_ESP_FIBER_STACK_SIZE
-              : (process->tid_->has_path("thread") && process->running ? FOS_ESP_THREAD_STACK_SIZE : 0);
+      const int stack_size = process->rec_get("stack_size") // check provided obj
+        ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
+        ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE))) // use default environmental variable
+        ->int_value();
       BaseType_t threadResult;
-      if (process->tid_->has_path("thread")) {
         threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                                process->vid_->toString().c_str(), // Name of the task (for debugging)
                                                stack_size, // Stack size (bytes)
@@ -92,21 +89,6 @@ namespace fhatos {
                                                CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                                &static_cast<Thread *>(process.get())->handle, // Task handle
                                                tskNO_AFFINITY); // Processor core
-      } else if (process->tid_->has_path("fiber")) {
-        if (!FIBER_THREAD_HANDLE) {
-          threadResult = xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
-                                                 "fiber_bundle", // Name of the task (for debugging)
-                                                 stack_size, // Stack size (bytes)
-                                                 nullptr, // Parameter to pass
-                                                 CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                                 &FIBER_THREAD_HANDLE, // Task handle
-                                                 tskNO_AFFINITY); // Processor core
-        }
-      } else {
-        process->running = false;
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
-        return false;
-      }
       success = pdPASS == threadResult;
       if (success) {
         this->processes_->push_back(process);
@@ -202,8 +184,7 @@ namespace fhatos {
       vTaskDelete(nullptr);
     }
   };
-
-  ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
+  inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
 } // namespace fhatos
 
 #endif

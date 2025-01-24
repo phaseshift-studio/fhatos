@@ -37,7 +37,6 @@ namespace fhatos {
   protected:
     MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<scheduler_processes>");
     bool running_ = true;
-    Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
     ptr<Router> router_ = nullptr;
 
   public:
@@ -109,28 +108,20 @@ namespace fhatos {
 
     virtual void feed_local_watchdog() = 0;
 
-    [[nodiscard]] bool at_barrier(const string &label) const {
-      return this->barrier_.first && this->barrier_.first->name() == label;
-    }
-
     void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      this->barrier_ = {id_p(this->vid_->resolve("./barrier/").extend(name)), Obj::to_bcode()};
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", "main");
       if(message)
         LOG_KERNEL_OBJ(INFO, this, message);
       if(!this->router_)
         this->router_ = Router::singleton();
 
       while(((passPredicate && !passPredicate()) ||
-             (!passPredicate && this->running_ && !this->processes_->empty()))
-            && (this->barrier_.first && this->barrier_.second)) {
+             (!passPredicate && this->running_ && !this->processes_->empty()))) {
         this->router_->loop();
         this->feed_local_watchdog();
       }
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
-      this->barrier_.first = nullptr;
-      this->barrier_.second = nullptr;
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", "main");
     }
 
     virtual bool spawn(const Process_p &) = 0;
@@ -144,6 +135,9 @@ namespace fhatos {
 
   protected:
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
+      if(const Rec_p config = Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID));
+        !config->is_noobj())
+        scheduler->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
       InstBuilder::build(scheduler->vid_->extend(":spawn"))
           ->type_args(x(0, "thread", Obj::to_bcode()))
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})

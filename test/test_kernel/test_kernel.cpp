@@ -68,32 +68,6 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
-/*
- ->displaying_notes("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-             ->using_router(Router::singleton("/sys/router"))
-             ////////////////// SYS STRUCTURE
-             ->mount(Heap<ALLOC>::create("/sys/#"))
-             ->import(Scheduler::import())
-             ->import(Router::import())
-             ////////////////// USER STRUCTURE(S)
-             ->displaying_notes("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-             ->mount(Heap<>::create("/type/#"))
-             ->mount(Heap<>::create(FOS_SCHEME "/#"))
-             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
-             ->import(FhatOSCoreDriver::import())
-             ->install(Typer::singleton(FOS_SCHEME "/type"))
-             ->import(mmadt::mmADT::import())
-             ->displaying_notes("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-             ->mount(Heap<>::create("/io/#"))
-             ->import(Log::import("/io/lib/log"))
-             ->import(Console::import("/io/lib/console"))
-             ->install(Terminal::singleton("/io/terminal"))
-             ->install(Log::create("/io/log"))
-             ->install(mmadt::Parser::singleton("/io/parser"))
-             ->mount(Heap<>::create("+/#"))
- */
-
 void test_basic_kernel() {
   load_processor(); // TODO: remove
   const ptr<Kernel> kp = Kernel::build()
@@ -104,13 +78,14 @@ void test_basic_kernel() {
         ->display_architecture()
         ->display_reset_reason()
         ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
-      ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+        ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
              ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
              ->using_router(Router::singleton("/sys/router"))
              ////////////////// SYS STRUCTURE
              ->mount(Heap<ALLOC>::create("/sys/#"))
             ->using_boot_config()
             ->import(Router::import())
+             ->drop_config("router")
             ->import(Scheduler::import())
              ////////////////// USER STRUCTURE(S)
              ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
@@ -132,6 +107,9 @@ void test_basic_kernel() {
              // TODO: ->with_bcode(OBJ_PARSER(string(
                      //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
                        //          "|<+/#>./fos/lib/heap/create(_);")));
+
+  FOS_TEST_OBJ_NTEQL(Obj::to_noobj(),Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID))));
+  FOS_TEST_OBJ_EQUAL(Obj::to_noobj(),Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router"))));
 }
 
 FOS_RUN_TESTS( //

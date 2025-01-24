@@ -259,7 +259,7 @@ namespace fhatos {
     }
 
     void start_progress_bar(const uint16_t size) {
-      type_progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), size);
+      type_progress_bar_ = ProgressBar::start(Ansi<>::singleton().get(), size);
     }
 
     void end_progress_bar(const string &message) {

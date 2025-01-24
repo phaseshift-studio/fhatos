@@ -233,7 +233,7 @@ namespace fhatos {
 #define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \
 LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(),(obj)->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
-LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid_->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), Scheduler::singleton()->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!c%s!g]!! ") + (format)).c_str(), (process)->vid_->toString().c_str(), ##__VA_ARGS__)
 #define LOG_OBJ(logtype, obj, format, ...)                                                                     \

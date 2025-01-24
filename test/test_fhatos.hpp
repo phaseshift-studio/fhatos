@@ -66,7 +66,7 @@
   Router::singleton()->stop(); \
   scheduler()->stop();
 #define FOS_DEPLOY_SCHEDULER_2  \
-  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
+  Scheduler::singleton("/sys/scheduler/"); \
   Router::singleton()->write(id_p("/sys/router"), Router::singleton());
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
@@ -79,7 +79,6 @@
 #include "../src/lang/fluent.hpp"
 #include "../src/model/driver/fhatos/core_driver.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
-  Options::singleton()->router<Router>(Router::singleton());  \
   Router::singleton()->attach(Heap<>::create(Pattern("/sys/#")));        \
   mmadt::Parser::boot_config_parse(); \
   Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID); \
@@ -185,11 +184,10 @@ using namespace fhatos;
 #ifdef NATIVE
 #define SETUP_AND_LOOP_2                                                                                               \
 int main(int argc, char ** argv) {                                                                                     \
-  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton()); \
-  auto *args_parser = new fhatos::ArgvParser();                                                                          \
+  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());                                                          \
+  auto *args_parser = new fhatos::ArgvParser();                                                                        \
   args_parser->init(argc, argv);                                                                                       \
-  fhatos::Options::singleton()->log_level(                                                                             \
-  fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING))));
+  fhatos::LOG_LEVEL = fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING)));
 /////////////////////////////////////////////////////////
 //////////////////////// ESPXX //////////////////////////
 /////////////////////////////////////////////////////////

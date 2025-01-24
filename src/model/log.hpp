@@ -30,7 +30,7 @@
 namespace fhatos {
   class Log final : public Rec {
   protected:
-    explicit Log(const ID &value_id, const Rec_p &config) : Rec(rmap({{"config", config->clone()}}),
+    explicit Log(const ID &value_id, const Rec_p &config) : Rec(rmap({{"config", config}}),
                                                                 OType::REC,
                                                                 REC_FURI,
                                                                 id_p(value_id)) {

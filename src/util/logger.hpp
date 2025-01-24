@@ -19,8 +19,8 @@
 #ifndef fhatos_logger_hpp
 #define fhatos_logger_hpp
 #include "enums.hpp"
-#include "options.hpp"
 #include <mutex>
+#include "options.hpp"
 
 
 namespace fhatos {
@@ -41,7 +41,7 @@ namespace fhatos {
   public:
     template<typename... Args>
     static void MAIN_LOG(const LOG_TYPE type, const char *format, const Args... args) {
-      if(static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
+      if(static_cast<uint8_t>(type) < LOG_LEVEL)
         return;
       // control garbled concurrent writes (destructor releases lock)
       std::lock_guard<std::mutex> lock(stdout_mutex);

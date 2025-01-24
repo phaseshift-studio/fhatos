@@ -108,34 +108,6 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     std::thread *FIBER_THREAD_HANDLE = nullptr;
 
-    static void FIBER_FUNCTION(void *) {
-      FIBER_COUNT = 1;
-      while(FIBER_COUNT > 0) {
-        auto *fibers = new List<Process_p>();
-        singleton()->processes_->forEach([fibers](const Process_p &process) {
-          if(process->tid_->has_path("fiber") && process->running)
-            fibers->push_back(process);
-        });
-        FIBER_COUNT = 0;
-        for(const Process_p &fiber: *fibers) {
-          if(fiber->running) {
-            fiber->loop();
-            ++FIBER_COUNT;
-          }
-        }
-        singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->tid_->has_path("fiber") && !fiber->running;
-          if(remove) {
-            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n",
-                                 fiber->vid_->toString().c_str());
-          }
-          return remove;
-        });
-        singleton()->save();
-        delete fibers;
-      }
-    }
-
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
@@ -160,7 +132,6 @@ namespace fhatos {
       singleton()->save();
     }
   };
-
   inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
 } // namespace fhatos
 #endif

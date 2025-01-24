@@ -357,6 +357,8 @@ namespace fhatos {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  inline Runnable FEED_WATCDOG = []() {
+  };
 
   class ObjsSet;
 

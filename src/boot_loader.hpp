@@ -90,9 +90,11 @@ namespace fhatos {
         }
         ////////////////// SYS STRUCTURE
         return kp->mount(Heap<>::create("/sys/#"))
-            ->using_boot_config()
+            ->using_boot_config() // TODO: test with non-load 
             ->import(Router::import())
+            ->drop_config("router")
             ->import(Scheduler::import())
+            ->drop_config("scheduler")
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/type/#"))
@@ -113,6 +115,7 @@ namespace fhatos {
                                     {"ERROR", lst({vri("#")})},
                                     {"DEBUG", lst()},
                                     {"TRACE", lst()}}))))
+            ->drop_config("log")
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIODriver::import("/io/lib/gpio"))
@@ -135,6 +138,7 @@ namespace fhatos {
                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
                                    {"client", vri(args_parser->option_string(
                                      "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
+            ->drop_config("mqtt")
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif
@@ -159,6 +163,7 @@ namespace fhatos {
                                         {"strict", dool(args_parser->option_bool("--console:strict", false))},
                                         {"log", vri(args_parser->option_string("--log", "INFO"))}
                                       }))))
+            ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),

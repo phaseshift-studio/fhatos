@@ -192,7 +192,6 @@ namespace mmadt {
       OBJ_PARSER = [](const string &obj_string) {
         return Parser::singleton()->parse(obj_string.c_str());
       };
-      Options::singleton()->parser<const Obj>(OBJ_PARSER);
     }
 
     void initialize() {

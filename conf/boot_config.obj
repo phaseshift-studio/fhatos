@@ -2,6 +2,9 @@
   resolve=>[
    namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
    auto_prefix=>[<>,/mmadt/,/fos/,/sys/]]],
+ scheduler=>[
+  def_stack_size=>8096
+ ],
  mqtt=>[
   broker=><mqtt://192.168.10.127:1883>,
   client=>fhatos_client],
@@ -11,7 +14,7 @@
    stdin=>/io/terminal/:stdin
   ],
   nest=>2,
-  prompt=>'!mfhatos!y>!! ',
+  prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO
  ],

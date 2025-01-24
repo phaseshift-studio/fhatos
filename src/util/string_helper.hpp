@@ -83,7 +83,7 @@ namespace fhatos {
     }
 
     static string cxx_f_metadata(const string &file, const uint16_t line_number) {
-      const size_t slash_index = file.find_last_of("/");
+      const size_t slash_index = file.find_last_of('/');
       const string dir = file.substr(slash_index, file.length() - slash_index - 4);
       string temp = dir + "/" + dir + "_" + to_string(line_number);
       // StringHelper::replace(temp, ".", "_");
@@ -120,6 +120,16 @@ namespace fhatos {
       return ret;
     }
 
+    static void prefix_each_line(const string &prefix, string *to_prefix) {
+      to_prefix->insert(0, prefix);
+      for(size_t i = 0; i < to_prefix->length(); i++) {
+        i = to_prefix->find("\n", i);
+        if(i == string::npos || ++i > to_prefix->length())
+          break;
+        to_prefix->insert(i, prefix);
+        i = i + prefix.length();
+      }
+    }
 
     static void ltrim(std::string &s) {
       s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) {

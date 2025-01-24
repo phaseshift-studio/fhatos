@@ -24,6 +24,7 @@
 #include "process/process.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "util/memory_helper.hpp"
+#include "util/print_helper.hpp"
 
 namespace fhatos {
   class Kernel {
@@ -41,7 +42,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> with_log_level(const LOG_TYPE level) {
-      Options::singleton()->log_level(level);
+      LOG_LEVEL = level;
       return Kernel::build();
     }
 
@@ -61,7 +62,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> display_note(const char *notes) {
-      printer<>()->printf(FOS_TAB_4 "%s\n", notes);
+      printer<>()->printf(FOS_TAB_6 "%s\n", notes);
       return Kernel::build();
     }
 
@@ -126,12 +127,10 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
-      Options::singleton()->scheduler<Scheduler>(scheduler);
       return Kernel::build();
     }
 
     static ptr<Kernel> using_router(const ptr<Router> &router) {
-      Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
 
@@ -171,9 +170,14 @@ namespace fhatos {
 
     static ptr<Kernel> using_boot_config() {
       MemoryHelper::use_custom_stack(mmadt::Parser::boot_config_parse,FOS_BOOT_CONFIG_MEM_USAGE);
-      LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                     "!bboot config!! !yobj!! loaded:\n" FOS_TAB_6 "%s\n",
-                     Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID))->toString().c_str());
+      string boot_str = PrintHelper::pretty_print_obj(Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID)), 1);
+      StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!bboot config!! !yobj!! loaded:\n%s\n", boot_str.c_str());
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> drop_config(const string &id) {
+      Router::singleton()->write(id_p((string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id).c_str()), noobj());
       return Kernel::build();
     }
 
