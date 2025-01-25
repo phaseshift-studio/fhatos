@@ -24,26 +24,39 @@
 
 namespace fhatos {
   class Thread : public Process {
-    int hwm = -1;
+  protected:
+    int find_stack_size() {
+      return ROUTER_READ(furi_p(this->vid_->extend("stack_size"))) // check provided obj
+          ->or_else(ROUTER_READ(furi_p(this->vid_->extend("+/stack_size")))->none_one())
+          // check one depth more (e.g. config/stack_size)
+          ->or_else(ROUTER_READ(furi_p(SCHEDULER_ID->extend("config/def_stack_size"))))
+          // check default setting in scheduler
+          ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
+          ->int_value();
+    }
 
   public:
     TaskHandle_t handle;
 
     explicit Thread(const Obj_p &obj) : Process(obj) {
-      //this->hwm = this->rec_get("stack_size")->is_noobj() ? -1 : 0;
+
     }
 
-    void loop() override {
-      Process::loop();
-      /*if(hwm != -1) {
-        if(hwm++ > 100) {
-          int stack_size = this->rec_get("stack_size")->int_value();
-          int mark = uxTaskGetStackHighWaterMark(this->handle);
-      this->rec_set("hwm", jnt(mark));
-          this->save();
-          hwm = 0;
-        }
-      }*/
+    void setup() override {
+      Process::setup();
+      const ID_p hwm_id = id_p(this->vid_->extend(":hwm"));
+      InstBuilder::build(hwm_id)
+          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+          ->inst_f([this](const Obj_p &, const InstArgs &) {
+            const FOS_INT_TYPE ssize = this->find_stack_size();
+            const FOS_INT_TYPE sfree = ssize - uxTaskGetStackHighWaterMark(this->handle);
+            return Obj::to_rec({
+              {"total", jnt(ssize)},
+              {"min_free", jnt(sfree)},
+              {"used", real(ssize == 0
+                              ? 0.0f
+                              : (100.0f * (1.0f - static_cast<float>(sfree) / static_cast<float>(ssize))))}});
+          })->create(hwm_id);
     }
 
     void yield() override {

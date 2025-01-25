@@ -1062,6 +1062,17 @@ namespace fhatos {
   using ID = ID;
   using TypeO_p = ID_p;
 
+  /*class vID : public std::variant<ID, ID_p> {
+  public:
+    [[nodiscard]] ID_p as_p() const {
+      return std::holds_alternative<ID_p>(*this) ? std::get<ID_p>(*this) : id_p(std::get<ID>(*this));
+    }
+
+    [[nodiscard]] ID as_() const {
+      return std::holds_alternative<ID>(*this) ? std::get<ID>(*this) : *id_p(std::get<ID_p>(*this));
+    }
+  };*/
+
   inline std::ostream &operator <<(std::ostream &os, const fURI &value) {
     os << value.toString();
     return os;

@@ -159,6 +159,10 @@ namespace fhatos {
 
   [[nodiscard]] Obj_p Router::exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
+  //[[nodiscard]] Objs_p Router::read(const vID &variant) {
+  //  return this->read(furi_p(variant.as_()));
+ // }
+
   [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
     try {
       if(THREAD_FRAME_STACK) {

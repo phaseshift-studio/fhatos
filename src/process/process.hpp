@@ -48,6 +48,7 @@ namespace fhatos {
 
 
   class Process : public Obj {
+
   public:
     bool running = false;
     int16_t wdt_timer_counter = 0;

@@ -27,19 +27,15 @@
 #include "thread.hpp"
 
 namespace fhatos {
-  class Sys;
-  static atomic_int FIBER_COUNT;
-
   class Scheduler final : public BaseScheduler {
 
-  private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")): BaseScheduler(id) {
+    explicit Scheduler(const ID &id): BaseScheduler(id) {
     }
 
   public:
     ~Scheduler() override = default;
 
-    static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
+    static ptr<Scheduler> singleton(const ID &id = ID("/sys/scheduler")) {
       static bool setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
       if(!setup) {

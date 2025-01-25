@@ -52,6 +52,8 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI_p &furi);
 
+    //[[nodiscard]] Objs_p read(const vID& &variant);
+
     void write(const fURI_p &furi, const Obj_p &obj, bool retain = RETAIN);
 
     void unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#"));
