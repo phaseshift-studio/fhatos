@@ -24,7 +24,6 @@
 #include "../../../lang/processor/processor.hpp"
 #include "../../../process/base_scheduler.hpp"
 #include "../../../process/process.hpp"
-#include "fiber.hpp"
 #include "thread.hpp"
 
 

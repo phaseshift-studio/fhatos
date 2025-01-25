@@ -29,7 +29,7 @@ namespace fhatos {
   public:
     TaskHandle_t handle;
 
-    explicit Thread(const ID_p &value_id, const Rec_p &setup_loop_stop) : Process(value_id, setup_loop_stop) {
+    explicit Thread(const Obj_p &obj) : Process(obj) {
       //this->hwm = this->rec_get("stack_size")->is_noobj() ? -1 : 0;
     }
 
