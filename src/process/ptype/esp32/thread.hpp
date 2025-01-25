@@ -42,7 +42,7 @@ namespace fhatos {
 
     }
 
-    void setup() override {
+    /*void setup() override {
       Process::setup();
       const ID_p hwm_id = id_p(this->vid_->extend(":hwm"));
       InstBuilder::build(hwm_id)
@@ -57,7 +57,7 @@ namespace fhatos {
                               ? 0.0f
                               : (100.0f * (1.0f - static_cast<float>(sfree) / static_cast<float>(ssize))))}});
           })->create(hwm_id);
-    }
+    }*/
 
     void yield() override {
       Process::yield();

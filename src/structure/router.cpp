@@ -264,10 +264,11 @@ namespace fhatos {
 
 
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
-    if(const Structure_p structure = this->get_structure(p_p(furi), false); structure && structure->has(furi_p(furi)))
-      return furi_p(furi);
+    const fURI_p p = furi_p(furi);
+    if(const Structure_p structure = this->get_structure(p_p(*p), false); structure && structure->has(p))
+      return p;
     if(!furi.headless() && !furi.has_components())
-      return furi_p(furi);
+      return p;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
     if(furi.has_components()) {
       for(const auto &c: furi.components()) {
@@ -296,9 +297,9 @@ namespace fhatos {
       }
       if(first) {
         first = false;
-        test = furi_p(fURI(found ? *found : c));
+        test = furi_p(found ? *found : c);
       } else {
-        test = furi_p(test->add_component(found ? *found : fURI(c)));
+        test = furi_p(test->add_component(found ? *found : c));
       }
     }
     return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;

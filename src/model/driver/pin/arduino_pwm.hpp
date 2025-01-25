@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_arduino_pwm_driver_hpp
-#define fhatos_arduino_pwm_driver_hpp
+#ifndef fhatos_arduino_pwm_hpp
+#define fhatos_arduino_pwm_hpp
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -35,9 +35,9 @@ FhatOS: A Distributed Operating System
 //#endif
 
 namespace fhatos {
-  class ArduinoPWMDriver final : public Rec {
+  class ArduinoPWM final : public Rec {
   public:
-    explicit ArduinoPWMDriver(const ID &value_id) : Rec(
+    explicit ArduinoPWM(const ID &value_id) : Rec(
       rmap({
         {"write",
           InstBuilder::build(value_id.extend("write"))
@@ -64,8 +64,8 @@ namespace fhatos {
           ->create()}}), OType::REC, REC_FURI, id_p(value_id)) {
     }
 
-    static ptr<ArduinoPWMDriver> create(const ID &id) {
-      const auto pwms = std::make_shared<ArduinoPWMDriver>(id);
+    static ptr<ArduinoPWM> create(const ID &id) {
+      const auto pwms = std::make_shared<ArduinoPWM>(id);
       Router::singleton()->subscribe(
        Subscription::create(id_p(id), p_p(id.extend("+")),
                             InstBuilder::build(id.extend("s_write"))
@@ -86,7 +86,7 @@ namespace fhatos {
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_args(rec({{"value_id", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return make_shared<Obj>(ArduinoPWMDriver(args->arg("value_id")->uri_value()));
+            return make_shared<Obj>(ArduinoPWM(args->arg("value_id")->uri_value()));
           })->save();
       return nullptr;
     }

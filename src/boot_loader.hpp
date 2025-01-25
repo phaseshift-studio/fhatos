@@ -46,8 +46,8 @@
 #endif
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
-#include "model/driver/gpio/arduino_gpio_driver.hpp"
-#include "model/driver/pwm/arduino_pwm_driver.hpp"
+#include "model/driver/pin/arduino_gpio.hpp"
+#include "model/driver/pin/arduino_pwm.hpp"
 #endif
 
 #ifdef NATIVE
@@ -119,8 +119,8 @@ namespace fhatos {
             ->drop_config("log")
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
-            ->import(ArduinoGPIODriver::import("/io/lib/gpio"))
-            ->import(ArduinoPWMDriver::import("/io/lib/pwm"))
+            ->import(ArduinoGPIO::import("/io/lib/gpio"))
+            ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
@@ -128,7 +128,6 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
             // ->mount(HeapPSRAM::create("/psram/#"))
              ->mount(Memory::singleton("/soc/memory/#"))
-
             //->structure(BLE::create("/io/bt/#"))
 #endif
 
@@ -141,30 +140,12 @@ namespace fhatos {
                                    {"client", vri(args_parser->option_string(
                                      "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
             ->drop_config("mqtt")
-            //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
-            //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif
 #if defined(ARDUINO) || defined(RASPBERRYPI)
-            // ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
-            // ->install(ArduinoI2CDriver::load_local("/driver/i2c/master/pin", id_p("//driver/i2c/master")))
+
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
-
-
-            // ->mount(Heap<>::create("/console/#"))
-            ->process(Console::create("/io/console", Router::singleton()
-                                      ->read(id_p("/sys/config/console"))
-                                     /* ->or_else(Obj::to_rec({
-                                        {"terminal",
-                                          Obj::to_rec({
-                                            {"stdout", vri("/io/terminal/:stdout")},
-                                            {"stdin", vri("/io/terminal/:stdin")}})},
-                                        {"nest", jnt(args_parser->option_int("--console:nest", 2))},
-                                        {"prompt",
-                                          str(args_parser->option_string("--console:prompt", "!mfhatos!g>!! "))},
-                                        {"strict", dool(args_parser->option_bool("--console:strict", false))},
-                                        {"log", vri(args_parser->option_string("--log", "INFO"))}
-                                      }))*/))
+            ->process(Console::create("/io/console", Router::singleton()->read(id_p("/sys/config/console"))))
             ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {

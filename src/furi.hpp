@@ -96,7 +96,11 @@ namespace fhatos {
     fURI host(const char *host) const {
       auto new_uri = fURI(*this);
       free((void *) new_uri.host_);
-      new_uri.host_ = (0 == strlen(host) ? nullptr : strdup(host));
+      new_uri.host_ = 0 == strlen(host) ? nullptr : strdup(host);
+      if(new_uri.path_length_ == 0)
+        new_uri.spostfix_ = false;
+      else
+        new_uri.sprefix_ = true;
       return new_uri;
     }
 
@@ -365,6 +369,10 @@ namespace fhatos {
       new_uri.path_ = new char *[new_uri.path_length_];
       for(uint8_t i = 0; i < new_uri.path_length_; i++) {
         new_uri.path_[i] = strdup(this->path_[i]);
+      }
+      if(new_uri.path_length_ == 0) {
+        new_uri.spostfix_ = false;
+        new_uri.sprefix_ = false;
       }
       return new_uri.path_length_ > 1 && 0 == strcmp(new_uri.path_[new_uri.path_length_ - 1], COMPONENT_SEPARATOR)
                ? new_uri.retract()
@@ -835,8 +843,7 @@ namespace fhatos {
                 this->path_[this->path_length_] = strdup(token.c_str());
                 this->path_length_ = this->path_length_ + 1;
                 check_path_length(uriChars);
-              } else
-                this->spostfix_ = true;
+              }
               part = URI_PART::QUERY;
               // this->query_ = strdup("");
               token.clear();
@@ -905,7 +912,31 @@ namespace fhatos {
     bool operator==(const fURI &other) const {
       return this->toString() == other.toString();
     } // TODO: do field-wise comparisons
-    bool equals(const fURI &other) const { return this->toString() == other.toString(); }
+
+  private:
+    static bool char_ptr_equal(const char *a, const char *b) {
+      if(!a) return !b;
+      if(!b) return false;
+      return strcmp(a, b) == 0;
+    }
+
+  public:
+    bool equals(const fURI &other) const {
+      if(this->path_length_ != other.path_length_)
+        return false;
+      for(int i = 0; i < this->path_length_; i++) {
+        if(!char_ptr_equal(this->path_[i], other.path_[i]))
+          return false;
+      }
+      return this->spostfix_ == other.spostfix_ &&
+             this->sprefix_ == other.sprefix_ &&
+             char_ptr_equal(this->query_, other.query_) &&
+             char_ptr_equal(this->scheme_, other.scheme_) &&
+             char_ptr_equal(this->host_, other.host_) &&
+             this->port_ == other.port_ &&
+             char_ptr_equal(this->user_, other.user_) &&
+             char_ptr_equal(this->password_, other.password_);
+    }
 
     [[nodiscard]] string toString() const {
       string uri;
