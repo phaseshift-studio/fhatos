@@ -67,7 +67,7 @@
   scheduler()->stop();
 #define FOS_DEPLOY_SCHEDULER_2  \
   Scheduler::singleton("/sys/scheduler/"); \
-  Router::singleton()->write(id_p("/sys/router"), Router::singleton());
+  Scheduler::import();
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #define FOS_STOP_ON_BOOT ;
@@ -160,8 +160,8 @@ using namespace fhatos;
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
-      FOS_DEPLOY_SCHEDULER_2                                                                                           \
-      FOS_DEPLOY_ROUTER_2                                                                                              \
+	  FOS_DEPLOY_ROUTER_2        																					   \
+	  FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_PARSER_2                                                                                              \
       FOS_DEPLOY_TYPE_2                                                                                                \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
@@ -300,6 +300,19 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
   }
 #endif
 
+#define FOS_TEST_REC_KEYS(recA,list_of_keys)	       															 	   \
+{ 																													   \
+  for(const Obj_p& e : list_of_keys) { 		 		 															 	   \
+		bool found = false; 	      																			       \
+		for(const auto& [k,v] : *recA->rec_value())  {																   \
+    	if(e->equals(*k)) 																							   \
+				found = true; 																						   \
+    } 																												   \
+    if(!found) 																										   \
+     TEST_FAIL_MESSAGE((string("key:") + e->toString() + " not found in " + recA->toString()).c_str()); 			   \
+}																													   \
+}
+
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
@@ -326,7 +339,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     int index = 0;
     for(const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTypes.to_chars(obj->o_type()).c_str());
+                       OTypes.to_chars(obj->otype_).c_str());
     }
   }
   return result;
@@ -348,7 +361,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 
 #define FOS_PRINT_OBJ(obj) \
   FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
-                   OTypes.to_chars(obj->o_type()).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
+                   OTypes.to_chars(obj->otype_).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
 
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {

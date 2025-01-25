@@ -136,7 +136,7 @@
             MAKE_TESTS(language "test_obj" true)
             MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst" true)
             MAKE_TESTS(language/processor "test_processor" true)
-            # MAKE_TESTS(process "test_scheduler;test_process" true)
+            MAKE_TESTS(process "test_scheduler" true)
             MAKE_TESTS(structure "test_router;test_structure" true)
             # MAKE_TESTS(structure/stype/key_value "test_heap" , true)
             # IF(BUILD_MQTT_TESTS)

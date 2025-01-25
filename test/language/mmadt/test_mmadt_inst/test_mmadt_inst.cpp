@@ -16,8 +16,6 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef mmadt_test_mmadt_inst_cpp
-#define mmadt_test_mmadt_inst_cpp
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
@@ -164,4 +162,3 @@ FOS_RUN_TEST(test_as_inst); //
 } // namespace fhatos
 
 SETUP_AND_LOOP();
-#endif

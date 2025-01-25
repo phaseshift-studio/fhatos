@@ -142,8 +142,8 @@ namespace fhatos {
           ->type_args(x(0, "thread", Obj::to_bcode()))
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-            const auto &p = make_shared<Thread>(args->arg(0)->vid_, args->arg(0)->at(nullptr));
-            p.get()->vid_ = args->arg(0)->vid_;
+            const auto &p = make_shared<Thread>(args->arg(0));
+            //p.get()->vid_ = args->arg(0)->vid_;
             scheduler->spawn(p);
             return p;
           })

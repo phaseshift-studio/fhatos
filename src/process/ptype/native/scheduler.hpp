@@ -24,7 +24,6 @@
 #include "../../../lang/processor/processor.hpp"
 #include "../../../process/base_scheduler.hpp"
 #include "../../../process/process.hpp"
-#include "fiber.hpp"
 #include "thread.hpp"
 
 namespace fhatos {
@@ -35,22 +34,10 @@ namespace fhatos {
 
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")): BaseScheduler(id) {
-     /* SCHEDULER_SPAWN = [this](const Obj_p &threadable) -> Obj_p {
-        const auto thread = make_shared<Thread>(threadable);
-        this->spawn(thread);
-        return thread;
-      };*/
     }
 
   public:
-    ~Scheduler() override {
-      if(FIBER_THREAD_HANDLE) {
-        if(FIBER_THREAD_HANDLE->joinable()) {
-          this->FIBER_THREAD_HANDLE->detach();
-        }
-        delete this->FIBER_THREAD_HANDLE;
-      }
-    }
+    ~Scheduler() override = default;
 
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool setup = false;
@@ -78,19 +65,7 @@ namespace fhatos {
         return false;
       }
       ////////////////////////////////
-      //if(process->tid_->has_path("thread"))
-        static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-      /*else if(process->tid_->has_path("fiber")) {
-        if(!FIBER_THREAD_HANDLE) {
-          FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
-        }
-        static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
-        static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
-      } else {
-        process->running = false;
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
-        return false;
-      }*/
+      static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
       this->processes_->push_back(process);
       process->save();
       LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !yprocess!! spawned\n", process->vid_->toString().c_str());
@@ -125,7 +100,7 @@ namespace fhatos {
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid_->equals(*thread->vid_) || !proc->running;
         if(remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", proc->vid_->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destroyed\n", proc->vid_->toString().c_str());
         }
         return remove;
       });

@@ -80,15 +80,15 @@ namespace fhatos {
         if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
           return true;
         // if the type is a base type and the base types match, then type check passes
-        if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
+        if(type_id->equals(*OTYPE_FURI.at(obj->otype_)))
           return true;
         // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
         //if(obj->tid()->equals(*type_id))
         //  return true;
         // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-        if(obj->o_type() == OType::TYPE || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+        if(obj->otype_ == OType::TYPE || obj->otype_ == OType::INST || obj->otype_ == OType::BCODE)
           return true;
-        if(type_id->equals(*NOOBJ_FURI) && (obj->o_type() == OType::NOOBJ || obj->tid_->equals(*OBJ_FURI)))
+        if(type_id->equals(*NOOBJ_FURI) && (obj->otype_ == OType::NOOBJ || obj->tid_->equals(*OBJ_FURI)))
           return true;
         // get the type definition and match it to the obj
         if(const Obj_p type = ROUTER_READ(type_id); !type->is_noobj()) {
@@ -98,7 +98,7 @@ namespace fhatos {
           if(obj->match(type, false))
             return true;
           if(throw_on_fail) {
-            static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
+            static const auto p = GLOBAL_PRINTERS.at(obj->otype_)->clone();
             p->show_type = false;
             throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid_->toString().c_str(),
                          obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());

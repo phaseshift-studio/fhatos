@@ -16,9 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_test_processor_cpp
-#define fhatos_test_processor_cpp
-
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
@@ -90,6 +87,3 @@ void test_monad_set() {
 }; // namespace fhatos
 
 SETUP_AND_LOOP();
-
-
-#endif

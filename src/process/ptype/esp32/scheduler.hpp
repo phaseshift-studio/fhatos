@@ -29,10 +29,7 @@
 
 
 #ifndef FOS_ESP_THREAD_STACK_SIZE
-#define FOS_ESP_THREAD_STACK_SIZE 25000
-#endif
-#ifndef FOS_ESP_FIBER_STACK_SIZE
-#define FOS_ESP_FIBER_STACK_SIZE 20000
+#define FOS_ESP_THREAD_STACK_SIZE 16192
 #endif
 
 
@@ -78,6 +75,7 @@ namespace fhatos {
       ////////////////////////////////
       bool success = false;
       const int stack_size = process->rec_get("stack_size") // check provided obj
+        ->or_else(process->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
         ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
         ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE))) // use default environmental variable
         ->int_value();
@@ -107,53 +105,6 @@ namespace fhatos {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : BaseScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
-      /*this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
-              if (!obj->vid_)
-                throw fError("value id required to spawn %s", obj->toString().c_str());
-              if (obj->tid_->has_path("thread"))
-                return dool(this->spawn(make_shared<Thread>(obj)));
-              if (obj->tid_->has_path("fiber"))
-                return dool(this->spawn(make_shared<Fiber>(obj)));
-              throw fError("unknown process type: %s\n", obj->tid_->toString().c_str());
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));*/
-
-      /*rec_set(vri(":spawn"), to_bcode(
-                                 [this](const Obj_p &obj) {
-                                   if (!obj->vid_)
-                                     throw fError("value id required to spawn %s", obj->toString().c_str());
-                                   return dool(this->spawn(make_shared<Thread>(obj)));
-                                 },
-                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__)));*/
-    }
-
-    TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
-
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    static void FIBER_FUNCTION(void *) {
-      int counter = 1;
-      while (counter > 0) {
-        counter = 0;
-        auto *fibers = new List<Process_p>();
-        Scheduler::singleton()->processes_->forEach([fibers](const Process_p &proc) {
-          if (proc->tid_->has_path("fiber") && proc->running)
-            fibers->push_back(proc);
-        });
-        for (const Process_p &fiber: *fibers) {
-          if (fiber->running)
-            fiber->loop();
-          counter++;
-        }
-        Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->tid_->has_path("fiber") && !fiber->running;
-          if (remove) {
-            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", fiber->vid_->toString().c_str());
-          }
-          return remove;
-        });
-        vTaskDelay(1); // feeds the watchdog for the task
-      }
     }
 
     //////////////////////////////////////////////////////
@@ -177,7 +128,7 @@ namespace fhatos {
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid_->equals(*thread->vid_);
         if (remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destoyed\n", proc->vid_->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid_->toString().c_str());
         }
         return remove;
       });

@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_arduino_gpio_driver_hpp
-#define fhatos_arduino_gpio_driver_hpp
+#ifndef fhatos_arduino_pwm_driver_hpp
+#define fhatos_arduino_pwm_driver_hpp
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -35,9 +35,9 @@ FhatOS: A Distributed Operating System
 //#endif
 
 namespace fhatos {
-  class ArduinoGPIODriver final : public Rec {
+  class ArduinoPWMDriver final : public Rec {
   public:
-    explicit ArduinoGPIODriver(const ID &value_id) : Rec(
+    explicit ArduinoPWMDriver(const ID &value_id) : Rec(
       rmap({
         {"write",
           InstBuilder::build(value_id.extend("write"))
@@ -46,11 +46,11 @@ namespace fhatos {
             {"pin", Obj::to_type(INT_FURI)},
             {"value", Obj::to_type(BOOL_FURI)}
           }))
-          ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const uint8_t pin = args->arg("pin")->int_value();
             const uint8_t value = args->arg("value")->int_value();
             pinMode(pin, OUTPUT);
-            digitalWrite(pin, value);
+            analogWrite(pin, value);
             return lhs;
           })
           ->create()},
@@ -58,36 +58,35 @@ namespace fhatos {
           InstBuilder::build(value_id.extend("read"))
           ->domain_range(INT_FURI, {0, 1}, INT_FURI, {1, 1})
           ->inst_args(rec({{"pin", Obj::to_type(INT_FURI)}}))
-          ->inst_f([this](const Obj_p &, const InstArgs &args) {
-            return jnt(digitalRead(args->arg("pin")->int_value()));
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            return jnt(analogRead(args->arg("pin")->int_value()));
           })
           ->create()}}), OType::REC, REC_FURI, id_p(value_id)) {
     }
 
-    static ptr<ArduinoGPIODriver> create(const ID &id) {
-      const auto gpios = std::make_shared<ArduinoGPIODriver>(id);
+    static ptr<ArduinoPWMDriver> create(const ID &id) {
+      const auto pwms = std::make_shared<ArduinoPWMDriver>(id);
       Router::singleton()->subscribe(
-        Subscription::create(id_p(id), p_p(id.resolve("./+")),
-                             InstBuilder::build(id.extend("s_write"))
-                             ->inst_args(rec({
-                               {"target", Obj::to_bcode()},
-                               {"payload", Obj::to_bcode()},
-                               {"retain", Obj::to_bcode()}}))
-                             ->inst_f([id](const Obj_p &lhs, const InstArgs &args) {
-                               const Int_p pin = jnt(stoi(args->arg("target")->uri_value().name()));
-                               return Obj::to_inst(to_inst_args({pin, lhs}), id_p(id.resolve("./write")))->
-                                   apply(lhs);
-                             })->create(id_p(id.extend("s_write")))));
-      return gpios;
+       Subscription::create(id_p(id), p_p(id.extend("+")),
+                            InstBuilder::build(id.extend("s_write"))
+                            ->inst_args(rec({
+                              {"target", Obj::to_bcode()},
+                              {"payload", Obj::to_bcode()},
+                              {"retain", Obj::to_bcode()}}))
+                            ->inst_f([id](const Obj_p &lhs, const InstArgs &args) {
+                              const Int_p pin = jnt(stoi(args->arg("target")->uri_value().name()));
+                              return Obj::to_inst(to_inst_args({pin, lhs}), id_p(id.extend("write")))->apply(lhs);
+                            })->create(id_p(id.extend("s_write")))));
+      return pwms;
     }
 
-    static void *import(const ID &lib_id = "/io/lib/gpio") {
+    static void *import(const ID &lib_id = "/io/lib/pwm") {
       //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_args(rec({{"value_id", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return make_shared<Obj>(ArduinoGPIODriver(args->arg("value_id")->uri_value()));
+            return make_shared<Obj>(ArduinoPWMDriver(args->arg("value_id")->uri_value()));
           })->save();
       return nullptr;
     }

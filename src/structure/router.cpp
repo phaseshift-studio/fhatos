@@ -162,8 +162,8 @@ namespace fhatos {
   [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
     try {
       if(THREAD_FRAME_STACK) {
-        const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
-        if(nullptr != frame_obj)
+        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
+          nullptr != frame_obj)
           return frame_obj;
       }
       const fURI_p resolved_furi = this->resolve(*furi);
@@ -260,6 +260,8 @@ namespace fhatos {
 
 
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
+    if(const Structure_p structure = this->get_structure(p_p(furi), false); structure && structure->has(furi_p(furi)))
+      return furi_p(furi);
     if(!furi.headless() && !furi.has_components())
       return furi_p(furi);
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};

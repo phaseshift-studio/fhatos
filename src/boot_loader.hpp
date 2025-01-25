@@ -47,6 +47,7 @@
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/gpio/arduino_gpio_driver.hpp"
+#include "model/driver/pwm/arduino_pwm_driver.hpp"
 #endif
 
 #ifdef NATIVE
@@ -90,7 +91,7 @@ namespace fhatos {
         }
         ////////////////// SYS STRUCTURE
         return kp->mount(Heap<>::create("/sys/#"))
-            ->using_boot_config() // TODO: test with non-load 
+            ->using_boot_config() // TODO: test with non-load
             ->import(Router::import())
             ->drop_config("router")
             ->import(Scheduler::import())
@@ -119,6 +120,7 @@ namespace fhatos {
             ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIODriver::import("/io/lib/gpio"))
+            ->import(ArduinoPWMDriver::import("/io/lib/pwm"))
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
@@ -152,7 +154,7 @@ namespace fhatos {
             // ->mount(Heap<>::create("/console/#"))
             ->process(Console::create("/io/console", Router::singleton()
                                       ->read(id_p("/sys/config/console"))
-                                      ->or_else(Obj::to_rec({
+                                     /* ->or_else(Obj::to_rec({
                                         {"terminal",
                                           Obj::to_rec({
                                             {"stdout", vri("/io/terminal/:stdout")},
@@ -162,7 +164,7 @@ namespace fhatos {
                                           str(args_parser->option_string("--console:prompt", "!mfhatos!g>!! "))},
                                         {"strict", dool(args_parser->option_bool("--console:strict", false))},
                                         {"log", vri(args_parser->option_string("--log", "INFO"))}
-                                      }))))
+                                      }))*/))
             ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });
       } catch(const std::exception &e) {

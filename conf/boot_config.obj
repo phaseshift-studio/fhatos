@@ -16,7 +16,8 @@
   nest=>2,
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
-  log=>INFO
+  log=>INFO,
+  stack_size=>24288
  ],
  log=>[
     ERROR=>[#],

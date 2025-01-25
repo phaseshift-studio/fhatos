@@ -50,7 +50,7 @@ namespace fhatos {
   }
 
   void test_type_parsing() {
-    TEST_ASSERT_EQUAL(OType::NOOBJ, PROCESS("noobj")->o_type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, PROCESS("noobj")->otype_);
   }
 
   void test_noobj_parsing() {
@@ -203,7 +203,7 @@ namespace fhatos {
     const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid_->query(""));
     FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid_);
-    TEST_ASSERT_EQUAL(OType::INST, ncount_inst->o_type());
+    TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype_);
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOMAIN));
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_RANGE));
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOM_COEF));

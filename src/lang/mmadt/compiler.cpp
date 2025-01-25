@@ -58,7 +58,6 @@ namespace fhatos {
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
-    //LOG(INFO,"HERE %s\n",lhs->toString().c_str());
     //this->reset();
     if(inst->is_noobj())
       return inst;
@@ -66,7 +65,7 @@ namespace fhatos {
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
     if(!inst_obj->inst_f()) {
-      if(inst->vid_ && !inst->vid_->is_relative()) {
+      if(inst->vid_ /*&& !inst->vid_->is_relative()*/) {
         inst_obj = Router::singleton()->read(inst->vid_);
         if(dt) dt->emplace_back(OBJ_FURI, inst->vid_, inst_obj);
       }
@@ -188,11 +187,11 @@ namespace fhatos {
         (rhs->tid_->equals(*OBJ_FURI) || (FURI_OTYPE.count(rhs->tid_->no_query()) && FURI_OTYPE.at(
                                                    rhs->tid_->no_query()) == lhs->otype_)))
        return true;*/
-    if(lhs->o_type() != rhs->o_type())
+    if(lhs->otype_ != rhs->otype_)
       return false;
     // if(require_same_type_id && (*lhs->tid_ != *rhs->tid_))
     //  return false;
-    switch(lhs->o_type()) {
+    switch(lhs->otype_) {
       case OType::TYPE:
         return lhs->type_value()->match(rhs->is_type() ? rhs->type_value() : rhs);
       case OType::NOOBJ:
@@ -259,7 +258,7 @@ namespace fhatos {
         return true;
       }
       default:
-        throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->o_type()).c_str());
+        throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->otype_).c_str());
     }
   }
 
@@ -281,16 +280,16 @@ namespace fhatos {
     if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
       return true;
     // if the type is a base type and the base types match, then type check passes
-    if(type_id->equals(*OTYPE_FURI.at(value_obj->o_type())))
+    if(type_id->equals(*OTYPE_FURI.at(value_obj->otype_)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
     //if(value_obj->tid_->equals(*inst_type_id))
     //  return true;
     // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-    if(value_obj->o_type() == OType::TYPE || value_obj->o_type() == OType::INST || value_obj->o_type() ==
+    if(value_obj->otype_ == OType::TYPE || value_obj->otype_ == OType::INST || value_obj->otype_ ==
        OType::BCODE)
       return true;
-    if(type_id->equals(*NOOBJ_FURI) && (value_obj->o_type() == OType::NOOBJ || value_obj->tid_->
+    if(type_id->equals(*NOOBJ_FURI) && (value_obj->otype_ == OType::NOOBJ || value_obj->tid_->
                                         equals(*OBJ_FURI)))
       return true;
     // get the type definition and match it to the obj
@@ -317,7 +316,7 @@ namespace fhatos {
       // do nothing (fails below)
     }
     if(this->throw_on_miss) {
-      static const auto p = GLOBAL_PRINTERS.at(value_obj->o_type())->clone();
+      static const auto p = GLOBAL_PRINTERS.at(value_obj->otype_)->clone();
       p->show_type = false;
       throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id->toString().c_str(),
                    value_obj->toString(p.get()).c_str(), type_id->toString().c_str(),

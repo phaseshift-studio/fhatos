@@ -28,23 +28,7 @@ namespace fhatos {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID_p &value_id, const Rec_p &setup_loop_stop) : Process(
-       value_id, setup_loop_stop->rec_merge(rmap({
-         {"delay", InstBuilder::build(
-             value_id->append("/:delay"))
-           ->type_args(x(0, Obj::to_bcode()))
-           ->domain_range(
-             INT_FURI, {0, 1}, INT_FURI, {0, 1})
-           ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
-             //  ((Process*)lhs.get())->delay(args.at(0)->int_value());
-             Process::current_process()->
-                 sleep_ = args->arg(0)->
-                 int_value();
-             return lhs;
-           })
-           ->create()}}))),
-    xthread(nullptr) {
-//
+    explicit Thread(const Obj_p &obj) : Process(obj), xthread(nullptr) {
     }
 
     ~Thread() override { delete this->xthread; }
@@ -61,8 +45,7 @@ namespace fhatos {
           else
             this->xthread->detach();
         } catch(const std::runtime_error &e) {
-          //  LOG_PROCESS(ERROR, this, "%s [process thread id: %s][current thread id: %s]\n", e.what(),
-          //            this->xthread->get_id(), std::this_thread::get_id());
+          fError::create(this->vid_->toString(), "unable to halt thread: %s", e.what());
         }
       }
     }

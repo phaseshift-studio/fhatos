@@ -1,5 +1,5 @@
 /*******************************************************************************
-FhatOS: A Distributed Operating System
+	FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@ FhatOS: A Distributed Operating System
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-
 
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PRINTER

@@ -14,69 +14,47 @@
 
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+******************************************************************************/
 
-#ifndef fhatos_test_scheduler_hpp
-#define fhatos_test_scheduler_hpp
-
-#define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PRINTER
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_SHARED_MEMORY /test/#
-#include "../test/test_fhatos.hpp"
-#include "../../../src/process/ptype/native/scheduler.hpp"
+#define FOS_DEPLOY_COMPILER
+#define FOS_DEPLOY_PROCESSOR
+#define FOS_DEPLOY_SHARED_MEMORY /scheduler/#
+#include "../../../src/fhatos.hpp"
+#include "../../test_fhatos.hpp"
+#include "../../../src/util/string_helper.hpp"
 
 namespace fhatos {
-  void test_threads() {
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
-    ////////////////////////////////////////////////////////////////////////////
-    const auto a = std::make_shared<Thread>(rec(*rmap({{ID(":loop"),Obj::to_bcode({Insts::start(jnt(1))})}}),THREAD_FURI,id_p("/test/abc/thread-1")));
-    Scheduler::singleton()->spawn(a);
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
-    ////////////////////////////////////////////////////////////////////////////
-    const auto b = std::make_shared<Thread>(rec(*rmap({{ID(":loop"),Obj::to_bcode({Insts::start(jnt(2))})}}),THREAD_FURI,id_p("/test/abc/thread-2")));
-    Scheduler::singleton()->spawn(b);
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/#"));
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/abc/#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-2"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-2"));
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/abc/+"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-2"));
-    ////////////////////////////////////////////////////////////////////////////
-    a->stop();
-    //Scheduler::singleton()->kill("/test/abc/thread-1");
-    Scheduler::singleton()->barrier("thread-1_dead",
-                                    [] { return Scheduler::singleton()->count("/test/abc/thread-1") == 0; });
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-2"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/+"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/+/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-2"));
-    b->stop();
-    //Scheduler::singleton()->kill("/test/abc/thread-2");
-    Scheduler::singleton()->barrier("thread-2_dead", [] { return Scheduler::singleton()->count("/test/#") == 0; });
-    Scheduler::singleton()->stop();
-    Scheduler::singleton()->barrier("complete");
+  using namespace mmadt;
+
+  void test_scheduler_config() {
+
+  }
+
+  void test_scheduler_spawn_destroy() {
+    FOS_TEST_ERROR("/temp/abc -> 12");
+    PROCESS("/scheduler/a -> |[:loop=>from(/scheduler/z,0).plus(1).to(/scheduler/z)]");
+    FOS_TEST_REC_KEYS(PROCESS("*/scheduler/a"),{vri(":loop")});
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("*/scheduler/z"));
+    PROCESS("/sys/scheduler/:spawn(@/scheduler/a)");
+    FOS_TEST_REC_KEYS(PROCESS("*/scheduler/a"),List<Obj_p>({vri(":loop"),vri(":delay"),vri(":yield"),vri(":stop")}));
+    const Obj_p obj_z_1 =  PROCESS("*/scheduler/z");
+    FOS_TEST_OBJ_GT(obj_z_1,jnt(0));
+    std::this_thread::sleep_for (std::chrono::seconds(1));
+    const Obj_p obj_z_2 =  PROCESS("*/scheduler/z");
+    FOS_TEST_OBJ_GT(obj_z_2,obj_z_1);
+    PROCESS("/scheduler/a/:stop()");
+    std::this_thread::sleep_for (std::chrono::seconds(1));
   }
 
   FOS_RUN_TESTS( //
-          FOS_RUN_TEST(test_threads); //
-  );
+    FOS_RUN_TEST(test_scheduler_config); //
+    FOS_RUN_TEST(test_scheduler_spawn_destroy); //
+  )
 
-} // namespace fhatos
-
+}
 SETUP_AND_LOOP();
-
-#endif

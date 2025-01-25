@@ -24,6 +24,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../lang/obj.hpp"
+#include "../util/obj_helper.hpp"
 
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
@@ -46,62 +47,24 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////
 
 
-  class Process : public Rec {
+  class Process : public Obj {
   public:
     bool running = false;
-
-  public:
     int16_t wdt_timer_counter = 0;
     int32_t sleep_ = 0;
     bool yield_ = false;
     bool stop_ = false;
+    BCode_p loop_code_ = nullptr;
+    //Obj_p last_result_ = Obj::to_noobj();
 
-  public:
-    explicit Process() : Rec({}, OType::REC, id_p("/sys/scheduler/type")) {
+
+    explicit Process() : Rec({}, OType::REC, REC_FURI) { // hack for scheduler "process"
       this->vid_ = id_p("/sys/scheduler");
     }
 
-    explicit Process(const ID_p &value_id, const Rec_p &setup_loop_stop) : Rec(setup_loop_stop->rec_value(),
-                                                                               OType::REC, setup_loop_stop->tid_, value_id) {
+    explicit Process(const Obj_p &obj) : Obj(obj->value_, obj->otype_, obj->tid_) {
+      this->vid_ = obj->vid_;
     };
-    /*
-      Obj::to_inst(
-        , {x(0, Obj::to_bcode())}, INST_FURI, make_shared<ID>(string(StringHelper::cxx_f_metadata(
-          "/sys/scheduler/lib", "process",__LINE__))))
-    },
-    {
-      id_p(":yield"), Obj::to_inst(
-        [this](const Obj_p &, const InstArgs &) {
-          Process::current_process()->yield_ = true;
-          return noobj();
-        }, NO_ARGS, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
-          "/sys/scheduler/lib", "process",__LINE__)))
-    },
-    {
-      id_p(":stop"), Obj::to_inst(
-        [this](const Obj_p &, const InstArgs &) {
-          Process::current_process()->stop_ = true;
-          return noobj();
-        }, NO_ARGS, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
-          "/sys/scheduler/lib", "process",__LINE__)))
-    }*/
-
-    /* ObjHelper::InstTypeBuilder::build("/type/process/inst/delay")
-         ->type_args(x(0, "milliseconds", Obj::to_bcode()))
-         ->inst_f([this](const Obj_p &, const InstArgs &args) {
-           this->sleep_ = args.at(0)->int_value();
-           return _noobj_;
-         })->create(id_p(SCHEDULER_ID->extend("lib/process/inst/delay")));
-     ObjHelper::InstTypeBuilder::build(*INST_FURI)
-         ->inst_f([this](const Obj_p &, const InstArgs &) {
-           this->yield_ = true;
-           return _noobj_;
-         })->create(id_p("/sys/lib/scheduler/process/:yield"));
-     ObjHelper::InstTypeBuilder::build(*INST_FURI)
-         ->inst_f([this](const Obj_p &, const InstArgs &) {
-           this->stop();
-           return _noobj_;
-         })->create(id_p("/sys/lib/scheduler/process/:stop"));*/
 
     ~Process() override = default;
 
@@ -132,8 +95,33 @@ namespace fhatos {
                                               return noobj();
                                             })
                                             ->create()));*/
-      const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid_->extend(":setup")));
-      if(setup_bcode->is_noobj())
+      const ID_p stop_id = id_p(this->vid_->extend(":stop"));
+      const ID_p delay_id = id_p(this->vid_->extend(":delay"));
+      const ID_p yield_id = id_p(this->vid_->extend(":yield"));
+      //if(ROUTER_READ(stop_id)->is_noobj())
+      InstBuilder::build(stop_id)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
+            this->stop_ = true;
+            return lhs;
+          })->create(stop_id);
+      InstBuilder::build(delay_id)
+          ->type_args(x(0, Obj::to_bcode()))
+          ->domain_range(
+            OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
+            this->sleep_ = args->arg(0)->int_value();
+            return lhs;
+          })->create(delay_id);
+      InstBuilder::build(yield_id)
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
+            this->yield_ = true;
+            return lhs;
+          })->create(yield_id);
+      this->load();
+
+      if(const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid_->extend(":setup"))); setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(setup_bcode);
@@ -159,11 +147,14 @@ namespace fhatos {
         this->yield();
         this->yield_ = false;
       }
-      const BCode_p loop_bcode = ROUTER_READ(this->vid_)->rec_get("/:loop");
-      if(loop_bcode->is_noobj())
-        throw fError("!b%s !ybcode!! undefined: %s", this->vid_->append("/:loop").toString().c_str(),
+      if(!this->loop_code_)
+        this->loop_code_ = ROUTER_READ(id_p(this->vid_->extend(":loop")));
+      if(!this->loop_code_ || this->loop_code_->is_noobj())
+        throw fError("!b%s !ybcode!! undefined: %s", this->vid_->extend(":loop").toString().c_str(),
                      this->toString().c_str());
-      Obj_p result = BCODE_PROCESSOR(loop_bcode);
+      /*this->last_result_ = */
+      // TODO: make a BCODE_PROCESSOR that takes both bcode and starts w/o having to inline starts
+      BCODE_PROCESSOR(this->loop_code_);
     };
 
     virtual void stop() {
@@ -172,13 +163,15 @@ namespace fhatos {
         LOG(WARN, FOS_ALREADY_STOPPED, this->vid_->toString().c_str());
         return;
       }
-      const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid_->extend(":stop")));
-      if(stop_bcode->is_noobj())
+      if(const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid_->extend(":stop"))); stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(stop_bcode);
-
       this->running = false;
+      ROUTER_WRITE(id_p(this->vid_->extend(":stop")), Obj::to_noobj(), true);
+      ROUTER_WRITE(id_p(this->vid_->extend(":delay")), Obj::to_noobj(), true);
+      ROUTER_WRITE(id_p(this->vid_->extend(":yield")), Obj::to_noobj(), true);
+      this->load();
     };
 
     virtual void delay(const uint64_t) {

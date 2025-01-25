@@ -70,7 +70,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("int", intA->tid_->name().c_str());
     TEST_ASSERT_EQUAL_STRING("/type", intA->tid_->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("int/", intA->tid_->path(1, 2).c_str());
-    TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
+    TEST_ASSERT_EQUAL(OType::INT, intA->otype_);
     TEST_ASSERT_FALSE(intA->is_noobj());
     TEST_ASSERT_TRUE(intA->match(intB));
     TEST_ASSERT_FALSE(intA->match(jnt(987)));
@@ -127,7 +127,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("real", realA->tid_->name().c_str());
     TEST_ASSERT_EQUAL_STRING("/type", realA->tid_->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("real/", realA->tid_->path(1, 2).c_str());
-    TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
+    TEST_ASSERT_EQUAL(OType::REAL, realA->otype_);
     TEST_ASSERT_FALSE(realA->is_noobj());
     TEST_ASSERT_TRUE(realA->match(realB));
     TEST_ASSERT_FALSE(realA->match(real(987.12)));
@@ -176,7 +176,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(*URI_FURI, *uriA->tid_);
     TEST_ASSERT_EQUAL_STRING("uri", uriA->tid_->name().c_str());
     TEST_ASSERT_EQUAL_STRING("index.html", uriA->uri_value().name().c_str());
-    TEST_ASSERT_EQUAL(OType::URI, uriA->o_type());
+    TEST_ASSERT_EQUAL(OType::URI, uriA->otype_);
     TEST_ASSERT_FALSE(uriA->is_noobj());
     TEST_ASSERT_TRUE(uriA->match(uriB));
     TEST_ASSERT_FALSE(uriA->match(vri("http://nothing.org")));
@@ -303,7 +303,7 @@ void test_bool() {
     TEST_ASSERT_TRUE(bool_a->bool_value());
     TEST_ASSERT_FALSE(bool_a->is_bcode());
     TEST_ASSERT_FALSE(bool_a->is_noobj());
-    TEST_ASSERT_EQUAL(OType::BOOL, bool_a->o_type());
+    TEST_ASSERT_EQUAL(OType::BOOL, bool_a->otype_);
     FOS_TEST_OBJ_EQUAL(bool_a, bool_a->apply(bool_b));
     TEST_ASSERT_TRUE(bool_a->match(bool_a));
   }
@@ -314,7 +314,7 @@ void test_bool() {
     const Str_p strA = Obj::to_str("fhat", id_p("/obj/first_name"));
     TEST_ASSERT_FALSE(strA->is_bcode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
-    TEST_ASSERT_EQUAL(OType::STR, strA->o_type());
+    TEST_ASSERT_EQUAL(OType::STR, strA->otype_);
     FOS_TEST_IS_A(OType::STR,strA);
     TEST_ASSERT_TRUE(strA->match(str("fhat"), false));
     TEST_ASSERT_FALSE(strA->match(str("fhat"), true));

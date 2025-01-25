@@ -113,7 +113,7 @@ namespace fhatos {
     static void print_obj(const Obj_p &obj, std::streambuf *sb, const ObjPrinter *obj_printer = nullptr) {
       auto ss = std::ostream(sb);
       if(!obj_printer)
-        obj_printer = GLOBAL_PRINTERS.at(obj->o_type());
+        obj_printer = GLOBAL_PRINTERS.at(obj->otype_);
       if(obj->is_noobj())
         ss << "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       else {
@@ -172,7 +172,7 @@ namespace fhatos {
           ss << (obj->is_inst() ? "!g(!!" : "!g[!!");
         }
 
-        switch(obj->o_type()) {
+        switch(obj->otype_) {
           case OType::BOOL:
             ss << (obj->bool_value() ? "!ytrue!!" : "!yfalse!!");
             break;
@@ -300,7 +300,7 @@ namespace fhatos {
             break;
           }
           default:
-            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->o_type()).c_str());
+            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->otype_).c_str());
         }
       }
       if(!(obj->is_base_type() && !obj->is_inst() && !obj->is_type()))

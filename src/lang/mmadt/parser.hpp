@@ -407,7 +407,7 @@ namespace mmadt {
 
       auto start_obj_action = [start_action](const SemanticValues &vs) -> Pair<Any, OType> {
         const auto obj = start_action(vs);
-        return {obj->value_, obj->o_type()};
+        return {obj->value_, obj->otype_};
       };
 
       WS <= zom(cls(" \t\n"));

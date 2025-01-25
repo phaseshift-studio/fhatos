@@ -94,8 +94,7 @@ namespace fhatos {
     }
 
     explicit Console(const ID &value_id, const Rec_p &config) : /* */
-      Thread(id_p(value_id),
-             Obj::to_rec({
+      Thread(Obj::to_rec({
                            {":loop", InstBuilder::build(id_p(value_id.extend(":loop")))
                              ->domain_range(NOOBJ_FURI, {0, 0}, NOOBJ_FURI, {0, 0})
                              ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
@@ -156,7 +155,7 @@ namespace fhatos {
                                return noobj();
                              })
                              ->create()},
-                           {"config", config}}, THREAD_FURI, id_p(value_id))) {
+                           {"config", config}}, REC_FURI, id_p(value_id))) {
     }
 
   public:

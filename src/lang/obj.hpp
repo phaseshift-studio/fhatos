@@ -449,7 +449,7 @@ namespace fhatos {
 
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
-    [[nodiscard]] ID_p vid_or_tid() const {
+    [[nodiscard]] virtual ID_p vid_or_tid() const {
       return this->vid_ ? this->vid_ : this->tid_;
     }
 
@@ -457,7 +457,15 @@ namespace fhatos {
       this->at(this->vid_);
     }
 
-    [[nodiscard]] OType o_type() const { return this->otype_; }
+    virtual void load() {
+      if(this->vid_) {
+        const Obj_p other = ROUTER_READ(this->vid_);
+        if(this->otype_ != other->otype_ || !this->tid_->equals(*other->tid_))
+          throw fError("type of obj structural encoding changed (try locking): %s %s", this->tid_->toString().c_str(),
+                       other->tid_->toString().c_str());
+        this->value_ = other->value_;
+      }
+    }
 
     template<typename VALUE>
     [[nodiscard]] VALUE value() const {
@@ -1077,6 +1085,12 @@ namespace fhatos {
       return this->shared_from_this();
     }
 
+    [[nodiscard]] Obj_p none_one() const {
+      return this->is_objs()
+               ? (this->objs_value()->empty() ? Obj::to_noobj() : this->objs_value()->front())
+               : this->shared_from_this();
+    }
+
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) const {
       if(!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -1095,12 +1109,12 @@ namespace fhatos {
 
     [[nodiscard]] string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)
-        obj_printer = GLOBAL_PRINTERS.at(this->o_type());
+        obj_printer = GLOBAL_PRINTERS.at(this->otype_);
       string obj_string;
       if(this->is_noobj())
         obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       else {
-        switch(this->o_type()) {
+        switch(this->otype_) {
           case OType::BOOL:
             obj_string = this->bool_value() ? "!ytrue!!" : "!yfalse!!";
             break;
@@ -1223,7 +1237,7 @@ namespace fhatos {
             break;
           }
           default:
-            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
+            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->otype_).c_str());
         }
       }
       if(!this->is_noobj() &&
@@ -1302,7 +1316,7 @@ namespace fhatos {
     [[nodiscard]] int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
 
     bool operator>(const Obj &rhs) const {
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::NOOBJ:
           return false;
         case OType::INT:
@@ -1314,12 +1328,12 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("%s is not relational (>)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (>)", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
     bool operator<(const Obj &rhs) const {
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::NOOBJ:
           return false;
         case OType::INT:
@@ -1331,7 +1345,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("%s is not relational (<)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (<)", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
@@ -1340,7 +1354,7 @@ namespace fhatos {
     bool operator>=(const Obj &rhs) const { return *this == rhs || *this > rhs; }
 
     Obj operator/(const Obj &rhs) const {
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::NOOBJ:
           return *to_noobj();
         case OType::INT:
@@ -1348,12 +1362,12 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() / rhs.real_value(), OType::REAL, this->tid_, this->vid_);
         default:
-          throw fError("%s can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be divided (/)", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
     Obj operator-(const Obj &rhs) const {
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::NOOBJ:
           return *Obj::to_noobj();
         case OType::BOOL:
@@ -1385,7 +1399,7 @@ namespace fhatos {
           return Rec(map, OType::REC, this->tid_, this->vid_);
         }
         default:
-          throw fError("%s can not be subtracted (-)", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be subtracted (-)", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
@@ -1464,7 +1478,7 @@ namespace fhatos {
               this->range_coefficient() == other.range_coefficient() &&
               *this->inst_seed_supplier() == *other.inst_seed_supplier();
         // TODO: Tuple equality
-        default: throw fError("unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
+        default: throw fError("unknown obj type in ==: %s", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
@@ -1636,7 +1650,7 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::TYPE: return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid_);
         case OType::BOOL:
         case OType::INT:
@@ -1721,7 +1735,7 @@ namespace fhatos {
           return objs;
         }
         default:
-          throw fError("unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("unknown obj type in apply(): %s", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
@@ -1744,11 +1758,11 @@ namespace fhatos {
           (type_obj->tid_->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid_->no_query()) && FURI_OTYPE.at(
                                                      type_obj->tid_->no_query()) == this->otype_)))
          return true;*/
-      if(this->o_type() != type_obj->o_type())
+      if(this->otype_ != type_obj->otype_)
         return false;
       if(require_same_type_id && (*this->tid_ != *type_obj->tid_))
         return false;
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::TYPE:
           return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj);
         case OType::NOOBJ:
@@ -1815,7 +1829,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("unknown obj type in match(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("unknown obj type in match(): %s", OTypes.to_chars(this->otype_).c_str());
       }
     }
 
@@ -2074,7 +2088,7 @@ namespace fhatos {
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
-      switch(this->o_type()) {
+      switch(this->otype_) {
         case OType::NOOBJ: return Obj::to_noobj();
         case OType::OBJ:
         case OType::ERROR:
@@ -2137,7 +2151,7 @@ namespace fhatos {
           r->vid_ = this->vid_;
           return r;
         }
-        default: throw fError("unknown base type: %i", this->o_type());
+        default: throw fError("unknown base type: %i", this->otype_);
       }
     }
 
