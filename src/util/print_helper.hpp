@@ -43,7 +43,7 @@ namespace fhatos {
       if(obj->is_objs()) {
         for(Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
-          pretty_print_obj(o, depth, max_depth, parent_rec, sb,char_indent);
+          pretty_print_obj(o, depth, max_depth, parent_rec, sb, char_indent);
         }
       } else if(obj->is_lst() && max_depth > depth) {
         if(!parent_rec) {
@@ -60,7 +60,7 @@ namespace fhatos {
                                        e->toString().c_str());
           } else {
             //to_out->append("!m,!!");
-            pretty_print_obj(e, depth + 1, max_depth, false, sb,char_indent);
+            pretty_print_obj(e, depth + 1, max_depth, false, sb, char_indent);
           }
         }
         ss << string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b";
@@ -86,7 +86,7 @@ namespace fhatos {
                                StringHelper::repeat(depth, char_indent ? "=" : " ") +
                                (char_indent ? "==>!!" : "   !!")).c_str(),
               key->toString().c_str());
-            pretty_print_obj(value, depth + 1, max_depth, true, sb,char_indent);
+            pretty_print_obj(value, depth + 1, max_depth, true, sb, char_indent);
           }
         }
         ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ")
@@ -112,6 +112,7 @@ namespace fhatos {
 
     static void print_obj(const Obj_p &obj, std::streambuf *sb, const ObjPrinter *obj_printer = nullptr) {
       auto ss = std::ostream(sb);
+      string close;
       if(!obj_printer)
         obj_printer = GLOBAL_PRINTERS.at(obj->otype_);
       if(obj->is_noobj())
@@ -169,7 +170,6 @@ namespace fhatos {
           }
           if(obj->is_type())
             ss << "!m]!!";
-          ss << (obj->is_inst() ? "!g(!!" : "!g[!!");
         }
 
         switch(obj->otype_) {
@@ -231,6 +231,7 @@ namespace fhatos {
           }
           case OType::INST: {
             bool first = true;
+            ss << "!g(!!";
             for(const auto &[k,v]: *obj->inst_args()->rec_value()) {
               if(first) {
                 first = false;
@@ -244,6 +245,7 @@ namespace fhatos {
               }
               print_obj(v, sb);
             }
+            ss << "!g)!!";
             if(obj->inst_f()) {
               ss << "!g[!!" << (std::holds_alternative<Obj_p>(*obj->inst_f())
                                   ? std::get<Obj_p>(*obj->inst_f())->toString()
@@ -296,15 +298,15 @@ namespace fhatos {
             break;
           }
           case OType::TYPE: {
+            ss << "!g[!!";
             print_obj(obj->type_value(), sb);
+            ss << "!g]!!";
             break;
           }
           default:
             throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->otype_).c_str());
         }
       }
-      if(!(obj->is_base_type() && !obj->is_inst() && !obj->is_type()))
-        ss << (obj->is_inst() ? "!g)!!" : "!g]!!");
 
       if(obj_printer->show_id && obj->vid_)
         ss << "!m@!b" << obj->vid_->toString() << "!!";
