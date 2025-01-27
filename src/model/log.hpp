@@ -24,7 +24,7 @@
 #include "../util/obj_helper.hpp"
 #include "../structure/router.hpp"
 
-#define OBJ_ID_WRAP "!g[!b%s!g]!!"
+#define OBJ_ID_WRAP "!g[!m%s!g]!!"
 #define SYS_ID_WRAP "!g[!y%s!g]!!"
 
 namespace fhatos {

@@ -39,17 +39,45 @@ namespace fhatos {
   void Compiler::print_derivation_tree(string *derivation_string) const {
     derivation_string->clear();
     if(this->dt) {
+      int max_0 = 0;
+      int max_1 = 0;
+      int max_2 = 0;
+      for(const auto &oir: *this->dt) {
+        int c = std::get<0>(oir)->toString().length();
+        if(c > max_0)
+          max_0 = c;
+        c = std::get<1>(oir)->toString().length();
+        if(c > max_1)
+          max_1 = c;
+        c = std::get<2>(oir)->toString().length();
+        if(c > max_2)
+          max_2 = c;
+      }
       int counter = 0;
+      // "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+
+      derivation_string->append(StringHelper::format(string("\n\t%")
+                                                     .append("8").append("s !y%-")
+                                                     .append(to_string(max_0)).append("s  !y%-")
+                                                     .append(to_string(max_1)).append("s    !y%-")
+                                                     .append(to_string(max_2)).append("s!!").c_str(),
+                                                     "   ",
+                                                     "lhs id",
+                                                     "inst id",
+                                                     "resolve obj"));
       for(const auto &oir: *this->dt) {
         counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
         if(counter != 0) {
           string indent = StringHelper::repeat(counter, "-").append("!g>!!");
-          derivation_string->append(StringHelper::format(
-            "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
-            indent.c_str(),
-            std::get<0>(oir)->toString().c_str(),
-            std::get<1>(oir)->toString().c_str(),
-            std::get<2>(oir)->toString().c_str()));
+          derivation_string->append(StringHelper::format(string("\n\t!m%")
+                                                         .append("8").append("s!g[!b%-")
+                                                         .append(to_string(max_0)).append("s!g] !b%-")
+                                                         .append(to_string(max_1)).append("s!! !m=>!m !b%-")
+                                                         .append(to_string(max_2)).append("s!!").c_str(),
+                                                         indent.c_str(),
+                                                         std::get<0>(oir)->toString().c_str(),
+                                                         std::get<1>(oir)->toString().c_str(),
+                                                         std::get<2>(oir)->toString().c_str()));
         }
       }
     } else {
@@ -80,7 +108,7 @@ namespace fhatos {
     if(!inst_obj->inst_f()) {
       if(inst->vid_ /*&& !inst->vid_->is_relative()*/) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst->vid_));
-        if(dt) dt->emplace_back(OBJ_FURI, inst->vid_, inst_obj);
+        if(dt) dt->emplace_back(id_p(""), inst->vid_, inst_obj);
       }
       /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid_) {
          inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid_));
@@ -99,7 +127,7 @@ namespace fhatos {
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-        if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
+        if(dt) dt->emplace_back(id_p(""), inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {

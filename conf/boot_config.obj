@@ -25,5 +25,9 @@
     WARN=>[],
     DEBUG=>[],
     TRACE=>[]
+ ],
+ ota=>[
+  host=>fhatos_ota,
+  port=>3232
  ]
 ]@/sys/config

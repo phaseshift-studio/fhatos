@@ -162,19 +162,19 @@ namespace fhatos {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           const bool mdnsStatus = MDNS.begin(this->settings_.mdns_.c_str());
-          LOG_STRUCTURE(INFO, this,
-                        "\n\t!g[!bWIFI Station Configuration!g]!!\n"
-                        "\t!yID             : !m%s\n"
-                        "\t!yStatus         : !m%s\n"
-                        "\t!ySSID           : !m%s\n"
-                        "\t!yMAC address    : !m%s\n"
-                        "\t!yIP address     : !m%s\n"
-                        "\t!yHostname       : !m%s\n"
-                        "\t!ymDNS name      : !m%s\n"
-                        "\t!yGateway address: !m%s\n"
-                        "\t!ySubnet mask    : !m%s\n"
-                        "\t!yDNS address    : !m%s\n"
-                        "\t!yChannel        : !m%i!!\n",
+          LOG_OBJ(INFO, this,
+                        "\n\t!g[!bwifi station setup!g]!!\n"
+                        "\t!yid             : !m%s\n"
+                        "\t!ystatus         : !m%s\n"
+                        "\t!yssid           : !m%s\n"
+                        "\t!ymac address    : !m%s\n"
+                        "\t!yip address     : !m%s\n"
+                        "\t!yhostname       : !m%s\n"
+                        "\t!ymdns name      : !m%s\n"
+                        "\t!ygateway address: !m%s\n"
+                        "\t!ysubnet mask    : !m%s\n"
+                        "\t!ydns address    : !m%s\n"
+                        "\t!ychannel        : !m%i!!\n",
                         this->settings_.mdns_.c_str(), WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
                         WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
                         WiFi.getHostname(), mdnsStatus ? (this->settings_.mdns_ + ".local").c_str() : "<error>",

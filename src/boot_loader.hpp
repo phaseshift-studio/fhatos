@@ -29,6 +29,7 @@
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/console.hpp"
+#include "model/soc/esp/ota.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
@@ -126,9 +127,11 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
-            // ->mount(HeapPSRAM::create("/psram/#"))
              ->mount(Memory::singleton("/soc/memory/#"))
-            //->structure(BLE::create("/io/bt/#"))
+             ->mount(Heap<>::create("/soc/ota/#"))
+             ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
+             ->drop_config("ota")
+             // ->mount(HeapPSRAM::create("/psram/#"))
 #endif
 
 #if defined(NATIVE)
