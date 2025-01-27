@@ -142,24 +142,31 @@ namespace fhatos {
     delete bobj;
   };
 
-  /* static const auto ITypeDescriptions = Enums<IType>({
-     {IType::ZERO_TO_ZERO, ".->. (transient)"},
-     {IType::ZERO_TO_ONE, ".->o (supplier)"},
-     {IType::ZERO_TO_MANY, ".->O (initial)"},
-     {IType::ONE_TO_ZERO, "o->. (consumer)"},
-     {IType::MANY_TO_ZERO, "O->. (terminal)"},
-     {IType::ONE_TO_ONE, "o->o (map)"},
-     {IType::ONE_TO_MANY, "o->O (flatmap)"},
-     {IType::MAYBE_TO_MANY, "?->O (potential)"},
-     {IType::MAYBE_TO_ONE, "?->o (flip)"},
-     {IType::MAYBE_TO_ZERO, "?->. (spark)"},
-     {IType::MAYBE_TO_MAYBE, "?->? (flux)"},
-     {IType::ONE_TO_MAYBE, "o->? (filter)"},
-     {IType::ZERO_TO_MAYBE, ".->? (check)"},
-     {IType::MANY_TO_MAYBE, "?-? (strain)"},
-     {IType::MANY_TO_ONE, "O->o (reduce)"},
-     {IType::MANY_TO_MANY, "O->O (barrier)"},
-   });*/
+  template<typename KEY, typename VALUE>
+  const VALUE &get_with_default(const Map<KEY, VALUE> &m, const KEY &key, const VALUE &default_value) {
+    auto it = m.find(key);
+    if(it == m.end()) return default_value;
+    return it->second;
+  }
+
+  const Map<const Pair<IntCoefficient, IntCoefficient>, string> SIGNATURE_DESCRIPTIONS = {
+    {{{0, 0}, {0, 0}}, ".->. (transient)"},
+    {{{0, 0}, {1, 1}}, ".->o (supplier)"},
+    {{{0, 0}, {0,INT_MAX}}, ".->* (initial)"},
+    {{{1, 1}, {0, 0}}, "o->. (consumer)"},
+    {{{0,INT_MAX}, {0, 0}}, "*->. (terminal)"},
+    {{{1, 1}, {1, 1}}, "o->o (map)"},
+    {{{1, 1}, {0,INT_MAX}}, "o->* (flatmap)"},
+    {{{0, 1}, {1,INT_MAX}}, "?->* (potential)"},
+    {{{0, 1}, {0, 0}}, "?->o (flip)"},
+    {{{0, 1}, {0, 0}}, "?->. (spark)"},
+    {{{0, 1}, {0, 1}}, "?->? (flux)"},
+    {{{1, 1}, {0, 1}}, "o->? (filter)"},
+    {{{0, 0}, {0, 1}}, ".->? (check)"},
+    {{{0, 1}, {0, 1}}, "?-? (strain)"},
+    {{{0,INT_MAX}, {1, 1}}, "*->o (reduce)"},
+    {{{0,INT_MAX}, {0,INT_MAX}}, "*->* (barrier)"},
+  };
   using InstArgs = Rec_p;
   using Cpp = BiFunction<const Obj_p, const InstArgs, Obj_p>;
   using Cpp_p = ptr<Cpp>;
@@ -881,13 +888,14 @@ namespace fhatos {
       return this->value<Pair<Obj_p, Inst_p>>();
     }
 
-
     [[nodiscard]] ID_p domain() const {
-      return this->tid_->has_query(FOS_DOMAIN)
-               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_DOMAIN).value().c_str())))
-               : (this->is_bcode() && !this->bcode_value()->empty()
-                    ? this->bcode_value()->front()->domain()
-                    : OBJ_FURI);
+      if(this->tid_->has_query(FOS_DOMAIN))
+        return id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_DOMAIN).value())));
+      if(this->is_bcode() && !this->bcode_value()->empty())
+        return this->bcode_value()->front()->domain();
+      if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f()))
+        return std::get<Obj_p>(*this->inst_f())->domain();
+      return OBJ_FURI;
     }
 
 
@@ -902,19 +910,16 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p range() const {
-      return this->tid_->has_query(FOS_RANGE)
-               ? id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_RANGE).value())))
-               : this->is_code()
-                   ? (this->is_bcode() && !this->bcode_value()->empty()
-                        ? this->bcode_value()->back()->range()
-                        : OBJ_FURI)
-                   : id_p(this->tid_->no_query());
+      if(this->tid_->has_query(FOS_RANGE))
+        return id_p(*ROUTER_RESOLVE(fURI(this->tid_->query_value(FOS_RANGE).value())));
+      if(this->is_bcode() && !this->bcode_value()->empty())
+        return this->bcode_value()->back()->range();
+      if(this->is_inst())
+        return this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f())
+                 ? std::get<Obj_p>(*this->inst_f())->range()
+                 : OBJ_FURI;
+      return id_p(this->tid_->no_query());
     }
-
-    [[nodiscard]] Obj_p type() const {
-      return ROUTER_READ(this->tid_);
-    }
-
 
     bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
                                      const bool throw_exception = true) const {
@@ -981,6 +986,11 @@ namespace fhatos {
         }
       }
       return true;
+    }
+
+
+    [[nodiscard]] Obj_p type() const {
+      return ROUTER_READ(this->tid_);
     }
 
     [[nodiscard]] InstList_p bcode_value() const {
@@ -1603,7 +1613,7 @@ namespace fhatos {
       for(const auto &[k,v]: *args->rec_value()) {
         remake->rec_value()->insert({k, v->apply(lhs)});
       }
-      ROUTER_PUSH_FRAME("+", args);
+      ROUTER_PUSH_FRAME("#", args);
       const Obj_p result = this->apply(lhs);
       ROUTER_POP_FRAME();
       return result;
@@ -1699,7 +1709,7 @@ namespace fhatos {
               remake->rec_value()->insert({k, v->apply(lhs)});
             }
           }
-          ROUTER_PUSH_FRAME("+", remake);
+          ROUTER_PUSH_FRAME("#", remake);
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           try {

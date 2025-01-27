@@ -57,16 +57,16 @@ namespace fhatos {
     }
   }
 
-  Inst_p convert_to_inst(const Obj_p& lhs, const Inst_p& stub_inst, const Obj_p &obj) {
+  Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) {
     if(obj->is_noobj() || obj->is_inst())
       return obj;
-  //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
+    //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
     const Inst_p inst = InstBuilder::build("")
         ->inst_args(stub_inst->inst_args())
         ->inst_f(obj)
-        ->domain_range(lhs->tid_, {1,1}, OBJ_FURI, {1,1})
+        ->domain_range(obj->domain(), obj->domain_coefficient(), obj->range(), obj->range_coefficient())
         ->create();
-    LOG(INFO,"converting %s to inst %s\n",obj->toString().c_str(), inst->toString().c_str());
+    LOG(TRACE, "converting %s to inst %s\n", obj->toString().c_str(), inst->toString().c_str());
     return inst;
   }
 
@@ -79,37 +79,42 @@ namespace fhatos {
     Obj_p inst_obj = inst;
     if(!inst_obj->inst_f()) {
       if(inst->vid_ /*&& !inst->vid_->is_relative()*/) {
-        inst_obj = convert_to_inst(lhs,inst,Router::singleton()->read(inst->vid_));
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst->vid_));
         if(dt) dt->emplace_back(OBJ_FURI, inst->vid_, inst_obj);
       }
-     /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid_) {
-        inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid_));
-        if(dt) dt->emplace_back(OBJ_FURI, inst->tid_, inst_obj);
-      }*/
+      /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid_) {
+         inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid_));
+         if(dt) dt->emplace_back(OBJ_FURI, inst->tid_, inst_obj);
+       }*/
       const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid_));
       if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid_) {
-        inst_obj = convert_to_inst(lhs,inst,Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved))));
+        inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved))));
         if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        inst_obj = convert_to_inst(lhs,inst,Router::singleton()->read(furi_p(lhs->tid_->add_component(*inst_type_id_resolved))));
+        inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(furi_p(lhs->tid_->add_component(*inst_type_id_resolved))));
         if(dt) dt->emplace_back(lhs->tid_, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        inst_obj = convert_to_inst(lhs,inst,Router::singleton()->read(inst_type_id_resolved));
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
         if(dt) dt->emplace_back(OBJ_FURI, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
-          inst_obj = convert_to_inst(lhs,inst,resolve_inst(parent, inst));
+          inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
         }
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        inst_obj = convert_to_inst(lhs,inst,this->resolve_inst(
-          Router::singleton()->read(id_p(
-            Router::singleton()->read(id_p(*
-              Router::singleton()->resolve(lhs->tid_->no_query())))->domain()->no_query())),
-          inst_obj));
+        if(!Router::singleton()->resolve(lhs->tid_->no_query())->equals(*OBJ_FURI)) {
+          inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
+                                       Router::singleton()->read(id_p(
+                                         Router::singleton()->read(id_p(*
+                                           Router::singleton()->resolve(
+                                             lhs->tid_->no_query())))->domain()->no_query())),
+                                       inst_obj));
+        }
       }
       if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->inst_f())) {
         string derivation_string;

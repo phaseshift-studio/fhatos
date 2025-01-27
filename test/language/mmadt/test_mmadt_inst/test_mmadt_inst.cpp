@@ -149,12 +149,30 @@ namespace fhatos {
   }
 
   void test_obj_inst() {
+    PROCESS("/abc/k -> 42");
+    FOS_TEST_OBJ_EQUAL(jnt(42), PROCESS("/abc/k()"));
+    FOS_TEST_OBJ_EQUAL(jnt(42), PROCESS("/abc/k(1,2)"));
+    FOS_TEST_OBJ_EQUAL(jnt(42), PROCESS("/abc/k(/abc/a=>1,/abc/b=>2)"));
+    //////////////////////////////////////////////////////////////////
+    //PROCESS("/abc/k -> |plus(10)");
+    //FOS_TEST_OBJ_EQUAL(jnt(11), PROCESS("1./abc/k()"));
+    //FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("2./abc/k(1,2)"));
+    //////////////////////////////////////////////////////////////////
+    PROCESS("/abc/k -> |(plus(10).plus(1))");
+    FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("1./abc/k()"));
+    FOS_TEST_OBJ_EQUAL(jnt(13), PROCESS("2./abc/k(1,2)"));
+    //////////////////////////////////////////////////////////////////
     PROCESS("/abc/k -> |(plus(*<0>).plus(*<1>))");
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("1./abc/k(2,4)"));
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("1./abc/k(<0>=>1,<1>=>2)"));
-    //FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("1./abc/k(b=>2,a=>4)"));
+    //////////////////////////////////////////////////////////////////
+    PROCESS("/abc/k -> |[*a,*b,_]");
+    FOS_TEST_OBJ_EQUAL(lst({jnt(32),str("pig"),jnt(12)}), PROCESS("12./abc/k(a=>32,b=>'pig')"));
+    FOS_TEST_ERROR("1./abc/k(88,'fhatos')");
+    PROCESS("/abc/k -> |[*<0>,*<1>,_]");
+    FOS_TEST_OBJ_EQUAL(lst({jnt(88),str("fhatos"),jnt(11)}), PROCESS("11./abc/k(88,'fhatos')"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(100),vri("test"),jnt(10)}), PROCESS("10./abc/k(/abc/a=>100,/abc/b=>test)"));
   }
-
 
   FOS_RUN_TESTS( //
   FOS_RUN_TEST(test_as_inst); //
