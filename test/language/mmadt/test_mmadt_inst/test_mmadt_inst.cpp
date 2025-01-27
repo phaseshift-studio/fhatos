@@ -148,16 +148,24 @@ namespace fhatos {
     // TODO: implement repeat(drop()).until(not_code)   drop_hard() :)
   }
 
+  void test_obj_inst() {
+    PROCESS("/abc/k -> |(plus(*<0>).plus(*<1>))");
+    FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("1./abc/k(2,4)"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("1./abc/k(<0>=>1,<1>=>2)"));
+    //FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("1./abc/k(b=>2,a=>4)"));
+  }
+
 
   FOS_RUN_TESTS( //
-FOS_RUN_TEST(test_as_inst); //
-    FOS_RUN_TEST(test_inst_args); //
-    FOS_RUN_TEST(test_barrier_inst); //
-    //FOS_RUN_TEST(test_neg_inst); //
-    FOS_RUN_TEST(test_plus_inst); //
-    FOS_RUN_TEST(test_mult_inst); //
-    FOS_RUN_TEST(test_count_inst); //
-    FOS_RUN_TEST(test_drop_inst); //
+  FOS_RUN_TEST(test_as_inst); //
+  FOS_RUN_TEST(test_inst_args); //
+  FOS_RUN_TEST(test_barrier_inst); //
+  //FOS_RUN_TEST(test_neg_inst); //
+  FOS_RUN_TEST(test_plus_inst); //
+  FOS_RUN_TEST(test_mult_inst); //
+  FOS_RUN_TEST(test_count_inst); //
+  FOS_RUN_TEST(test_drop_inst); //
+  FOS_RUN_TEST(test_obj_inst); //
   )
 } // namespace fhatos
 

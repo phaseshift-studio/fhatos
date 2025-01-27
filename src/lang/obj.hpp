@@ -1257,7 +1257,7 @@ namespace fhatos {
                                    ? ""
                                    : this->has_domain(0, 1)
                                        ? "?"
-                                       : this->has_domain(0,INT_MAX)
+                                       : this->has_domain(1,INT_MAX)
                                            ? "+"
                                            : this->is_initial()
                                                ? "."
@@ -1270,7 +1270,7 @@ namespace fhatos {
                                    ? ""
                                    : this->has_range(0, 1)
                                        ? "?"
-                                       : this->has_range(0,INT_MAX)
+                                       : this->has_range(1,INT_MAX)
                                            ? "+"
                                            : this->is_terminal()
                                                ? "."
@@ -1664,7 +1664,7 @@ namespace fhatos {
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
-            new_values->push_back(obj->apply(lhs));
+            new_values->emplace_back(obj->apply(lhs));
           }
           return Obj::to_lst(new_values, this->tid_);
         }
@@ -1703,10 +1703,11 @@ namespace fhatos {
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           try {
-            if(nullptr == inst->inst_f())
+            if(nullptr == inst->inst_f()) {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
+            }
             const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);

@@ -135,7 +135,7 @@ namespace fhatos {
                                      ? ""
                                      : obj->has_domain(0, 1)
                                          ? "?"
-                                         : obj->has_domain(0,INT_MAX)
+                                         : obj->has_domain(1,INT_MAX)
                                              ? "+"
                                              : obj->is_initial()
                                                  ? "."
@@ -148,7 +148,7 @@ namespace fhatos {
                                      ? ""
                                      : obj->has_range(0, 1)
                                          ? "?"
-                                         : obj->has_range(0,INT_MAX)
+                                         : obj->has_range(1,INT_MAX)
                                              ? "+"
                                              : obj->is_terminal()
                                                  ? "."
@@ -158,7 +158,8 @@ namespace fhatos {
                                                      .append(",")
                                                      .append(to_string(obj->range_coefficient().second));
 
-            if(!dom_str.empty() || !rng_str.empty()) {
+            if(!dom_str.empty() || !rng_str.empty() ||
+               !obj->range()->equals(*OBJ_FURI) || !obj->domain()->equals(*OBJ_FURI)) {
               ss << "!m?!!"
                   << "!c" << (obj_printer->strict ? obj->range()->toString() : obj->range()->name())
                   << (rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))

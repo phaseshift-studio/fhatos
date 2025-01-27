@@ -276,6 +276,12 @@ namespace fhatos {
       }
       return ss;
     }
+
+    static bool char_ptr_equal(const char *a, const char *b) {
+      if(!a) return !b;
+      if(!b) return false;
+      return strcmp(a, b) == 0;
+    }
   };
 } // namespace fhatos
 

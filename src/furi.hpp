@@ -429,21 +429,17 @@ namespace fhatos {
     [[nodiscard]] fURI as_node() const {
       if(!this->spostfix_)
         return *this;
-      else {
-        auto f = fURI(*this);
-        f.spostfix_ = false;
-        return f;
-      }
+      auto f = fURI(*this);
+      f.spostfix_ = false;
+      return f;
     }
 
     [[nodiscard]] fURI as_branch() const {
       if(this->spostfix_)
         return *this;
-      else {
-        auto f = fURI(*this);
-        f.spostfix_ = true;
-        return f;
-      }
+      auto f = fURI(*this);
+      f.spostfix_ = true;
+      return f;
     }
 
     [[nodiscard]] bool is_subfuri_of(const fURI &other) const {
@@ -698,13 +694,13 @@ namespace fhatos {
       }
     }
 
-    fURI(const string &uriString) : fURI(uriString.c_str()) {
+    fURI(const string &uri_string) : fURI(uri_string.c_str()) {
     }
 
-    fURI(const char *uriChars) {
-      if(strlen(uriChars) == 0)
+    fURI(const char *uri_chars) {
+      if(strlen(uri_chars) == 0)
         return;
-      const char *dups = strdup(uriChars);
+      const char *dups = strdup(uri_chars);
       /*for (size_t i = 0; i < strlen(dups); i++) {
         if (dups[i] == '#' && i != strlen(dups) - 1) {
           const string temp = string(dups);
@@ -800,7 +796,7 @@ namespace fhatos {
                     this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
                   this->path_[this->path_length_] = strdup(token.c_str());
                   this->path_length_ = this->path_length_ + 1;
-                  check_path_length(uriChars);
+                  check_path_length(uri_chars);
                 } else {
                   this->sprefix_ = true;
                 }
@@ -812,7 +808,7 @@ namespace fhatos {
                 this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
               this->path_[this->path_length_] = strdup(token.c_str());
               this->path_length_ = this->path_length_ + 1;
-              check_path_length(uriChars);
+              check_path_length(uri_chars);
               this->spostfix_ = true;
               token.clear();
             } else {
@@ -842,7 +838,7 @@ namespace fhatos {
                   this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
                 this->path_[this->path_length_] = strdup(token.c_str());
                 this->path_length_ = this->path_length_ + 1;
-                check_path_length(uriChars);
+                check_path_length(uri_chars);
               }
               part = URI_PART::QUERY;
               // this->query_ = strdup("");
@@ -870,7 +866,7 @@ namespace fhatos {
               this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
             this->path_[this->path_length_] = strdup(token.c_str());
             this->path_length_ = this->path_length_ + 1;
-            check_path_length(uriChars);
+            check_path_length(uri_chars);
           } else if(part == URI_PART::HOST || part == URI_PART::USER) {
             this->host_ = strdup(token.c_str());
           } else if(part == URI_PART::PORT) {
@@ -910,32 +906,28 @@ namespace fhatos {
     bool operator!=(const fURI &other) const { return !this->equals(other); }
 
     bool operator==(const fURI &other) const {
-      return this->toString() == other.toString();
+      return this->equals(other);
     } // TODO: do field-wise comparisons
 
   private:
-    static bool char_ptr_equal(const char *a, const char *b) {
-      if(!a) return !b;
-      if(!b) return false;
-      return strcmp(a, b) == 0;
-    }
+
 
   public:
-    bool equals(const fURI &other) const {
+    [[nodiscard]] bool equals(const fURI &other) const {
       if(this->path_length_ != other.path_length_)
         return false;
       for(int i = 0; i < this->path_length_; i++) {
-        if(!char_ptr_equal(this->path_[i], other.path_[i]))
+        if(!StringHelper::char_ptr_equal(this->path_[i], other.path_[i]))
           return false;
       }
       return this->spostfix_ == other.spostfix_ &&
              this->sprefix_ == other.sprefix_ &&
-             char_ptr_equal(this->query_, other.query_) &&
-             char_ptr_equal(this->scheme_, other.scheme_) &&
-             char_ptr_equal(this->host_, other.host_) &&
+             StringHelper::char_ptr_equal(this->query_, other.query_) &&
+             StringHelper::char_ptr_equal(this->scheme_, other.scheme_) &&
+             StringHelper::char_ptr_equal(this->host_, other.host_) &&
              this->port_ == other.port_ &&
-             char_ptr_equal(this->user_, other.user_) &&
-             char_ptr_equal(this->password_, other.password_);
+             StringHelper::char_ptr_equal(this->user_, other.user_) &&
+             StringHelper::char_ptr_equal(this->password_, other.password_);
     }
 
     [[nodiscard]] string toString() const {
@@ -1067,6 +1059,14 @@ namespace fhatos {
     auto operator()(const fURI_p &a, const fURI_p &b) const {
       return std::greater<string>()(a->toString(), b->toString());
     }
+  };
+
+  struct furi_p_hash {
+    size_t operator()(const fURI_p &furi) const { return std::hash<std::string>{}(furi->toString()); }
+  };
+
+  struct furi_p_equal_to : std::binary_function<fURI_p &, fURI_p &, bool> {
+    bool operator()(const fURI_p &a, const fURI_p &b) const { return a->equals(*b); }
   };
 
   [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return make_shared<fURI>(id_chars); }

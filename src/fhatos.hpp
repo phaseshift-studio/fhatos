@@ -177,7 +177,7 @@ namespace fhatos {
     typename VALUE,
     typename HASH = std::hash<KEY>,
     typename EQ = std::equal_to<KEY>>
-  //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
+    //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
   using OrderedMap = tsl::ordered_map<KEY, VALUE, HASH, EQ>;
 
   using string = std::string;

@@ -161,7 +161,7 @@ namespace fhatos {
 
   //[[nodiscard]] Objs_p Router::read(const vID &variant) {
   //  return this->read(furi_p(variant.as_()));
- // }
+  // }
 
   [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
     try {
@@ -265,6 +265,8 @@ namespace fhatos {
 
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
     const fURI_p p = furi_p(furi);
+    if(furi.empty())
+      return p;
     if(const Structure_p structure = this->get_structure(p_p(*p), false); structure && structure->has(p))
       return p;
     if(!furi.headless() && !furi.has_components())

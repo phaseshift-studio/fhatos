@@ -238,7 +238,7 @@ namespace fhatos {
                     "SIGNATURE HERE");
           }
         } else {
-          this->obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
+        //  this->obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
           range_loop(current_inst_resolved->apply(this->obj), current_inst_resolved);
         }
       }
