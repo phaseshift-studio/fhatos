@@ -118,17 +118,20 @@ namespace fhatos {
       if(obj->is_noobj())
         ss << "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       else {
+        bool type_printed = false;
         if(!obj->is_noobj() &&
            (obj->is_type() ||
             obj->is_inst() ||
             (obj_printer->show_type && !obj->is_base_type()))) {
           string typing;
-          if(obj->is_type())
+          if(obj->is_type()) {
             ss << "!m[!!";
-          ss << (obj->is_base_type() && !obj->is_inst() && !obj->is_type() && !obj->is_uri()
-                   ? ""
-                   : string("!b")
-                   .append(obj_printer->strict ? obj->tid_->toString() : obj->tid_->name()).append("!!"));
+            type_printed = true;
+          }
+          if(!(obj->is_base_type() && !obj->is_inst() && !obj->is_type() && !obj->is_uri())) {
+            type_printed = true;
+            ss << string("!b").append(obj_printer->strict ? obj->tid_->toString() : obj->tid_->name()).append("!!");
+          }
           // TODO: remove base_type check
           if(obj_printer->show_domain_range) {
             const string dom_str = obj->has_domain(1, 1) && !obj_printer->strict
@@ -173,6 +176,8 @@ namespace fhatos {
             ss << "!m]!!";
         }
 
+        if(type_printed && !obj->is_inst())
+          ss << "!g[!!";
         switch(obj->otype_) {
           case OType::BOOL:
             ss << (obj->bool_value() ? "!ytrue!!" : "!yfalse!!");
@@ -307,6 +312,8 @@ namespace fhatos {
           default:
             throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->otype_).c_str());
         }
+        if(type_printed && !obj->is_inst())
+            ss << "!g]!!";
       }
 
       if(obj_printer->show_id && obj->vid_)
