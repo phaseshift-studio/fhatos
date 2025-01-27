@@ -245,6 +245,7 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_DOM_COEF "dc"
 #define FOS_RANGE "rng"
 #define FOS_RNG_COEF "rc"
+#define FOS_CONFIG "config"
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

@@ -34,6 +34,7 @@
 #include "model/log.hpp"
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
+//#include "structure/stype/fs/base_fs.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
 #include "model/driver/fhatos/core_driver.hpp"
@@ -49,6 +50,7 @@
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
+#include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #endif
 
 #ifdef NATIVE
@@ -131,6 +133,8 @@ namespace fhatos {
              ->mount(Heap<>::create("/soc/ota/#"))
              ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
              ->drop_config("ota")
+             ->mount(FSx::create("/fs/#",Router::singleton()->read(id_p("/sys/config/fs"))))
+             ->drop_config("fs")
              // ->mount(HeapPSRAM::create("/psram/#"))
 #endif
 

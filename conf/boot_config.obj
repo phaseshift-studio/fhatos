@@ -29,5 +29,6 @@
  ota=>[
   host=>fhatos_ota,
   port=>3232
- ]
+ ],
+ fs=>[root=>/]
 ]@/sys/config

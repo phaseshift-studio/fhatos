@@ -40,7 +40,6 @@ FhatOS: A Distributed Operating System
 #include "../../src/structure/stype/mqtt/native/mqtt.hpp"
 #include "../../src/structure/stype/heap.hpp"
 ///////////// COMMON MODELS /////////////
-#include "../../src/model/driver/driver.hpp"
 #include "../../src/model/driver/fhatos/core_driver.hpp"
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
