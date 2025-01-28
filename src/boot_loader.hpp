@@ -37,8 +37,6 @@
 //#include "structure/stype/fs/base_fs.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
-#include "model/driver/fhatos/core_driver.hpp"
-
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 
 //////////// ESP SOC MODELS /////////////
@@ -101,11 +99,7 @@ namespace fhatos {
             ->drop_config("scheduler")
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create("/type/#"))
-            ->mount(Heap<>::create(FOS_SCHEME "/#"))
             ->mount(Heap<>::create(MMADT_SCHEME "/#"))
-            ->import(FhatOSCoreDriver::import())
-            ->install(Typer::singleton(FOS_SCHEME "/type"))
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/io/#"))

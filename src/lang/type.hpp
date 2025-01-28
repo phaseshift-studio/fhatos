@@ -253,7 +253,7 @@ namespace fhatos {
 
   public
   :
-    static ptr<Typer> singleton(const ID &id = FOS_SCHEME "/type") {
+    static ptr<Typer> singleton(const ID &id = "/sys/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       return types_p;
     }

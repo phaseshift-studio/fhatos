@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 #include "../../src/furi.hpp"
 #include "../test_fhatos.hpp"
 #include "../../src/kernel.hpp"
-#include "../../src/model/driver/fhatos/core_driver.hpp"
 #include "../../src/lang/mmadt/parser.hpp"
 #include "../../src/lang/mmadt/type.hpp"
 #include "../../src/fhatos.hpp"
@@ -40,7 +39,6 @@ FhatOS: A Distributed Operating System
 #include "../../src/structure/stype/mqtt/native/mqtt.hpp"
 #include "../../src/structure/stype/heap.hpp"
 ///////////// COMMON MODELS /////////////
-#include "../../src/model/driver/fhatos/core_driver.hpp"
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
 // #include <model/pin/gpio.hpp>
@@ -49,11 +47,8 @@ FhatOS: A Distributed Operating System
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include "../../src/util/esp/psram_allocator.hpp"
-// #include FOS_BLE(ble.hpp)
 #include "../../src/model/soc/esp/wifi.hpp"
 #include "../../src/model/soc/memory/esp32/memory.hpp"
-// #include FOS_TIMER(timer.hpp)
-// #include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -88,11 +83,7 @@ void test_basic_kernel() {
             ->import(Scheduler::import())
              ////////////////// USER STRUCTURE(S)
              ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-             ->mount(Heap<>::create("/type/#"))
-             ->mount(Heap<>::create(FOS_SCHEME "/#"))
              ->mount(Heap<>::create(MMADT_SCHEME "/#"))
-             ->import(FhatOSCoreDriver::import())
-             ->install(Typer::singleton(FOS_SCHEME "/type"))
              ->import(mmadt::mmADT::import())
              ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
              ->mount(Heap<>::create("/io/#"))

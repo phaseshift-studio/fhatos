@@ -37,6 +37,7 @@ namespace fhatos {
   using std::chrono::duration_cast;
   using std::chrono::system_clock;
 
+  const static ID_p MQTT_FURI = id_p("/sys/lib/mqtt");
   class BaseMqtt : public Structure {
   protected:
     explicit BaseMqtt(const Rec_p &rec) : Structure(rec) {

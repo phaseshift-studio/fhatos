@@ -30,7 +30,6 @@
 
 #define MMADT_INST_SCHEME COMPONENT_SEPARATOR MMADT_SCHEME
 #define MMADT_SCHEME "/mmadt"
-#define FOS_SCHEME "/fos"
 
 #include "../fhatos.hpp"
 #include "../furi.hpp"
@@ -220,12 +219,12 @@ namespace fhatos {
     static DomainRange from(const fURI &furi) {
       const std::vector<string> dom_coeff_str = furi.query_values(FOS_DOM_COEF);
       const IntCoefficient dom_coeff = dom_coeff_str.empty()
-                                   ? IntCoefficient(1, 1)
-                                   : IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1)));
+                                         ? IntCoefficient(1, 1)
+                                         : IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1)));
       const std::vector<string> rng_coeff_str = furi.query_values(FOS_RNG_COEF);
       const IntCoefficient rng_coeff = rng_coeff_str.empty()
-                                   ? IntCoefficient(1, 1)
-                                   : IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)));
+                                         ? IntCoefficient(1, 1)
+                                         : IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)));
       const auto dr = DomainRange(fURI(furi.query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())),
                                   dom_coeff,
                                   fURI(furi.query_value(FOS_RANGE).value_or(furi.no_query().toString())),
@@ -471,7 +470,7 @@ namespace fhatos {
         if(value_id) {
           const Obj_p strip = this->clone();
           //   if(!vid_->has_query())
-          const_cast<Obj *>(strip.get())->vid_ = nullptr;
+          //const_cast<Obj *>(strip.get())->vid_ = nullptr;
           ROUTER_WRITE(value_id, strip, true);
         }
       } else {
@@ -1899,33 +1898,38 @@ namespace fhatos {
       return Obj::create(this->value_, this->otype_, this->tid_, value_id);
     }
 
-    [[nodiscard]] bool is_locked() const {
-      return this->vid_->has_query("lock");
+    [[nodiscard]] Option<fURI> lock() const {
+      return this->vid_ && this->vid_->query_value("lock").has_value()
+               ? Option<fURI>(fURI(this->vid_->query_value("lock").value().c_str()))
+               : Option<fURI>();
     }
 
-    [[nodiscard]] Obj_p lock(const string &user) const {
+
+    [[nodiscard]] Obj_p lock(const fURI &user) const {
       if(this->vid_ == nullptr)
         throw fError("only objs with a value id can be locked: %s\n", this->toString().c_str());
-      if(this->vid_->has_query("lock"))
+      if(this->lock().has_value())
         throw fError("obj currently locked by %s: %s\n", this->vid_->query_value("lock").value().c_str());
       const string new_query = strlen(this->vid_->query()) == 0
-                                 ? string("lock=").append(user)
-                                 : string(this->vid_->query()).append("&lock=").append(user);
+                                 ? string("lock=").append(user.toString())
+                                 : string(this->vid_->query()).append("&lock=").append(user.toString());
       const ID new_vid = this->vid_->query(new_query.c_str());
       const Obj_p new_obj = this->at(id_p(new_vid));
-      LOG_OBJ(INFO, this, "%s !yobj!! locked\n", this->toString().c_str());
+      LOG_OBJ(INFO, this, "!g[!r.!y.!c.!g]!m@!b%s !yobj!! locked by !b%s!!\n",
+              this->vid_->no_query().toString().c_str(), user.toString().c_str());
       return new_obj;
     }
 
-    [[nodiscard]] Obj_p unlock(const string &user) const {
+    [[nodiscard]] Obj_p unlock(const fURI &user) const {
       if(this->vid_ == nullptr)
         throw fError("only objs with a value id can be locked and unlocked: %s\n", this->toString().c_str());
-      if(!this->vid_->has_query("lock"))
+      if(!this->lock().has_value())
         throw fError("obj is not locked: %s\n", this->toString().c_str());
-      if(this->vid_->query_value("lock").value() == user) {
+      if(this->lock().value() == user) {
         const ID new_vid = this->vid_->query(""); // TODO: selectively remove lock
         const Obj_p new_obj = this->at(id_p(new_vid));
-        LOG_OBJ(INFO, this, "%s !yobj!! unlocked\n", this->toString().c_str());
+        LOG_OBJ(INFO, this, "!g[!r.!y.!c.!g]!m@!b%s !yobj!! unlocked by !b%s!!\n",
+              this->vid_->no_query().toString().c_str(), user.toString().c_str());
         return new_obj;
       } else {
         throw fError("only the owner %s can unlock %s\n", this->vid_->query_value("lock").value().c_str(),

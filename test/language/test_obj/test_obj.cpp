@@ -35,22 +35,22 @@ namespace fhatos {
 
 	void test_lock() {
 		Int_p i = jnt(10,INT_FURI,id_p("/obj/abc"));
-        TEST_ASSERT_FALSE(i->is_locked());
+        TEST_ASSERT_FALSE(i->lock().has_value());
 		i = i->lock("fhat");
-        TEST_ASSERT_TRUE(i->is_locked());
+        TEST_ASSERT_TRUE(i->lock().has_value());
 		FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=fhat"))
         ///////
         i = i->unlock("fhat");
-        TEST_ASSERT_FALSE(i->is_locked());
+        TEST_ASSERT_FALSE(i->lock().has_value());
         FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
         ///////
         i = i->lock("pig");
-        TEST_ASSERT_TRUE(i->is_locked());
+        TEST_ASSERT_TRUE(i->lock().has_value());
         FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=pig"))
         FOS_TEST_EXCEPTION_CXX(i->unlock("fhat"));
-        TEST_ASSERT_TRUE(i->is_locked());
+        TEST_ASSERT_TRUE(i->lock().has_value());
         i = i->unlock("pig");
-        TEST_ASSERT_FALSE(i->is_locked());
+        TEST_ASSERT_FALSE(i->lock().has_value());
         FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
     }
 

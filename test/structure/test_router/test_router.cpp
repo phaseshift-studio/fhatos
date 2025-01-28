@@ -37,7 +37,7 @@ namespace fhatos {
 
   void test_router_attach_detach() {
     FOS_TEST_ERROR("/temp/abc -> 12");
-    PROCESS("/router/a -> /fos/heap[[pattern=>/temp/#]]");
+    PROCESS("/router/a -> /sys/lib/heap[[pattern=>/temp/#]]");
     int size = Router::singleton()->rec_get("structure")->lst_value()->size();
     FOS_TEST_ERROR("/temp/abc -> 12");
     PROCESS("/sys/router/:attach(*/router/a)");

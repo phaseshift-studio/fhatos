@@ -20,6 +20,7 @@
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
 #include "stype/heap.hpp"
+#include STR(stype/mqtt/HARDWARE/mqtt.hpp)
 
 namespace fhatos {
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
@@ -184,6 +185,11 @@ namespace fhatos {
   }
 
   void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
+    /*if(obj->lock().has_value() && !obj->lock().value().equals(*Process::current_process()->vid_)) {
+      throw fError("!runable write obj!! locked by !b%s!!: %s",
+                   obj->lock().value().toString().c_str(),
+                   obj->toString().c_str());
+    }*/
     try {
       const Structure_p structure = this->get_structure(p_p(*furi));
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
@@ -223,6 +229,14 @@ namespace fhatos {
   void *Router::import() {
     Router::singleton()->write(Router::singleton()->vid_, Router::singleton(),RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
+    Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/msg")),
+                               Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                 {"payload", Obj::to_bcode()},
+                                 {"retain", Obj::to_type(BOOL_FURI)}}));
+    Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/sub")),
+                               Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                 {"pattern", Obj::to_type(URI_FURI)},
+                                 {":on_recv", Obj::to_bcode()}}));
     InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
         ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
         ->type_args(x(0, ___()))
@@ -244,6 +258,28 @@ namespace fhatos {
           Router::singleton()->stop();
           return Obj::to_noobj();
         })->save();
+
+    Router::singleton()->write(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
+    InstBuilder::build(id_p(HEAP_FURI->extend(":create")))
+        ->type_args(x(0, "pattern"))
+        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const Pattern pattern = args->arg(0)->uri_value();
+          const ptr<Heap<>> heap = Heap<>::create(pattern);
+          Router::singleton()->attach(heap);
+          return heap;
+        })->save();
+    Router::singleton()->write(MQTT_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
+    InstBuilder::build(id_p(MQTT_FURI->extend(":create")))
+        ->type_args(x(0, "pattern"))
+        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const Pattern pattern = args->arg(0)->uri_value();
+          const ptr<Mqtt> heap = Mqtt::create(pattern);
+          Router::singleton()->attach(heap);
+          return heap;
+        })->save();
+
     return nullptr;
   }
 

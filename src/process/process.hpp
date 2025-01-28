@@ -33,9 +33,7 @@
 #endif
 
 namespace fhatos {
-  const ID_p PROCESS_FURI = make_shared<ID>("/sys/scheduler/lib/process");
-  const ID_p THREAD_FURI = make_shared<ID>("/sys/scheduler/lib/thread");
-  const ID_p FIBER_FURI = make_shared<ID>("/sys/scheduler/lib/fiber");
+  static const auto THREAD_FURI = id_p("/sys/lib/thread");
 
   class Process;
   using Process_p = ptr<Process>;

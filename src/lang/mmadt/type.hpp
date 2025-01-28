@@ -231,12 +231,12 @@ namespace mmadt {
 
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/lock"))
           ->domain_range(OBJ_FURI, OBJ_FURI)
-          ->type_args(x(0, "user", Obj::to_noobj()))
+          ->inst_args(rec({{"user", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            const string user = args->arg(0)->is_noobj()
-                                  ? Process::current_process()->vid_->toString()
-                                  : args->arg(0)->str_value();
-            return lhs->is_locked() ? lhs->unlock(user) : lhs->lock(user);
+            const fURI user = args->arg(0)->is_noobj()
+                                ? fURI(*Process::current_process()->vid_)
+                                : args->arg(0)->uri_value();
+            return lhs->lock().has_value() ? lhs->unlock(user) : lhs->lock(user);
           })->save();
 
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/is"))

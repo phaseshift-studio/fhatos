@@ -37,12 +37,6 @@ namespace fhatos {
   using IdObjPairs = List<Pair<ID_p, Obj_p>>;
   using IdObjPairs_p = List_p<Pair<ID_p, Obj_p>>;
 
-  const ID_p HEAP_FURI = id_p(FOS_SCHEME "/heap");
-  const ID_p COMPUTED_FURI = id_p(FOS_SCHEME "/computed");
-  const ID_p MQTT_FURI = id_p(FOS_SCHEME "/mqtt");
-  const ID_p DISK_FURI = id_p(FOS_SCHEME "/disk");
-  const ID_p BLE_FURI = id_p(FOS_SCHEME "/ble");
-
   class Router;
 
   /////////////////////////////////////////////////////////////////////

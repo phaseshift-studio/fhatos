@@ -81,7 +81,7 @@ namespace fhatos {
   struct Message;
   using Message_p = ptr<Message>;
 
-  static const ID_p MESSAGE_FURI = id_p(FOS_SCHEME "/msg");
+  static const ID_p MESSAGE_FURI = id_p("/sys/lib/msg");
 
   struct Message final : Rec {
     explicit Message(const Rec_p &rec) : Rec(*rec) {
@@ -130,7 +130,7 @@ namespace fhatos {
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
 
-  static const ID_p SUBSCRIPTION_FURI = id_p(FOS_SCHEME "/sub");
+  static const ID_p SUBSCRIPTION_FURI = id_p("/sys/lib/sub");
 
   struct Subscription final : Rec {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {
