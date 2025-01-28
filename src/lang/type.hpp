@@ -27,7 +27,7 @@
 
 namespace fhatos {
   using std::const_pointer_cast;
-  thread_local ptr<ProgressBar> type_progress_bar_;
+  inline thread_local ptr<ProgressBar> type_progress_bar_;
 
   class Typer final : public Obj {
   protected:

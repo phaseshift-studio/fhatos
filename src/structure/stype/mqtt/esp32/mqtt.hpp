@@ -145,7 +145,7 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config, const ID &value_id = ID("")) {
+    static ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config = rec(), const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
       const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, config, value_id));

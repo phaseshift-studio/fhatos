@@ -54,9 +54,6 @@
 */
 /***************************************************************************************************/
 #pragma once
-#ifndef ESP_ARCH
-#define AHTXX_h
-#endif
 #ifndef AHTXX_h
 #define AHTXX_h
 

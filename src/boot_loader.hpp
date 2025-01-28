@@ -48,6 +48,7 @@
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
+#include "model/driver/aht10/aht10.hpp"
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #endif
 
@@ -130,6 +131,7 @@ namespace fhatos {
              ->mount(FSx::create("/fs/#",Router::singleton()->read(id_p("/sys/config/fs"))))
              ->drop_config("fs")
              // ->mount(HeapPSRAM::create("/psram/#"))
+             ->import(AHT10::import("/io/lib/aht10"))
 #endif
 
 #if defined(NATIVE)
