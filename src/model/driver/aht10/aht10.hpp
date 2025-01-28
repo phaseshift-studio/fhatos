@@ -18,6 +18,7 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_aht10_hpp
 #define fhatos_aht10_hpp
+#ifndef NATIVE
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -79,4 +80,5 @@ namespace fhatos {
     }
   };
 } // namespace fhatos
+#endif
 #endif

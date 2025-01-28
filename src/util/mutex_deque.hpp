@@ -32,8 +32,7 @@ namespace fhatos {
     std::shared_mutex deque_mutex_;
 
   public:
-    explicit MutexDeque(const char *label = "<anon>") {
-    }
+    explicit MutexDeque() = default;
 
     bool exists(const Predicate<T> &predicate, const bool with_mutex = true) {
       if(with_mutex)

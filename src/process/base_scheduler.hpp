@@ -34,7 +34,7 @@ namespace fhatos {
 
   class BaseScheduler : public Rec {
   protected:
-    MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<scheduler_processes>");
+    MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>();
     bool running_ = true;
     ptr<Router> router_ = nullptr;
 

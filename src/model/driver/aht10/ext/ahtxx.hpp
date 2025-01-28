@@ -56,7 +56,7 @@
 #pragma once
 #ifndef AHTXX_h
 #define AHTXX_h
-
+#ifndef NATIVE
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -173,4 +173,5 @@ class AHTxx
    uint8_t  _getBusy(bool readAHT = AHTXX_FORCE_READ_DATA);
    bool     _checkCRC8();
 };
+#endif
 #endif

@@ -20,7 +20,6 @@
 #include "boot_loader.hpp"
 #include "kernel.hpp"
 #include "util/argv_parser.hpp"
-//include <model/soc/rpi/rpi_pinout.hpp>
 
 #define HELP "  --!b%-15s!!= %5s\n"
 

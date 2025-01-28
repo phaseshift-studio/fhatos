@@ -38,11 +38,11 @@ namespace fhatos {
 
     static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-    static string clip_0x(const string hex) {
+    static string clip_0x(const string &hex) {
       return hex.length() > 1 && hex[0] == '0' && hex[1] == 'x' ? hex.substr(2) : hex;
     }
 
-    static string prefix_0x(const string hex) {
+    static string prefix_0x(const string &hex) {
       return hex.length() > 1 && hex[0] == '0' && hex[1] == 'x' ? hex : string("0x").append(hex);
     }
 

@@ -1,4 +1,4 @@
-
+#ifndef NATIVE
 #include "ahtxx.hpp"
 
 
@@ -498,3 +498,4 @@ bool AHTxx::_checkCRC8()
 
   return true;
 }
+#endif

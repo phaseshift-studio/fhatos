@@ -19,7 +19,7 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_psram_allocator_hpp
 #define fhatos_psram_allocator_hpp
 
-#include <fhatos.hpp>
+#include "../../fhatos.hpp"
 
 namespace fhatos {
 
@@ -32,8 +32,8 @@ namespace fhatos {
     template<class U>
     constexpr PSRAMAllocator(const PSRAMAllocator<U> &) noexcept {}
 
-    [[nodiscard]] T *allocate(std::size_t n) {
-      if (n > std::size_t(-1) / sizeof(T))
+    [[nodiscard]] T *allocate(const std::size_t n) {
+      if (n > static_cast<std::size_t>(-1) / sizeof(T))
         throw std::bad_alloc();
       if (auto p = static_cast<T *>(ps_malloc(n * sizeof(T))))
         return p;
