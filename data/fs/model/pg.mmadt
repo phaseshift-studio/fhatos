@@ -1,0 +1,18 @@
+/fos/lib/heap/:create(pg:#);
+pg:property -> |[key=>[uri][],value=>_]
+pg:properties -> |[property{*}>-]
+pg:element -> |
+  [id=>[uri][],
+   label=>[uri][],
+   properties=>as(pg:properties)]
+pg:property -> |[key=>[uri][],value=>_]
+pg:properties -> |[property{*}>-]
+pg:vertex_id-> [uri][]
+pg:vertex -> |pg:element[
+  outE=>[?lst<=pg:edge[]{*}>-],
+  inE =>[?lst<=pg:edge[]{*}>-]]
+pg:edge -> |pg:element[
+  inV =>[pg:vertex_id][],
+  outV=>[pg:vertex_id][]
+]
+pg:graph -> [pg:vertex{*}]

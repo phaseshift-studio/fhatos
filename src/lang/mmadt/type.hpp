@@ -420,8 +420,7 @@ namespace mmadt {
             for(const auto &pair: *lhs->rec_value()) {
               pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
             }
-            const Objs_p results = Obj::to_lst(
-              BCODE_PROCESSOR(args->arg(0)->bcode_starts({pairs}))->objs_value());
+            const Objs_p results = args->arg(0)->apply(pairs);
             const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
             for(const auto &result: *results->objs_value()) {
               rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});

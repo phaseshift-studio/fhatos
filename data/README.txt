@@ -1,1 +1,4 @@
-'!rf!bH!ya!ct!mO!bS !yfile_system!! README.txt'
+===
+This inaccessible directory stores FhatOS boot/kernel data.
+The file system root starts at ./fs (or deeper if configured as such).
+===
