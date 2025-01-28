@@ -79,7 +79,7 @@ jobs:
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
         cd build/test
-        ctest .
+        sudo ctest .
 
 #  chmod 777 bin/fhat-dev
   #        sudo bin/fhat-dev build
