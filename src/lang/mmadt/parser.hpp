@@ -256,6 +256,12 @@ namespace mmadt {
       auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
         if(vs.choice() == 0)
           return furi_p("");
+        if(vs.choice() == 1) {
+          const fURI_p name = any_cast<fURI_p>(vs[0]);
+          const IntCoefficient coeff = any_cast<IntCoefficient>(vs[1]);
+          fURI_p dom_rng = furi_p(name->dom_rng(*OBJ_FURI, coeff, name->no_query(), coeff));
+          return dom_rng;
+        }
         const bool anonymous = vs.size() == 2;
         const fURI_p name = anonymous ? furi_p("") : any_cast<fURI_p>(vs[0]);
         const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[0] : vs[1]);
@@ -427,6 +433,7 @@ namespace mmadt {
                         ">"), furi_action;
       DOM_RNG <= cho(
         seq(lit("<"), lit(">")),
+        WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
         WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);

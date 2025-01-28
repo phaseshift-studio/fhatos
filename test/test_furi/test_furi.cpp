@@ -720,6 +720,11 @@ void test_uri_retract_pattern() {
     //FOS_TEST_ASSERT_MATCH_FURI(ID("/a/b/c?k"), ID("a/b/#"));
   }
 
+  void test_uri_domain_range() {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("int?dom=a&dc=0,1&rng=b&rc=2,3"),fURI("int").dom_rng("a",{0,1},"b",{2,3}));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("scheme://host/int/path/a/b/c?dom=a&dc=0,9&rng=b&rc=0,0"),fURI("scheme://host/int/path/a/b/c").dom_rng("a",{0,9},"b",{0,0}));
+  }
+
   void test_fhat_idioms() {
     fURI nat("/int/nat");
     TEST_ASSERT_EQUAL_STRING("nat", nat.name().c_str());
@@ -824,6 +829,7 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_branch_node);
       FOS_RUN_TEST(test_uri_resolve); //
       FOS_RUN_TEST(test_uri_match); //
+      FOS_RUN_TEST(test_uri_domain_range); //
       //
       FOS_RUN_TEST(test_fhat_idioms); //
       FOS_RUN_TEST(test_pattern_pattern_matching); //

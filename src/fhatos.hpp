@@ -188,6 +188,19 @@ namespace fhatos {
   ////////////
   // MACROS //
   ////////////
+///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+#ifndef FOS_REAL_TYPE
+#define FOS_REAL_TYPE float_t
+#endif
+#ifndef FOS_INT_TYPE
+#define FOS_INT_TYPE int32_t
+#endif
+#ifndef FOS_STR_ENCODING
+#define FOS_STR_ENCODING sizeof(std::string::value_type)
+#endif
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 #define FOS_BOOT_CONFIG_VALUE_ID "/sys/config"
 #define FOS_BOOT_CONFIG_MEM_USAGE 16384
 #define FOS_SAFE_FREE(p)                                                                                               \

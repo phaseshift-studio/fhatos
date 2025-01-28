@@ -264,6 +264,29 @@ namespace fhatos {
     [[nodiscard]] uint8_t path_length() const { return this->path_length_; }
 
     /// QUERY
+    using IntCoefficient = std::pair<int, int>;
+    using DomainRange = Quad<fURI, IntCoefficient, fURI, IntCoefficient>;
+
+    [[nodiscard]] DomainRange dom_rng() const {
+      const std::vector<string> dom_coeff_str = this->query_values(FOS_DOM_COEF);
+      const std::vector<string> rng_coeff_str = this->query_values(FOS_RNG_COEF);
+      return {
+        this->query_value(FOS_DOMAIN).value(),
+        IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1))),
+        this->query_value(FOS_RANGE).value(),
+        IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)))};
+    }
+
+    [[nodiscard]] fURI dom_rng(const fURI &domain, const std::pair<FOS_INT_TYPE,FOS_INT_TYPE> &domain_coeff,
+                               const fURI &range, const std::pair<FOS_INT_TYPE,FOS_INT_TYPE> &range_coeff) const {
+      // TODO: string current_query = this->query();
+      return this->query({
+        {FOS_DOMAIN, domain.no_query().toString()},
+        {FOS_DOM_COEF, to_string(domain_coeff.first).append(",").append(to_string(domain_coeff.second))},
+        {FOS_RANGE, range.no_query().toString()},
+        {FOS_RNG_COEF, to_string(range_coeff.first).append(",").append(to_string(range_coeff.second))}});
+    }
+
     [[nodiscard]] const char *query() const { return this->query_ ? this->query_ : ""; }
 
     [[nodiscard]] bool has_query(const char *key = nullptr) const {

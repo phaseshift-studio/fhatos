@@ -26,19 +26,7 @@
 #ifndef fhatos_obj_hpp
 #define fhatos_obj_hpp
 
-#ifndef FOS_REAL_TYPE
-#define FOS_REAL_TYPE float_t
-
 #include <any>
-
-#endif
-#ifndef FOS_INT_TYPE
-#define FOS_INT_TYPE int32_t
-#endif
-
-#ifndef FOS_STR_ENCODING
-#define FOS_STR_ENCODING sizeof(std::string::value_type)
-#endif
 
 #define MMADT_INST_SCHEME COMPONENT_SEPARATOR MMADT_SCHEME
 #define MMADT_SCHEME "/mmadt"
@@ -196,6 +184,55 @@ namespace fhatos {
   template<typename T>
   using Coefficient = Pair<T, T>;
   using IntCoefficient = Coefficient<FOS_INT_TYPE>;
+
+  struct DomainRange {
+    fURI domain;
+    IntCoefficient dom_coeff;
+    fURI range;
+    IntCoefficient rng_coeff;
+
+    explicit DomainRange(const fURI &domain, const IntCoefficient &dom_coeff, const fURI &range,
+                         const IntCoefficient &rng_coeff) : domain{domain},
+                                                            dom_coeff{dom_coeff},
+                                                            range{range},
+                                                            rng_coeff{rng_coeff} {
+    }
+
+    [[nodiscard]] bool equals(const DomainRange &other) const {
+      return this->domain == other.domain &&
+             this->dom_coeff == other.dom_coeff &&
+             this->range == other.range &&
+             this->rng_coeff == other.rng_coeff;
+    }
+
+    [[nodiscard]] bool within_domain(const IntCoefficient &other_coeff) const {
+      return this->dom_coeff.first >= other_coeff.first && this->dom_coeff.second <= other_coeff.second;
+    }
+
+    [[nodiscard]] bool within_range(const IntCoefficient &other_coeff) const {
+      return this->rng_coeff.first >= other_coeff.first && this->rng_coeff.second <= other_coeff.second;
+    }
+
+    [[nodiscard]] bool is_single() {
+      return this->dom_coeff == IntCoefficient(1, 1) && this->rng_coeff == IntCoefficient(1, 1);
+    }
+
+    static DomainRange from(const fURI &furi) {
+      const std::vector<string> dom_coeff_str = furi.query_values(FOS_DOM_COEF);
+      const IntCoefficient dom_coeff = dom_coeff_str.empty()
+                                   ? IntCoefficient(1, 1)
+                                   : IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1)));
+      const std::vector<string> rng_coeff_str = furi.query_values(FOS_RNG_COEF);
+      const IntCoefficient rng_coeff = rng_coeff_str.empty()
+                                   ? IntCoefficient(1, 1)
+                                   : IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)));
+      const auto dr = DomainRange(fURI(furi.query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())),
+                                  dom_coeff,
+                                  fURI(furi.query_value(FOS_RANGE).value_or(furi.no_query().toString())),
+                                  rng_coeff);
+      return dr;
+    }
+  };
 
   static const Map<const OType, shared_ptr<ID>, std::less<const OType>> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
     {OType::OBJ, OBJ_FURI},
@@ -886,6 +923,10 @@ namespace fhatos {
       if(!this->is_error())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<Pair<Obj_p, Inst_p>>();
+    }
+
+    [[nodiscard]] DomainRange domain_range() const {
+      return DomainRange::from(*this->tid_);
     }
 
     [[nodiscard]] ID_p domain() const {
