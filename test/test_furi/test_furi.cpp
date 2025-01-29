@@ -371,6 +371,31 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?x=123").query_value("x").value().c_str());
     TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?y=abc&x=123").query_value("x").value().c_str());
     TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?x=123&y=abc").query_value("x").value().c_str());
+    // w/ transformer
+    TEST_ASSERT_EQUAL_INT(123, fURI("127.0.0.1?x=123").query_value<int>("x",[](const string& s){return stoi(s);}).value());
+    TEST_ASSERT_EQUAL_INT(123, fURI("127.0.0.1?y=abc&x=123").query_value<int>("x",[](const string& s){return stoi(s);}).value());
+    TEST_ASSERT_EQUAL_INT(123, fURI("127.0.0.1?x=123&y=abc").query_value<int>("x",[](const string& s){return stoi(s);}).value());
+     // w/ values and transformer
+    TEST_ASSERT_TRUE(std::vector<int>({123,43,67}) == fURI("127.0.0.1?x=123,43,67").query_values<int>("x",[](const string& s){return stoi(s);}));
+    TEST_ASSERT_TRUE(std::vector<int>({123,43,66,2}) ==  fURI("127.0.0.1?y=abc&x=123,43,66,2").query_values<int>("x",[](const string& s){return stoi(s);}));
+    TEST_ASSERT_TRUE(std::vector<int>({123,43,22,22}) == fURI("127.0.0.1?x=123,43,22,22&y=abc").query_values<int>("x",[](const string& s){return stoi(s);}));
+    // w/ all values
+    std::vector<std::pair<string,string>> result = fURI("127.0.0.1?a=1&b=2&c=3").query_values();
+    TEST_ASSERT_EQUAL_STRING("a",result.at(0).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("1",result.at(0).second.c_str());
+    TEST_ASSERT_EQUAL_STRING("b",result.at(1).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("2",result.at(1).second.c_str());
+    TEST_ASSERT_EQUAL_STRING("c",result.at(2).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("3",result.at(2).second.c_str());
+    // w/ setting values
+    fURI input = fURI("127.0.0.1").query({{"a","1"},{"b","2"},{"c","3"}});
+    std::vector<std::pair<string,string>> output = input.query_values();
+    TEST_ASSERT_EQUAL_STRING("a",output.at(0).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("1",output.at(0).second.c_str());
+    TEST_ASSERT_EQUAL_STRING("b",output.at(1).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("2",output.at(1).second.c_str());
+    TEST_ASSERT_EQUAL_STRING("c",output.at(2).first.c_str());
+    TEST_ASSERT_EQUAL_STRING("3",output.at(2).second.c_str());
   }
 
   void test_uri_name() {

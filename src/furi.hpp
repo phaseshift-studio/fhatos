@@ -34,9 +34,9 @@ namespace fhatos {
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
-    {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
-    {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
-    /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
+      {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
+      {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
+      /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -271,20 +271,21 @@ namespace fhatos {
       const std::vector<string> dom_coeff_str = this->query_values(FOS_DOM_COEF);
       const std::vector<string> rng_coeff_str = this->query_values(FOS_RNG_COEF);
       return {
-        this->query_value(FOS_DOMAIN).value(),
-        IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1))),
-        this->query_value(FOS_RANGE).value(),
-        IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)))};
+          this->query_value(FOS_DOMAIN).value(),
+          IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1))),
+          this->query_value(FOS_RANGE).value(),
+          IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)))};
     }
+
 
     [[nodiscard]] fURI dom_rng(const fURI &domain, const std::pair<FOS_INT_TYPE,FOS_INT_TYPE> &domain_coeff,
                                const fURI &range, const std::pair<FOS_INT_TYPE,FOS_INT_TYPE> &range_coeff) const {
       // TODO: string current_query = this->query();
       return this->query({
-        {FOS_DOMAIN, domain.no_query().toString()},
-        {FOS_DOM_COEF, to_string(domain_coeff.first).append(",").append(to_string(domain_coeff.second))},
-        {FOS_RANGE, range.no_query().toString()},
-        {FOS_RNG_COEF, to_string(range_coeff.first).append(",").append(to_string(range_coeff.second))}});
+          {FOS_DOMAIN, domain.no_query().toString()},
+          {FOS_DOM_COEF, to_string(domain_coeff.first).append(",").append(to_string(domain_coeff.second))},
+          {FOS_RANGE, range.no_query().toString()},
+          {FOS_RNG_COEF, to_string(range_coeff.first).append(",").append(to_string(range_coeff.second))}});
     }
 
     [[nodiscard]] const char *query() const { return this->query_ ? this->query_ : ""; }
@@ -318,21 +319,41 @@ namespace fhatos {
       return this->query(query_string.c_str());
     }
 
-    [[nodiscard]] List<string> query_values(const char *key) const {
+    [[nodiscard]] List<Pair<string, string>> query_values() const {
+      if(!this->query_)
+        return {};
+      std::vector<std::pair<string, string>> key_values;
+      for(const string &pairs: StringHelper::tokenize('&', this->query_)) {
+        const std::vector<string> pair = StringHelper::tokenize('=', pairs);
+        std::pair<string, string> split_pair = {pair.at(0), pair.at(1)};
+        key_values.emplace_back(split_pair);
+      }
+      return key_values;
+    }
+
+    template<typename T = std::string>
+    [[nodiscard]] List<T> query_values(const char *key,
+                                       const Function<string, T> &transformer = [](const string &s) {
+                                         return s;
+                                       }) const {
       const Option<string> v = this->query_value(key);
       if(!v.has_value())
         return {};
       auto ss = std::stringstream(v.value());
       string token;
-      List<string> list;
+      List<T> list;
       while(!(token = StringHelper::next_token(',', &ss)).empty()) {
         StringHelper::trim(token);
-        list.push_back(token);
+        list.push_back(transformer(token));
       }
       return list;
     }
 
-    [[nodiscard]] Option<string> query_value(const char *key) const {
+    template<typename T = std::string>
+    [[nodiscard]] Option<T> query_value(const char *key,
+                                        const Function<string, T> &transformer = [](const string &s) {
+                                          return s;
+                                        }) const {
       if(!this->query_)
         return {};
       const char *index = strstr(this->query_, key);
@@ -341,7 +362,7 @@ namespace fhatos {
       size_t counter = 0;
       char c = index[strlen(key) + counter];
       if(c != '=')
-        return {""};
+        return {transformer("")};
       counter++;
       c = index[strlen(key) + counter];
       string value;
@@ -351,7 +372,7 @@ namespace fhatos {
         c = index[strlen(key) + counter];
       }
       StringHelper::trim(value);
-      return {value};
+      return {transformer(value)};
     }
 
     /// FRAGMENT
@@ -578,7 +599,7 @@ namespace fhatos {
         const bool other_start_slash = other_path_chars.get()[0] == '/';
         if(path_end_slash || this->path_length_ == 0)
           return (other_start_slash ? this->path(other_path_chars.get()) : this->extend(other_path_chars.get())).query(
-            other.query());
+              other.query());
         if(other_start_slash)
           return this->path(other_path_chars.get()).query(other.query());
         if(this->path_length_ == 1)
@@ -717,7 +738,8 @@ namespace fhatos {
       }
     }
 
-    fURI(const string &uri_string) : fURI(uri_string.c_str()) {
+    fURI(const string &uri_string) :
+      fURI(uri_string.c_str()) {
     }
 
     fURI(const char *uri_chars) {
@@ -1000,16 +1022,20 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) : fURI(id.toString()) {
+    ID(const ID &id) :
+      fURI(id.toString()) {
     }
 
-    ID(const fURI &id) : fURI(id.toString()) {
+    ID(const fURI &id) :
+      fURI(id.toString()) {
     }
 
-    ID(const string &furi_string) : ID(furi_string.c_str()) {
+    ID(const string &furi_string) :
+      ID(furi_string.c_str()) {
     }
 
-    ID(const char *furi_characters) : fURI(furi_characters) {
+    ID(const char *furi_characters) :
+      fURI(furi_characters) {
       if(strchr(furi_characters, '#')) {
         throw fError("ids can not contain pattern symbols: !b#!!: %s", furi_characters);
       } else if(strchr(furi_characters, '+')) {
@@ -1022,16 +1048,20 @@ namespace fhatos {
 
   class Pattern final : public fURI {
   public:
-    Pattern(const Pattern &uri) : fURI(uri) {
+    Pattern(const Pattern &uri) :
+      fURI(uri) {
     }
 
-    Pattern(const fURI &uri) : fURI(uri) {
+    Pattern(const fURI &uri) :
+      fURI(uri) {
     }
 
-    Pattern(const string &uri_string) : fURI(uri_string) {
+    Pattern(const string &uri_string) :
+      fURI(uri_string) {
     };
 
-    Pattern(const char *uri_chars) : fURI(uri_chars) {
+    Pattern(const char *uri_chars) :
+      fURI(uri_chars) {
     };
   };
 
@@ -1052,10 +1082,12 @@ namespace fhatos {
 
     ID_p tid_;
 
-    explicit Typed(const ID_p &type) : tid_(type) {
+    explicit Typed(const ID_p &type) :
+      tid_(type) {
     }
 
-    explicit Typed(const ID &id) : Typed(make_shared<ID>(id)) {
+    explicit Typed(const ID &id) :
+      Typed(make_shared<ID>(id)) {
     }
   };
 
@@ -1069,12 +1101,14 @@ namespace fhatos {
 
     virtual ~Valued() = default;
 
-    explicit Valued(const ID_p &id) : vid_(id) {
+    explicit Valued(const ID_p &id) :
+      vid_(id) {
       if(id && id->empty())
         vid_ = nullptr;
     }
 
-    explicit Valued(const ID &id) : Valued(make_shared<ID>(id)) {
+    explicit Valued(const ID &id) :
+      Valued(make_shared<ID>(id)) {
     }
   };
 
