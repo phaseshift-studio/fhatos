@@ -313,7 +313,10 @@ namespace fhatos {
     [[nodiscard]] fURI query(const List<Pair<string, string>> &key_values) const {
       string query_string;
       for(const auto &[k,v]: key_values) {
-        query_string.append(k).append("=").append(v).append("&");
+        if(v.empty())
+          query_string.append(k).append("&");
+        else
+          query_string.append(k).append("=").append(v).append("&");
       }
       query_string = query_string.substr(0, query_string.length() - 1);
       return this->query(query_string.c_str());
@@ -325,7 +328,9 @@ namespace fhatos {
       std::vector<std::pair<string, string>> key_values;
       for(const string &pairs: StringHelper::tokenize('&', this->query_)) {
         const std::vector<string> pair = StringHelper::tokenize('=', pairs);
-        std::pair<string, string> split_pair = {pair.at(0), pair.at(1)};
+        std::pair<string, string> split_pair = (pair.size() == 1)
+                                                 ? std::make_pair(pair.at(0), string(""))
+                                                 : std::make_pair(pair.at(0), pair.at(1));
         key_values.emplace_back(split_pair);
       }
       return key_values;
