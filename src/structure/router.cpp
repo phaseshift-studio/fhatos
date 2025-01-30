@@ -19,6 +19,7 @@
 #include "router.hpp"
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
+#include "../util/print_helper.hpp"
 #include "stype/heap.hpp"
 #include STR(stype/mqtt/HARDWARE/mqtt.hpp)
 
@@ -30,10 +31,11 @@ namespace fhatos {
     return router_p;
   }
 
-  Router::Router(const ID &id) : Rec(rmap({{"structure", to_lst()}}),
-                                     //stop and attach
-                                     OType::REC, REC_FURI, id_p(id)),
-                                 structures_(make_unique<MutexDeque<Structure_p>>()) {
+  Router::Router(const ID &id) :
+    Rec(rmap({{"structure", to_lst()}}),
+        //stop and attach
+        OType::REC, REC_FURI, id_p(id)),
+    structures_(make_unique<MutexDeque<Structure_p>>()) {
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_ID = id_p(this->vid_);
     ////////////////////////////////////////////////////////////////////////////////////
@@ -231,12 +233,12 @@ namespace fhatos {
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
     Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/msg")),
                                Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                 {"payload", Obj::to_bcode()},
-                                 {"retain", Obj::to_type(BOOL_FURI)}}));
+                                            {"payload", Obj::to_bcode()},
+                                            {"retain", Obj::to_type(BOOL_FURI)}}));
     Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/sub")),
                                Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                 {"pattern", Obj::to_type(URI_FURI)},
-                                 {":on_recv", Obj::to_bcode()}}));
+                                            {"pattern", Obj::to_type(URI_FURI)},
+                                            {":on_recv", Obj::to_bcode()}}));
     InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
         ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
         ->type_args(x(0, ___()))
@@ -287,14 +289,25 @@ namespace fhatos {
     const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
     for(const Structure_p &s: *this->structures_) {
-      if(pattern->matches(*s->pattern()) || temp->matches(*s->pattern())) {
+      if(pattern->bimatches(*s->pattern())) {
         if(found && throw_on_error)
           throw fError("!b%s!! crosses multiple structures", pattern->toString().c_str());
         found = s;
       }
     }
-    if(!found && throw_on_error)
-      throw fError("!b%s!! !yuri!! has no structure", pattern->toString().c_str());
+    if(!found && throw_on_error) {
+      const Lst_p related = Obj::to_lst();
+      const fURI sub_pattern = pattern->retract_pattern();
+      for(const auto &s: *this->structures_) {
+        if(sub_pattern.is_subfuri_of(*s->pattern())) {
+          related->lst_add(vri(s->pattern()));
+        }
+      }
+      throw fError("!rno attached structure!! for !b%s!! %s %s",
+                   pattern->toString().c_str(),
+                   related->lst_value()->empty() ? "" : "\n" FOS_TAB_2 "!yavailable !bsub-structures!!:",
+                   related->lst_value()->empty() ? "" : PrintHelper::pretty_print_obj(related, 1).c_str());
+    }
     return found ? found : nullptr;
   }
 
