@@ -1,3 +1,4 @@
+#ifdef NATIVE
 #include "../build/_deps/catch2-src/src/catch2/catch_test_macros.hpp"
 #include "../build/_deps/catch2-src/src/catch2/benchmark/catch_benchmark.hpp"
 #include "../src/lang/obj.hpp"
@@ -19,3 +20,4 @@ TEST_CASE("basic int construction", "[basic_int]" ) {
     return jnt(6,INT_FURI,"abc");
   };*/
 };
+#endif

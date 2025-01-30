@@ -85,9 +85,9 @@ namespace fhatos {
       //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_args(rec({{"value_id", Obj::to_bcode()}}))
+          ->inst_args(rec({{"id", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return make_shared<Obj>(ArduinoGPIO(args->arg("value_id")->uri_value()));
+            return make_shared<Obj>(ArduinoGPIO(args->arg("id")->uri_value()));
           })->save();
       return nullptr;
     }

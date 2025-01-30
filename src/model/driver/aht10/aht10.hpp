@@ -38,43 +38,49 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class AHT10 final : public Rec {
   protected:
-   AHTxx aht10 = AHTxx(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
+   ptr<AHTxx> ahtxx_;
   
   public:
-    explicit AHT10(const ID &value_id) : Rec(rmap({
-          {"config",Obj::to_rec({{"i2c_addr",jnt(AHT10_ADDRESS_X39)}})},
+    explicit AHT10(const ID &value_id, const ID& i2c_id, const int addr, const ptr<AHTxx>& ahtxx) : Rec(rmap({
+          {"config",Obj::to_rec({{"addr",jnt(addr)},{"i2c",from(vri(i2c_id))}})},
         {"humidity",
           InstBuilder::build(value_id.extend("humidity"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
           ->inst_f([this](const Obj_p &, const InstArgs &) {
-            return real(this->aht10.readHumidity());
+            return real(this->ahtxx_->readHumidity());
           })
           ->create()},
         {"read",
           InstBuilder::build(value_id.extend("temperature"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
          ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
-             return real(this->aht10.readTemperature());
+             return real(this->ahtxx_->readTemperature());
           })
-          ->create()}}), OType::REC, REC_FURI, id_p(value_id)) {
+          ->create()}}), OType::REC, REC_FURI, id_p(value_id)),
+          ahtxx_(ahtxx) {
     }
 
-    static ptr<AHT10> create(const ID &id) {
-      const auto aht10_p = std::make_shared<AHT10>(id);
-      while (aht10_p->aht10.begin() != true) {
-        LOG_OBJ(ERROR,aht10_p,"could not connect to aht10 sensor");
-        delay(5000);
+    static ptr<AHT10> create(const ID &id, const ID& i2c_id, const int addr) {
+      ptr<AHTxx> athxx = make_shared<AHTxx>(addr, AHT1x_SENSOR);
+      const Rec_p i2c = Router::singleton()->read(id_p(i2c_id));
+      const uint8_t i2c_sda = i2c->rec_get("sda")->int_value();
+      const uint8_t i2c_scl = i2c->rec_get("scl")->int_value();
+      if(athxx->begin(i2c_sda,i2c_scl) != true) {
+        throw fError::create(id.toString(),"!runable to connect!! to !yaht10 sensor!! on !bi2c!g[!ysda:!!%i,!yscl:!!%i!g]!!", i2c_sda, i2c_scl);
       }
-      return aht10_p;
+      return std::make_shared<AHT10>(id,i2c_id,addr,athxx);
     }
 
     static void *import(const ID &lib_id = "/io/lib/aht10") {
       //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_args(rec({{"id",Obj::to_type(URI_FURI)},{"addr", Obj::to_type(INT_FURI)}}))
+          ->inst_args(rec({{"id",Obj::to_type(URI_FURI)},{"i2c_id", Obj::to_type(URI_FURI)},{"addr",jnt(AHT10_ADDRESS_X39)}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return AHT10::create(ID(args->arg("id")->uri_value()));
+            return AHT10::create(
+              ID(args->arg("id")->uri_value()),
+            args->arg("i2c_id")->uri_value(),
+            args->arg("addr")->int_value());
           })->save();
       return nullptr;
     }

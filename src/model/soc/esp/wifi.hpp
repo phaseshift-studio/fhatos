@@ -20,7 +20,7 @@
 #pragma once
 #ifndef fhatos_wifi_hpp
 #define fhatos_wifi_hpp
-
+#ifndef NATIVE
 #include "../../../fhatos.hpp"
 #include "../../../structure/stype/computed.hpp"
 #if defined(ESP8266)
@@ -163,7 +163,7 @@ namespace fhatos {
         if (multi.run() == WL_CONNECTED) {
           const bool mdnsStatus = MDNS.begin(this->settings_.mdns_.c_str());
           LOG_OBJ(INFO, this,
-                        "\n\t!g[!bwifi station setup!g]!!\n"
+                        "\n\t!g[!bwifi station config!g]!!\n"
                         "\t!yid             : !m%s\n"
                         "\t!ystatus         : !m%s\n"
                         "\t!yssid           : !m%s\n"
@@ -221,4 +221,5 @@ namespace fhatos {
 }*/
   };
 } // namespace fhatos
+#endif
 #endif

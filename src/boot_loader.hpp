@@ -48,6 +48,7 @@
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
+#include "model/driver/pin/arduino_i2c.hpp"
 #include "model/driver/aht10/aht10.hpp"
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #endif
@@ -104,6 +105,7 @@ namespace fhatos {
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
             ->mount(Heap<>::create("/io/#"))
+            //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
             ->install(Terminal::singleton("/io/terminal"))
@@ -119,6 +121,8 @@ namespace fhatos {
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
+            ->import(ArduinoI2C::import("/io/lib/i2c"))
+            ->import(AHT10::import("/io/lib/aht10"))
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
@@ -131,7 +135,6 @@ namespace fhatos {
              ->mount(FSx::create("/fs/#",Router::singleton()->read(id_p("/sys/config/fs"))))
              ->drop_config("fs")
              // ->mount(HeapPSRAM::create("/psram/#"))
-             ->import(AHT10::import("/io/lib/aht10"))
 #endif
 
 #if defined(NATIVE)

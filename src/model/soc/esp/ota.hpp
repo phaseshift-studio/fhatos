@@ -74,7 +74,7 @@ public:
   void setup() override {
     Thread::setup();
     ArduinoOTA.begin();
-    Log::LOGGER(INFO,this, "\n\t!g[!bover-the-air setup!g]!!\n"
+    Log::LOGGER(INFO,this, "\n\t!g[!bover-the-air config!g]!!\n"
         "\t!yid            : !m%s\n"
         "\t!yhost          : !m%s:%i\n"
         "\t!yupdate command: !m%s!!\n",

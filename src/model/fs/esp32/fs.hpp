@@ -30,7 +30,7 @@ using namespace fs;
 namespace fhatos {
   class FileSystem : public BaseFileSystem {
   protected:
-    explicit FileSystem(const ID& id, const Pattern &pattern, const ID &mount_root) : BaseFileSystem(id, pattern, mount_root) %s
+    explicit FileSystem(const ID& id, const Pattern &pattern, const ID &mount_root) : BaseFileSystem(id, pattern, mount_root) 
 
   public:
     static ptr<FileSystem> create(const ID& id, const Pattern &pattern = Pattern("/io/fs/#"), const ID &root = ID("/")) {
