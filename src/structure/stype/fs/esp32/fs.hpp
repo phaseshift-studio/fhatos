@@ -24,7 +24,7 @@ FhatOS: A Distributed Operating System
 #include <FS.h>
 #include <LittleFS.h>
 #include "../base_fs.hpp"
-
+#include "../../../../fhatos.hpp"
 #define FOS_FS LittleFS
 
 using namespace fs;
@@ -35,17 +35,44 @@ namespace fhatos {
 
     }
 
+    
   public:
+static void load_boot_config() {
+      try {
+        if(!FOS_FS.begin()) return;
+        fs::File file = FOS_FS.open(FOS_BOOT_CONFIG_FS_URI,"r", false);
+        if(!file) return;
+        const String content = file.readString();
+        const char* c = content.c_str();
+        boot_config_obj_copy_len = content.length();
+        boot_config_obj_copy = (unsigned char*) malloc((boot_config_obj_copy_len * sizeof(unsigned char))+1);
+        for(int i=0;i<boot_config_obj_copy_len;i++) {
+          boot_config_obj_copy[i] = static_cast<unsigned char>(c[i]);
+        }
+        boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
+        file.close();
+        FOS_FS.end();
+      } catch(std::exception& ex) {
+        LOG_EXCEPTION(Router::singleton(),ex);
+      }
+    }
+
     static ptr<FSx> create(const Pattern &pattern = Pattern("/io/fs/#"), const Rec_p& config = Obj::to_rec({{"root",vri("/")}})) {
       static ptr<FSx> fs = ptr<FSx>(new FSx(pattern, config));
       return fs;
     }
 
+    /*virtual void stop() override {
+        FOS_FS.end();
+  BaseFS::stop();
+      }*/
+
     virtual void setup() override {
       if (!FOS_FS.begin()) {
-        throw fError("unable to mount file system at %s", this->root.toString().c_str());
+        throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
         return;
       }
+      // SUBSCRIBE TO BOOT LOADER URI. If changes, prompt user to restart processor
       // TODO: add fs statistics 
       BaseFS::setup();
     }

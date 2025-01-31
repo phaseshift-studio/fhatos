@@ -107,7 +107,7 @@ namespace fhatos {
     }
   }
 
-  void Router::stop() const {
+  void Router::stop() {
     auto map = make_shared<Map<string, int>>();
     this->structures_->forEach([map](const Structure_p &structure) {
       const string name = structure->tid_->name();
@@ -120,6 +120,7 @@ namespace fhatos {
     for(const auto &[name, count]: *map) {
       LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
     }
+    this->active = false;
     this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
     LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid_->toString().c_str());
   }
@@ -167,6 +168,8 @@ namespace fhatos {
   // }
 
   [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
+    if(!this->active)
+      return Obj::to_noobj();
     try {
       if(THREAD_FRAME_STACK) {
         if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
@@ -187,6 +190,8 @@ namespace fhatos {
   }
 
   void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
+    if(!this->active)
+      return;
     /*if(obj->lock().has_value() && !obj->lock().value().equals(*Process::current_process()->vid_)) {
       throw fError("!runable write obj!! locked by !b%s!!: %s",
                    obj->lock().value().toString().c_str(),
@@ -205,6 +210,8 @@ namespace fhatos {
   }
 
   void Router::unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
+    if(!this->active)
+      return;
     try {
       this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
         if(structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
@@ -219,6 +226,7 @@ namespace fhatos {
   }
 
   void Router::subscribe(const Subscription_p &subscription) {
+    if(!this->active) return;
     try {
       const Structure_p struc = this->get_structure(subscription->pattern());
       LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
@@ -313,7 +321,8 @@ namespace fhatos {
 
 
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
-    const fURI_p p = furi_p(furi);
+    if(!this->active) return furi_p(furi);
+    fURI_p p = furi_p(furi);
     if(furi.empty())
       return p;
     if(const Structure_p structure = this->get_structure(p_p(*p), false); structure && structure->has(p))

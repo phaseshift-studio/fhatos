@@ -25,9 +25,15 @@
 #include "lang/mmadt/parser.hpp"
 #include "util/memory_helper.hpp"
 #include "util/print_helper.hpp"
+#include "boot_config_loader.hpp"
+#ifdef ESP_ARCH
+#include STR(structure/stype/fs/HARDWARE/fs.hpp)
+#endif
 
 namespace fhatos {
+
   class Kernel {
+
   public:
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
@@ -169,19 +175,54 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config() {
-      MemoryHelper::use_custom_stack(mmadt::Parser::boot_config_parse,FOS_BOOT_CONFIG_MEM_USAGE);
-      string boot_str = PrintHelper::pretty_print_obj(Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID)), 1);
+      boot_config_obj_copy_len = 0;
+      bool to_free_boot = false;
+      const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
+      Obj_p config_obj = Obj::to_noobj();
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!ysearching for !bboot loader!! config\n");
+      // boot from header file, file system, or wifi
+#ifdef ESP_ARCH
+      //MemoryHelper::use_custom_stack(fhatos::FSx::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
+      fhatos::FSx::load_boot_config();
+      if(boot_config_obj_copy_len > 0) {
+        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!y!b/boot/boot_config.obj!! loaded (size: %i bytes)\n", boot_config_obj_copy_len);
+        to_free_boot = true;
+      }
+#endif
+      if(0 == boot_config_obj_copy_len) {
+        if(boot_config_obj_len > 0) {
+          boot_config_obj_copy = boot_config_obj;
+          boot_config_obj_copy_len = boot_config_obj_len;
+          LOG_KERNEL_OBJ(INFO, Router::singleton(),
+                         "!yusing boot config at !bboot_config_obj.hpp!! (size: %i bytes)\n",
+                         boot_config_obj_copy_len);
+        }
+      }
+      if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
+        MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
+        config_obj = Router::singleton()->read(config_id);
+      }
+      if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {
+        free(boot_config_obj_copy);
+        boot_config_obj_len = 0;
+      }
+      if(config_obj->is_noobj())
+        throw fError("no !bboot loader config!! found in !yspi flash nor a header encoding!!");
+      /////
+      string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
       StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!bboot config!! !yobj!! loaded:\n%s\n", boot_str.c_str());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "boot config !yobj!! loaded:\n%s\n", boot_str.c_str());
       return Kernel::build();
     }
 
     static ptr<Kernel> drop_config(const string &id) {
       Router::singleton()->write(id_p((string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id).c_str()), noobj());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "boot config !b%s!! dropped\n", id.c_str());
       return Kernel::build();
     }
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
+      Router::singleton()->write(id_p(string(FOS_BOOT_CONFIG_VALUE_ID).c_str()), noobj());
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH

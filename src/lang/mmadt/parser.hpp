@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../util/peglib.h"
-#include "../../boot_config_loader.hpp"
 
 using namespace peg;
 using namespace std;
@@ -152,9 +151,11 @@ namespace mmadt {
 #endif
 
   public:
-    static void boot_config_parse() {
-      const auto proto = make_unique<Parser>();
-      proto->parse((const char *) boot_config_obj);
+    static void load_boot_config() {
+      if(boot_config_obj_copy) {
+        const auto proto = make_unique<Parser>();
+        proto->parse((const char *) boot_config_obj_copy);
+      }
     }
 
     Obj_p parse(const char *source) const {
@@ -177,17 +178,19 @@ namespace mmadt {
       }
     }
 
-    explicit Parser(): Obj(make_shared<RecMap<>>(),
-                           OType::REC,
-                           REC_FURI) {
+    explicit Parser():
+      Obj(make_shared<RecMap<>>(),
+          OType::REC,
+          REC_FURI) {
       initialize();
     }
 
   protected:
-    explicit Parser(const ID &id) : Obj(make_shared<RecMap<>>(),
-                                        OType::REC,
-                                        REC_FURI,
-                                        id_p(id)) {
+    explicit Parser(const ID &id) :
+      Obj(make_shared<RecMap<>>(),
+          OType::REC,
+          REC_FURI,
+          id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
         return Parser::singleton()->parse(obj_string.c_str());
@@ -267,10 +270,10 @@ namespace mmadt {
         const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[0] : vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[1] : vs[2]);
         const fURI_p dom_rng = furi_p(name->query({
-          {FOS_DOMAIN, Router::singleton()->resolve(*df)->toString()},
-          {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
-          {FOS_RANGE, Router::singleton()->resolve(*rf)->toString()},
-          {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
+            {FOS_DOMAIN, Router::singleton()->resolve(*df)->toString()},
+            {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
+            {FOS_RANGE, Router::singleton()->resolve(*rf)->toString()},
+            {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
       auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
@@ -332,8 +335,8 @@ namespace mmadt {
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
             return Obj::to_inst(
-              make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p, Cpp_p>(body)), nullptr)),
-              type_id, value_id);
+                make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p, Cpp_p>(body)), nullptr)),
+                type_id, value_id);
           }
           case 2: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);
@@ -349,7 +352,8 @@ namespace mmadt {
             return Obj::create(v, o, OTYPE_FURI.at(o), vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
 
-          default: throw fError("unknown obj parse branch");
+          default:
+            throw fError("unknown obj parse branch");
         }
       };
       //////////////////////////////////////////////////////////////////////////
@@ -432,9 +436,9 @@ namespace mmadt {
                           zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))),
                         ">"), furi_action;
       DOM_RNG <= cho(
-        seq(lit("<"), lit(">")),
-        WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
-        WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
+          seq(lit("<"), lit(">")),
+          WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
+          WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
       TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
@@ -491,20 +495,21 @@ namespace mmadt {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       OBJ <= cho(
-        seq(lit("["), TYPE_ID, lit("]"), lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // [a][b]@xyz
-        seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
-        seq(INST), // a(b)@xyz
-        seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
-        seq(PROTO, opt(VALUE_ID)) // b@xyz
-      ), obj_action;
+          seq(lit("["), TYPE_ID, lit("]"), lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)),
+          // [a][b]@xyz
+          seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
+          seq(INST), // a(b)@xyz
+          seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
+          seq(PROTO, opt(VALUE_ID)) // b@xyz
+          ), obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       START <= seq(opt(OBJ), zom(cho(
-                     seq(END, START),
-                     seq(lit("."), OBJ),
-                     SUGAR_INST
-                   ))), start_action;
+                       seq(END, START),
+                       seq(lit("."), OBJ),
+                       SUGAR_INST
+                       ))), start_action;
       START_OBJ <= START, start_obj_action;
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

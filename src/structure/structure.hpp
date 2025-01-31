@@ -457,7 +457,6 @@ namespace fhatos {
   };
 
   using Structure_p = ptr<Structure>;
-  using Structure_up = unique_ptr<Structure>;
 } // namespace fhatos
 
 #endif

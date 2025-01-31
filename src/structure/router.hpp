@@ -27,6 +27,7 @@
 namespace fhatos {
   class Router final : public Rec {
   protected:
+    bool active = true;
     const unique_ptr<MutexDeque<Structure_p>> structures_;
 
   public:
@@ -42,7 +43,7 @@ namespace fhatos {
 
     void loop() const;
 
-    void stop() const;
+    void stop();
 
     void attach(const Structure_p &structure) const;
 
