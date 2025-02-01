@@ -52,12 +52,17 @@ namespace fhatos {
   public:
     const Pattern_p pattern_;
 
-    explicit Structure(const Pattern &pattern, const ID &value_id) : Rec(Obj::RecMap<>(), OType::REC, REC_FURI,
-                                                                         nullptr), pattern_(p_p(pattern)) {
+    explicit Structure(const Pattern &pattern, const ID_p& type_id, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+      Rec(Obj::to_rec({{"pattern", vri(pattern)}, {"config", config}})->rec_value(), OType::REC, type_id, value_id),
+      pattern_(p_p(pattern)) {
     }
 
-    explicit Structure(const Rec_p &config) : Obj(*config),
-                                              pattern_(p_p(config->rec_get("pattern")->uri_value())) {
+    template<typename STRUCTURE>
+    static unique_ptr<STRUCTURE> create(const Pattern &pattern, const ID_p &value_id = nullptr,
+                                        const Rec_p &config = Obj::to_rec()) {
+      static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
+      unique_ptr<STRUCTURE> s = make_unique<STRUCTURE>(pattern, value_id, config);
+      return s;
     }
 
     [[nodiscard]] Pattern_p pattern() const {
@@ -85,9 +90,9 @@ namespace fhatos {
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
         subscription->on_recv()->apply(message->payload(), Obj::to_rec({
-                                         {"target", vri(message->target())},
-                                         {"payload", message->payload()},
-                                         {"retain", dool(message->retain())}
+                                           {"target", vri(message->target())},
+                                           {"payload", message->payload()},
+                                           {"retain", dool(message->retain())}
                                        }));
         mail = this->outbox_->pop_front();
       }
@@ -109,13 +114,13 @@ namespace fhatos {
                     target->toString().c_str());
       else {
         this->subscriptions_->remove_if(
-          [source, target](const Subscription_p &sub) {
-            const bool removing =
-                sub->source()->equals(*source) && (sub->pattern()->matches(*target));
-            if(removing)
-              LOG_UNSUBSCRIBE(OK, source, target);
-            return removing;
-          });
+            [source, target](const Subscription_p &sub) {
+              const bool removing =
+                  sub->source()->equals(*source) && (sub->pattern()->matches(*target));
+              if(removing)
+                LOG_UNSUBSCRIBE(OK, source, target);
+              return removing;
+            });
       }
     }
 
@@ -211,8 +216,8 @@ namespace fhatos {
       const fURI_p temp = furi->is_branch()
                             ? furi_p(furi->extend("+").no_query())
                             : furi->has_query()
-                                ? furi_p(furi->no_query())
-                                : furi;
+                            ? furi_p(furi->no_query())
+                            : furi;
       const IdObjPairs matches = this->read_raw_pairs(temp);
       if(furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
@@ -255,7 +260,8 @@ namespace fhatos {
       Obj_p obj = Obj::to_noobj();
       while(pc_furi->path_length() > 0) {
         obj = this->read(pc_furi);
-        if(obj->is_poly()) break;
+        if(obj->is_poly())
+          break;
         pc_furi = furi_p(pc_furi->retract().as_node());
       }
       return obj->is_poly()
@@ -276,11 +282,11 @@ namespace fhatos {
           if(obj->is_noobj()) {
             // unsubscribe
             this->recv_unsubscribe(
-              (Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID), pattern);
+                (Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID), pattern);
           } else if(obj->is_code()) {
             // bcode for on_recv
             this->recv_subscription(Subscription::create(
-              Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID, pattern, obj));
+                Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID, pattern, obj));
           } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
             // complete sub[=>] record
             this->recv_subscription(make_shared<Subscription>(obj));

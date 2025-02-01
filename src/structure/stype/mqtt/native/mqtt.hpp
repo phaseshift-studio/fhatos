@@ -53,11 +53,8 @@ namespace fhatos {
     }
 
   public:
-    explicit Mqtt(const Rec_p &rec) : BaseMqtt(rec) {
-    }
-
-    explicit Mqtt(const Pattern &pattern, const Rec_p &config, const ID &value_id = ID("")) : BaseMqtt(
-      pattern, config, value_id) {
+    explicit Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+      BaseMqtt(pattern, value_id, config) {
       // const fURI new_broker = fURI(config->rec_get("broker")->toString().c_str()).scheme("mqtt");
       // this->Obj::rec_get("config")->Obj::rec_set("broker", vri(new_broker));
       if(this->exists()) {
@@ -80,9 +77,9 @@ namespace fhatos {
         if(!this->Obj::rec_get("config/will")->is_noobj()) {
           const BObj_p source_payload = this->Obj::rec_get("config/will")->rec_get("payload")->serialize();
           pre_connection_options = pre_connection_options.will(
-            message(this->Obj::rec_get("config/will")->rec_get("target")->uri_value().toString(),
-                    source_payload->second,
-                    this->Obj::rec_get("config/will")->rec_get("retain")->bool_value()));
+              message(this->Obj::rec_get("config/will")->rec_get("target")->uri_value().toString(),
+                      source_payload->second,
+                      this->Obj::rec_get("config/will")->rec_get("retain")->bool_value()));
         }
         this->connection_options_ = pre_connection_options.finalize();
         //// MQTT MESSAGE CALLBACK
@@ -137,13 +134,11 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static unique_ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config = rec(),
-                                   const ID &value_id = ID("")) {
-      if(!MQTT_VIRTUAL_CLIENTS)
+    static void *import(const Pattern &pattern) {
+      BaseMqtt::import<Mqtt>(pattern);
+      if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      auto mqtt_p = make_unique<Mqtt>(pattern, config,
-                                      value_id.empty() ? ID(pattern.retract_pattern()) : value_id);
-      return mqtt_p;
+      return nullptr;
     }
 
     void setup() override {

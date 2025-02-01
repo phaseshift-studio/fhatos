@@ -53,16 +53,16 @@ namespace mmadt {
 
     static void import_base_inst() {
       Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/start"))->domain_range(
-              NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/start"))
+      ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "starts"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
           })
           ->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/print"))->domain_range(
-              OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/print"))
+      ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "to_print", Obj::to_bcode()))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             printer()->printf("%s\n", args->arg(0)->toString().c_str());

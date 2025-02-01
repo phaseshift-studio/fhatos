@@ -42,11 +42,6 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////
   class Mqtt : public BaseMqtt {
 
-  public:
-    explicit Mqtt(const Rec_p &rec) :
-  BaseMqtt(rec) {
-    }
-
   protected:
     // TODO: mutiple pubsubs by broker w/ connection counter for connect/disconnect
     const Map<int8_t, string> MQTT_STATE_CODES = {{{-4, "MQTT_CONNECTION_TIMEOUT"},
@@ -61,8 +56,8 @@ namespace fhatos {
                                                    {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
-
-    explicit Mqtt(const Pattern &pattern, const Rec_p &config, const ID &id) : BaseMqtt(pattern, config, id) {
+  public:
+    explicit Mqtt(const Pattern &pattern, const ID_p& type_id,  const ID_p& value_id =  nullptr, const Rec_p &config = Obj::to_rec()) : BaseMqtt(pattern, type_id, value_id, config) {
       if (this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", this->Obj::rec_get("config/broker")->toString().c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
@@ -145,11 +140,11 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Rec_p &config = rec(), const ID &value_id = ID("")) {
+    static void* import(const Pattern& pattern) {
+      BaseMqtt::import<Mqtt>(pattern);
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, config, value_id));
-      return mqtt_p;
+      return nullptr;
     }
 
     void setup() override {

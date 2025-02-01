@@ -31,13 +31,20 @@ using namespace fs;
 namespace fhatos {
   class FSx : public BaseFS {
   protected:
-    explicit FSx(const Pattern &pattern,const Rec_p& config) : BaseFS(pattern, config) {
+    explicit FSx(
+      const Pattern &pattern,
+      const ID_p& value_id = nullptr,
+      const Rec_p& config = Obj::to_rec({{"root",vri("/")}})) : BaseFS(pattern,value_id, config) {
 
     }
 
-    
   public:
-static void load_boot_config() {
+    static void* import(const Pattern& pattern) {
+      BaseFS::import<FSx>(pattern);
+      return nullptr;
+    }
+
+    static void load_boot_config() {
       try {
         if(!FOS_FS.begin()) return;
         fs::File file = FOS_FS.open(FOS_BOOT_CONFIG_FS_URI,"r", false);
@@ -57,15 +64,6 @@ static void load_boot_config() {
       }
     }
 
-    static ptr<FSx> create(const Pattern &pattern = Pattern("/io/fs/#"), const Rec_p& config = Obj::to_rec({{"root",vri("/")}})) {
-      static ptr<FSx> fs = ptr<FSx>(new FSx(pattern, config));
-      return fs;
-    }
-
-    /*virtual void stop() override {
-        FOS_FS.end();
-  BaseFS::stop();
-      }*/
 
     virtual void setup() override {
       if (!FOS_FS.begin()) {
@@ -85,7 +83,8 @@ static void load_boot_config() {
         FOS_FS.remove(file_name);
       return;
     } 
-     const char* dir_name = map_fos_to_fs(id_p(id->retract())).toString().c_str();
+    
+    const char* dir_name = map_fos_to_fs(id_p(id->retract())).toString().c_str();
       if (!FOS_FS.exists(dir_name))
         FOS_FS.mkdir(dir_name);
       fs::File file = FOS_FS.open(file_name,retain ? "w" : "a", true);
@@ -107,7 +106,6 @@ static void load_boot_config() {
           const String contents =  file.readString();
           file.close();
           const BObj_p bobj = make_shared<BObj>(contents.length(), (fbyte *) contents.c_str());
-          //LOG_OBJ(INFO,this,"reading %s: %s\n",file.path(),contents.c_str());
           pairs.emplace_back(std::make_pair<ID_p,Obj_p>(id_p(*path),Obj::deserialize(bobj)));
         }
        } else {
@@ -127,12 +125,11 @@ static void load_boot_config() {
 
     void stop() override {
         FOS_FS.end();
-        Structure::stop();
+        BaseFS::stop();
     }
   };
 
 
 }
-
 #endif
 #endif

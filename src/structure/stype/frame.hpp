@@ -35,8 +35,9 @@ namespace fhatos {
 
     explicit Frame(const Pattern &pattern,
                    const ptr<Frame> &previous = nullptr,
-                   const Rec_p &frame_data = Obj::to_rec()) : Structure(pattern, ID(pattern.retract())),
-                                                              previous{previous} {
+                   const Rec_p &frame_data = Obj::to_rec()) :
+      Structure(pattern,REC_FURI), //id_p(pattern.retract())),
+      previous{previous} {
       for(const auto &[key,value]: *frame_data->rec_value()) {
         this->data_->insert({id_p(key->uri_value()), value});
       }

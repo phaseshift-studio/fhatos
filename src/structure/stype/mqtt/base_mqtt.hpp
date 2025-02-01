@@ -37,18 +37,14 @@ namespace fhatos {
   using std::chrono::duration_cast;
   using std::chrono::system_clock;
 
-  const static ID_p MQTT_FURI = id_p("/sys/lib/mqtt");
+  const static ID MQTT_FURI = ID("/sys/lib/mqtt");
+
   class BaseMqtt : public Structure {
   protected:
-    explicit BaseMqtt(const Rec_p &rec) : Structure(rec) {
-    }
-
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern, const Rec_p &config, const ID &value_id) : BaseMqtt(Obj::to_rec(
-      {{"pattern", vri(pattern)},
-        {"config", config}}, MQTT_FURI, id_p(value_id))) {
+    explicit BaseMqtt(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+      Structure(pattern, id_p(MQTT_FURI), value_id, config) {
     }
-
 
     virtual bool exists() const = 0;
 
@@ -67,6 +63,14 @@ namespace fhatos {
     }
 
   public:
+
+    template<typename STRUCTURE>
+    static void *import(const ID &import_id) {
+      static_assert(std::is_base_of_v<BaseMqtt, STRUCTURE>, "STRUCTURE should be derived from BaseMqtt");
+      Router::import_structure<STRUCTURE>(import_id,MQTT_FURI);
+      return nullptr;
+    }
+
     void stop() override {
       LOG_STRUCTURE(INFO, this, "!ydisconnecting!! from !g[!y%s!g]!!\n",
                     this->rec_get("config")->rec_get("broker")->toString().c_str());
@@ -108,17 +112,17 @@ namespace fhatos {
       const Pattern_p temp = furi->is_branch() ? p_p(furi->extend("+")) : p_p(*furi);
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = id_p(
-        this->rec_get("config/client", vri("fhatos_client"))->uri_value().toString().c_str());
+          this->rec_get("config/client", vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
-        Subscription::create(source_id, temp,
-                             InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-                             ->type_args(from(vri("target")), from(vri("payload")), from(vri("retain")))
-                             ->inst_f(
-                               [thing](const Obj_p &lhs, const InstArgs &args) {
-                                 thing->load()->push_back({id_p(args->arg(0)->uri_value()), args->arg(1)});
-                                 // TODO: make inst args accessible via name within on_recv
-                                 return lhs;
-                               })->create()));
+          Subscription::create(source_id, temp,
+                               InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
+                               ->type_args(from(vri("target")), from(vri("payload")), from(vri("retain")))
+                               ->inst_f(
+                                   [thing](const Obj_p &lhs, const InstArgs &args) {
+                                     thing->load()->push_back({id_p(args->arg(0)->uri_value()), args->arg(1)});
+                                     // TODO: make inst args accessible via name within on_recv
+                                     return lhs;
+                                   })->create()));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <

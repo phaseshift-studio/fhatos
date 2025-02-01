@@ -81,7 +81,8 @@ namespace fhatos {
                              LOG(INFO, "!g[!bi2c scan!g]!!\n");
                            }
 
-                           if(!Wire.begin(i2c_rec->rec_get("sda")->int_value(), i2c_rec->rec_get("scl")->int_value())) {
+                           if(!Wire.begin(i2c_rec->rec_get("sda")->int_value(),
+                                          i2c_rec->rec_get("scl")->int_value())) {
                              LOG_OBJ(ERROR, i2c_rec, "!runable to communicate!! with %s!!\n",
                                      i2c_rec->toString().c_str());
                              return jnt(0);

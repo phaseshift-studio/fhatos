@@ -35,7 +35,7 @@ namespace fhatos {
 
     explicit Computed(
       const Pattern &pattern,
-      const ID &vid,
+      const ID_p &vid,
       const Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less> &read_map = {},
       const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = {}) : Structure(pattern, vid),
       read_functions_(

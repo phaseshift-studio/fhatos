@@ -93,18 +93,25 @@ namespace fhatos {
               ->display_memory("psram memory", Memory::psram_memory());
         }
         ////////////////// SYS STRUCTURE
-        return kp->mount(Heap<>::create("/sys/#"))
+        kp->mount(Structure::create<Heap<>>("/sys/#"))
             ->using_boot_config() // TODO: test with non-load
             ->import(Router::import())
             ->drop_config("router")
             ->import(Scheduler::import())
-            ->drop_config("scheduler")
+            ->drop_config("scheduler");
+        ////////////////// USER IMPORT(S)
+        return kp
+            ->import(Heap<>::import("/sys/lib/heap"))
+            ->import(Mqtt::import("/sys/lib/mqtt"))
+#ifdef ESP_ARCH
+            ->import(FSx::import("/sys/lib/fs"))
+#endif
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#"))
+            ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create("/io/#"))
+            ->mount(Structure::create<Heap<>>("/io/#"))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
@@ -112,12 +119,12 @@ namespace fhatos {
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log", Router::singleton()->read(id_p("/sys/config/log"))
                                   ->or_else(Obj::to_rec({
-                                    {"INFO", lst({vri("#")})},
-                                    {"ERROR", lst({vri("#")})},
-                                    {"DEBUG", lst()},
-                                    {"TRACE", lst()}}))))
+                                      {"INFO", lst({vri("#")})},
+                                      {"ERROR", lst({vri("#")})},
+                                      {"DEBUG", lst()},
+                                      {"TRACE", lst()}}))))
             ->drop_config("log")
-            ->mount(Heap<>::create("+/#"))
+            ->mount(Structure::create<Heap<>>("+/#"))
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
@@ -128,23 +135,23 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
-             ->mount(Memory::singleton("/soc/memory/#"))
-             ->mount(Heap<>::create("/soc/ota/#"))
+             ->mount(Structure::create<Memory>("/soc/memory/#"))
+             ->mount(Structure::create<Heap<>>::create("/soc/ota/#"))
              ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
              ->drop_config("ota")
-             ->mount(FSx::create("/fs/#",Router::singleton()->read(id_p("/sys/config/fs"))))
+             ->import(FSx::import("/io/lib/fs"))
+             ->mount(Structure::create<FSx>("/fs/#",nullptr,Router::singleton()->read(id_p("/sys/config/fs"))))
              ->drop_config("fs")
              // ->mount(HeapPSRAM::create("/psram/#"))
 #endif
-
 #if defined(NATIVE)
-            ->mount(Mqtt::create("//io/#", Router::singleton()
-                                 ->read(id_p("/sys/config/mqtt"))
-                                 ->or_else(Obj::to_rec({{"broker",
-                                     vri(args_parser->option_string(
-                                       "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                   {"client", vri(args_parser->option_string(
-                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}})), "/io/mqtt"))
+            ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"), Router::singleton()
+                                            ->read(id_p("/sys/config/mqtt"))
+                                            ->or_else(Obj::to_rec({{"broker",
+                                                                    vri(args_parser->option_string(
+                                                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                                   {"client", vri(args_parser->option_string(
+                                                                        "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
 #endif
 #if defined(ARDUINO) || defined(RASPBERRYPI)

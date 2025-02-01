@@ -32,7 +32,7 @@ namespace fhatos {
   protected:
     List<ID_p> MEMORY_IDS_;
 
-    explicit Memory(const Pattern &pattern = "/soc/memory/#") : Computed(pattern, pattern.retract_pattern()),
+    explicit Memory(const Pattern &pattern = "/soc/memory/#") : Computed(pattern, id_p(pattern.retract_pattern())),
                                                                 MEMORY_IDS_{{
                                                                   id_p(pattern.resolve("./inst")),
                                                                   id_p(pattern.resolve("./heap")),

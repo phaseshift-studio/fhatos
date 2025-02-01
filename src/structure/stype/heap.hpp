@@ -30,7 +30,8 @@
 #endif
 
 namespace fhatos {
-  const static ID_p HEAP_FURI = id_p("/sys/lib/heap");
+  const static ID HEAP_FURI = ID("/sys/lib/heap");
+
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Heap final : public Structure {
   protected:
@@ -39,12 +40,13 @@ namespace fhatos {
     std::shared_mutex map_mutex;
 
   public:
-    explicit Heap(const Rec_p &config) : Structure(config) {
+    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+      Structure(pattern, id_p(HEAP_FURI), value_id, config) {
     }
 
-    static unique_ptr<Heap> create(const Pattern &pattern) {
-      unique_ptr<Heap> heap = make_unique<Heap>(Obj::to_rec({{"pattern", vri(pattern)}}, HEAP_FURI));
-      return heap;
+    static void *import(const ID &import_id) {
+      Router::import_structure<Heap>(import_id,HEAP_FURI);
+      return nullptr;
     }
 
     void stop() override {
@@ -57,8 +59,10 @@ namespace fhatos {
       Obj_p send_obj;
       if(retain) {
         auto lock = std::lock_guard<std::shared_mutex>(this->map_mutex);
-        if(obj->is_noobj())this->data_->erase(id);
-        else this->data_->insert_or_assign(id, obj);
+        if(obj->is_noobj())
+          this->data_->erase(id);
+        else
+          this->data_->insert_or_assign(id, obj);
         send_obj = obj;
       } else {
         auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);

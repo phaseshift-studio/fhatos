@@ -141,6 +141,8 @@ namespace fhatos {
     }
 
     static ptr<Kernel> import(const void *) {
+     // TODO: arg should take a tid
+     // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid_->toString().c_str());
       return Kernel::build();
     }
 
@@ -185,7 +187,9 @@ namespace fhatos {
       //MemoryHelper::use_custom_stack(fhatos::FSx::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
       fhatos::FSx::load_boot_config();
       if(boot_config_obj_copy_len > 0) {
-        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!y!b/boot/boot_config.obj!! loaded (size: %i bytes)\n", boot_config_obj_copy_len);
+        LOG_KERNEL_OBJ(INFO, Router::singleton(),
+          "!yboot config file at !b "FOS_BOOT_CONFIG_FS_URI "!! loaded (size: %i bytes)\n",
+          boot_config_obj_copy_len);
         to_free_boot = true;
       }
 #endif
@@ -194,7 +198,7 @@ namespace fhatos {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
           LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                         "!yusing boot config at !bboot_config_obj.hpp!! (size: %i bytes)\n",
+                         "!yboot config header at !b" FOS_BOOT_CONFIG_HEADER_URI "!! loaded (size: %i bytes)\n",
                          boot_config_obj_copy_len);
         }
       }
@@ -207,17 +211,17 @@ namespace fhatos {
         boot_config_obj_len = 0;
       }
       if(config_obj->is_noobj())
-        throw fError("no !bboot loader config!! found in !yspi flash nor a header encoding!!");
+        throw fError("no !yboot loader config found!! in flash nor header");
       /////
       string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
       StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "boot config !yobj!! loaded:\n%s\n", boot_str.c_str());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!yboot config obj!! loaded:\n%s\n", boot_str.c_str());
       return Kernel::build();
     }
 
     static ptr<Kernel> drop_config(const string &id) {
       Router::singleton()->write(id_p((string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id).c_str()), noobj());
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "boot config !b%s!! dropped\n", id.c_str());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!yboot config !b%s!! dropped\n", id.c_str());
       return Kernel::build();
     }
 

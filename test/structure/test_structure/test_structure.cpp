@@ -29,7 +29,7 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
-   ptr<Heap<>> test_heap = std::make_shared<Heap<>>(Obj::to_rec({{"pattern",vri("/zzz/#")}}));
+   ptr<Heap<>> test_heap = std::make_shared<Heap<>>("/zzz/#");
 
    // in fhatos namespace
    void setUp(void) {

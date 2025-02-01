@@ -25,31 +25,41 @@ FhatOS: A Distributed Operating System
 #include "../../../util/obj_helper.hpp"
 
 namespace fhatos {
-  class BaseFS : public Structure {
 
-  private:
-    explicit BaseFS(const Rec_p &rec) : Structure(rec), root{ID(rec->rec_get("config/root")->uri_value())} {  
-    }
+  const static ID FS_FURI = ID("/io/lib/fs");
+
+  class BaseFS : public Structure {
 
   protected:
     ID root;
-    explicit BaseFS(const Pattern &pattern,const Rec_p &config) : BaseFS(Obj::to_rec({{"pattern", vri(pattern)},{FOS_CONFIG, config}}, REC_FURI)) {
+
+    explicit BaseFS(const Pattern &pattern, const ID_p &value_id = nullptr,
+                    const Rec_p &config = Obj::to_rec({{"root", vri("/")}})) :
+      Structure(pattern, id_p(FS_FURI), value_id, config) {
     }
 
-    ID map_fos_to_fs(const ID_p& fos_id) {
+    ID map_fos_to_fs(const ID_p &fos_id) {
       ID fs_id = ID(*fos_id);
-      for(uint8_t i =0; i<this->pattern()->path_length();i++) {
+      for(uint8_t i = 0; i < this->pattern()->path_length(); i++) {
         fs_id = fs_id.pretract();
       }
       return root.extend(fs_id);
     }
 
-    ID map_fs_to_fos(const char* fs_id) {
+    ID map_fs_to_fos(const char *fs_id) {
       ID fos_id = ID(fs_id);
-      for(uint8_t i =0; i<root.path_length();i++) {
+      for(uint8_t i = 0; i < root.path_length(); i++) {
         fos_id = fos_id.pretract();
       }
       return fos_id;
+    }
+
+  public:
+    template<typename STRUCTURE>
+    static void *import(const ID &import_id) {
+      static_assert(std::is_base_of_v<BaseFS, STRUCTURE>, "STRUCTURE should be derived from BaseMqtt");
+      Router::import_structure<STRUCTURE>(import_id, FS_FURI);
+      return nullptr;
     }
   };
 } // namespace fhatos

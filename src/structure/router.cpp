@@ -254,42 +254,12 @@ namespace fhatos {
           Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
           return noobj();
         })->save();
-    InstBuilder::build(Router::singleton()->vid_->extend(":attach"))
-        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
-        ->type_args(x(0, ___()))
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const auto heap = make_shared<Heap<>>(args->arg(0));
-          Router::singleton()->attach(heap);
-          return heap;
-        })->save();
     InstBuilder::build(Router::singleton()->vid_->extend(":stop"))
         ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           Router::singleton()->stop();
           return Obj::to_noobj();
         })->save();
-
-    Router::singleton()->write(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-    InstBuilder::build(id_p(HEAP_FURI->extend(":create")))
-        ->type_args(x(0, "pattern"))
-        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Pattern pattern = args->arg(0)->uri_value();
-          const ptr<Heap<>> heap = Heap<>::create(pattern);
-          Router::singleton()->attach(heap);
-          return heap;
-        })->save();
-    Router::singleton()->write(MQTT_FURI, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-    InstBuilder::build(id_p(MQTT_FURI->extend(":create")))
-        ->type_args(x(0, "pattern"))
-        ->domain_range(OBJ_FURI, {0, 1}, HEAP_FURI, {1, 1})
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Pattern pattern = args->arg(0)->uri_value();
-          const ptr<Mqtt> heap = Mqtt::create(pattern);
-          Router::singleton()->attach(heap);
-          return heap;
-        })->save();
-
     return nullptr;
   }
 
@@ -303,7 +273,7 @@ namespace fhatos {
         found = s;
       }
     }
-    if(!found && throw_on_error) {
+    if(!found && throw_on_error) { // && !pattern->empty() ??
       const Lst_p related = Obj::to_lst();
       const fURI sub_pattern = pattern->retract_pattern();
       for(const auto &s: *this->structures_) {

@@ -79,14 +79,15 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/lang/fluent.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
-  Router::singleton()->attach(Heap<>::create(Pattern("/sys/#")));        \
+  Router::singleton()->attach(Structure::create<Heap<>>("/sys/#"));     \
+  Heap<>::import("/sys/lib/heap"); \
   boot_config_obj_copy_len = boot_config_obj_len; 						 \
   boot_config_obj_copy = boot_config_obj; 								 \
   mmadt::Parser::load_boot_config(); 									 \
   Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID); 			 \
   Router::singleton()->import(); 										 \
-  Router::singleton()->attach(Heap<>::create(Pattern("/fos/#")));        \
-  Router::singleton()->attach(Heap<>::create(Pattern("/io/log/#")));
+  Router::singleton()->attach(Structure::create<Heap<>>("/fos/#"));        \
+  Router::singleton()->attach(Structure::create<Heap<>>("/io/log/#"));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
@@ -95,7 +96,7 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
-  Router::singleton()->attach(Heap<>::create(Pattern("/parser/#"))); \
+  Router::singleton()->attach(Structure::create<Heap<>>("/parser/#")); \
   Router::singleton()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
@@ -113,7 +114,7 @@
 #include "../src/lang/mmadt/type.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
-  Router::singleton()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
+  Router::singleton()->attach(Structure::create<Heap<>>("/mmadt/#")); \
   Router::singleton()->write(id_p("/mmadt/"),Typer::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
@@ -123,9 +124,9 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  Router::singleton()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  Router::singleton()->attach(Structure::create<Heap<>>(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY)) ? \
   "+" : \
-  STR(FOS_DEPLOY_SHARED_MEMORY))));
+  STR(FOS_DEPLOY_SHARED_MEMORY)))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
@@ -133,9 +134,9 @@
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
 #define FOS_DEPLOY_FILE_SYSTEM_2 \
-  ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp"); \
-  Router::singleton()->attach(fs); \
-  fs->setup();
+  /*ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp");*/ \
+  /*Router::singleton()->attach(fs);*/ \
+  /*fs->setup();*/
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
