@@ -157,6 +157,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> install(const Obj_p &obj) {
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       if(obj->vid_) {
         Router::singleton()->write(obj->vid_, obj,RETAIN);
         LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid_->toString().c_str());
@@ -177,18 +178,18 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config() {
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
       Obj_p config_obj = Obj::to_noobj();
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!ysearching for !bboot loader!! config\n");
       // boot from header file, file system, or wifi
 #ifdef ESP_ARCH
       //MemoryHelper::use_custom_stack(fhatos::FSx::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
       fhatos::FSx::load_boot_config();
       if(boot_config_obj_copy_len > 0) {
         LOG_KERNEL_OBJ(INFO, Router::singleton(),
-          "!yboot config file at !b "FOS_BOOT_CONFIG_FS_URI "!! loaded (size: %i bytes)\n",
+          "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
           boot_config_obj_copy_len);
         to_free_boot = true;
       }
@@ -198,7 +199,7 @@ namespace fhatos {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
           LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                         "!yboot config header at !b" FOS_BOOT_CONFIG_HEADER_URI "!! loaded (size: %i bytes)\n",
+                         "!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: %i bytes)\n",
                          boot_config_obj_copy_len);
         }
       }
@@ -211,17 +212,18 @@ namespace fhatos {
         boot_config_obj_len = 0;
       }
       if(config_obj->is_noobj())
-        throw fError("no !yboot loader config found!! in flash nor header");
+        throw fError("!yboot loader config!! !rnot found!! in flash nor header");
       /////
       string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
       StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!yboot config obj!! loaded:\n%s\n", boot_str.c_str());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "\n%s\n", boot_str.c_str());
       return Kernel::build();
     }
 
     static ptr<Kernel> drop_config(const string &id) {
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(id_p((string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id).c_str()), noobj());
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!yboot config !b%s!! dropped\n", id.c_str());
+      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s !yboot config!! dropped\n", id.c_str());
       return Kernel::build();
     }
 

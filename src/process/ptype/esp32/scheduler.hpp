@@ -63,7 +63,7 @@ namespace fhatos {
       if(!process->vid_)
         throw fError("value id required to spawn %s", process->toString().c_str());
       if (this->count(*process->vid_)) {
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid_->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
         return false;
       }
       process->setup();

@@ -37,6 +37,10 @@
 //#include "structure/stype/fs/base_fs.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
+#ifdef NATIVE
+#include "model/text/text.hpp"
+#endif
+
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 
 //////////// ESP SOC MODELS /////////////
@@ -112,7 +116,10 @@ namespace fhatos {
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
-            ->install(Terminal::singleton("/io/terminal"))
+#ifdef NATIVE
+            ->import(Text::import("/io/lib/text"))
+#endif
+        ->install(Terminal::singleton("/io/terminal"))
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log", Router::singleton()->read(id_p("/sys/config/log"))
                                   ->or_else(Obj::to_rec({
@@ -128,7 +135,7 @@ namespace fhatos {
             ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import("/io/lib/i2c"))
             ->import(AHT10::import("/io/lib/aht10"))
-            ->mount(Structure::create<Wifi>("/soc/wifi/+",
+            ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),

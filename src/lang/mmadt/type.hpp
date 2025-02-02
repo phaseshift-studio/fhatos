@@ -48,7 +48,7 @@ namespace mmadt {
       //      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
       //      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }
 
     static void import_base_inst() {
@@ -324,9 +324,8 @@ namespace mmadt {
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/goto"))
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {1, 1})
           ->type_args(x(0, "inst_id"))
-          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-            const Inst_p inst = Router::singleton()->read(args->arg(0)->uri_p_value<fURI>());
-            if(!inst->is_inst())
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            if(const Inst_p inst = Router::singleton()->read(args->arg(0)->uri_p_value<fURI>()); !inst->is_inst())
               throw fError("!bgoto!! must resolve to an !binst!!: %s !m=>!! %s",
                            args->arg(0)->toString().c_str(),
                            inst->toString().c_str());
@@ -794,7 +793,7 @@ namespace mmadt {
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yobj insts!! loaded!g]!! \n",
                                MMADT_SCHEME "/+/" COMPONENT_SEPARATOR MMADT_SCHEME "/+"));
     }
 

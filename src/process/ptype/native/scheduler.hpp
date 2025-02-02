@@ -52,19 +52,19 @@ namespace fhatos {
       if(!process->vid_)
         throw fError("value id required to spawn %s", process->toString().c_str());
       if(this->count(*process->vid_)) {
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid_->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
         return false;
       }
       process->setup();
       if(!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
         return false;
       }
       ////////////////////////////////
       static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
       this->processes_->push_back(process);
       process->save();
-      LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !yprocess!! spawned\n", process->vid_->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", process->vid_->toString().c_str());
       this->save();
       return true;
     }

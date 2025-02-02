@@ -63,18 +63,16 @@ namespace fhatos {
           connect_(connect), mdns_(mdns), ssid_(ssid), password_(password) {};
     };
 
-  protected:
     Settings settings_;
-    explicit Wifi(const Pattern &pattern, const Settings &settings, const ID &id) :
-        Computed(pattern, id_p(WIFI_FURI), id_p(id)), settings_(settings) {
+    explicit Wifi(const Pattern &pattern, const Settings &settings) :
+        Computed(pattern, id_p(WIFI_FURI), nullptr), settings_(settings) {
       if (settings.connect_)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343
     }
 
-  public:
-    static ptr<Wifi> singleton(const Pattern &pattern, const Settings &settings, const ID &id = ID("")) {
-      static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(pattern, settings, id));
+    static ptr<Wifi> singleton(const Pattern &pattern, const Settings &settings) {
+      static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(pattern, settings));
       return wifi;
     }
 
