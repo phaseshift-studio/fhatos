@@ -49,6 +49,8 @@
 
 namespace fhatos {
 
+  const ID WIFI_FURI = ID("/soc/lib/wifi");
+
   class Wifi : public Computed {
 
   public:
@@ -64,7 +66,7 @@ namespace fhatos {
   protected:
     Settings settings_;
     explicit Wifi(const Pattern &pattern, const Settings &settings, const ID &id) :
-        Computed(pattern, id), settings_(settings) {
+        Computed(pattern, id_p(WIFI_FURI), id_p(id)), settings_(settings) {
       if (settings.connect_)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343

@@ -27,9 +27,11 @@ namespace fhatos {
   // static constexpr char *MEMORY_REC_STRING = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
   // static constexpr char *MEMORY_REC_STRING_2 = "[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
 
+  const static ID MEMORY_FURI = ID("/sys/lib/memory");
+
   class Memory : public Computed {
-  protected:
-    explicit Memory(const Pattern &pattern, const ID &id) : Computed(pattern, id) {
+  public:
+    explicit Memory(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p& config = Obj::to_rec()) : Computed(pattern, id_p(MEMORY_FURI), value_id) {
       const ID_p percent_id = REAL_FURI;
       /*const ID_p percent_id = id_p(MMADT_SCHEME "/%");
       InstBuilder::build(*percent_id)
@@ -63,10 +65,8 @@ namespace fhatos {
     }
 
     // TODO: flash/partition/0x4434
-
-  public:
     static ptr<Memory> singleton(const Pattern &pattern, const ID &id = ID("")) {
-      static auto mem_p = ptr<Memory>(new Memory(pattern, id));
+      static auto mem_p = ptr<Memory>(new Memory(pattern, id_p(id)));
       return mem_p;
     }
 

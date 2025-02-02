@@ -30,7 +30,7 @@ FhatOS: A Distributed Operating System
 using namespace fs;
 namespace fhatos {
   class FSx : public BaseFS {
-  protected:
+  public:
     explicit FSx(
       const Pattern &pattern,
       const ID_p& value_id = nullptr,
@@ -38,7 +38,6 @@ namespace fhatos {
 
     }
 
-  public:
     static void* import(const Pattern& pattern) {
       BaseFS::import<FSx>(pattern);
       return nullptr;

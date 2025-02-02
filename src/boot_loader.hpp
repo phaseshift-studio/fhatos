@@ -103,9 +103,6 @@ namespace fhatos {
         return kp
             ->import(Heap<>::import("/sys/lib/heap"))
             ->import(Mqtt::import("/sys/lib/mqtt"))
-#ifdef ESP_ARCH
-            ->import(FSx::import("/sys/lib/fs"))
-#endif
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
             ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
@@ -126,38 +123,32 @@ namespace fhatos {
             ->drop_config("log")
             ->mount(Structure::create<Heap<>>("+/#"))
 #if defined(ESP_ARCH)
+            ->import(FSx::import("/sys/lib/fs"))
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import("/io/lib/i2c"))
             ->import(AHT10::import("/io/lib/aht10"))
-            ->mount(
-                Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
+            ->mount(Structure::create<Wifi>("/soc/wifi/+",
+                  Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
              ->mount(Structure::create<Memory>("/soc/memory/#"))
-             ->mount(Structure::create<Heap<>>::create("/soc/ota/#"))
+             ->mount(Structure::create<Heap<>>("/soc/ota/#"))
              ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
              ->drop_config("ota")
              ->import(FSx::import("/io/lib/fs"))
              ->mount(Structure::create<FSx>("/fs/#",nullptr,Router::singleton()->read(id_p("/sys/config/fs"))))
              ->drop_config("fs")
-             // ->mount(HeapPSRAM::create("/psram/#"))
+             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
 #if defined(NATIVE)
-            ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"), Router::singleton()
-                                            ->read(id_p("/sys/config/mqtt"))
-                                            ->or_else(Obj::to_rec({{"broker",
-                                                                    vri(args_parser->option_string(
-                                                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                                                   {"client", vri(args_parser->option_string(
-                                                                        "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+            ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"),
+              Router::singleton()->read(id_p("/sys/config/mqtt"))->or_else(Obj::to_rec({
+          {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+          {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
 #endif
-#if defined(ARDUINO) || defined(RASPBERRYPI)
-
-#endif
-            //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->process(Console::create("/io/console", Router::singleton()->read(id_p("/sys/config/console"))))
             ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });
