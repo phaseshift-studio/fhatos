@@ -42,7 +42,6 @@ namespace fhatos {
       auto ss = std::ostream(sb);
       if(obj->is_objs()) {
         for(Obj_p &o: *obj->objs_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
           pretty_print_obj(o, depth, max_depth, parent_rec, sb, char_indent);
         }
       } else if(obj->is_lst() && max_depth > depth) {
@@ -52,7 +51,6 @@ namespace fhatos {
         }
         ss << "!m[!!\n";
         for(const auto &e: *obj->lst_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
           if(!e->is_poly()) {
             ss << StringHelper::format("%s%s!!\n",
                                        (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (
@@ -72,7 +70,6 @@ namespace fhatos {
         }
         ss << "!m[!!\n";
         for(const auto &[key, value]: *obj->rec_value()) {
-          Process::current_process()->feed_watchdog_via_counter();
           if(!value->is_poly()) {
             ss << StringHelper::format(
               "%s!c%s!m=>!!%s!!\n",

@@ -24,6 +24,9 @@ FhatOS: A Distributed Operating System
 #include "../structure.hpp"
 
 namespace fhatos {
+
+  const ID FRAME_FURI = "/sys/router/frame";
+
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Frame final : public Structure {
   protected:
@@ -36,7 +39,7 @@ namespace fhatos {
     explicit Frame(const Pattern &pattern,
                    const ptr<Frame> &previous = nullptr,
                    const Rec_p &frame_data = Obj::to_rec()) :
-      Structure(pattern,REC_FURI), //id_p(pattern.retract())),
+      Structure(pattern,id_p(FRAME_FURI)), //id_p(pattern.retract())),
       previous{previous} {
       for(const auto &[key,value]: *frame_data->rec_value()) {
         this->data_->insert({id_p(key->uri_value()), value});

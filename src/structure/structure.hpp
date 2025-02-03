@@ -52,8 +52,11 @@ namespace fhatos {
   public:
     const Pattern_p pattern_;
 
-    explicit Structure(const Pattern &pattern, const ID_p& type_id, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
-      Rec(Obj::to_rec({{"pattern", vri(pattern)}, {"config", config}})->rec_value(), OType::REC, type_id, value_id),
+    explicit Structure(const Pattern &pattern, const ID_p &type_id, const ID_p &value_id = nullptr,
+                       const Rec_p &config = Obj::to_rec()) :
+      Rec(config->rec_value()->empty()
+            ? Obj::to_rec({{"pattern", vri(pattern)}})->rec_value()
+            : Obj::to_rec({{"pattern", vri(pattern)}, {"config", config->clone()}})->rec_value(), OType::REC, type_id, value_id),
       pattern_(p_p(pattern)) {
     }
 

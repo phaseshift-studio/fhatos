@@ -187,6 +187,12 @@ clean_rpi() {
   fi
 }
 
+edit_partition() {
+  if [[ $platform == esp32* ]]; then
+    pio run -t edit_partition -e esp32-t7-s3
+  fi
+}
+
 make_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
     shift
@@ -328,6 +334,8 @@ elif [[ $1 == "build" ]]; then
   make_esp32 "${@}"
   make_rpi "${@}"
   build_rlwrap_completions
+elif [[ $1 == "partition" ]]; then
+  edit_partition
 elif [[ $1 == "upload" ]]; then
   build_boot_config
   # clean_esp32

@@ -31,6 +31,17 @@ namespace fhatos {
     return router_p;
   }
 
+  void Router::log_frame_stack(const LOG_TYPE log_type) const {
+    if(nullptr != THREAD_FRAME_STACK) {
+      int counter = 0;
+      ptr<Frame<>> frame = THREAD_FRAME_STACK;
+      while(nullptr != frame) {
+        LOG_OBJ(log_type, frame, "!m%s!g>!! %s\n", StringHelper::repeat(++counter,"-").c_str(), frame->toString().c_str());
+        frame = frame->previous;
+      }
+    }
+  }
+
   Router::Router(const ID &id) :
     Rec(rmap({{"structure", to_lst()}}),
         //stop and attach
@@ -226,7 +237,8 @@ namespace fhatos {
   }
 
   void Router::subscribe(const Subscription_p &subscription) {
-    if(!this->active) return;
+    if(!this->active)
+      return;
     try {
       const Structure_p struc = this->get_structure(subscription->pattern());
       LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
@@ -238,6 +250,7 @@ namespace fhatos {
 
   void *Router::import() {
     Router::singleton()->write(Router::singleton()->vid_, Router::singleton(),RETAIN);
+    Router::singleton()->write(id_p(FRAME_FURI), Obj::to_type(REC_FURI),RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
     Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/msg")),
                                Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
@@ -291,7 +304,8 @@ namespace fhatos {
 
 
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
-    if(!this->active) return furi_p(furi);
+    if(!this->active)
+      return furi_p(furi);
     fURI_p p = furi_p(furi);
     if(furi.empty())
       return p;

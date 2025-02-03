@@ -1766,7 +1766,8 @@ namespace fhatos {
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
-            ROUTER_POP_FRAME(); // TODO: does this clear all frames automatically through exception recurssion?
+            ROUTER_POP_FRAME();
+            // TODO: does this clear all frames automatically through exception recurssion?
             throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
                          lhs->toString().c_str(),
                          this->toString().c_str());
@@ -2383,9 +2384,9 @@ namespace fhatos {
         })));
   }
 
-  /*static Obj_p from(const string &uri, const Obj_p &default_arg = noobj()) {
-    return from(vri(uri),default_arg);
-  }*/
+    static Obj_p from(const char* uri, const Obj_p &default_arg = noobj()) {
+    return from(Obj::to_uri(uri),default_arg);
+  }
 
   [[maybe_unused]] static Inst_p block(const Obj_p &arg) {
     return Obj::to_inst({arg}, id_p("block"));

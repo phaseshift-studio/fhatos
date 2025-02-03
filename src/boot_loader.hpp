@@ -149,13 +149,13 @@ namespace fhatos {
              ->drop_config("fs")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-#if defined(NATIVE)
+//#if defined(NATIVE)
             ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"),
               Router::singleton()->read(id_p("/sys/config/mqtt"))->or_else(Obj::to_rec({
           {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
           {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
-#endif
+//#endif
             ->process(Console::create("/io/console", Router::singleton()->read(id_p("/sys/config/console"))))
             ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });

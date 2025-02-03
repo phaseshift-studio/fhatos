@@ -116,11 +116,10 @@ namespace fhatos {
       this->recv_subscription(
           Subscription::create(source_id, temp,
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-                               ->type_args(from(vri("target")), from(vri("payload")), from(vri("retain")))
-                               ->inst_f(
-                                   [thing](const Obj_p &lhs, const InstArgs &args) {
-                                     thing->load()->push_back({id_p(args->arg(0)->uri_value()), args->arg(1)});
-                                     // TODO: make inst args accessible via name within on_recv
+                               ->inst_f([thing](const Obj_p &lhs, const InstArgs &args) {
+                                        thing->load()->push_back({
+                                        id_p(ROUTER_READ(id_p("target"))->uri_value()), 
+                                        ROUTER_READ(id_p("payload"))});
                                      return lhs;
                                    })->create()));
       ///////////////////////////////////////////////
