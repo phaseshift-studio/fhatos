@@ -55,8 +55,6 @@ namespace fhatos {
   public:
     explicit Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
       BaseMqtt(pattern, value_id, config) {
-      // const fURI new_broker = fURI(config->rec_get("broker")->toString().c_str()).scheme("mqtt");
-      // this->Obj::rec_get("config")->Obj::rec_set("broker", vri(new_broker));
       if(this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n",
                       this->Obj::rec_get("config/broker")->toString().c_str());

@@ -156,7 +156,7 @@ namespace fhatos {
       }
     }
 
-    bool has(const fURI_p &furi) {
+    virtual bool has(const fURI_p &furi) {
       return furi->is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(furi_p(furi->extend("+"))).empty();
     }
 

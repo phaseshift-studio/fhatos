@@ -45,7 +45,7 @@ namespace fhatos {
     }
 
     static void *import(const ID &import_id) {
-      Router::import_structure<Heap>(import_id,HEAP_FURI);
+      Router::import_structure<Heap>(import_id, HEAP_FURI);
       return nullptr;
     }
 
@@ -84,6 +84,16 @@ namespace fhatos {
         }
       }
       return list;
+    }
+
+    bool has(const fURI_p &furi) override {
+      std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      for(const auto &[id, obj]: *this->data_) {
+        if(id->matches(*furi)) {
+          return true;
+        }
+      }
+      return false;
     }
   };
 
