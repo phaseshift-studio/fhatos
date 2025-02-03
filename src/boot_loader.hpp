@@ -53,7 +53,7 @@
 #include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
 #include "model/driver/pin/arduino_i2c.hpp"
-#include "model/driver/aht10/aht10.hpp"
+#include "model/sensor/aht10/aht10.hpp"
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #endif
 
@@ -134,7 +134,8 @@ namespace fhatos {
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import("/io/lib/i2c"))
-            ->import(AHT10::import("/io/lib/aht10"))
+            ->mount(Structure::create<Heap<>>("/sensor/#"))
+            ->import(AHT10::import("/sensor/lib/aht10"))
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),

@@ -27,10 +27,9 @@ namespace fhatos {
 #define TRANSIENT false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[on_recv:!!%s!m]!!\n",            \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>%s\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      (subscription)->source()->toString().c_str(), (subscription)->pattern()->toString().c_str(),                           \
-      (subscription)->on_recv()->toString().c_str())
+      (subscription)->source()->toString().c_str(),(subscription)->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),   \

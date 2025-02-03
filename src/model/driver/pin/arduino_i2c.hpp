@@ -45,87 +45,67 @@ namespace fhatos {
   class ArduinoI2C final : public Rec {
 
   public:
-    static inline const char *i2cToDevice(const int addr) {
+    static inline std::pair<const char*, const char*> i2c_device_description(const int addr) {
       switch(addr) {
         case 0x20: // 32
-          return "pcf8575 (gpio exapnder)";
+          return {"pcf8575", "gpio exapnder"};
         case 0x38: // 56
-            return "aht10 (temp/humidity)";
+          return {"aht10","temp/humidity"};
         case 0x39: // 57
-            return "aht10 (temp/humidity)";
+          return {"aht10" ,"temp/humidity"};
         case 0x3c: // 60
-          return "oled (screen)";
+          return {"oled", "screen"};
         case 0x40: // 64
-          return "pca9685 (pwm expander)";
+          return {"pca9685","pwm expander"};
         case 0x70: // 112
-          return "tca9548a (i2c expander)";
+          return {"tca9548a", "i2c expander"};
         case 0x77: // 119
-          return "bme680 (environment sensor)";
+          return {"bme680", "environment sensor"};
         default:
-          return "unknown";
+          return {"unknown","no description"};
       }
     }
 
     explicit ArduinoI2C(const ID &value_id, const int sda_pin, const int scl_pin) :
         Rec(rmap({{"sda", jnt(sda_pin)},
                   {"scl", jnt(scl_pin)},
-                  {":scan",
-                   InstBuilder::build(value_id.extend(":scan"))
-                       ->domain_range(OBJ_FURI, {0, 1}, INT_FURI, {1, 1})
-                       ->inst_f([value_id](const Obj_p &lhs, const InstArgs &args) {
-                         const Rec_p &i2c_rec = Router::singleton()->read(id_p(value_id));
-                         const bool output_log = true;
-                         int count = 0;
-                         try {
-                           if(output_log) {
-                             LOG(INFO, "!g[!bi2c scan!g]!!\n");
-                           }
-
-                           if(!Wire.begin(i2c_rec->rec_get("sda")->int_value(),
-                                          i2c_rec->rec_get("scl")->int_value())) {
-                             LOG_OBJ(ERROR, i2c_rec, "!runable to communicate!! with %s!!\n",
-                                     i2c_rec->toString().c_str());
-                             return jnt(0);
-                           }
-
-                           for(int i = 8; i < 120; i++) {
-                             if(output_log) {
-                               LOG_OBJ(INFO, i2c_rec, FOS_TAB_1 "!yscanning!! %s addr" FOS_I2C_ADDR_STR "\n",
-                                       i2c_rec->toString().c_str(), FOS_I2C_ADDR(i));
-                             } else {
-                               LOG(NONE, ".");
-                             }
-                             Scheduler::singleton()->feed_local_watchdog();
-                             Wire.beginTransmission(i);
-                             const int result = Wire.endTransmission();
-                             if(0 == result) {
-                               if(output_log) {
-                                 LOG_OBJ(INFO, i2c_rec, "\tdevice !g[!btype:%s!g]!! at %s addr " FOS_I2C_ADDR_STR "\n",
-                                         i2cToDevice(i), i2c_rec->toString().c_str(), FOS_I2C_ADDR(i));
-                               }
-                               count++;
-
-                             } else if(4 == result) {
-                               if(output_log) {
-                                 LOG_OBJ(ERROR, i2c_rec, "\tdevice !rerror!! at %s addr " FOS_I2C_ADDR_STR "!\n",
-                                         i2c_rec->toString().c_str(), FOS_I2C_ADDR(i));
-                               }
-                             }
-                           }
-                           if(output_log) {
-                             LOG(INFO, FOS_TAB_2 "!ytotal i2c device(s)!! found: !g%i!!\n", count);
-                           }
+                  {":scan", InstBuilder::build(value_id.extend(":scan"))
+                    ->domain_range(OBJ_FURI, {0, 1}, LST_FURI, {1, 1})
+                    ->inst_f([value_id](const Obj_p &lhs, const InstArgs &args) {
+                       const Lst_p result_set = Obj::to_lst();
+                       const Rec_p &i2c_rec = Router::singleton()->read(id_p(value_id));
+                       const bool output_log = true;
+                       int count = 0;
+                       try {
+                         if(!Wire.begin(i2c_rec->rec_get("sda")->int_value(),
+                                        i2c_rec->rec_get("scl")->int_value())) {
+                           LOG_OBJ(ERROR, i2c_rec, "!runable to communicate!! with %s!!\n",
+                                   i2c_rec->toString().c_str());
+                           return result_set;
+                         }
+                         for(int i = 8; i < 120; i++) {
+                           Scheduler::singleton()->feed_local_watchdog();
+                           Wire.beginTransmission(i);
+                           const int result = Wire.endTransmission();
+                           if(0 == result || 4 == result) {
+                            const auto desc = i2c_device_description(i);
+                            result_set->lst_add(Obj::to_rec({
+                                {"hex_addr",vri(StringHelper::int_to_hex(i).insert(0,"0x"))},
+                                {"int_addr",jnt(i)},
+                                {"model",Obj::to_str(desc.first)},
+                                {"type",Obj::to_str(desc.second)},
+                                {"status",Obj::to_str(0 == result ? "ok" : "error")}}));
+                            }
+                          }
                          } catch(const std::exception &e) {
                            Wire.end();
                            throw fError("i2c %s bus error: %s", i2c_rec->toString().c_str(), e.what());
                          }
                          Wire.end();
-                         return jnt(count);
+                         return result_set;
                        })
                        ->create()}}),
             OType::REC, REC_FURI, id_p(value_id)) {}
-
-    int i2c_scan(const bool output_log = true) const {}
 
     static inline void *import(const ID &lib_id = "/io/lib/i2c") {
       InstBuilder::build(ID(lib_id.extend(":create")))

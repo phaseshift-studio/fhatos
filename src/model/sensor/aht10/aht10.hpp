@@ -41,22 +41,22 @@ namespace fhatos {
    ptr<AHTxx> ahtxx_;
   
   public:
-    explicit AHT10(const ID &value_id, const ID& i2c_id, const int addr, const ptr<AHTxx>& ahtxx) : Rec(rmap({
+    explicit AHT10(const ID &id, const ID& i2c_id, const int addr, const ptr<AHTxx>& ahtxx) : Rec(rmap({
           {"config",Obj::to_rec({{"addr",jnt(addr)},{"i2c",from(vri(i2c_id))}})},
         {"humidity",
-          InstBuilder::build(value_id.extend("humidity"))
+          InstBuilder::build(id.extend("humidity"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
           ->inst_f([this](const Obj_p &, const InstArgs &) {
             return real(this->ahtxx_->readHumidity());
           })
           ->create()},
-        {"read",
-          InstBuilder::build(value_id.extend("temperature"))
+        {"temp",
+          InstBuilder::build(id.extend("temp"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
          ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
              return real(this->ahtxx_->readTemperature());
           })
-          ->create()}}), OType::REC, REC_FURI, id_p(value_id)),
+          ->create()}}), OType::REC, REC_FURI, id_p(id)),
           ahtxx_(ahtxx) {
     }
 
@@ -73,9 +73,10 @@ namespace fhatos {
 
     static void *import(const ID &lib_id = "/io/lib/aht10") {
       //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
+      Typer::singleton()->save_type(id_p("celcius"),BCODE_PROCESSOR("|celcius?real<=real()[is(gte(−273.15))]")->to_objs());
       InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_args(rec({{"id",Obj::to_type(URI_FURI)},{"i2c_id", Obj::to_type(URI_FURI)},{"addr",jnt(AHT10_ADDRESS_X39)}}))
+          ->inst_args(rec({{"id",Obj::to_type(URI_FURI)},{"i2c_id", Obj::to_type(URI_FURI)},{"addr",jnt(AHTXX_ADDRESS_X38)}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return AHT10::create(
               ID(args->arg("id")->uri_value()),

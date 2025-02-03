@@ -1157,6 +1157,7 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
+// TODO: make obj.cpp/hpp and then reference PrinterHelper for printing
     [[nodiscard]] string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)
         obj_printer = GLOBAL_PRINTERS.at(this->otype_);
@@ -1215,7 +1216,7 @@ namespace fhatos {
                 obj_string += "!c";
                 obj_string += k->toString(obj_printer->next()); // {ansi=false});
                 obj_string += "!g=>!!";
-                obj_string += v->toString();
+                obj_string += v->toString(obj_printer->next());
               }
               obj_string += "!m]!!";
             }
@@ -2216,10 +2217,8 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     BObj_p serialize() const {
-      static auto DEFAULT_SERIALIZATION_PRINTER = new ObjPrinter{.show_id = true, .show_type = true,
-        .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
       LOG(DEBUG, "serializing obj %s\n", this->toString().c_str());
-      const string serial = this->toString(DEFAULT_SERIALIZATION_PRINTER);
+      const string serial = this->toString(SERIALIZER_PRINTER);
       return ptr<BObj>(new BObj(serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))), bobj_deleter);
     }
 

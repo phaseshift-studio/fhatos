@@ -24,7 +24,8 @@
     INFO=>[#],
     WARN=>[],
     DEBUG=>[],
-    TRACE=>[]
+    TRACE=>[],
+    NONE=>[#]
  ],
  ota=>[
   host=>fhatos_ota,

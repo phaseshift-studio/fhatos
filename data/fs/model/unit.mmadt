@@ -1,0 +1,9 @@
+/sys/lib/heap/:create(/unit/#)
+/sys/router/resolve/namespace/unit: -> /unit/
+*t-<[>-,|/unit/]>-.barrier().to(/sys/router/resolve/auto_prefix)
+unit:celcius -> |unit:celcius?real<=real()[is(gte(−273.15))]
+unit:fahrenheit -> |unit:fahrenheit?real<=real()[is(gte(-459.67))]
+unit:F -> *unit:fahrenheit
+unit:C -> *unit:celcius
+unit:fahrenheit::to_celcius -> |unit:celcius<=unit:fahrenheit()[plus(-32.0).div(1.8)]
+unit:celcius::to_fahrenheit -> |unit:fahrenheit<=unit:celcius()[mult(1.8).plus(32)]

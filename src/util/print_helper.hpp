@@ -228,7 +228,7 @@ namespace fhatos {
                 ss << "!c";
                 print_obj(k, sb, obj_printer->next()); // {ansi=false});
                 ss << "!g=>!!";
-                print_obj(v, sb);
+                print_obj(v, sb, obj_printer->next());
               }
               ss << "!m]!!";
             }
