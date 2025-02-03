@@ -73,7 +73,7 @@ namespace fhatos {
 
     static void *import(const ID &lib_id = "/io/lib/aht10") {
       //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      Typer::singleton()->save_type(id_p("celcius"),BCODE_PROCESSOR("|celcius?real<=real()[is(gte(−273.15))]")->to_objs());
+      //BCODE_PROCESSOR(OBJ_PARSER("celcius -> |celcius?real<=real()[is(gte(−273.15))]"));
       InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_args(rec({{"id",Obj::to_type(URI_FURI)},{"i2c_id", Obj::to_type(URI_FURI)},{"addr",jnt(AHTXX_ADDRESS_X38)}}))
