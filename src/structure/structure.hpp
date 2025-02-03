@@ -50,14 +50,14 @@ namespace fhatos {
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
-    const Pattern_p pattern_;
+    const Pattern_p pattern;
 
     explicit Structure(const Pattern &pattern, const ID_p &type_id, const ID_p &value_id = nullptr,
                        const Rec_p &config = Obj::to_rec()) :
       Rec(config->rec_value()->empty()
             ? Obj::to_rec({{"pattern", vri(pattern)}})->rec_value()
             : Obj::to_rec({{"pattern", vri(pattern)}, {"config", config->clone()}})->rec_value(), OType::REC, type_id, value_id),
-      pattern_(p_p(pattern)) {
+      pattern(p_p(pattern)) {
     }
 
     template<typename STRUCTURE>
@@ -66,10 +66,6 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
       unique_ptr<STRUCTURE> s = make_unique<STRUCTURE>(pattern, value_id, config);
       return s;
-    }
-
-    [[nodiscard]] Pattern_p pattern() const {
-      return this->pattern_;
     }
 
     [[nodiscard]] bool available() const { return this->available_.load(); }
@@ -84,7 +80,7 @@ namespace fhatos {
 
     virtual void loop() {
       if(!this->available_.load())
-        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
+        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
       while(mail.has_value()) {
         FEED_WATCDOG();

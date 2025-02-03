@@ -71,7 +71,7 @@ namespace fhatos {
         return itty->second;
       }
       const ID_p id = id_p(*furi);
-      return !furi->matches(*this->pattern_) || this->data_->count(id) == 0
+      return !furi->matches(*this->pattern) || this->data_->count(id) == 0
                ? (nullptr == this->previous ? nullptr : this->previous->read(furi))
                : this->data_->at(id);
     }

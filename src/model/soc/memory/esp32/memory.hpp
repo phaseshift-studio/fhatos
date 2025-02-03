@@ -39,10 +39,10 @@ namespace fhatos {
           ->itype_and_seed(IType::ONE_TO_ONE)
           ->inst_f(OBJ_PARSER("is(gte(0.0)).is(lte(100.0))"))
           ->save();*/
-      const ID_p inst = id_p(this->pattern_->resolve("./inst"));
-      const ID_p heap = id_p(this->pattern_->resolve("./heap"));
-      const ID_p psram = id_p(this->pattern_->resolve("./psram"));
-      const ID_p hwm = id_p(this->pattern_->resolve("./hwm"));
+      const ID_p inst = id_p(this->pattern->resolve("./inst"));
+      const ID_p heap = id_p(this->pattern->resolve("./heap"));
+      const ID_p psram = id_p(this->pattern->resolve("./psram"));
+      const ID_p hwm = id_p(this->pattern->resolve("./hwm"));
       ///////
       this->read_functions_->insert(
         {inst, [this, inst, percent_id](const fURI_p &) {

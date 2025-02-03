@@ -80,7 +80,7 @@ namespace fhatos {
     virtual void setup() override {
       Computed::setup();
       this->read_functions_->insert(
-          {this->pattern(), [this](const fURI_p furi) {
+          {this->pattern, [this](const fURI_p furi) {
              IdObjPairs map = IdObjPairs();
              ID_p current;
              if (FOS_WIFI_CONNECT->matches(*furi))
@@ -101,9 +101,9 @@ namespace fhatos {
                map.push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
              return map;
            }});
-      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern->toString().c_str());
       this->write_functions_->insert(
-          {make_shared<fURI>(this->pattern()->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
+          {make_shared<fURI>(this->pattern->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
              if (obj->is_bool()) {
                if (obj->bool_value()) {
                  if (!WiFi.isConnected())
@@ -114,10 +114,10 @@ namespace fhatos {
                }
              } else if (obj->is_noobj() && WiFi.isConnected())
                WiFi.disconnect();
-             return List<Pair<ID_p, Obj_p>>{{id_p(this->pattern()->resolve("./connect")), dool(WiFi.isConnected())}};
+             return List<Pair<ID_p, Obj_p>>{{id_p(this->pattern->resolve("./connect")), dool(WiFi.isConnected())}};
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
-                    this->pattern()->resolve("connect").toString().c_str());
+                    this->pattern->resolve("connect").toString().c_str());
     }
 
     void stop() override {

@@ -48,9 +48,9 @@ namespace fhatos {
 
     void setup() override {
       Computed::setup();
-      BLEDevice::init(this->pattern_->toString().c_str());
+      BLEDevice::init(this->pattern->toString().c_str());
       const BLEUUID service_uuid =
-          BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
+          BLEUUID::fromString(StringHelper::format("0x%s", this->pattern->toString().c_str()));
       this->server_ = BLEDevice::createServer();
 
       this->service_ = this->server_->createService(service_uuid);
@@ -64,7 +64,7 @@ namespace fhatos {
       // advertising->start();
       /////
       this->read_functions_->insert(
-          {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi) {
+          {furi_p(this->pattern->resolve("./+")), [this](const fURI_p &furi) {
              IdObjPairs_p list = make_shared<IdObjPairs>();
              BLECharacteristic *c = this->service_->getCharacteristic(furi->toString());
              if (c) {
@@ -78,7 +78,7 @@ namespace fhatos {
            }});
 
       this->write_functions_->insert(
-          {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi, const Obj_p &obj) {
+          {furi_p(this->pattern->resolve("./+")), [this](const fURI_p &furi, const Obj_p &obj) {
              BLECharacteristic *c = this->service_->createCharacteristic(
                  furi->toString(), BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
              c->setValue(string((char *) obj->serialize()->second));

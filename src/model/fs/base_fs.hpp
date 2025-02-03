@@ -130,14 +130,14 @@ namespace fhatos {
       if (this->is_file(path)) {
         return vri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
       }
-      throw fError("!g[!!%s!g]!! %s does not reference a file", this->pattern()->toString().c_str(),
+      throw fError("!g[!!%s!g]!! %s does not reference a file", this->pattern->toString().c_str(),
                    path.toString().c_str());
     }
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
         return vri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
-      throw fError("!g[!b%s!g]!! %s does not reference a directory", this->pattern()->toString().c_str(),
+      throw fError("!g[!b%s!g]!! %s does not reference a directory", this->pattern->toString().c_str(),
                    path.toString().c_str());
     }
 
@@ -147,7 +147,7 @@ namespace fhatos {
 
     virtual fURI make_native_path(const ID &path) const {
       const string temp_path_string = path.toString();
-      const string temp_id_string = this->pattern_->retract_pattern().toString();
+      const string temp_id_string = this->pattern->retract_pattern().toString();
       const string temp_path = ((temp_path_string.length() >= temp_id_string.length()) &&
                                 (temp_path_string.substr(0, temp_id_string.length()) == temp_id_string))
                                  ? temp_path_string.substr(temp_id_string.length())
@@ -158,7 +158,7 @@ namespace fhatos {
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
         throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!",
-                     this->pattern()->toString().c_str(), local_path.toString().c_str(),
+                     this->pattern->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }
       return local_path;
@@ -170,7 +170,7 @@ namespace fhatos {
 
     /////
 
-    virtual Dir_p root() const { return to_dir(this->pattern()->retract_pattern()); }
+    virtual Dir_p root() const { return to_dir(this->pattern->retract_pattern()); }
 
     virtual bool is_fs(const ID &path) const { return this->is_dir(path) || this->is_file(path); }
 

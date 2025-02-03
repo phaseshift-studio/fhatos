@@ -140,7 +140,7 @@ namespace fhatos {
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
       LOG_STRUCTURE(DEBUG, this, "!g!_writing!! %s => !b%s!! !g[!y%s!g]!!\n", obj->toString().c_str(),
                     id->toString().c_str(), retain ? "retain" : "transient");
-      /*if(id == this->pattern()->retract_pattern()->extend("config/connected")) {
+      /*if(id == this->pattern->retract_pattern()->extend("config/connected")) {
         this->
       }*/
       native_mqtt_publish(Message::create(id, obj, retain));

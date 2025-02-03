@@ -40,7 +40,7 @@ namespace fhatos {
 
     ID map_fos_to_fs(const ID_p &fos_id) {
       ID fs_id = ID(*fos_id);
-      for(uint8_t i = 0; i < this->pattern()->path_length(); i++) {
+      for(uint8_t i = 0; i < this->pattern->path_length(); i++) {
         fs_id = fs_id.pretract();
       }
       return root.extend(fs_id);
