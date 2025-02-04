@@ -61,7 +61,7 @@ namespace fhatos {
       *make_test_pattern("+"),
       Obj::to_bcode([ping_HIT](const Rec_p &message) {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
-        //FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->rec_get("target")->uri_value());
+        //FOS_TEST_FURI_EQUAL(*make_test_pattern("b"), message->rec_get("target")->uri_value());
       //  TEST_ASSERT_TRUE_MESSAGE( message->is_str(),
         //                         (string("Expected rec but received ") +  message->tid_->toString()).c_str());
        // FOS_INT_TYPE payload_int =  message->rec_value()->at(str("hello_fhatty"))->int_value();
@@ -145,7 +145,7 @@ namespace fhatos {
       current_structure->loop();
     TEST_ASSERT_EQUAL_STRING("good", router()->read(id_p(*make_test_pattern("x")))->str_value().c_str());
     TEST_ASSERT_EQUAL_INT(Obj::to_int(6)->int_value(), router()->read(id_p(*make_test_pattern("y")))->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(vri(*make_test_pattern("x"))->uri_value(),
+    FOS_TEST_FURI_EQUAL(vri(*make_test_pattern("x"))->uri_value(),
                                router()->read(id_p(*make_test_pattern("z")))->uri_value());
     TEST_ASSERT_EQUAL_STRING(
       "good", router()->read(share(router()->read(id_p(*make_test_pattern("z")))->uri_value()))->str_value().c_str());
@@ -190,7 +190,7 @@ namespace fhatos {
     // Options::singleton()->log_level(TRACE);
     auto *pings = new atomic_int(0);
     const BCode_p on_recv = Obj::to_bcode([pings](const Rec_p &message) {
-   //   FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->rec_get("target")->uri_value());
+   //   FOS_TEST_FURI_EQUAL(Pattern(*make_test_pattern("test")), message->rec_get("target")->uri_value());
       TEST_ASSERT_TRUE(message->bool_value());
       if (message->is_bool()) {
         TEST_ASSERT_TRUE(message->bool_value());
@@ -320,7 +320,7 @@ namespace fhatos {
                           ->size());
     FOS_TEST_OBJ_EQUAL(jnt(1), current_structure->read(id_p(*make_test_pattern("x/a/b"))));
     FOS_TEST_OBJ_EQUAL(str("2"), current_structure->read(id_p(*make_test_pattern("x/aa/bb"))));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("3"), current_structure->read(id_p(*make_test_pattern("x/aa/cc")))->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("3"), current_structure->read(id_p(*make_test_pattern("x/aa/cc")))->uri_value());
     TEST_ASSERT_TRUE(current_structure->read(id_p(*make_test_pattern("x/aa/dd/aaa")))->bool_value());
     FOS_TEST_OBJ_EQUAL(real(5.0f), current_structure->read(id_p(*make_test_pattern("x/aa/dd/bbb"))));
     FOS_TEST_OBJ_EQUAL(jnt(6), current_structure->read(id_p(*make_test_pattern("x/aa/ee/0"))));
@@ -360,13 +360,13 @@ namespace fhatos {
     /////
     Int_p j = process("@%s", idA1->toString().c_str())->objs_value()->front();
     TEST_ASSERT_EQUAL_INT(42, j->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *j->vid_);
+    FOS_TEST_FURI_EQUAL(*idA1, *j->vid_);
     const Int k = *j + (Int(2));
     TEST_ASSERT_EQUAL_INT(44, k.int_value());
     TEST_ASSERT_EQUAL_INT(42, i->int_value());
     const Int_p l = process("@%s", idA1->toString().c_str())->objs_value()->front();
     TEST_ASSERT_EQUAL_INT(44, l->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *l->vid_);
+    FOS_TEST_FURI_EQUAL(*idA1, *l->vid_);
   }
 } // namespace fhatos
 

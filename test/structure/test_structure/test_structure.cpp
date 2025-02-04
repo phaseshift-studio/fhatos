@@ -61,7 +61,7 @@ namespace fhatos {
           "/zzz/a/b" }) {
       const ID_p test_furi = id_p(test_furi_str);
       std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
-      FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
+      FOS_TEST_FURI_EQUAL(ID("/zzz/a/b"),*pair->first);
       FOS_TEST_OBJ_EQUAL(recA, pair->second);
           }
     ////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ namespace fhatos {
           "/zzz/a/b" }) {
       const ID_p test_furi = id_p(test_furi_str);
       std::optional<Pair<ID_p,Obj_p>> pair = test_heap->locate_base_poly(test_furi);
-      FOS_TEST_ASSERT_EQUAL_FURI(ID("/zzz/a/b"),*pair->first);
+      FOS_TEST_FURI_EQUAL(ID("/zzz/a/b"),*pair->first);
       FOS_TEST_OBJ_EQUAL(lstA, pair->second);
      }
     ////////////////////////////////////////////////////////////////////////////////////

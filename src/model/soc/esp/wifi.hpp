@@ -38,14 +38,14 @@
 #error Architecture unrecognized by FhatOS
 #endif
 
-#define FOS_WIFI_CONNECT id_p(pattern()->resolve("./connect"))
-#define FOS_WIFI_SSID id_p(pattern()->resolve("./ssid"))
-#define FOS_WIFI_PASSWORD id_p(pattern()->resolve("./password"))
-#define FOS_WIFI_MDNS id_p(pattern()->resolve("./mdns"))
-#define FOS_WIFI_ID_ADDR id_p(pattern()->resolve("./ip_addr"))
-#define FOS_WIFI_GATEWAY_ADDR id_p(pattern()->resolve("./gateway_addr"))
-#define FOS_WIFI_SUBNET_MASK id_p(pattern()->resolve("./subnet_mask"))
-#define FOS_WIFI_DNS_ADDR id_p(pattern()->resolve("./dns_addr"))
+#define FOS_WIFI_CONNECT id_p(pattern->resolve("./connect"))
+#define FOS_WIFI_SSID id_p(pattern->resolve("./ssid"))
+#define FOS_WIFI_PASSWORD id_p(pattern->resolve("./password"))
+#define FOS_WIFI_MDNS id_p(pattern->resolve("./mdns"))
+#define FOS_WIFI_ID_ADDR id_p(pattern->resolve("./ip_addr"))
+#define FOS_WIFI_GATEWAY_ADDR id_p(pattern->resolve("./gateway_addr"))
+#define FOS_WIFI_SUBNET_MASK id_p(pattern->resolve("./subnet_mask"))
+#define FOS_WIFI_DNS_ADDR id_p(pattern->resolve("./dns_addr"))
 
 namespace fhatos {
 

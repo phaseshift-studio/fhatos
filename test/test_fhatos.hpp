@@ -227,7 +227,7 @@ void tearDown() {
 using namespace fhatos;
 
 static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
-  if(FOS_TEST_SERIALIZATION) {
+  if constexpr(FOS_TEST_SERIALIZATION) {
     BObj_p bobj = obj->serialize();
     return Obj::deserialize(bobj);
   }
@@ -247,7 +247,7 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
     Ansi<>::singleton()->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                                         \
 }
 
-#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
+#define FOS_TEST_FURI_EQUAL(x, y)                                                                               \
   FOS_TEST_MESSAGE("!ytesting equality!!: <!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \

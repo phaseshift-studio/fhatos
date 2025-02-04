@@ -40,8 +40,15 @@ namespace fhatos {
     std::shared_mutex map_mutex;
 
   public:
-    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
+                  const Rec_p &config = Obj::to_rec()) :
       Structure(pattern, id_p(HEAP_FURI), value_id, config) {
+     // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
+    }
+
+    //template <typename ALLOCATOR=std::allocator<std::pair<const ID_p, Obj_p>>>
+    static ptr<Heap<ALLOCATOR>> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
+      return Structure::create<Heap<ALLOCATOR>>(pattern,value_id,config);
     }
 
     static void *import(const ID &import_id) {
@@ -88,6 +95,8 @@ namespace fhatos {
 
     bool has(const fURI_p &furi) override {
       std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      if(!furi->is_pattern() && this->data_->count(id_p(furi)))
+        return true;
       for(const auto &[id, obj]: *this->data_) {
         if(id->matches(*furi)) {
           return true;

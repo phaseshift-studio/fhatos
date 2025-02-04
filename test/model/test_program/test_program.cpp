@@ -54,7 +54,7 @@ namespace fhatos {
     });
     actor2->subscribe(ID("/app/actor2@127.0.0.1/X"), [actor2, counter2](const ptr<Message> &message) {
       TEST_ASSERT_FALSE(message->retain);
-      FOS_TEST_ASSERT_EQUAL_FURI(ID(actor2->id()->extend("X")), message->target);
+      FOS_TEST_FURI_EQUAL(ID(actor2->id()->extend("X")), message->target);
       actor2->publish(ID("/app/actor1@127.0.0.1/X"), jnt(counter2->load()), TRANSIENT_MESSAGE);
       if (counter2->fetch_add(1) > 198)
         actor2->stop();
@@ -78,13 +78,13 @@ namespace fhatos {
     scheduler()->spawn(actor1);
     router()->attach(actor2);
     scheduler()->spawn(actor2);
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor1@127.0.0.1"), *actor1->id());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor2@127.0.0.1"), *actor2->id());
+    FOS_TEST_FURI_EQUAL(fURI("/app/actor1@127.0.0.1"), *actor1->id());
+    FOS_TEST_FURI_EQUAL(fURI("/app/actor2@127.0.0.1"), *actor2->id());
     actor1->subscribe("/app/actor1@127.0.0.1/X",
                       [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
+                          FOS_TEST_FURI_EQUAL(message->target, actor1->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(0, counter1->load());
                           TEST_ASSERT_EQUAL_INT(0, counter2->load());
                           counter1->fetch_add(1);
@@ -99,7 +99,7 @@ namespace fhatos {
                       [actor2, counter1, counter2](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("pong", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor2->id()->extend("X"));
+                          FOS_TEST_FURI_EQUAL(message->target, actor2->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(1, counter1->load());
                           TEST_ASSERT_EQUAL_INT(1, counter2->load());
                           TEST_ASSERT_FALSE(message->retain);
@@ -141,7 +141,7 @@ namespace fhatos {
                       [actor1, actor2, counter1](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
+                          FOS_TEST_FURI_EQUAL(message->target, actor1->id()->extend("X"));
                           if (scheduler()->at_barrier("first_barrier"))
                             TEST_ASSERT_LESS_THAN_INT(2, counter1->load());
                           counter1->fetch_add(1);
@@ -156,7 +156,7 @@ namespace fhatos {
     actor2->subscribe("/app/actor1@127.0.0.1/X", [actor1, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
+        FOS_TEST_FURI_EQUAL(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }
     });
@@ -167,7 +167,7 @@ namespace fhatos {
     actor1->subscribe("/app/actor1@127.0.0.1/X", [actor1, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
+        FOS_TEST_FURI_EQUAL(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }
     });

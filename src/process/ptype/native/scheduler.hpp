@@ -48,25 +48,9 @@ namespace fhatos {
     void feed_local_watchdog() override {
     }
 
-    bool spawn(const Process_p &process) override {
-      if(!process->vid_)
-        throw fError("value id required to spawn %s", process->toString().c_str());
-      if(this->count(*process->vid_)) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
-        return false;
-      }
-      process->setup();
-      if(!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
-        return false;
-      }
-      ////////////////////////////////
-      static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-      this->processes_->push_back(process);
-      process->save();
-      LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", process->vid_->toString().c_str());
-      this->save();
-      return true;
+    Process_p raw_spawn(const Process_p &process) override {
+      dynamic_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
+      return process;
     }
 
     static void *import() {

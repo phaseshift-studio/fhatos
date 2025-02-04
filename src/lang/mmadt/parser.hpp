@@ -89,7 +89,7 @@ namespace mmadt {
       } else if(c == '>') {
         if(last[0] != '-' && last[0] != '=') // -> =>
           angles--;
-      } else if(c == '-') {
+      } else if(c == '-' && last[0] != '-') {
         if(last[0] == '>') // >-
           angles++;
       } else if(c == '{')
@@ -393,12 +393,16 @@ namespace mmadt {
 #endif
 
       auto start_action = [](const SemanticValues &vs) {
+        if(vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment")))
+          return Obj::to_noobj();
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
         const auto insts = make_shared<List<Inst_p>>();
         Inst_p prev = nullptr;
         for(const auto &obj: vs.transform<Obj_p>()) {
-          if(!obj->is_code()) {
+          if(obj->is_str() && obj->str_value() == "comment") {
+            // do nothing on comments
+          } else if(!obj->is_code()) {
             const bool as_start = nullptr == prev || /*is_terminal(prev->itype()) ||*/ prev->inst_op() == "end";
             prev = Obj::to_inst({as_start ? Obj::to_objs({obj}) : obj}, id_p(as_start ? "start" : "map"));
             insts->push_back(prev);
@@ -422,9 +426,9 @@ namespace mmadt {
 
       WS <= zom(cls(" \t\n"));
       ////////////////////// COMMENTS ///////////////////////////
-      COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT);
-      SINGLE_COMMENT <= seq(~WS, lit("_oO"), zom(seq(npd(lit("Oo_")), dot())), lit("Oo_"), ~WS);
-      MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(ncls("#"), dot())), lit("###"), ~WS);
+      COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT), [](const SemanticValues &) { return str("comment"); };
+      SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
+      MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(npd(lit("###")), dot())), lit("###"), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
       FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+,")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
@@ -505,7 +509,8 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(opt(OBJ), zom(cho(
+      START <= seq(opt(COMMENT), opt(OBJ), zom(cho(
+                       COMMENT,
                        seq(END, START),
                        seq(lit("."), OBJ),
                        SUGAR_INST

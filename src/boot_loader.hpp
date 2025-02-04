@@ -97,7 +97,7 @@ namespace fhatos {
               ->display_memory("psram memory", Memory::psram_memory());
         }
         ////////////////// SYS STRUCTURE
-        kp->mount(Structure::create<Heap<>>("/sys/#"))
+        kp->mount(Heap<>::create("/sys/#"))
             ->using_boot_config() // TODO: test with non-load
             ->import(Router::import())
             ->drop_config("router")
@@ -109,10 +109,10 @@ namespace fhatos {
             ->import(Mqtt::import("/sys/lib/mqtt"))
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
+            ->mount(Heap<>::create(MMADT_SCHEME "/#"))
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-            ->mount(Structure::create<Heap<>>("/io/#"))
+            ->mount(Heap<>::create("/io/#"))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
@@ -128,7 +128,7 @@ namespace fhatos {
                                       {"DEBUG", lst()},
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
-            ->mount(Structure::create<Heap<>>("+/#"))
+            ->mount(Heap<>::create("+/#"))
 #if defined(ESP_ARCH)
             ->import(FSx::import("/sys/lib/fs"))
             ->import(ArduinoGPIO::import("/io/lib/gpio"))

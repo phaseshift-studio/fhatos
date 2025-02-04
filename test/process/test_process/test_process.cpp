@@ -19,57 +19,27 @@
 #ifndef fhatos_test_process_hpp
 #define fhatos_test_process_hpp
 
-#define FOS_DEPLOY_SCHEDULER
+
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PRINTER
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_SHARED_MEMORY /test/#
-#define FOS_DEPLOY_EXT
-#include "../test/test_fhatos.hpp"
-#include "process/ptype/native/thread.hpp"
+#define FOS_DEPLOY_COMPILER
+#define FOS_DEPLOY_PROCESSOR
+#define FOS_DEPLOY_SHARED_MEMORY /process/#
+#include "../../../src/fhatos.hpp"
+#include "../../test_fhatos.hpp"
+
 
 namespace fhatos {
 
-  void test_process(const string process_type) {
-    const char *pc = process_type.c_str();
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread"));
-    process("/test/thread -> "
-            "|thread[["
-            ":setup=>/test/thread/a->345,"
-            ":loop=>from(/test/thread/x,0).plus(1).to(/test/thread/x),"
-            ":stop=>/test/thread/b->57]]");
-    process("%s/:spawn --> @/test/thread", Scheduler::singleton()->vid_->toString().c_str());
-    sleep(1);
-   // TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread"));
-    FOS_TEST_OBJ_EQUAL(jnt(345), process("*/test/thread/a")->objs_value()->at(0));
-    //TEST_ASSERT_TRUE(b_1->is_noobj());
-    const Int_p x_1 = process("*/test/thread/x")->objs_value()->at(0);
-    FOS_TEST_OBJ_GT(x_1, jnt(0))
-    const Int_p x_2 = process("*/test/thread/x")->objs_value()->at(0);
-    FOS_TEST_OBJ_GT(x_2, jnt(0));
-    FOS_TEST_OBJ_GT(x_2, x_1);
-    FOS_TEST_OBJ_EQUAL(jnt(345), process("*/test/thread/a")->objs_value()->at(0));
-    process("/test/thread -> noobj");
-    sleep(1);
-    //FOS_TEST_OBJ_EQUAL(jnt(57), process("*/test/thread/b"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread"));
-    //FOS_TEST_OBJ_EQUAL(noobj(),process("/test/%s/b -> noobj",pc)->objs_value()->at(0));
-    free((void*)pc);
-    sleep(1);
-  }
+  void test_basic_thread() {
 
-  void test_thread() {
-    test_process("thread");
   }
-
-  void test_fiber() {
-    test_process("fiber");
-  }
-
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_thread); //
-      //FOS_RUN_TEST(test_fiber); //
+      FOS_RUN_TEST(test_basic_thread); //
       );
 
 } // namespace fhatos

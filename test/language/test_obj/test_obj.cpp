@@ -34,25 +34,26 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
 	void test_lock() {
-		Int_p i = jnt(10,INT_FURI,id_p("/obj/abc"));
+		    Int_p i = jnt(10,INT_FURI,id_p("/obj/abc"));
         TEST_ASSERT_FALSE(i->lock().has_value());
-		i = i->lock("fhat");
+		    i = i->lock("fhat");
         TEST_ASSERT_TRUE(i->lock().has_value());
-		FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=fhat"))
+		    FOS_TEST_FURI_EQUAL(*i->vid_,*id_p("/obj/abc?lock=fhat"))
         ///////
         i = i->unlock("fhat");
         TEST_ASSERT_FALSE(i->lock().has_value());
-        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
+        FOS_TEST_FURI_EQUAL(*i->vid_,*id_p("/obj/abc"))
         ///////
         i = i->lock("pig");
         TEST_ASSERT_TRUE(i->lock().has_value());
-        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc?lock=pig"))
+        FOS_TEST_FURI_EQUAL(*i->vid_,*id_p("/obj/abc?lock=pig"))
         FOS_TEST_EXCEPTION_CXX(i->unlock("fhat"));
         TEST_ASSERT_TRUE(i->lock().has_value());
         i = i->unlock("pig");
         TEST_ASSERT_FALSE(i->lock().has_value());
-        FOS_TEST_ASSERT_EQUAL_FURI(*i->vid_,*id_p("/obj/abc"))
+        FOS_TEST_FURI_EQUAL(*i->vid_,*id_p("/obj/abc"))
     }
+
 
   /*void test_int() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
@@ -75,7 +76,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(intA->match(intB));
     TEST_ASSERT_FALSE(intA->match(jnt(987)));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*intC->tid_, *intA->as(id_p("age"))->tid_);
+    FOS_TEST_FURI_EQUAL(*intC->tid_, *intA->as(id_p("age"))->tid_);
     FOS_TEST_OBJ_EQUAL(intA, intB);
     FOS_TEST_OBJ_EQUAL(intB, intA);
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as(FOS_TYPE_PREFIX "int/age"));
@@ -132,7 +133,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(realA->match(realB));
     TEST_ASSERT_FALSE(realA->match(real(987.12)));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*realC->tid_, *realA->as(id_p("money"))->tid_);
+    FOS_TEST_FURI_EQUAL(*realC->tid_, *realA->as(id_p("money"))->tid_);
     FOS_TEST_OBJ_EQUAL(realA, realB);
     FOS_TEST_OBJ_EQUAL(realB, realA);
     FOS_TEST_OBJ_NOT_EQUAL(realB, realB->as(FOS_TYPE_PREFIX "real/money"));
@@ -173,7 +174,7 @@ namespace fhatos {
     const Uri_p uriE = Obj::to_uri(fURI("http://index.org/index.html"), id_p("/obj/webpage"));
 
     TEST_ASSERT_FALSE(uriA->is_bcode());
-    FOS_TEST_ASSERT_EQUAL_FURI(*URI_FURI, *uriA->tid_);
+    FOS_TEST_FURI_EQUAL(*URI_FURI, *uriA->tid_);
     TEST_ASSERT_EQUAL_STRING("uri", uriA->tid_->name().c_str());
     TEST_ASSERT_EQUAL_STRING("index.html", uriA->uri_value().name().c_str());
     TEST_ASSERT_EQUAL(OType::URI, uriA->otype_);
@@ -181,7 +182,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(uriA->match(uriB));
     TEST_ASSERT_FALSE(uriA->match(vri("http://nothing.org")));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*uriC->tid_, *uriA->as(id_p("/obj/webpage"))->tid_);
+    FOS_TEST_FURI_EQUAL(*uriC->tid_, *uriA->as(id_p("/obj/webpage"))->tid_);
     FOS_TEST_OBJ_EQUAL(uriA, uriB);
     FOS_TEST_OBJ_EQUAL(uriB, uriA);
     FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(id_p("/obj/webpage")));
@@ -292,8 +293,8 @@ void test_bool() {
     const Bool_p bool_b = Obj::to_bool(false, id_p("/obj/truth"));
     FOS_TEST_IS_A(OType::BOOL,bool_a);
     FOS_TEST_IS_A(OType::BOOL,bool_b);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_a->tid_);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/obj/truth"), *bool_b->tid_);
+    FOS_TEST_FURI_EQUAL(ID("/obj/truth"), *bool_a->tid_);
+    FOS_TEST_FURI_EQUAL(ID("/obj/truth"), *bool_b->tid_);
     FOS_TEST_OBJ_NTEQL(bool_a, bool_b);
     FOS_TEST_OBJ_NTEQL(bool_b, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
@@ -421,7 +422,7 @@ void test_inst() {
                                     	    noobj())),
                                 OType::INST,id_p("myinst"));
   FOS_TEST_OBJ_NOT_EQUAL(i1,i2);
-  FOS_TEST_ASSERT_EQUAL_FURI(*i1->tid_,*i2->tid_);
+  FOS_TEST_FURI_EQUAL(*i1->tid_,*i2->tid_);
   FOS_TEST_OBJ_EQUAL(i1->inst_args(),i2->inst_args());
   TEST_ASSERT_EQUAL_INT(i1->domain_coefficient().first,i2->domain_coefficient().first);
     TEST_ASSERT_EQUAL_INT(i1->domain_coefficient().second,i2->domain_coefficient().second);

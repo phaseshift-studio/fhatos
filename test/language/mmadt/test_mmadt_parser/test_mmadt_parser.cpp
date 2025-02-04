@@ -29,7 +29,7 @@ namespace fhatos {
   using namespace mmadt;
 
   void test_tracker() {
-  	Tracker tracker = Tracker();
+    Tracker tracker = Tracker();
     TEST_ASSERT_TRUE(tracker.track("a.plus(b)")->closed());
     tracker.clear();
     TEST_ASSERT_FALSE(tracker.track("a.plus(b")->closed());
@@ -42,11 +42,13 @@ namespace fhatos {
   }
 
   void test_comment_parsing() {
-    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("_oO a single line comment Oo_"));
-    //FOS_TEST_ERROR("_oO\nsdfOo_asdf Oo_");
-    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("_oO sdfdasdf\n\t\nsdfsfasfsf Oo_"));
-    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("_oO start Oo_\nint[1]\n_oO end Oo_"));
-    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("\n\n_oO \n\nstart Oo_\n\nstr['abc']\n\n_oO a comment_oO\n_oO end\n\n Oo_"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment\n"));
+    //FOS_TEST_OBJ_EQUAL(noobj(),  PROCESS("--- a single line comment"));
+    FOS_TEST_ERROR("---\nsdfOo_asdf");
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("### sdfdasdf\n\t\nsdfsfasfsf ###"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
+   // FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n### a comment ---\n--- end\n\n ###\nstr['bcd']"));
+   // FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(### a comment ---\n--- end\n\n ###\nstr['bcd'])"));
   }
 
   void test_type_parsing() {
@@ -171,17 +173,17 @@ namespace fhatos {
 
   void test_inst_parsing() {
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-   // FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst()"));
+    // FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst()"));
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-   // FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(a=>66)"));
+    // FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(a=>66)"));
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-   // FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zyz"),
-                               *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid_);
+    // FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
+    FOS_TEST_FURI_EQUAL(ID("/abc/zyz"),
+                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid_);
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/abc/zzz"),
-                               *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid_);
+    FOS_TEST_FURI_EQUAL(ID("/abc/zzz"),
+                        *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid_);
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
     FOS_TEST_OBJ_EQUAL(dool(false),
@@ -191,33 +193,33 @@ namespace fhatos {
                          "*/abc/bool/inst_parse"
                        ));
     ///////////////////////////////////////////////////////////////
-   const ID_p nat = id_p("/abc/nat");
+    const ID_p nat = id_p("/abc/nat");
     FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[5]"));
     FOS_TEST_OBJ_EQUAL(jnt(6,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[6]"));
-    FOS_TEST_OBJ_EQUAL(jnt(7,nat),PROCESS("/abc/nat[7]"));
-    FOS_TEST_OBJ_EQUAL(jnt(1000,nat),PROCESS("/abc/nat[1000]"));
+    FOS_TEST_OBJ_EQUAL(jnt(7,nat), PROCESS("/abc/nat[7]"));
+    FOS_TEST_OBJ_EQUAL(jnt(1000,nat), PROCESS("/abc/nat[1000]"));
     FOS_TEST_ERROR("/abc/nat[-12]");
     FOS_TEST_ERROR("/abc/nat[0]");
 
     const ID_p ncount = id_p("/abc/ncount");
     const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
-    FOS_TEST_ASSERT_EQUAL_FURI(*ncount, ncount_inst->tid_->query(""));
-    FOS_TEST_ASSERT_EQUAL_FURI(*ncount, *ncount_inst->vid_);
+    FOS_TEST_FURI_EQUAL(*ncount, ncount_inst->tid_->query(""));
+    FOS_TEST_FURI_EQUAL(*ncount, *ncount_inst->vid_);
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype_);
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOMAIN));
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_RANGE));
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOM_COEF));
     TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_RNG_COEF));
-    FOS_TEST_ASSERT_EQUAL_FURI(*OBJS_FURI, *ncount_inst->domain());
-    FOS_TEST_ASSERT_EQUAL_FURI(*INT_FURI, *ncount_inst->range());
-  //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
-  //                           ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
-   /* FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
-    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(7)")); // position slotted
-    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(a=>7)")); // key slotted
-    FOS_TEST_OBJ_EQUAL(jnt(11),PROCESS("{1,2,3}./abc/ncount(8)"));
-    FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("{1,2,3}./abc/ncount(a=>9)"));
-    FOS_TEST_ERROR("{1,2,3}./abc/ncount(a)");*/
+    FOS_TEST_FURI_EQUAL(*OBJS_FURI, *ncount_inst->domain());
+    FOS_TEST_FURI_EQUAL(*INT_FURI, *ncount_inst->range());
+    //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
+    //                           ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
+    /* FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
+     FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(7)")); // position slotted
+     FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(a=>7)")); // key slotted
+     FOS_TEST_OBJ_EQUAL(jnt(11),PROCESS("{1,2,3}./abc/ncount(8)"));
+     FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("{1,2,3}./abc/ncount(a=>9)"));
+     FOS_TEST_ERROR("{1,2,3}./abc/ncount(a)");*/
 
   }
 
@@ -328,28 +330,30 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> lst[[8,[a=>[b=>6],c=>7]]]; */abc/1/a.b.to(/abc/2); */abc/2 + -6"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];*/abc/1/a.b.to(/abc/2);*/abc/2 + -6"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,rec[[a=>rec[[b=>6]],c=>7]]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
+    FOS_TEST_OBJ_EQUAL(
+        jnt(0), PROCESS("/abc -> [8,rec[[a=>rec[[b=>6]],c=>7]]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_tracker); //
-    //FOS_RUN_TEST(test_comment_parsing); //
-    FOS_RUN_TEST(test_noobj_parsing); //
-    FOS_RUN_TEST(test_type_parsing); //
-    FOS_RUN_TEST(test_bool_parsing); //
-    FOS_RUN_TEST(test_int_parsing); //
-    FOS_RUN_TEST(test_real_parsing); //
-    FOS_RUN_TEST(test_str_parsing); //
-    FOS_RUN_TEST(test_uri_parsing); //
-    FOS_RUN_TEST(test_lst_parsing); //
-    FOS_RUN_TEST(test_rec_parsing); //
-    FOS_RUN_TEST(test_inst_parsing); //
-    FOS_RUN_TEST(test_objs_parsing); //
-    //////////////////////////////////
-    FOS_RUN_TEST(test_inst_sugar_parsing); //
-    FOS_RUN_TEST(test_apply_mono_parsing); //
-    FOS_RUN_TEST(test_apply_poly_parsing); //
-  )
+      FOS_RUN_TEST(test_comment_parsing); //
+      FOS_RUN_TEST(test_tracker); //
+
+      FOS_RUN_TEST(test_noobj_parsing); //
+      FOS_RUN_TEST(test_type_parsing); //
+      FOS_RUN_TEST(test_bool_parsing); //
+      FOS_RUN_TEST(test_int_parsing); //
+      FOS_RUN_TEST(test_real_parsing); //
+      FOS_RUN_TEST(test_str_parsing); //
+      FOS_RUN_TEST(test_uri_parsing); //
+      FOS_RUN_TEST(test_lst_parsing); //
+      FOS_RUN_TEST(test_rec_parsing); //
+      FOS_RUN_TEST(test_inst_parsing); //
+      FOS_RUN_TEST(test_objs_parsing); //
+      //////////////////////////////////
+      FOS_RUN_TEST(test_inst_sugar_parsing); //
+      FOS_RUN_TEST(test_apply_mono_parsing); //
+      FOS_RUN_TEST(test_apply_poly_parsing); //
+      )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

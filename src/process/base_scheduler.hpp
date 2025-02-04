@@ -39,10 +39,11 @@ namespace fhatos {
     ptr<Router> router_ = nullptr;
 
   public:
-    explicit BaseScheduler(const ID &id = ID("/scheduler")) : Rec(rmap({
-                                                                    {"barrier", noobj()},
-                                                                    {"process", lst()}}),
-                                                                  OType::REC, REC_FURI, id_p(id)) {
+    explicit BaseScheduler(const ID &id = ID("/scheduler")) :
+      Rec(rmap({
+              {"barrier", noobj()},
+              {"process", lst()}}),
+          OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
@@ -78,9 +79,9 @@ namespace fhatos {
     }
 
     void stop() {
-      auto map = make_shared<Map<string, int>>();
-      auto list = new List<Process_p>();
-      this->processes_->forEach([map,list](const Process_p &process) {
+      auto map = make_unique<Map<string, int>>();
+      auto list = make_unique<List<Process_p>>();
+      this->processes_->forEach([&map,&list](const Process_p &process) {
         const string name = process->tid_->name();
         int count = map->count(name) ? map->at(name) : 0;
         count++;
@@ -96,18 +97,16 @@ namespace fhatos {
         const Process_p p = list->back();
         list->pop_back();
         if(p->running)
-          p->stop();
+          p->stop_ = true;
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
-      list->clear();
-      delete list;
       this->running_ = false;
       LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid_->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
 
-    void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
+    void barrier(const string &, const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", "main");
       if(message)
@@ -123,30 +122,61 @@ namespace fhatos {
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", "main");
     }
 
-    virtual bool spawn(const Process_p &) = 0;
+    virtual bool spawn(const Process_p &process) {
+      if(!process->vid_)
+        throw fError("value id required to spawn %s", process->toString().c_str());
+      if(this->count(*process->vid_)) {
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
+        return false;
+      }
+      process->setup();
+      if(!process->running) {
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
+        return false;
+      }
+      ////////////////////////////////
+      if(const Process_p spawned_process = this->raw_spawn(process)) {
+        this->processes_->push_back(process);
+        Router::singleton()->subscribe(
+            Subscription::create(this->vid_,
+                                 p_p(*spawned_process->vid_),
+                                 [this,spawned_process](const Obj_p &, const InstArgs &args) {
+                                   if(args->arg("payload")->is_noobj()) {
+                                    if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
+                                     spawned_process->stop();// = true;
+                                   }
+                                   return Obj::to_noobj();
+                                 }));
+        LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", spawned_process->vid_->toString().c_str());
+        this->save();
+      } else {
+        throw fError("!b%s!! !yprocess!! failed to spawn", process->vid_->toString().c_str());
+      }
+      return true;
+    }
 
     void save() const override {
       const Lst_p procs = Obj::to_lst();
       this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid_)); });
-      this->rec_set(vri("process"), procs);
+      this->rec_set("process", procs);
       Obj::save();
     }
 
   protected:
+    virtual Process_p raw_spawn(const Process_p &) = 0;
+
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
       if(const Rec_p config = Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID));
         !config->is_noobj())
         scheduler->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
       InstBuilder::build(scheduler->vid_->extend(":spawn"))
-          ->type_args(x(0, "thread", Obj::to_bcode()))
-          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+          ->type_args(x(0, "obj", Obj::to_bcode()))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
             const auto &p = make_shared<Thread>(args->arg(0));
-            //p.get()->vid_ = args->arg(0)->vid_;
             scheduler->spawn(p);
             return p;
           })
-          // ->doc("spawn a parallel thread of execution")
           ->save();
       InstBuilder::build(scheduler->vid_->extend(":stop"))
           ->inst_args(rec())
@@ -158,7 +188,7 @@ namespace fhatos {
           ->save();
       ///// OBJECTS
       Router::singleton()->write(id_p(SCHEDULER_ID->retract().extend("lib/thread")),
-                            Obj::to_rec({{":loop", Obj::to_bcode()}}));
+                                 Obj::to_rec({{":loop", Obj::to_bcode()}}));
       scheduler->save();
       return nullptr;
     }

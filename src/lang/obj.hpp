@@ -212,7 +212,7 @@ namespace fhatos {
       return this->rng_coeff.first >= other_coeff.first && this->rng_coeff.second <= other_coeff.second;
     }
 
-    [[nodiscard]] bool is_single() {
+    [[nodiscard]] bool is_single() const {
       return this->dom_coeff == IntCoefficient(1, 1) && this->rng_coeff == IntCoefficient(1, 1);
     }
 
@@ -419,7 +419,7 @@ namespace fhatos {
     Any value_;
 
     struct objp_hash {
-      size_t operator()(const Obj_p &obj) const { return obj->hash(); }
+      size_t operator()(const Obj_p &obj) const {  return std::hash<std::string>{}(obj->toString()); }
     };
 
     struct objp_equal_to : std::binary_function<Obj_p &, Obj_p &, bool> {
@@ -1652,12 +1652,17 @@ namespace fhatos {
       const Rec_p remake = Obj::to_rec();
       //// apply lhs to args
       for(const auto &[k,v]: *args->rec_value()) {
-        remake->rec_value()->insert({k, v->apply(lhs)});
+        remake->rec_value()->emplace(k, v->apply(lhs));
       }
       ROUTER_PUSH_FRAME("#", args);
-      const Obj_p result = this->apply(lhs);
-      ROUTER_POP_FRAME();
-      return result;
+      try {
+        const Obj_p result = this->apply(lhs);
+        ROUTER_POP_FRAME();
+        return result;
+      } catch(const std::exception& e) {
+        ROUTER_POP_FRAME();
+        throw;
+      }
     }
 
     Obj_p apply(const Obj_p &lhs) const {

@@ -24,7 +24,15 @@
 #include "structure.hpp"
 #include "../lang/obj.hpp"
 
+#define FOS_ROUTER_STRUCTURE "structure"
+#define FOS_ROUTER_QUERY "query"
+#define FOS_ROUTER_QUERY_WRITE "query/write"
+#define FOS_ROUTER_QUERY_READ "query/read"
+
 namespace fhatos {
+
+
+
   class Router final : public Rec {
   protected:
     bool active = true;
@@ -35,7 +43,7 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    void log_frame_stack(const LOG_TYPE log_type) const;
+    void log_frame_stack( LOG_TYPE log_type) const;
 
     void load_config(const ID &config_id);
 

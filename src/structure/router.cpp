@@ -36,7 +36,8 @@ namespace fhatos {
       int counter = 0;
       ptr<Frame<>> frame = THREAD_FRAME_STACK;
       while(nullptr != frame) {
-        LOG_OBJ(log_type, frame, "!m%s!g>!! %s\n", StringHelper::repeat(++counter,"-").c_str(), frame->toString().c_str());
+        LOG_OBJ(log_type, frame, "!m%s!g>!! %s\n", StringHelper::repeat(++counter,"-").c_str(),
+                frame->toString().c_str());
         frame = frame->previous;
       }
     }
@@ -90,9 +91,7 @@ namespace fhatos {
       LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", FOS_BOOT_CONFIG_VALUE_ID);
     if(!config->is_noobj()) {
       const Rec_p router_config = config->rec_get(vri("router"));
-      for(auto [k, v]: *router_config->rec_value()) {
-        this->rec_set(k->clone(), v->clone());
-      }
+      this->rec_set("config", router_config);
     }
   }
 
@@ -166,9 +165,9 @@ namespace fhatos {
 
 
   void Router::save() const {
-    const Lst_p strcs = Obj::to_lst();
-    this->structures_->forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern)); });
-    this->rec_set("structure", strcs);
+    const Lst_p strc = Obj::to_lst();
+    this->structures_->forEach([strc](const Structure_p &structure) { strc->lst_add(vri(structure->pattern)); });
+    this->rec_set(FOS_ROUTER_STRUCTURE, strc);
     Obj::save();
   }
 
@@ -203,11 +202,28 @@ namespace fhatos {
   void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
     if(!this->active)
       return;
-    /*if(obj->lock().has_value() && !obj->lock().value().equals(*Process::current_process()->vid_)) {
-      throw fError("!runable write obj!! locked by !b%s!!: %s",
-                   obj->lock().value().toString().c_str(),
-                   obj->toString().c_str());
-    }*/
+    if(obj->is_noobj()) {
+      if(this->vid_->matches(*furi)) {
+        this->stop();
+        return;
+      }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////// PROCESS FURI QUERIES  ///////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if(furi->has_query()) {
+      for(const auto &[query_key, query_value]: furi->query_values()) {
+        if(query_key != "sub") {
+          const Obj_p query_processor = this->read(id_p(this->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key)));
+          if(query_processor->is_noobj())
+            throw fError("router has no query processor for !y%s!!", query_key.c_str());
+          query_processor->apply(obj, Obj::to_inst_args({vri(furi)}));
+        }
+      }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(p_p(*furi));
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
@@ -273,11 +289,36 @@ namespace fhatos {
           Router::singleton()->stop();
           return Obj::to_noobj();
         })->save();
+    /// query extensions
+    InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
+        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const Obj_p obj = args->arg(0);
+          if(obj->lock().has_value() && !obj->lock().value().equals(
+                 *Process::current_process()->vid_)) {
+            throw fError("!runable write obj!! locked by !b%s!!: %s",
+                         obj->lock().value().toString().c_str(),
+                         obj->toString().c_str());
+          }
+          return obj;
+        })->save();
+    InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
+        ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+        ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+          if(obj->lock().has_value() && !obj->lock().value().equals(
+                 *Process::current_process()->vid_)) {
+            throw fError("!runable write obj!! locked by !b%s!!: %s",
+                         obj->lock().value().toString().c_str(),
+                         obj->toString().c_str());
+          }
+          return obj;
+        })->save();
+
     return nullptr;
   }
 
   Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_on_error) const {
-   // const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
+    // const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
     for(const Structure_p &s: *this->structures_) {
       if(pattern->bimatches(*s->pattern)) {
@@ -322,7 +363,9 @@ namespace fhatos {
     bool first = true;
     fURI_p test = nullptr;
     for(const auto &c: components) {
-      List_p<Uri_p> prefixes = this->rec_get("resolve")->rec_get("auto_prefix")->lst_value();
+      List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->or_else(lst())->lst_value();
+      if(prefixes->empty())
+        LOG_KERNEL_OBJ(WARN,this,"router has auto-prefix configuration\n" FOS_TAB_2 "%s\n",this->rec_get("config"));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {

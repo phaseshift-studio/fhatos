@@ -59,45 +59,27 @@ namespace fhatos {
       vTaskDelay(1); // feeds the watchdog for the task
     }
 
-    virtual bool spawn(const Process_p &process) override {
-      if(!process->vid_)
-        throw fError("value id required to spawn %s", process->toString().c_str());
-      if (this->count(*process->vid_)) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
-        return false;
-      }
-      process->setup();
-      if (!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to setup\n", process->vid_->toString().c_str());
-        return false;
-      }
-      ////////////////////////////////
-      bool success = false;
-      const int stack_size = process->rec_get("stack_size") // check provided obj
+    Process_p raw_spawn(const Process_p &process) override {
+      int stack_size;
+      if(process->is_rec()) {
+        stack_size = process->rec_get("stack_size") // check provided obj
         ->or_else(process->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
         ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
         ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE))) // use default environmental variable
         ->int_value();
-      BaseType_t threadResult;
-        threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
+      } else {
+        stack_size = this->rec_get("config/def_stack_size") // check default setting in scheduler
+        ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
+        ->int_value();
+      }
+      const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                                process->vid_->toString().c_str(), // Name of the task (for debugging)
                                                stack_size, // Stack size (bytes)
                                                process.get(), // Parameter to pass
                                                CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                               &static_cast<Thread *>(process.get())->handle, // Task handle
+                                               static_cast<Thread *>(process.get())->xthread, // Task handle
                                                tskNO_AFFINITY); // Processor core
-      success = pdPASS == threadResult;
-      if (success) {
-        this->processes_->push_back(process);
-        LOG_KERNEL_OBJ(INFO, this, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid_->toString().c_str(),
-                      stack_size);
-        this->save();
-      } else {
-        const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid_->toString().c_str(),
-                      threadResult, reason);
-      }
-      return success;
+      return (pdPASS == threadResult) ? process : nullptr;
     }
 
 
@@ -127,6 +109,7 @@ namespace fhatos {
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid_->equals(*thread->vid_);
         if (remove) {
+          Router::singleton()->unsubscribe(singleton()->vid_,p_p(*proc->vid_));
           LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid_->toString().c_str());
         }
         return remove;

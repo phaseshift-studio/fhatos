@@ -67,12 +67,12 @@ namespace fhatos {
   };
 
   static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-    {NO_TARGETS, "no targets"},
-    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-    {NO_SUBSCRIPTION, "no subscription"},
-    {NO_MESSAGE, "no message"},
-    {ROUTER_ERROR, "internal router error"},
-    {MUTEX_TIMEOUT, "router timeout"}});
+                                                                    {NO_TARGETS, "no targets"},
+                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                                    {NO_MESSAGE, "no message"},
+                                                                    {ROUTER_ERROR, "internal router error"},
+                                                                    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -83,13 +83,15 @@ namespace fhatos {
   static const ID_p MESSAGE_FURI = id_p("/sys/lib/msg");
 
   struct Message final : Rec {
-    explicit Message(const Rec_p &rec) : Rec(*rec) {
+    explicit Message(const Rec_p &rec) :
+      Rec(*rec) {
     }
 
-    explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) : Rec(rmap({
-        {"target", vri(target)},
-        {"payload", payload},
-        {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+    explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) :
+      Rec(rmap({
+              {"target", vri(target)},
+              {"payload", payload},
+              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID_p target() const {
@@ -132,14 +134,16 @@ namespace fhatos {
   static const ID_p SUBSCRIPTION_FURI = id_p("/sys/lib/sub");
 
   struct Subscription final : Rec {
-    explicit Subscription(const Rec_p &rec) : Rec(*rec) {
+    explicit Subscription(const Rec_p &rec) :
+      Rec(*rec) {
     }
 
-    explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) : Rec(rmap({
-        {"source", vri(source)},
-        {"pattern", vri(pattern)},
-        {"on_recv", on_recv}
-      }), OType::REC, SUBSCRIPTION_FURI) {
+    explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) :
+      Rec(rmap({
+              {"source", vri(source)},
+              {"pattern", vri(pattern)},
+              {"on_recv", on_recv}
+          }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID_p source() const {
@@ -156,6 +160,15 @@ namespace fhatos {
 
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) {
       return make_shared<Subscription>(source, pattern, on_recv->clone());
+    }
+
+    static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Cpp &on_recv) {
+      return Subscription::create(source, pattern, InstBuilder::build(INST_FURI)
+                                  ->inst_args(rec({
+                                      {"target", from("target",noobj())},
+                                      {"payload", from("payload",noobj())},
+                                      {"retain", from("retain",noobj())}}))
+                                  ->inst_f(on_recv)->create());
     }
   };
 } // namespace fhatos

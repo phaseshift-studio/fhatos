@@ -36,9 +36,9 @@ namespace fhatos {
     }
 
   public:
-    TaskHandle_t handle;
+    TaskHandle_t* xthread;
 
-    explicit Thread(const Obj_p &obj) : Process(obj) {
+    explicit Thread(const Obj_p &obj) : Process(obj), xthread(nullptr) {
 
     }
 

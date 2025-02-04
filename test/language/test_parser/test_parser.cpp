@@ -58,7 +58,7 @@ namespace fhatos {
       const Bool_p b = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::BOOL, b->otype_);
       TEST_ASSERT_EQUAL(get<1>(trip), b->bool_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *b->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *b->tid_);
     }
   }
 
@@ -80,7 +80,7 @@ namespace fhatos {
       const ptr<Int> i = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->otype_);
       TEST_ASSERT_EQUAL_INT(get<1>(trip), i->int_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *i->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *i->tid_);
     }
   }
 
@@ -102,7 +102,7 @@ namespace fhatos {
       const Real_p r = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->otype_);
       TEST_ASSERT_EQUAL_INT(get<1>(trip), r->real_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *r->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *r->tid_);
     }
   }
 
@@ -118,8 +118,8 @@ namespace fhatos {
     for (auto &trip: uris) {
       const Uri_p u = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->otype_);
-      FOS_TEST_ASSERT_EQUAL_FURI(get<1>(trip), u->uri_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *u->tid_);
+      FOS_TEST_FURI_EQUAL(get<1>(trip), u->uri_value());
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *u->tid_);
     }
   }
 
@@ -137,7 +137,7 @@ namespace fhatos {
       const Str_p s = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::STR, s->otype_);
       TEST_ASSERT_EQUAL_STRING(get<1>(trip).c_str(), s->str_value().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *s->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *s->tid_);
     }
   }
 
@@ -190,9 +190,9 @@ namespace fhatos {
       TEST_ASSERT_EQUAL(OType::LST, l->otype_);
       TEST_ASSERT_EQUAL_STRING("a", l->lst_get(share(Int(0)))->str_value().c_str());
       TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(ID("actor"), l->lst_get(share(Int(2)))->uri_value());
+      FOS_TEST_FURI_EQUAL(ID("actor"), l->lst_get(share(Int(2)))->uri_value());
       TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *l->tid_);
     }
     ////////// SPLIT
     FOS_SHOULD_RETURN({"1"}, "1");

@@ -1,10 +1,12 @@
+
 [router=>[
-  resolve=>[
-   namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
-   auto_prefix=>[<>,/mmadt/,/fos/,/sys/]]],
+ resolve=>[
+  namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
+  auto_prefix=>[<>,/mmadt/,/fos/,/sys/],
+  query=>[write=>[lock=>to_do]],
+  default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[
-  def_stack_size=>8096
- ],
+  def_stack_size=>8096],
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
   client=>fhatos_client],
