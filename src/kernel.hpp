@@ -178,7 +178,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_boot_config(const fURI& boot_config_loader) {
+    static ptr<Kernel> using_boot_config(const fURI& boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
