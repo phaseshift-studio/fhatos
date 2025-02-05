@@ -1,4 +1,4 @@
-
+--- standard boot config obj
 [router=>[
  resolve=>[
   namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
@@ -33,5 +33,5 @@
   host=>fhatos_ota,
   port=>3232
  ],
- fs=>[root=>/]
+ fs=>[root=><.>]
 ]@/sys/config

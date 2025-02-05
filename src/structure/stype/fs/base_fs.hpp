@@ -34,7 +34,7 @@ namespace fhatos {
     ID root;
 
     explicit BaseFS(const Pattern &pattern, const ID_p &value_id = nullptr,
-                    const Rec_p &config = Obj::to_rec({{"root", vri("/")}})) :
+                    const Rec_p &config = Obj::to_rec({{"root", vri(".")}})) :
       Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()){
     }
 

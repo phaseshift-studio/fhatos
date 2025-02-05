@@ -21,6 +21,7 @@
 
 #include "fhatos.hpp"
 #include STR(process/ptype/HARDWARE/scheduler.hpp)
+#include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #include "process/process.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "util/memory_helper.hpp"
@@ -177,23 +178,22 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_boot_config() {
+    static ptr<Kernel> using_boot_config(const fURI& boot_config_loader) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
       Obj_p config_obj = Obj::to_noobj();
       // boot from header file, file system, or wifi
-#ifdef ESP_ARCH
-      //MemoryHelper::use_custom_stack(fhatos::FSx::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
-      fhatos::FSx::load_boot_config();
-      if(boot_config_obj_copy_len > 0) {
-        LOG_KERNEL_OBJ(INFO, Router::singleton(),
-          "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
-          boot_config_obj_copy_len);
-        to_free_boot = true;
+      if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
+        fhatos::FSx::load_boot_config(boot_config_loader);
+        if(boot_config_obj_copy_len > 0) {
+          LOG_KERNEL_OBJ(INFO, Router::singleton(),
+            "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
+            boot_config_obj_copy_len);
+          to_free_boot = true;
+        }
       }
-#endif
       if(0 == boot_config_obj_copy_len) {
         if(boot_config_obj_len > 0) {
           boot_config_obj_copy = boot_config_obj;

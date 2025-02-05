@@ -202,7 +202,11 @@ namespace fhatos {
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 #define FOS_BOOT_CONFIG_VALUE_ID "/sys/config"
+#ifdef NATIVE
+#define FOS_BOOT_CONFIG_FS_URI "conf/boot_config.obj"
+#else
 #define FOS_BOOT_CONFIG_FS_URI "/boot/boot_config.obj"
+#endif
 #define FOS_BOOT_CONFIG_HEADER_URI "/boot_config.hpp"
   static unsigned int boot_config_obj_copy_len = 0;
   static unsigned char* boot_config_obj_copy;

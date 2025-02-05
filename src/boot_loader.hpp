@@ -42,6 +42,7 @@
 #endif
 
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
+#include STR(structure/stype/fs/HARDWARE/fs.hpp)
 
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
@@ -54,7 +55,7 @@
 #include "model/driver/pin/arduino_pwm.hpp"
 #include "model/driver/pin/arduino_i2c.hpp"
 #include "model/sensor/aht10/aht10.hpp"
-#include STR(structure/stype/fs/HARDWARE/fs.hpp)
+
 #endif
 
 #ifdef NATIVE
@@ -98,7 +99,8 @@ namespace fhatos {
         }
         ////////////////// SYS STRUCTURE
         kp->mount(Heap<>::create("/sys/#"))
-            ->using_boot_config() // TODO: test with non-load
+            ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
+            // TODO: test with non-load
             ->import(Router::import())
             ->drop_config("router")
             ->import(Scheduler::import())
@@ -119,7 +121,7 @@ namespace fhatos {
 #ifdef NATIVE
             ->import(Text::import("/io/lib/text"))
 #endif
-        ->install(Terminal::singleton("/io/terminal"))
+            ->install(Terminal::singleton("/io/terminal"))
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log", Router::singleton()->read(id_p("/sys/config/log"))
                                   ->or_else(Obj::to_rec({
@@ -129,8 +131,10 @@ namespace fhatos {
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
             ->mount(Heap<>::create("+/#"))
-#if defined(ESP_ARCH)
             ->import(FSx::import("/sys/lib/fs"))
+            ->mount(Structure::create<FSx>("/fs/#",nullptr,Router::singleton()->read(id_p("/sys/config/fs"))))
+            ->drop_config("fs")
+#if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import("/io/lib/i2c"))
@@ -145,18 +149,17 @@ namespace fhatos {
              ->mount(Structure::create<Heap<>>("/soc/ota/#"))
              ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
              ->drop_config("ota")
-             ->import(FSx::import("/io/lib/fs"))
-             ->mount(Structure::create<FSx>("/fs/#",nullptr,Router::singleton()->read(id_p("/sys/config/fs"))))
-             ->drop_config("fs")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-//#if defined(NATIVE)
             ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"),
-              Router::singleton()->read(id_p("/sys/config/mqtt"))->or_else(Obj::to_rec({
-          {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-          {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+                                            Router::singleton()->read(id_p("/sys/config/mqtt"))->or_else(Obj::to_rec({
+                                                {"broker",
+                                                 vri(args_parser->option_string(
+                                                     "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                {"client",
+                                                 vri(args_parser->option_string(
+                                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
-//#endif
             ->process(Console::create("/io/console", Router::singleton()->read(id_p("/sys/config/console"))))
             ->drop_config("console")
             ->eval([args_parser] { delete args_parser; });
