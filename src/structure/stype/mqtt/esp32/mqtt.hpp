@@ -89,6 +89,10 @@ namespace fhatos {
       }
     }
 
+    static ptr<Mqtt> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
+      return Structure::create<Mqtt>(pattern,value_id,config);
+    }
+
     virtual void loop() override {
       BaseMqtt::loop();
       if (!MQTT_CONNECTION->connected()) {

@@ -798,7 +798,9 @@ namespace fhatos {
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
-      this->rec_value()->insert(rmap->cbegin(), rmap->cend());
+      for(const auto&[key, value] : *rmap) {
+        this->rec_value()->insert_or_assign(key,value);
+      }
       return shared_from_this();
     }
 

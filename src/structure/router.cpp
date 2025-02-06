@@ -202,12 +202,8 @@ namespace fhatos {
   void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
     if(!this->active)
       return;
-    if(obj->is_noobj()) {
-      if(this->vid_->matches(*furi)) {
-        this->stop();
-        return;
-      }
-    }
+    if(obj->is_noobj() && furi->is_node() && this->vid_->matches(*furi))
+      this->active = false;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////// PROCESS FURI QUERIES  ///////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,7 +221,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
-      const Structure_p structure = this->get_structure(p_p(*furi));
+      const Structure_p structure = this->get_structure(p_p(*furi), obj);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                      Process::current_process()->vid_->toString().c_str(), retain ? "retained" : "transient",
                      furi->toString().c_str(), obj->tid_->toString().c_str(),
@@ -234,6 +230,8 @@ namespace fhatos {
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
     }
+    if(!this->active)
+      this->stop();
   }
 
   void Router::unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
@@ -276,19 +274,19 @@ namespace fhatos {
                                Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
                                             {"pattern", Obj::to_type(URI_FURI)},
                                             {":on_recv", Obj::to_bcode()}}));
-    InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
+  /*  InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
         ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
         ->type_args(x(0, ___()))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
           return noobj();
-        })->save();
-    InstBuilder::build(Router::singleton()->vid_->extend(":stop"))
+        })->save();*/
+   /* InstBuilder::build(Router::singleton()->vid_->extend(":stop"))
         ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           Router::singleton()->stop();
           return Obj::to_noobj();
-        })->save();
+        })->save();*/
     /// query extensions
     InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
@@ -305,26 +303,25 @@ namespace fhatos {
     InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-          if(obj->lock().has_value() && !obj->lock().value().equals(
-                 *Process::current_process()->vid_)) {
-            throw fError("!runable write obj!! locked by !b%s!!: %s",
-                         obj->lock().value().toString().c_str(),
-                         obj->toString().c_str());
-          }
+          LOG(ERROR, "sub query processor to be implemented\n");
           return obj;
         })->save();
 
     return nullptr;
   }
 
-  Structure_p Router::get_structure(const Pattern_p &pattern, const bool throw_on_error) const {
+  Structure_p Router::get_structure(const Pattern_p &pattern, const Obj_p &to_write, const bool throw_on_error) const {
     // const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
     for(const Structure_p &s: *this->structures_) {
-      if(pattern->bimatches(*s->pattern)) {
-        if(found && throw_on_error)
-          throw fError("!b%s!! crosses multiple structures", pattern->toString().c_str());
-        found = s;
+      if(to_write && to_write->is_noobj() && s->vid_ && pattern->bimatches(*s->vid_)) {
+        s->stop();
+      } else {
+        if(pattern->bimatches(*s->pattern)) {
+          if(found && throw_on_error)
+            throw fError("!b%s!! crosses multiple structures", pattern->toString().c_str());
+          found = s;
+        }
       }
     }
     if(!found && throw_on_error) { // && !pattern->empty() ??
@@ -350,7 +347,7 @@ namespace fhatos {
     fURI_p p = furi_p(furi);
     if(furi.empty())
       return p;
-    if(const Structure_p structure = this->get_structure(p_p(*p), false); structure && structure->has(p))
+    if(const Structure_p structure = this->get_structure(p_p(*p), nullptr, false); structure && structure->has(p))
       return p;
     if(!furi.headless() && !furi.has_components())
       return p;
@@ -365,12 +362,13 @@ namespace fhatos {
     for(const auto &c: components) {
       List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->or_else(lst())->lst_value();
       if(prefixes->empty())
-        LOG_KERNEL_OBJ(WARN,this,"router has auto-prefix configuration\n" FOS_TAB_2 "%s\n",this->rec_get("config"));
+        LOG_KERNEL_OBJ(WARN, this, "router has no auto-prefix configuration: %s\n",
+                     this->rec_get("config")->toString().c_str());
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {
         const fURI_p x = furi_p(prefix->uri_value().extend(c));
-        if(const Structure_p structure = this->get_structure(p_p(*x), false); structure && structure->has(x)) {
+        if(const Structure_p structure = this->get_structure(p_p(*x), nullptr, false); structure && structure->has(x)) {
           LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
                          furi.toString().c_str(),
                          structure->toString().c_str(),

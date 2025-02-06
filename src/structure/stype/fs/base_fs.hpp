@@ -35,20 +35,22 @@ namespace fhatos {
 
     explicit BaseFS(const Pattern &pattern, const ID_p &value_id = nullptr,
                     const Rec_p &config = Obj::to_rec({{"root", vri(".")}})) :
-      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()){
+      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
     }
 
     ID map_fos_to_fs(const ID_p &fos_id) {
-      ID fs_id = ID(*fos_id);
-      for(uint8_t i = 0; i < this->pattern->path_length(); i++) {
+      auto fs_id = ID(*fos_id);
+      for(int i = 0; i < this->pattern->path_length(); i++) {
         fs_id = fs_id.pretract();
       }
-      return root.extend(fs_id);
+      LOG(INFO, "current pretracted pattern: %s\n", fs_id.toString().c_str());
+      LOG(INFO, "current extended root: %s\n", this->root.extend(fs_id).toString().c_str());
+      return this->root.extend(fs_id);
     }
 
-    ID map_fs_to_fos(const char *fs_id) {
-      ID fos_id = ID(fs_id);
-      for(uint8_t i = 0; i < root.path_length(); i++) {
+    ID map_fs_to_fos(const string& fs_id) {
+      auto fos_id = ID(fs_id);
+      for(int i = 0; i < this->root.path_length(); i++) {
         fos_id = fos_id.pretract();
       }
       return fos_id;

@@ -201,7 +201,7 @@ namespace fhatos {
 #endif
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-#define FOS_BOOT_CONFIG_VALUE_ID "/sys/config"
+#define FOS_BOOT_CONFIG_VALUE_ID "/boot/config"
 #ifdef NATIVE
 #define FOS_BOOT_CONFIG_FS_URI "conf/boot_config.obj"
 #else

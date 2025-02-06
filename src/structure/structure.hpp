@@ -301,26 +301,6 @@ namespace fhatos {
             }
             return;
           }
-          ////////////////////////////////////////////////////////////////////////////////////////////////////////
-          /// APPLY ?apply={lhs|rhs} a.b or b.a
-          ////////////////////////////////////////////////////////////////////////////////////////////////////////
-          if(furi->has_query("apply")) {
-            const string apply_position = furi->query_value("apply").value();
-            const fURI_p furi_no_query = furi_p(furi->no_query()); //.to_ptr<>();
-            const Obj_p old_obj = this->read(furi_no_query);
-            Obj_p new_obj = nullptr;
-            if("lhs" == apply_position) {
-              LOG_OBJ(DEBUG, this, "apply?lhs: %s !m=>!! %s\n", obj->toString().c_str(),
-                      old_obj->toString().c_str());
-              new_obj = old_obj->apply(obj);
-            } else if("rhs" == apply_position) {
-              LOG_OBJ(DEBUG, this, "apply?rhs: %s !m=>!! %s\n", old_obj->toString().c_str(),
-                      obj->toString().c_str());
-              new_obj = obj->apply(old_obj);
-            } else
-              throw fError("invalid query value for !b?apply={!ylhs!b | !yrhs!b}!!: %s", apply_position.c_str());
-            this->write(furi_no_query, new_obj, retain);
-          }
         }
 
         //// WRITES

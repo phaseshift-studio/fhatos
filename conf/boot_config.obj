@@ -34,4 +34,4 @@
   port=>3232
  ],
  fs=>[root=><.>]
-]@/sys/config
+]@/boot/config

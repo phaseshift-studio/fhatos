@@ -102,6 +102,10 @@ namespace fhatos {
       }
     }
 
+    static ptr<Mqtt> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
+      return Structure::create<Mqtt>(pattern,value_id,config);
+    }
+
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
       MQTT_CONNECTION->subscribe(subscription->pattern()->toString(), 1)->wait();
     }

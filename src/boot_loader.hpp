@@ -97,24 +97,28 @@ namespace fhatos {
               ->display_memory("main memory", Memory::main_memory())
               ->display_memory("psram memory", Memory::psram_memory());
         }
-        ////////////////// SYS STRUCTURE
+        ////////////////////////////////////////////////////////////
+        ////////////////// SYS STRUCTURE ///////////////////////////
+        ///////////////////////////////////////////////////////////
         kp->mount(Heap<>::create("/sys/#"))
+            ->mount(Heap<>::create("/boot/#",id_p("/sys/structure/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
-            // TODO: test with non-load
             ->import(Router::import())
             ->drop_config("router")
             ->import(Scheduler::import())
             ->drop_config("scheduler");
-        ////////////////// USER IMPORT(S)
+        ////////////////////////////////////////////////////////////
+        ////////////////// USER IMPORT(S) //////////////////////////
+        ////////////////////////////////////////////////////////////
         return kp
-            ->import(Heap<>::import("/sys/lib/heap"))
-            ->import(Mqtt::import("/sys/lib/mqtt"))
+            ->import(Heap<>::import("/sys/structure/lib/heap"))
+            ->import(Mqtt::import("/sys/structure/lib/mqtt"))
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#"))
+            ->mount(Heap<>::create(MMADT_SCHEME "/#",id_p("/sys/structure/mmadt")))
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create("/io/#"))
+            ->mount(Heap<>::create("/io/#",id_p("/sys/structure/io")))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
@@ -123,22 +127,23 @@ namespace fhatos {
 #endif
             ->install(Terminal::singleton("/io/terminal"))
             ->install(mmadt::Parser::singleton("/io/parser"))
-            ->install(Log::create("/io/log", Router::singleton()->read(id_p("/sys/config/log"))
+            ->install(Log::create("/io/log", Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/log"))
                                   ->or_else(Obj::to_rec({
                                       {"INFO", lst({vri("#")})},
                                       {"ERROR", lst({vri("#")})},
                                       {"DEBUG", lst()},
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
-            ->mount(Heap<>::create("+/#"))
-            ->import(FSx::import("/sys/lib/fs"))
-            ->mount(Structure::create<FSx>("/fs/#",nullptr,Router::singleton()->read(id_p("/sys/config/fs"))))
+            ->mount(Heap<>::create("+/#",id_p("/sys/structure/cache")))
+            ->import(FSx::import("/sys/structure/lib/fs"))
+            ->mount(FSx::create("/disk/#", id_p("/sys/structure/disk"),
+                                           Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
             ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import("/io/lib/i2c"))
-            ->mount(Structure::create<Heap<>>("/sensor/#"))
+            ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
             ->import(AHT10::import("/sensor/lib/aht10"))
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
@@ -146,23 +151,28 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
              ->mount(Structure::create<Memory>("/soc/memory/#"))
-             ->mount(Structure::create<Heap<>>("/soc/ota/#"))
-             ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p("/sys/config/ota"))))
+             ->mount(Heap<>::create("/soc/ota/#"),id_p("/sys/structure/ota"))
+             ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
              ->drop_config("ota")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(Structure::create<Mqtt>("//io/#", id_p("/io/mqtt"),
-                                            Router::singleton()->read(id_p("/sys/config/mqtt"))->or_else(Obj::to_rec({
-                                                {"broker",
-                                                 vri(args_parser->option_string(
-                                                     "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                                {"client",
-                                                 vri(args_parser->option_string(
-                                                     "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+            ->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
+                                            Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/mqtt"))->or_else(
+                                                Obj::to_rec({
+                                                    {"broker",
+                                                     vri(args_parser->option_string(
+                                                         "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                    {"client",
+                                                     vri(args_parser->option_string(
+                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
-            ->process(Console::create("/io/console", Router::singleton()->read(id_p("/sys/config/console"))))
+            ->process(Console::create("/io/console",
+                                      Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/console"))))
             ->drop_config("console")
-            ->eval([args_parser] { delete args_parser; });
+            ->eval([args_parser] {
+
+              delete args_parser;
+            });
       } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());

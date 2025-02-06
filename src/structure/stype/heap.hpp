@@ -46,7 +46,6 @@ namespace fhatos {
      // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
-    //template <typename ALLOCATOR=std::allocator<std::pair<const ID_p, Obj_p>>>
     static ptr<Heap<ALLOCATOR>> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
       return Structure::create<Heap<ALLOCATOR>>(pattern,value_id,config);
     }

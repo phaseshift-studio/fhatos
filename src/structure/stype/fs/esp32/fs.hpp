@@ -42,6 +42,10 @@ namespace fhatos {
       return nullptr;
     }
 
+    static ptr<FSx> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
+      return Structure::create<FSx>(pattern,value_id,config);
+    }
+
     static void load_boot_config(const fURI boot_config = FOS_BOOT_CONFIG_FS_URI) {
       try {
         if(!FOS_FS.begin()) return;
