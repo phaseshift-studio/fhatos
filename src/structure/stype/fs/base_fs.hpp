@@ -38,22 +38,19 @@ namespace fhatos {
       Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
     }
 
-    ID map_fos_to_fs(const ID_p &fos_id) {
+    ID map_fos_to_fs(const ID_p &fos_id) const {
       auto fs_id = ID(*fos_id);
-      for(int i = 0; i < this->pattern->path_length(); i++) {
-        fs_id = fs_id.pretract();
-      }
-      LOG(INFO, "current pretracted pattern: %s\n", fs_id.toString().c_str());
-      LOG(INFO, "current extended root: %s\n", this->root.extend(fs_id).toString().c_str());
-      return this->root.extend(fs_id);
+      const fURI fs_retracted_id = fs_id.remove_subpath(this->pattern->retract_pattern().toString());
+     // LOG(INFO, "current pretracted pattern: %s\n", fs_retracted_id.toString().c_str());
+     // LOG(INFO, "current extended root: %s\n", this->root.extend(fs_retracted_id).toString().c_str());
+      return this->root.extend(fs_retracted_id);
     }
 
-    ID map_fs_to_fos(const string& fs_id) {
-      auto fos_id = ID(fs_id);
-      for(int i = 0; i < this->root.path_length(); i++) {
-        fos_id = fos_id.pretract();
-      }
-      return fos_id;
+    ID map_fs_to_fos(const string &fs_id) const {
+      const auto fos_id = ID(fs_id);
+      const fURI fos_retracted_id = fos_id.remove_subpath(this->root.toString());
+      const fURI retracted_pattern = this->pattern->retract_pattern();
+      return retracted_pattern.extend(fos_retracted_id);
     }
 
   public:

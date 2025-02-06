@@ -374,7 +374,7 @@ namespace fhatos {
           }
         }
       } catch(const std::exception &e) {
-        throw fError("unable to write %s to %s", obj->toString().c_str(), furi->toString().c_str());
+        throw fError("unable to write %s to %s: %s", obj->toString().c_str(), furi->toString().c_str(), e.what());
       }
       /*if(!retain) {
         // x --> y -< subscribers

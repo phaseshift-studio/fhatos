@@ -79,6 +79,7 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/lang/fluent.hpp"
 #define FOS_DEPLOY_ROUTER_2 \
+  Router::singleton()->attach(Structure::create<Heap<>>("/boot/#"));     \
   Router::singleton()->attach(Structure::create<Heap<>>("/sys/#"));     \
   Heap<>::import("/sys/lib/heap"); \
   boot_config_obj_copy_len = boot_config_obj_len; 						 \

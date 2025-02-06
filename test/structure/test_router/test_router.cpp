@@ -37,23 +37,23 @@ namespace fhatos {
 
   void test_router_attach_detach() {
     FOS_TEST_ERROR("/temp/abc -> 12");
-    int size = Router::singleton()->rec_get("structure")->lst_value()->size();
+    const int size = Router::singleton()->rec_get("structure")->lst_value()->size();
     FOS_TEST_ERROR("/temp/abc -> 12");
-    PROCESS("/router/a -> /sys/lib/heap/:create(pattern=>/temp/#)");
-    TEST_ASSERT_EQUAL_INT(size+1,Router::singleton()->rec_get("structure")->lst_value()->size());
+    PROCESS("/router/a -> /sys/lib/heap/:create(pattern=>/temp/#,id=>/sys/structure/temp)");
+    TEST_ASSERT_EQUAL_INT(size+1, Router::singleton()->rec_get("structure")->lst_value()->size());
     FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("/temp/abc -> 12"));
     FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("*/temp/abc"));
-    PROCESS("/sys/router/:detach(/temp/#)");
+    PROCESS("/sys/structure/temp -> noobj");
     Router::singleton()->loop(); // ensure detached structure is removed from router's table
-    TEST_ASSERT_EQUAL_INT(size,Router::singleton()->rec_get("structure")->lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(size, Router::singleton()->rec_get("structure")->lst_value()->size());
     FOS_TEST_ERROR("/temp/abc -> 12");
   }
 
   void test_retain_write() {
     FOS_TEST_ERROR("/r/abc -> 'blah'");
     FOS_TEST_ERROR("/abc -> 'blah'");
-    for(int i=0; i<100;i=i+5) {
-      FOS_TEST_OBJ_EQUAL(jnt(i),PROCESS(string("/router/abc -> ") + to_string(i)));
+    for(int i = 0; i < 100; i = i + 5) {
+      FOS_TEST_OBJ_EQUAL(jnt(i), PROCESS(string("/router/abc -> ") + to_string(i)));
     }
     FOS_TEST_OBJ_EQUAL(jnt(95), PROCESS("*/router/abc"));
   }
@@ -61,7 +61,7 @@ namespace fhatos {
   void test_transient_write() {
     PROCESS("/router/abc1 -> |(plus(10).to(/router/bcd))");
     PROCESS("/router/abc2 -> |at(/router/cde)");
-    for(int i=0; i<100;i=i+5) {
+    for(int i = 0; i < 100; i = i + 5) {
       PROCESS(string("/router/abc1 --> ") + to_string(i));
       PROCESS(string("/router/abc2 --> ") + to_string(i));
       FOS_TEST_OBJ_EQUAL(jnt(i+10), PROCESS("*/router/bcd"));
@@ -75,31 +75,32 @@ namespace fhatos {
     PROCESS("/router/a -> 12");
     Obj_p a = PROCESS("*/router/a");
     TEST_ASSERT_NULL(a->vid_);
-    TEST_ASSERT_EQUAL_INT(12,a->int_value());
+    TEST_ASSERT_EQUAL_INT(12, a->int_value());
     a = PROCESS("@/router/a.lock(person)");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a?lock=person"),*a->vid_);
-    TEST_ASSERT_EQUAL_INT(12,a->int_value());
+    FOS_TEST_FURI_EQUAL(fURI("/router/a?lock=person"), *a->vid_);
+    TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a+1");
     a = PROCESS("@/router/a");
-    TEST_ASSERT_EQUAL_INT(12,a->int_value());
+    TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a.lock(/router)");
     a = PROCESS("@/router/a.lock(person)");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a"),*a->vid_);
-    TEST_ASSERT_EQUAL_INT(12,a->int_value());
+    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid_);
+    TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a + 1");
     a = PROCESS("@/router/a");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a"),*a->vid_);
-    TEST_ASSERT_EQUAL_INT(13,a->int_value());
+    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid_);
+    TEST_ASSERT_EQUAL_INT(13, a->int_value());
 
   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_router_config); //
-    FOS_RUN_TEST(test_router_attach_detach); //
-    FOS_RUN_TEST(test_retain_write); //
-    FOS_RUN_TEST(test_transient_write); //
-    FOS_RUN_TEST(test_lock_query_processor); //
-  )
+      FOS_RUN_TEST(test_router_config); //
+      FOS_RUN_TEST(test_router_attach_detach); //
+      FOS_RUN_TEST(test_retain_write); //
+      FOS_RUN_TEST(test_transient_write); //
+      FOS_RUN_TEST(test_lock_query_processor); //
+      )
 
 }
+
 SETUP_AND_LOOP();

@@ -62,50 +62,51 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
-void test_basic_kernel() {
-  load_processor(); // TODO: remove
-  const ptr<Kernel> kp = Kernel::build()
-      ->using_printer(Ansi<>::singleton())
-      ->with_ansi_color(true)
-      ->with_log_level(LOG_TYPES.to_enum("INFO"))
+  void test_basic_kernel() {
+    load_processor(); // TODO: remove
+    const ptr<Kernel> kp = Kernel::build()
+        ->using_printer(Ansi<>::singleton())
+        ->with_ansi_color(true)
+        ->with_log_level(LOG_TYPES.to_enum("INFO"))
         ->display_splash(ANSI_ART)
         ->display_architecture()
         ->display_reset_reason()
         ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
         ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-             ->using_router(Router::singleton("/sys/router"))
-             ////////////////// SYS STRUCTURE
-             ->mount(Structure::create<Heap<ALLOC>>("/sys/#"))
-             ->import(Heap<>::import("/sys/lib/heap"))
-             ->using_boot_config()
-             ->import(Router::import())
-             ->drop_config("router")
-             ->import(Scheduler::import())
-             ////////////////// USER STRUCTURE(S)
-             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-             ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
-             ->import(mmadt::mmADT::import())
-             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-             ->mount(Structure::create<Heap<>>("/io/#"))
-             ->import(Log::import("/io/lib/log"))
-             //->import(Console::import("/io/lib/console"))
-             ->install(Terminal::singleton("/io/terminal"))
-             ->install(Log::create("/io/log"))
-             ->install(mmadt::Parser::singleton("/io/parser"));
-            //->import(mmadt::Parser::import("/io/lib/parser"))
-             //->mount(Heap<>::create("+/#"))
-             // TODO: ->with_bcode(OBJ_PARSER(string(
-                     //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
-                       //          "|<+/#>./fos/lib/heap/create(_);")));
+        ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+        ->using_router(Router::singleton("/sys/router"))
+        ////////////////// SYS STRUCTURE
+        ->mount(Structure::create<Heap<ALLOC>>("/boot/#"))
+        ->mount(Structure::create<Heap<ALLOC>>("/sys/#"))
+        ->import(Heap<>::import("/sys/lib/heap"))
+        ->using_boot_config()
+        ->import(Router::import())
+        ->drop_config("router")
+        ->import(Scheduler::import())
+        ////////////////// USER STRUCTURE(S)
+        ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
+        ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
+        ->import(mmadt::mmADT::import())
+        ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
+        ->mount(Structure::create<Heap<>>("/io/#"))
+        ->import(Log::import("/io/lib/log"))
+        //->import(Console::import("/io/lib/console"))
+        ->install(Terminal::singleton("/io/terminal"))
+        ->install(Log::create("/io/log"))
+        ->install(mmadt::Parser::singleton("/io/parser"));
+    //->import(mmadt::Parser::import("/io/lib/parser"))
+    //->mount(Heap<>::create("+/#"))
+    // TODO: ->with_bcode(OBJ_PARSER(string(
+    //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
+    //          "|<+/#>./fos/lib/heap/create(_);")));
 
-  FOS_TEST_OBJ_NTEQL(Obj::to_noobj(),Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID))));
-  FOS_TEST_OBJ_EQUAL(Obj::to_noobj(),Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router"))));
-}
+    FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID))));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router"))));
+  }
 
-FOS_RUN_TESTS( //
-     FOS_RUN_TEST(test_basic_kernel); //
-     )
+  FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_basic_kernel); //
+      )
 } // namespace fhatos
 
 SETUP_AND_LOOP();
