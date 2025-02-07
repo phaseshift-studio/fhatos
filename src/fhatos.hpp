@@ -210,7 +210,7 @@ namespace fhatos {
 #define FOS_BOOT_CONFIG_HEADER_URI "/boot_config.hpp"
   static unsigned int boot_config_obj_copy_len = 0;
   static unsigned char* boot_config_obj_copy;
-#define FOS_BOOT_CONFIG_MEM_USAGE 16384
+#define FOS_BOOT_CONFIG_MEM_USAGE 24576
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
     if ((p) != nullptr)                                                                                                \

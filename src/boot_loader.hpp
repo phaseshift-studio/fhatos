@@ -29,12 +29,10 @@
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/console.hpp"
-#include "model/soc/esp/ota.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
-//#include "structure/stype/fs/base_fs.hpp"
 #include "lang/processor/processor.hpp"
 ///////////// COMMON MODELS /////////////
 #ifdef NATIVE
@@ -49,13 +47,14 @@
 #ifdef CONFIG_SPIRAM_USE
 #include "util/esp32/psram_allocator.hpp"
 #endif
+#include "model/soc/esp/ota.hpp"
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
 #include "model/driver/pin/arduino_i2c.hpp"
 #include "model/sensor/aht10/aht10.hpp"
-
+#include "model/ui/oled/oled.hpp"
 #endif
 
 #ifdef NATIVE
@@ -70,12 +69,16 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
   public:
-    static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
+    static ptr<Kernel> primary_boot(ArgvParser *args_parser) {
       std::srand(std::time(nullptr));
       try {
 #ifdef CONFIG_SPIRAM_USE
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
+
+#endif
+#ifdef ESP_ARCH
+        args_parser->set_option("--boot:config","/boot/boot_config.obj");
 #endif
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
@@ -101,7 +104,7 @@ namespace fhatos {
         ////////////////// SYS STRUCTURE ///////////////////////////
         ///////////////////////////////////////////////////////////
         kp->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("/boot/#",id_p("/sys/structure/boot")))
+            ->mount(Heap<>::create("/boot/#", id_p("/sys/structure/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
             ->import(Router::import())
             ->drop_config("router")
@@ -115,10 +118,10 @@ namespace fhatos {
             ->import(Mqtt::import("/sys/structure/lib/mqtt"))
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#",id_p("/sys/structure/mmadt")))
+            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/sys/structure/mmadt")))
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create("/io/#",id_p("/sys/structure/io")))
+            ->mount(Heap<>::create("/io/#", id_p("/sys/structure/io")))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import("/io/lib/console"))
@@ -134,10 +137,10 @@ namespace fhatos {
                                       {"DEBUG", lst()},
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
-            ->mount(Heap<>::create("+/#",id_p("/sys/structure/cache")))
+            ->mount(Heap<>::create("+/#", id_p("/sys/structure/cache")))
             ->import(FSx::import("/sys/structure/lib/fs"))
             ->mount(FSx::create("/disk/#", id_p("/sys/structure/disk"),
-                                           Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
+                                Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
 #if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import("/io/lib/gpio"))
@@ -145,13 +148,14 @@ namespace fhatos {
             ->import(ArduinoI2C::import("/io/lib/i2c"))
             ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
             ->import(AHT10::import("/sensor/lib/aht10"))
+            ->import(OLED::import("/sensor/lib/oled"))
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
              ->mount(Structure::create<Memory>("/soc/memory/#"))
-             ->mount(Heap<>::create("/soc/ota/#"),id_p("/sys/structure/ota"))
+             ->mount(Heap<>::create("/soc/ota/#",id_p("/sys/structure/ota")))
              ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
              ->drop_config("ota")
              //->mount(HeapPSRAM::create("/psram/#"))

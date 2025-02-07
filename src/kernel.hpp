@@ -142,8 +142,8 @@ namespace fhatos {
     }
 
     static ptr<Kernel> import(const void *) {
-     // TODO: arg should take a tid
-     // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid_->toString().c_str());
+      // TODO: arg should take a tid
+      // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid_->toString().c_str());
       return Kernel::build();
     }
 
@@ -178,7 +178,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_boot_config(const fURI& boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
+    static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
@@ -189,8 +189,8 @@ namespace fhatos {
         fhatos::FSx::load_boot_config(boot_config_loader);
         if(boot_config_obj_copy_len > 0) {
           LOG_KERNEL_OBJ(INFO, Router::singleton(),
-            "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
-            boot_config_obj_copy_len);
+                         "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
+                         boot_config_obj_copy_len);
           to_free_boot = true;
         }
       }
@@ -204,8 +204,8 @@ namespace fhatos {
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-        MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
-        config_obj = Router::singleton()->read(config_id);
+         MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
+         config_obj = Router::singleton()->read(config_id);
       }
       if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         free(boot_config_obj_copy);

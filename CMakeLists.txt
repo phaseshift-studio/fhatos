@@ -11,12 +11,14 @@ IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     INCLUDE(CTest)
 ENDIF()
 ###### CPACK INCLUDE ######
+IF(DO_NOT_USE)
 STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" is_top_level)
 OPTION(TOP_LEVEL_INCLUDE_PACKAGING "include project packaging rules" "${is_top_level}")
 IF(TOP_LEVEL_INCLUDE_PACKAGING)
     SET(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${CPACK_PACKAGE_NAME}/${CMAKE_PROJECT_VERSION}")
     SET(CPACK_SET_DESTDIR ${CMAKE_BINARY_DIR})
     INCLUDE(CPack)
+ENDIF()
 ENDIF()
 ##############################################
 ##############################################
@@ -143,13 +145,14 @@ ELSE()
 ENDIF()
 ################################
 SET(ENV{no-dev})
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+#SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_C_COMPILER_VERSION 14)
 SET(CMAKE_CXX_COMPILER_VERSION 14)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra ${CMAKE_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g ${CMAKE_CXX_FLAGS_DEBUG}")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
+# SET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use")
 ####################################################################
 ####################################################################
 ####################################################################
@@ -159,7 +162,7 @@ OPTION(CHECK_INTERNET "check internet" ON)
 OPTION(BUILD_TESTS "build fhatos tests" OFF)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
-OPTION(USE_CCACHE "use ccache" ON)
+OPTION(USE_CCACHE "use ccache" OFF)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
@@ -172,6 +175,7 @@ ENDIF()
 ####################### CPACK PACKAGING ############################
 ####################################################################
 MESSAGE(CHECK_START "${.y}configuring packaging with cpack${..}")
+IF(DO_NOT_USE)
 IF(TOP_LEVEL_INCLUDE_PACKAGING)
     SET(CPACK_PACKAGE_NAME ${PROJECT_NAME})
     SET(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
@@ -195,23 +199,25 @@ IF(TOP_LEVEL_INCLUDE_PACKAGING)
 ELSE()
     MESSAGE(NOTICE "${PROJECT_NAME} is not the ${.r}top level project${..}. Using enclosing project's ${.y}CPack${..} configurations.")
 ENDIF()
+ENDIF()
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 SET(FOS_MACHINE_SUBOS ${CMAKE_SYSTEM})
 SET(FOS_MACHINE_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 MESSAGE(NOTICE "
 \t  \t${.m}-----${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pr${.m}op${.y}eR${.g}Ti${.r}Es${.m}-----${..}
-\t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
-\t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
-\t  ${.g}CMAKE_SOURCE_DIR${..}   : ${CMAKE_SOURCE_DIR}
-\t  ${.g}CMAKE_BINARY_DIR${..}   : ${CMAKE_BINARY_DIR}
-\t  ${.g}FOS_SKIP_CMAKE${..}     : ${FOS_SKIP_CMAKE}
-\t  ${.g}FOS_LOGGING${..}        : ${FOS_LOGGING}
-\t  ${.g}CHECK_INTERNET${..}     : ${CHECK_INTERNET}
-\t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
-\t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
-\t  ${.g}SANITIZER${..}          : ${SANITIZER}
-\t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
+\t  ${.g}PROJECT_NAME${..}                  : ${PROJECT_NAME}
+\t  ${.g}CMAKE_BUILD_TYPE${..}              : ${CMAKE_BUILD_TYPE}
+\t  ${.g}CMAKE_SOURCE_DIR${..}              : ${CMAKE_SOURCE_DIR}
+\t  ${.g}CMAKE_BINARY_DIR${..}              : ${CMAKE_BINARY_DIR}
+\t  ${.g}FOS_SKIP_CMAKE${..}                : ${FOS_SKIP_CMAKE}
+\t  ${.g}FOS_LOGGING${..}                   : ${FOS_LOGGING}
+\t  ${.g}CHECK_INTERNET${..}                : ${CHECK_INTERNET}
+\t  ${.g}BUILD_TESTS${..}                   : ${BUILD_TESTS}
+\t  ${.g}BUILD_DOCS${..}                    : ${BUILD_DOCS}
+\t  ${.g}SANITIZER${..}                     : ${SANITIZER}
+\t  ${.g}USE_CCACHE${..}                    : ${USE_CCACHE}
+\t  ${.g}CMAKE_CXX_INCLUDE_WHAT_YOU_USE${..}: ${CMAKE_CXX_INCLUDE_WHAT_YOU_USE}
 
 \t  \t${.m}-----${.c}S${.y}T${.r}A${.c}T${.m}I${.b}C ${.r}pR${.m}OP${.y}Er${.g}tI${.r}eS${.m}-----${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}

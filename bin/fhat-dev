@@ -201,12 +201,15 @@ make_native() {
     mkdir -p build
     cd build || exit 1;
     status_check $? "mkdir and cd build"
+    mkdir -p exclude
+    mv ../src/model/ui exclude
     echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF --parallel ${j} ${extra_args}; make -j${j} -o${o}${RB}"
     cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF ${extra_args};
     status_check $? "cmake"
     make -j"${j}" -o"${o}"; # j parallel and o1 low optimization level
     status_check $? "make"
     cd ..;
+    mv build/exclude/ui src/model/
   fi
 }
 

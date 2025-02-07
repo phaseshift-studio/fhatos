@@ -49,7 +49,7 @@ namespace fhatos {
     static void load_boot_config(const fURI boot_config = FOS_BOOT_CONFIG_FS_URI) {
       try {
         if(!FOS_FS.begin()) return;
-        fs::File file = FOS_FS.open(boot_config->toString(),"r", false);
+        fs::File file = FOS_FS.open(boot_config.toString().c_str(),"r");
         if(!file) return;
         const String content = file.readString();
         const char* c = content.c_str();

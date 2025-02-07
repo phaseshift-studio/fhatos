@@ -169,9 +169,11 @@ namespace mmadt {
       if(ret.ret) {
         LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(source)->toString().c_str(),
                 result->toString().c_str());
+        if(result->is_empty_bcode())
+          return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
         return std::move(result->is_bcode() && result->bcode_value()->size() == 1
-                           ? result->bcode_value()->front()
-                           : result);
+                               ? result->bcode_value()->front()
+                               : result);
       } else {
         ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
         throw fError("parse failed: %s\n", source);
@@ -509,8 +511,8 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////// START //////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      START <= seq(opt(COMMENT), opt(OBJ), zom(cho(
-                       COMMENT,
+      START <= seq(opt(~COMMENT), opt(OBJ), zom(cho(
+                       ~COMMENT,
                        seq(END, START),
                        seq(lit("."), OBJ),
                        SUGAR_INST

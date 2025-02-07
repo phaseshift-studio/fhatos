@@ -1,17 +1,25 @@
-  FUNCTION(CREATE_TARGET TARGET_NAME)
+FUNCTION(CREATE_TARGET TARGET_NAME)
       IF(APPLE)
           SET(CMAKE_MACOSX_RPATH 1)
       ENDIF()
       MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
       MESSAGE(CHECK_START "${.y}making ${TARGET_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
       MESSAGE(STATUS "${.y}build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
+      ############# IGNORED SOURCE/HEADER FILES ##############
+      FILE(GLOB_RECURSE TO_REMOVE RELATIVE "${CMAKE_SOURCE_DIR}" "src/model/ui/*.*")
+      MESSAGE(STATUS "${.y}ignoring files${..}: ${.g}${TO_REMOVE}${..}")
+      ########################################################
       FILE(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+      LIST(REMOVE_ITEM SOURCES ${TO_REMOVE})
       MESSAGE(STATUS "${.y}adding source files${..}: ${.g}${SOURCES}${..}")
       FILE(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_SOURCE_DIR} "src/*.hpp")
+      LIST(REMOVE_ITEM HEADERS ${TO_REMOVE})
       MESSAGE(STATUS "${.y}adding header files${..}: ${.g}${HEADERS}${..}")
       IF(USE_CCACHE)
           SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
       ENDIF()
+
+      ########################################################
       SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
               ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -23,11 +31,11 @@
       TARGET_COMPILE_FEATURES(${TARGET_NAME} PRIVATE cxx_std_20)
       ##### PRECOMPILED HEADERS #####
       SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-      STRING(CONCAT HEADER_FILES
+      STRING(CONCAT HEADERS
               "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;"
               "<queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
-      MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADER_FILES}${..}")
-      TARGET_PRECOMPILE_HEADERS(${TARGET_NAME} PUBLIC ${HEADER_FILES})
+      MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADERS}${..}")
+      TARGET_PRECOMPILE_HEADERS(${TARGET_NAME} PUBLIC ${HEADERS})
       ###############################
       IF(APPLE)
           ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)

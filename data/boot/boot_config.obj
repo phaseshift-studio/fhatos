@@ -21,17 +21,5 @@
   log=>INFO,
   stack_size=>24288
  ],
- log=>[
-    ERROR=>[#],
-    INFO=>[#],
-    WARN=>[],
-    DEBUG=>[],
-    TRACE=>[],
-    NONE=>[#]
- ],
- ota=>[
-  host=>fhatos_ota,
-  port=>3232
- ],
  fs=>[root=><disk>]
 ]@/boot/config

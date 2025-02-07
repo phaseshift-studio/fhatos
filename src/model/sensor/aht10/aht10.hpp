@@ -42,7 +42,7 @@ namespace fhatos {
   
   public:
     explicit AHT10(const ID &id, const ID& i2c_id, const int addr, const ptr<AHTxx>& ahtxx) : Rec(rmap({
-          {"config",Obj::to_rec({{"addr",jnt(addr)},{"i2c",from(vri(i2c_id))}})},
+          {"config",Obj::to_rec({{"addr",jnt(addr)},{"i2c",vri(i2c_id)}})},
         {"humidity",
           InstBuilder::build(id.extend("humidity"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})

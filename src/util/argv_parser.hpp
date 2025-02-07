@@ -42,6 +42,10 @@ namespace fhatos {
       }
     }
 
+    void set_option(const string &option, const string& value) {
+      this->map_.insert_or_assign(option,value);
+    }
+
     string option_string(const string &option, const char *or_else) const {
       return this->map_.count(option) ? this->map_.at(option) : or_else;
     }
