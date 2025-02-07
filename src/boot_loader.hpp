@@ -145,12 +145,12 @@ namespace fhatos {
                                 Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
 #if defined(ESP_ARCH)
-            ->import(ArduinoGPIO::import("/io/lib/gpio"))
+            ->import(ArduinoGPIO::import())
             ->import(ArduinoPWM::import("/io/lib/pwm"))
-            ->import(ArduinoI2C::import("/io/lib/i2c"))
+            ->import(ArduinoI2C::import())
             ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
             ->import(AHT10::import("/sensor/lib/aht10"))
-            ->import(OLED::import("/sensor/lib/oled"))
+            ->import(OLED::import())
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),

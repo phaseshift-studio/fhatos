@@ -46,17 +46,17 @@ namespace fhatos {
     explicit AHT10(const ID &id, const ID &i2c_id, const int addr, const ptr<AHTxx> &ahtxx) :
       Rec(rmap({
               {"config", Obj::to_rec({{"addr", jnt(addr)}, {"i2c", vri(i2c_id)}})}}), OType::REC, REC_FURI, id_p(id)) {
-      GLOBAL::singleton()->offer(this->vid_, ahtxx);
+      GLOBAL::singleton()->store(this->vid_, ahtxx);
       InstBuilder::build(id.add_component("humidity"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
           ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
-            return real(GLOBAL::singleton()->take<ptr<AHTxx>>(lhs->vid_)->readHumidity());
+            return real(GLOBAL::singleton()->load<ptr<AHTxx>>(lhs->vid_)->readHumidity());
           })
           ->save();
       InstBuilder::build(id.add_component("celcius"))
           ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
-            return real(GLOBAL::singleton()->take<ptr<AHTxx>>(lhs->vid_)->readTemperature());
+            return real(GLOBAL::singleton()->load<ptr<AHTxx>>(lhs->vid_)->readTemperature());
           })
           ->save();
     }

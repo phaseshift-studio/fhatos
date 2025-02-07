@@ -37,21 +37,33 @@ namespace fhatos {
       return global;
     }
 
-    void offer(const ID_p &id, const Any &thing) {
+    template <typename T>
+    T store(const ID_p &id, const T &thing) {
       auto lock = std::lock_guard(this->map_mutex);
       this->data_->insert_or_assign(id, thing);
+      return thing;
+    }
+
+    bool exists(const ID_p &id) {
+      auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
+      return this->data_->count(id) > 0;
     }
 
     template<typename T>
-    T take(const ID_p &id, const bool remove = false) {
-      auto lock = std::lock_guard(this->map_mutex); // TODO: on read, use a shared lock
+    T load(const ID_p &id) {
+      auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
       if(!this->data_->count(id))
         throw fError::create(id->toString(), "no global value associated with !b%s!!", id->toString().c_str());
       const Any thing = this->data_->at(id);
       const T t = std::any_cast<T>(thing);
-      if(remove)
-        this->data_->erase(id);
       return t;
+    }
+
+    void remove(const ID_p &id) {
+      auto lock = std::lock_guard(this->map_mutex);
+      if(!this->data_->count(id))
+        return;
+      this->data_->erase(id);
     }
   };
 }

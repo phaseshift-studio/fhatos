@@ -18,7 +18,7 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_arduino_i2c_hpp
 #define fhatos_arduino_i2c_hpp
-#ifndef NATIVEd
+#ifndef NATIVE
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
@@ -26,6 +26,7 @@ FhatOS: A Distributed Operating System
 #include "../../../structure/router.hpp"
 #include "../../../util/obj_helper.hpp"
 #include STR(../../../process/ptype/HARDWARE/scheduler.hpp)
+#include "arduino_gpio.hpp"
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -44,7 +45,7 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   static ID_p I2C_FURI = id_p("/fos/i2c");
 
-  class ArduinoI2C final : public Rec {
+  class ArduinoI2C final {
 
   public:
     static std::pair<const char *, const char *> i2c_device_description(const int addr) {
@@ -68,34 +69,21 @@ namespace fhatos {
       }
     }
 
-    explicit ArduinoI2C(const int sda_pin, const int scl_pin, const int freq, const ID_p &value_id = nullptr) :
-      Rec(rmap({{"sda", jnt(sda_pin)},
-                {"scl", jnt(scl_pin)},
-                {"freq", jnt(freq)}}),
-          OType::REC, I2C_FURI, value_id) {
-    }
-
-    static inline void *import(const ID &lib_id = "/io/lib/i2c") {
+    static void *import() {
       Typer::singleton()->save_type(I2C_FURI, Obj::to_rec({
-                                        {"sda", Obj::to_type(INT_FURI)},
-                                        {"scl", Obj::to_type(INT_FURI)}}));
-      InstBuilder::build(ID(lib_id.extend(":create")))
-          ->domain_range(OBJ_FURI, {0, 1}, I2C_FURI, {1, 1})
-          ->inst_args(rec({{"sda", Obj::to_type(INT_FURI)},
-                           {"scl", Obj::to_type(INT_FURI)},
-                           {"freq", jnt(50000)},
-                           {"id", Obj::to_noobj()}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return make_shared<Obj>(
-                ArduinoI2C(
-                    args->arg("sda")->int_value(),
-                    rgs->arg("scl")->int_value(),
-                    args->arg("freq")->int_value(),
-                    args->arg("id")->is_noobj() ? nullptr : id_p(args->arg("id")->uri_value())));
+                                        {"sda", Obj::to_type(GPIO_FURI)},
+                                        {"scl", Obj::to_type(GPIO_FURI)},
+                                        {"freq", Obj::to_type(INT_FURI)}}));
+      InstBuilder::build(I2C_FURI->add_component("setup"))
+          ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &) {
+            Wire.begin(i2c->rec_get("sda")->int_value(), i2c->rec_get("scl")->int_value());
+            Wire.setClock(i2c->rec_get("freq")->int_value());
+            return i2c;
           })
           ->save();
       //////////////////////////////////////////////////////////////////////////////////
-      InstBuilder::build(ID(lib_id.extend(":find")))
+      InstBuilder::build(ID(I2C_FURI->extend(":find")))
           ->domain_range(OBJ_FURI, {0, 1}, LST_FURI, {1, 1})
           ->inst_args(rec({{"low_pin", jnt(0)}, {"high_pin", jnt(GPIO_PIN_COUNT)}, {"halt_on_find", dool(true)}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
@@ -108,15 +96,15 @@ namespace fhatos {
                 Scheduler::singleton()->feed_local_watchdog();
                 if(i != j && i != 1 && j != 1 && i != 3 && j != 3 /*&&
                             Helper::gpioToD(i) != 111 && Helper::gpioToD(j) != 111*/) {
-                  const ArduinoI2C temp_i2c = ArduinoI2C(i, j);
-                  LOG(INFO, FOS_TAB_1 "!ychecking existence of %s\n", temp_i2c.toString().c_str());
-                  int found = temp_i2c.rec_get(":scan")->apply(Obj::to_noobj())->int_value();
+                  // const ArduinoI2C temp_i2c = ArduinoI2C(i, j);
+                  // LOG(INFO, FOS_TAB_1 "!ychecking existence of %s\n", temp_i2c.toString().c_str());
+                  /*int found = temp_i2c.rec_get(":scan")->apply(Obj::to_noobj())->int_value();
                   if(found > 0) {
                     LOG(INFO, "i2c pins located %i/%i", i, j);
                     i2c_pins->lst_add(Obj::to_rec({{"sda", jnt(i)}, {"scl", jnt(j)}}));
                     if(halt_on_find)
                       return i2c_pins;
-                  }
+                  }*/
                 }
               }
             }
@@ -124,17 +112,17 @@ namespace fhatos {
           })
           ->save();
       InstBuilder::build(I2C_FURI->add_component("scan"))
-          ->domain_range(OBJ_FURI, {0, 1}, LST_FURI, {1, 1})
-          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+          ->domain_range(I2C_FURI, {1, 1}, LST_FURI, {1, 1})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
             const Lst_p result_set = Obj::to_lst();
-            Rec_p i2c_rec = lhs;
             try {
-              if(!Wire.begin(i2c_rec->rec_get("sda")->int_value(),
-                             i2c_rec->rec_get("scl")->int_value())) {
-                LOG_OBJ(ERROR, i2c_rec, "!runable to communicate!! with %s!!\n",
-                        i2c_rec->toString().c_str());
+              if(!Wire.begin(i2c->rec_get("sda")->int_value(),
+                             i2c->rec_get("scl")->int_value())) {
+                LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
+                        i2c->toString().c_str());
                 return result_set;
               }
+              Wire.setClock(i2c->rec_get("freq")->int_value());
               for(int i = 8; i < 120; i++) {
                 Scheduler::singleton()->feed_local_watchdog();
                 Wire.beginTransmission(i);
@@ -151,7 +139,7 @@ namespace fhatos {
               }
             } catch(const std::exception &e) {
               Wire.end();
-              throw fError("i2c %s bus error: %s", i2c_rec->toString().c_str(), e.what());
+              throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
             }
             Wire.end();
             return result_set;

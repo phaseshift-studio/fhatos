@@ -340,7 +340,6 @@ namespace fhatos {
     return found ? found : nullptr;
   }
 
-
   [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
     if(!this->active)
       return furi_p(furi);

@@ -555,6 +555,12 @@ namespace fhatos {
       return this->value<fURI>();
     }
 
+    [[nodiscard]] Obj_p uri_resolve() const {
+      if(!this->is_uri())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return ROUTER_READ(furi_p(this->uri_value()));
+    }
+
     [[nodiscard]] ID_p id_p_value() const {
       if(!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);

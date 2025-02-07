@@ -18,7 +18,7 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_arduino_gpio_hpp
 #define fhatos_arduino_gpio_hpp
-
+#ifndef NATIVE
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
 #include "../../../lang/obj.hpp"
@@ -35,62 +35,31 @@ FhatOS: A Distributed Operating System
 //#endif
 
 namespace fhatos {
-  class ArduinoGPIO final : public Rec {
+  static ID_p GPIO_FURI = id_p("/fos/gpio");
+
+  class ArduinoGPIO final {
   public:
-    explicit ArduinoGPIO(const ID &value_id) : Rec(
-      rmap({
-        {"write",
-          InstBuilder::build(value_id.extend("write"))
-          ->domain_range(INT_FURI, {0, 1}, INT_FURI, {0, 1})
-          ->inst_args(rec({
-            {"pin", Obj::to_type(INT_FURI)},
-            {"value", Obj::to_type(BOOL_FURI)}
-          }))
-          ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
-            const uint8_t pin = args->arg("pin")->int_value();
+    static void *import() {
+      Typer::singleton()->save_type(GPIO_FURI, Obj::to_type(INT_FURI));
+      InstBuilder::build(GPIO_FURI->add_component("write"))
+          ->domain_range(GPIO_FURI, {1, 1}, GPIO_FURI, {1, 1})
+          ->inst_args(rec({{"value", Obj::to_type(INT_FURI)}}))
+          ->inst_f([](const Obj_p &gpio, const InstArgs &args) {
+            const uint8_t pin = gpio->int_value();
             const uint8_t value = args->arg("value")->int_value();
             pinMode(pin, OUTPUT);
             digitalWrite(pin, value);
-            return lhs;
-          })
-          ->create()},
-        {"read",
-          InstBuilder::build(value_id.extend("read"))
-          ->domain_range(INT_FURI, {0, 1}, INT_FURI, {1, 1})
-          ->inst_args(rec({{"pin", Obj::to_type(INT_FURI)}}))
-          ->inst_f([this](const Obj_p &, const InstArgs &args) {
-            return jnt(digitalRead(args->arg("pin")->int_value()));
-          })
-          ->create()}}), OType::REC, REC_FURI, id_p(value_id)) {
-    }
-
-    static ptr<ArduinoGPIO> create(const ID &id) {
-      const auto gpios = std::make_shared<ArduinoGPIO>(id);
-      Router::singleton()->subscribe(
-        Subscription::create(id_p(id), p_p(id.resolve("./+")),
-                             InstBuilder::build(id.extend("s_write"))
-                             ->inst_args(rec({
-                               {"target", Obj::to_bcode()},
-                               {"payload", Obj::to_bcode()},
-                               {"retain", Obj::to_bcode()}}))
-                             ->inst_f([id](const Obj_p &lhs, const InstArgs &args) {
-                               const Int_p pin = jnt(stoi(args->arg("target")->uri_value().name()));
-                               return Obj::to_inst(to_inst_args({pin, lhs}), id_p(id.resolve("./write")))->
-                                   apply(lhs);
-                             })->create(id_p(id.extend("s_write")))));
-      return gpios;
-    }
-
-    static void *import(const ID &lib_id = "/io/lib/gpio") {
-      //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      InstBuilder::build(ID(lib_id.extend(":create")))
-          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_args(rec({{"id", Obj::to_bcode()}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return make_shared<Obj>(ArduinoGPIO(args->arg("id")->uri_value()));
+            return gpio;
+          })->save();
+      ///////////////////////////////////////////////////////
+      InstBuilder::build(GPIO_FURI->add_component("read"))
+          ->domain_range(GPIO_FURI, {1, 1}, INT_FURI, {1, 1})
+          ->inst_f([](const Obj_p &gpio, const InstArgs &) {
+            return jnt(digitalRead(gpio->int_value()));
           })->save();
       return nullptr;
     }
   };
 } // namespace fhatos
+#endif
 #endif
