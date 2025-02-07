@@ -103,7 +103,9 @@ namespace fhatos {
         ////////////////////////////////////////////////////////////
         ////////////////// SYS STRUCTURE ///////////////////////////
         ///////////////////////////////////////////////////////////
-        kp->mount(Heap<>::create("/sys/#"))
+        kp
+            ->mount(Heap<>::create("/sys/#"))
+            ->mount(Heap<>::create("/fos/#"))
             ->mount(Heap<>::create("/boot/#", id_p("/sys/structure/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
             ->import(Router::import())
@@ -174,7 +176,7 @@ namespace fhatos {
                                       Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/console"))))
             ->drop_config("console")
             ->eval([args_parser] {
-
+              Router::singleton()->write(id_p("/sys/structure/boot"), Obj::to_noobj()); // shutdown the boot partition
               delete args_parser;
             });
       } catch(const std::exception &e) {

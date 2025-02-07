@@ -1,9 +1,9 @@
 #pragma once
 #ifndef fhatos_memory_helper_hpp
 #define fhatos_memory_helper_hpp
-
 #include "../fhatos.hpp"
 #ifdef ESP_ARCH
+#include "../process/process.hpp"
 #include "semphr.h"
 #include "esp_expression_with_stack.h"
 #endif
@@ -18,7 +18,7 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ESP_ARCH
   static void use_custom_stack(const Runnable_p f,const int stack_size) {
-    LOG(INFO,"!ycreating a temporary custom stack!! of %i bytes\n",stack_size);
+    LOG_OBJ(INFO,fhatos::Process::current_process(), "!ytemporary stack!! created (%i bytes)\n",stack_size);
     //Allocate a stack buffer, from heap or as a static form:
     int arch_specific_stack_size = stack_size * sizeof(portSTACK_TYPE);
     portSTACK_TYPE *custom_stack = (portSTACK_TYPE*)malloc(arch_specific_stack_size);
@@ -29,7 +29,7 @@ namespace fhatos {
     ESP_EXECUTE_EXPRESSION_WITH_STACK(custom_stack_lock, custom_stack,arch_specific_stack_size,f);
     vSemaphoreDelete(custom_stack_lock);
     free(custom_stack);
-    LOG(INFO,"!yremoving temporary custom stack!! of %i bytes\n",stack_size);
+     LOG_OBJ(INFO,fhatos::Process::current_process(),"!ytemporary stack!! destroyed (%i bytes)\n",stack_size);
   }
 #else
     inline static void use_custom_stack(const Runnable_p f, const int) {
