@@ -41,8 +41,6 @@ namespace fhatos {
     ID map_fos_to_fs(const ID_p &fos_id) const {
       auto fs_id = ID(*fos_id);
       const fURI fs_retracted_id = fs_id.remove_subpath(this->pattern->retract_pattern().toString());
-     // LOG(INFO, "current pretracted pattern: %s\n", fs_retracted_id.toString().c_str());
-     // LOG(INFO, "current extended root: %s\n", this->root.extend(fs_retracted_id).toString().c_str());
       return this->root.extend(fs_retracted_id);
     }
 
@@ -56,7 +54,7 @@ namespace fhatos {
   public:
     template<typename STRUCTURE>
     static void *import(const ID &import_id) {
-      static_assert(std::is_base_of_v<BaseFS, STRUCTURE>, "STRUCTURE should be derived from BaseMqtt");
+      static_assert(std::is_base_of_v<BaseFS, STRUCTURE>, "STRUCTURE should be derived from BaseFS");
       Router::import_structure<STRUCTURE>(import_id, FS_FURI);
       return nullptr;
     }
