@@ -278,7 +278,9 @@ namespace fhatos {
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if(!this->available_.load()) {
-        throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s\n", obj->toString().c_str());
+        throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s to !b%s!!\n",
+                             obj->toString().c_str(),
+                             furi->toString().c_str());
       }
       try {
         if(furi->has_query()) {

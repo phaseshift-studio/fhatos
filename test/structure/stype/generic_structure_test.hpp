@@ -16,6 +16,7 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#pragma once
 #include "../../../src/fhatos.hpp"
 #include "../../test_fhatos.hpp"
 #include "../../../src/structure/structure.hpp"
@@ -25,24 +26,27 @@ namespace fhatos {
   class GenericStructureTest {
 protected:
      const Structure_p structure_;
-     const ID_p prefix;
+     const ID_p prefix_;
 public:
-    GenericStructureTest(const Structure_p& structure): structure_(structure) {
+     explicit GenericStructureTest(const Structure_p& structure):
+      structure_(structure),
+      prefix_(id_p(structure->pattern->retract_pattern())) {
+       Router::singleton()->attach(structure);
 
-   }
+     };
 
-   ID_p p(const fURI& furi) {
-     return id_p(prefix->extend(furi));
-   }
+   [[nodiscard]] ID_p p(const fURI& furi) const {
+     return id_p(prefix_->extend(furi));
+   };
 
-   void test_write() {
+   void test_write() const {
     for(int i=0;i<50;i++) {
      structure_->write(p(string("a").append(to_string(i))),jnt(i*10));
-      }
+     }
 
      for(int i=0;i<50;i++) {
-       TEST_ASSERT_EQUAL_INT(i*10,structure_->read(p(string("a").append(to_string(i))));
+       TEST_ASSERT_EQUAL_INT(i*10,structure_->read(p(string("a").append(to_string(i))))->int_value());
       }
-    }
+    };
 };
 }

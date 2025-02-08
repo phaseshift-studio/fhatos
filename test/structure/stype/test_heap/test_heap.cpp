@@ -25,34 +25,26 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PROCESSOR
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
+#include "../generic_structure_test.hpp"
 
 namespace fhatos {
+  using namespace mmadt;
 
-   ptr<Heap<>> test_heap = std::make_shared<Heap<>>("/xyz/#");
+  Structure_p test_heap = std::make_shared<Heap<>>("/xyz/#");
 
-   // in fhatos namespace
-   void setUp(void) {
-    static bool first = true;
-    if(first) Router::singleton()->attach(test_heap);
-    first =false;
-   }
-
-    void tearDown(void) {
-     Router::singleton()->write(id_p("/xyz/"),Obj::to_noobj(),true);
-     }
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 
   void run_test_suite() {
-
+    auto gen_test = GenericStructureTest(test_heap);
+    gen_test.test_write();
   }
 
-
-
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(run_test_suite); //
-  )
+      FOS_RUN_TEST(run_test_suite); //
+      );
+
 } // namespace fhatos
 
 SETUP_AND_LOOP();
