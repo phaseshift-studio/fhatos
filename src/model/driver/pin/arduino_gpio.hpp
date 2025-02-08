@@ -18,21 +18,20 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_arduino_gpio_hpp
 #define fhatos_arduino_gpio_hpp
-#ifndef NATIVE
+//
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../../util/obj_helper.hpp"
 #include "../../../structure/router.hpp"
+//
 #ifdef ARDUINO
 #include <Arduino.h>
-#endif
-#ifdef RASPBERRYPI
+#elif defined(RASPBERRYPI)
 #include <wiringPi.h>
+#elif defined(NATIVE)
+#include "ext/gpio.h"
 #endif
-//#ifdef NATIVE
-//#include <wiringPi.h>
-//#endif
 
 namespace fhatos {
   static ID_p GPIO_FURI = id_p("/fos/gpio");
@@ -61,5 +60,4 @@ namespace fhatos {
     }
   };
 } // namespace fhatos
-#endif
 #endif

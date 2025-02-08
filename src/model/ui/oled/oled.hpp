@@ -2,7 +2,7 @@
 #ifndef fhatos_oled_hpp
 #define fhatos_oled_hpp
 
-#ifndef NATIVE
+#ifdef ARDUINO
 #define I2C_ADDRESS 0x3C
 
 #include "../../../fhatos.hpp"

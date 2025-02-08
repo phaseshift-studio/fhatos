@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NATIVE
 #include "SSD1306Ascii.h"
 //------------------------------------------------------------------------------
 uint8_t SSD1306Ascii::charWidth(uint8_t c) const {
@@ -393,3 +394,4 @@ size_t SSD1306Ascii::write(uint8_t ch) {
   setRow(srow);
   return 1;
 }
+#endif

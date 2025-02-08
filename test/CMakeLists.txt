@@ -138,6 +138,7 @@
             MAKE_TESTS(language/processor "test_processor" true)
             MAKE_TESTS(process "test_scheduler" true)
             MAKE_TESTS(structure "test_router;test_structure" true)
+            MAKE_TESTS(structure/stype "test_heap" true)
             # MAKE_TESTS(structure/stype/key_value "test_heap" , true)
             # IF(BUILD_MQTT_TESTS)
             #     MAKE_TESTS(structure/stype/mqtt "test_mqtt" , true)

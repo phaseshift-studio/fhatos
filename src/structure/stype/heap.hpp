@@ -62,7 +62,7 @@ namespace fhatos {
 
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      Obj_p send_obj;
+      Obj_p send_obj = Obj::to_noobj();
       if(retain) {
         auto lock = std::lock_guard<std::shared_mutex>(this->map_mutex);
         if(obj->is_noobj())

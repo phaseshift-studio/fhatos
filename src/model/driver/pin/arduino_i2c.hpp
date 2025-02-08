@@ -18,7 +18,6 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_arduino_i2c_hpp
 #define fhatos_arduino_i2c_hpp
-#ifndef NATIVE
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
@@ -31,16 +30,17 @@ FhatOS: A Distributed Operating System
 #ifdef ARDUINO
 #include <Arduino.h>
 #include <Wire.h>
-#endif
-#ifdef RASPBERRYPI
+#elif defined(RASPBERRYPI)
 #include <wiringPi.h>
+#elif defined(NATIVE)
+#include "ext/Wire.h"
 #endif
-// #ifdef NATIVE
-// #include <wiringPi.h>
-// #endif
 
 #define FOS_I2C_ADDR_STR "0x%x/%i"
 #define FOS_I2C_ADDR(a) a, a
+#ifndef GPIO_PIN_COUNT
+#define GPIO_PIN_COUNT 128
+#endif
 
 namespace fhatos {
   static ID_p I2C_FURI = id_p("/fos/i2c");
@@ -116,8 +116,8 @@ namespace fhatos {
           ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
             const Lst_p result_set = Obj::to_lst();
             try {
-              if(!Wire.begin(i2c->rec_get("sda")->int_value(),
-                             i2c->rec_get("scl")->int_value())) {
+              if(!Wire.begin((uint8_t)i2c->rec_get("sda")->int_value(),
+                             (uint8_t)i2c->rec_get("scl")->int_value())) {
                 LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
                         i2c->toString().c_str());
                 return result_set;
@@ -149,5 +149,4 @@ namespace fhatos {
     }
   };
 } // namespace fhatos
-#endif
 #endif

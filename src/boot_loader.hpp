@@ -34,34 +34,30 @@
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
+/////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
+/////////////////////////////////////////
+#include "model/driver/pin/arduino_gpio.hpp"
+#include "model/driver/pin/arduino_i2c.hpp"
+#include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #ifdef NATIVE
 #include "model/text/text.hpp"
-#endif
-
+#include "model/ui/rgbled/rgbled.hpp"
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
-#include STR(structure/stype/fs/HARDWARE/fs.hpp)
-
-//////////// ESP SOC MODELS /////////////
-#ifdef ESP_ARCH
-#ifdef CONFIG_SPIRAM_USE
-#include "util/esp32/psram_allocator.hpp"
-#endif
+////////////////////////////////////////
+#elif defined(ESP_ARCH)
 #include "model/soc/esp/ota.hpp"
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
-#include "model/driver/pin/arduino_gpio.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
-#include "model/driver/pin/arduino_i2c.hpp"
 #include "model/sensor/aht10/aht10.hpp"
 #include "model/ui/oled/oled.hpp"
+#include "model/ui/rgbled/rgbled.hpp"
+#ifdef CONFIG_SPIRAM_USE
+#include "util/esp32/psram_allocator.hpp"
 #endif
-
-#ifdef NATIVE
-#define FOS_FS_MOUNT string(getenv("FHATOS_HOME")).append("/data").c_str()
-#else
-#define FOS_FS_MOUNT "/"
 #endif
+////////////////////////////////////////
 
 namespace fhatos {
   class BootLoader {
@@ -144,10 +140,11 @@ namespace fhatos {
             ->mount(FSx::create("/disk/#", id_p("/sys/structure/disk"),
                                 Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
-#if defined(ESP_ARCH)
             ->import(ArduinoGPIO::import())
-            ->import(ArduinoPWM::import("/io/lib/pwm"))
             ->import(ArduinoI2C::import())
+#if defined(ESP_ARCH)
+            ->import(ArduinoPWM::import())
+            ->import(RGBLED::import())
             ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
             ->import(AHT10::import("/sensor/lib/aht10"))
             ->import(OLED::import())
@@ -158,7 +155,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
              ->mount(Structure::create<Memory>("/soc/memory/#"))
              ->mount(Heap<>::create("/soc/ota/#",id_p("/sys/structure/ota")))
-             ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
+           //  ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
              ->drop_config("ota")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif

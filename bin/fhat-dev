@@ -111,14 +111,23 @@ else
     echo -e " ${LB}parallel          ${GREEN}j=$j${NC}${RB}"
     echo -e " ${LB}optimization      ${GREEN}o=$o${NC}${RB}"
 
-  echo -e " ${MAGENTA}---------${NC}"
+  echo -e "\n${FHATOS} ${BLUE}installing dependencies${NC}\n"
+  echo -e " ${LB}dependency ${GREEN}rlwrap${NC}${RB}"
+  found=$(ldconfig -p | grep -q rlwrap)
+  if [ ! "${found}" ]; then
+    echo -e "   rlwrap ${GREEN}FOUND${NC}"
+  else
+    echo -e " ${LB}rlwrap${RB} ${RED}NOT FOUND${NC}"
+    sudo apt-get install -y rlwrap
+    [ $? -eq 0 ]  || exit 1
+  fi
   echo -e " ${LB}dependency ${GREEN}libpaho-mqtt-dev${NC}${RB}"
   found=$(ldconfig -p | grep -q libpaho-mqtt-dev)
   if [ ! "${found}" ]; then
     echo -e "   libpaho-mqtt-dev ${GREEN}FOUND${NC}"
   else
     echo -e " ${LB}libpaho-mqtt-dev${RB} ${RED}NOT FOUND${NC}"
-    sudo apt-get install -y libpaho-mqtt-dev rlwrap
+    sudo apt-get install -y libpaho-mqtt-dev
     [ $? -eq 0 ]  || exit 1
   fi
     echo -e " ${LB}dependency ${GREEN}libavahi-client-dev${NC}${RB}"
@@ -127,11 +136,27 @@ else
       echo -e "   libavahi-client-dev ${GREEN}FOUND${NC}"
     else
       echo -e " ${LB}libavahi-client-dev${RB} ${RED}NOT FOUND${NC}"
-      sudo apt-get install -y libavahi-client-dev rlwrap
+      sudo apt-get install -y libavahi-client-dev
       [ $? -eq 0 ]  || exit 1
     fi
-
-
+ echo -e " ${LB}dependency ${GREEN}libgpiod-dev${NC}${RB}"
+  found=$(ldconfig -p | grep -q libgpiod-dev)
+  if [ ! "${found}" ]; then
+    echo -e "   libgpiod-dev ${GREEN}FOUND${NC}"
+  else
+    echo -e " ${LB}libgpiod-dev${RB} ${RED}NOT FOUND${NC}"
+    sudo apt-get install -y gpiod libgpiod-dev
+    [ $? -eq 0 ]  || exit 1
+  fi
+  echo -e " ${LB}dependency ${GREEN}libi2c-dev${NC}${RB}"
+  found=$(ldconfig -p | grep -q libi2c-dev)
+  if [ ! "${found}" ]; then
+    echo -e "   libi2c-dev ${GREEN}FOUND${NC}"
+  else
+    echo -e " ${LB}libi2c-dev${RB} ${RED}NOT FOUND${NC}"
+    sudo apt-get install -y libi2c-dev
+    [ $? -eq 0 ]  || exit 1
+  fi
 fi
 ########################################################################
 ########################################################################
@@ -189,7 +214,7 @@ clean_rpi() {
 
 edit_partition() {
   if [[ $platform == esp32* ]]; then
-    pio run -t edit_partition -e esp32-t7-s3
+    pio run -t edit_partition -e "${platform}"
   fi
 }
 
@@ -201,15 +226,12 @@ make_native() {
     mkdir -p build
     cd build || exit 1;
     status_check $? "mkdir and cd build"
-    mkdir -p exclude
-    mv ../src/model/ui exclude
     echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF --parallel ${j} ${extra_args}; make -j${j} -o${o}${RB}"
     cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF ${extra_args};
     status_check $? "cmake"
     make -j"${j}" -o"${o}"; # j parallel and o1 low optimization level
     status_check $? "make"
     cd ..;
-    mv build/exclude/ui src/model/
   fi
 }
 
