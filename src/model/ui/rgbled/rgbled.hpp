@@ -21,14 +21,14 @@ namespace fhatos {
       Typer::singleton()->save_type(RGBLED_FURI,
                                     Obj::to_rec({
                                         {"color", Obj::to_rec({
-                                             {"r", Obj::to_type(INT_FURI)},
-                                             {"g", Obj::to_type(INT_FURI)},
-                                             {"b", Obj::to_type(INT_FURI)}})},
+                                             {"r", Obj::to_type(mmadt::UINT8_FURI)},
+                                             {"g", Obj::to_type(mmadt::UINT8_FURI)},
+                                             {"b", Obj::to_type(mmadt::UINT8_FURI)}})},
                                         {"config", Obj::to_rec({
                                              {"pin", Obj::to_rec({
-                                                  {"r", Obj::to_type(INT_FURI)},
-                                                  {"g", Obj::to_type(INT_FURI)},
-                                                  {"b", Obj::to_type(INT_FURI)}})}})}}));
+                                                  {"r", Obj::to_type(mmadt::UINT8_FURI)},
+                                                  {"g", Obj::to_type(mmadt::UINT8_FURI)},
+                                                  {"b", Obj::to_type(mmadt::UINT8_FURI)}})}})}}));
       ///////////////////////////////////////////////////////
       InstBuilder::build(RGBLED_FURI->add_component("setup"))
           ->domain_range(RGBLED_FURI, {1, 1}, RGBLED_FURI, {1, 1})

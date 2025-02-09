@@ -22,6 +22,7 @@
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../type.hpp"
+#include "mmadt.hpp"
 
 #define TOTAL_INSTRUCTIONS 100
 
@@ -29,10 +30,12 @@ namespace mmadt {
   using namespace fhatos;
   static const ID_p CHAR_FURI = id_p("/mmadt/char");
   static const ID_p INT8_FURI = id_p("/mmadt/int8");
+  static const ID_p UINT8_FURI = id_p("/mmadt/uint8");
   static const ID_p INT16_FURI = id_p("/mmadt/int16");
   static const ID_p INT32_FURI = id_p("/mmadt/int32");
   static const ID_p NAT_FURI = id_p("/mmadt/nat");
   static const ID_p CELSIUS_FURI = id_p("/mmadt/celsius");
+  static const ID_p PERCENT_FURI = id_p("/mmadt/%");
 
   class mmADT {
   public:
@@ -52,12 +55,24 @@ namespace mmadt {
       Typer::singleton()->save_type(INST_FURI, Obj::to_type(INST_FURI));
       Typer::singleton()->save_type(ERROR_FURI, Obj::to_type(ERROR_FURI));
       /////////////////////////////////////////////////////////////////////
-      Typer::singleton()->save_type(CHAR_FURI, Obj::to_type(CHAR_FURI));
+      Typer::singleton()->save_type(
+          CHAR_FURI,
+          *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
       Typer::singleton()->save_type(INT8_FURI, Obj::to_type(INT8_FURI));
+      Typer::singleton()->save_type(
+          UINT8_FURI,
+          *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
       Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
       Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
-      Typer::singleton()->save_type(NAT_FURI, Obj::to_type(NAT_FURI));
-      Typer::singleton()->save_type(CELSIUS_FURI, Obj::to_type(CELSIUS_FURI));
+      Typer::singleton()->save_type(
+          NAT_FURI,
+          *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
+      Typer::singleton()->save_type(
+          CELSIUS_FURI,
+          *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
+      Typer::singleton()->save_type(
+          PERCENT_FURI,
+          *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
 
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
@@ -66,7 +81,7 @@ namespace mmadt {
     static void import_base_inst() {
       Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/start"))
-      ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
+          ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
           ->type_args(x(0, "starts"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
@@ -74,7 +89,7 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/print"))
-      ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "to_print", Obj::to_bcode()))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             printer()->printf("%s\n", args->arg(0)->toString().c_str());
@@ -681,9 +696,9 @@ namespace mmadt {
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)
-                    return jnt(lhs->real_value() + args->arg(0)->real_value(), lhs->tid_, lhs->vid_);
+                    return real(lhs->real_value() + args->arg(0)->real_value(), lhs->tid_, lhs->vid_);
                   if(strcmp(op, "mult") == 0)
-                    return jnt(lhs->real_value() * args->arg(0)->real_value(), lhs->tid_, lhs->vid_);
+                    return real(lhs->real_value() * args->arg(0)->real_value(), lhs->tid_, lhs->vid_);
                   throw fError("unknown op %s\n", op);
                 })
             ->save();
@@ -726,7 +741,8 @@ namespace mmadt {
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   std::vector<std::pair<string, string>> values_a = lhs->uri_value().query_values();
-                  if(std::vector<std::pair<string, string>> values_b = args->arg(0)->uri_value().query_values(); !values_b.empty())
+                  if(std::vector<std::pair<string, string>> values_b = args->arg(0)->uri_value().query_values(); !
+                    values_b.empty())
                     values_a.insert(values_a.end(), values_b.begin(), values_b.end());
                   return vri((strcmp(op, "plus") == 0
                                 ? lhs->uri_value().extend(args->arg(0)->uri_value())

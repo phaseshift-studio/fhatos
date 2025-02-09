@@ -23,6 +23,7 @@ FhatOS: A Distributed Operating System
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
 #include "../../../lang/obj.hpp"
+#include "../../../lang/mmadt/type.hpp"
 #include "../../../util/obj_helper.hpp"
 #include "../../../util/global.hpp"
 #include "ext/ahtxx.hpp"
@@ -52,10 +53,10 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->save_type(AHT10_FURI, Obj::to_rec(
-                                    {{"celsius", Obj::to_type(REAL_FURI)},
-                                     {"humidity", Obj::to_type(REAL_FURI)},
+                                    {{"celsius", Obj::to_type(mmadt::CELSIUS_FURI)},
+                                     {"humidity", Obj::to_type(mmadt::PERCENT_FURI)},
                                      {"config", Obj::to_rec({
-                                          {"addr", Obj::to_type(INT_FURI)},
+                                          {"addr", Obj::to_type(mmadt::UINT8_FURI)},
                                           {"i2c", Obj::to_type(URI_FURI)}})}}));
       InstBuilder::build(AHT10_FURI->add_component("setup"))
           ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
