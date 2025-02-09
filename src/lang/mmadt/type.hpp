@@ -27,6 +27,12 @@
 
 namespace mmadt {
   using namespace fhatos;
+  static const ID_p CHAR_FURI = id_p("/mmadt/char");
+  static const ID_p INT8_FURI = id_p("/mmadt/int8");
+  static const ID_p INT16_FURI = id_p("/mmadt/int16");
+  static const ID_p INT32_FURI = id_p("/mmadt/int32");
+  static const ID_p NAT_FURI = id_p("/mmadt/nat");
+  static const ID_p CELSIUS_FURI = id_p("/mmadt/celsius");
 
   class mmADT {
   public:
@@ -45,8 +51,14 @@ namespace mmadt {
       Typer::singleton()->save_type(BCODE_FURI, Obj::to_type(BCODE_FURI));
       Typer::singleton()->save_type(INST_FURI, Obj::to_type(INST_FURI));
       Typer::singleton()->save_type(ERROR_FURI, Obj::to_type(ERROR_FURI));
-      //      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
-      //      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
+      /////////////////////////////////////////////////////////////////////
+      Typer::singleton()->save_type(CHAR_FURI, Obj::to_type(CHAR_FURI));
+      Typer::singleton()->save_type(INT8_FURI, Obj::to_type(INT8_FURI));
+      Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
+      Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
+      Typer::singleton()->save_type(NAT_FURI, Obj::to_type(NAT_FURI));
+      Typer::singleton()->save_type(CELSIUS_FURI, Obj::to_type(CELSIUS_FURI));
+
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }

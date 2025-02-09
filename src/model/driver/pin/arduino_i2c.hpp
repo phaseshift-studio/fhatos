@@ -78,10 +78,51 @@ namespace fhatos {
           ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
           ->inst_f([](const Obj_p &i2c, const InstArgs &) {
             Wire.begin(
-              (uint8_t)i2c->rec_get("sda")->int_value(),
-              (uint8_t)i2c->rec_get("scl")->int_value());
+                (uint8_t) i2c->rec_get("sda")->int_value(),
+                (uint8_t) i2c->rec_get("scl")->int_value());
             Wire.setClock(i2c->rec_get("freq")->int_value());
             return i2c;
+          })
+          ->save();
+      InstBuilder::build(I2C_FURI->add_component("stop"))
+          ->domain_range(I2C_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
+            Wire.end();
+            LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
+            return Obj::to_noobj();
+          })
+          ->save();
+      InstBuilder::build(I2C_FURI->add_component("scan"))
+          ->domain_range(I2C_FURI, {1, 1}, LST_FURI, {1, 1})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
+            const Lst_p result_set = Obj::to_lst();
+            try {
+              if(!Wire.begin((uint8_t) i2c->rec_get("sda")->int_value(),
+                             (uint8_t) i2c->rec_get("scl")->int_value())) {
+                LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
+                        i2c->toString().c_str());
+                return result_set;
+              }
+              Wire.setClock(i2c->rec_get("freq")->int_value());
+              for(int i = 8; i < 120; i++) {
+                Scheduler::singleton()->feed_local_watchdog();
+                Wire.beginTransmission(i);
+                const int result = Wire.endTransmission();
+                if(0 == result || 4 == result) {
+                  const auto desc = i2c_device_description(i);
+                  result_set->lst_add(Obj::to_rec({
+                      {"hex_addr", vri(StringHelper::int_to_hex(i).insert(0, "0x"))},
+                      {"int_addr", jnt(i)},
+                      {"model", Obj::to_str(desc.first)},
+                      {"type", Obj::to_str(desc.second)},
+                      {"status", Obj::to_str(0 == result ? "ok" : "error")}}));
+                }
+              }
+            } catch(const std::exception &e) {
+              Wire.end();
+              throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
+            }
+            return result_set;
           })
           ->save();
       //////////////////////////////////////////////////////////////////////////////////
@@ -111,40 +152,6 @@ namespace fhatos {
               }
             }
             return i2c_pins;
-          })
-          ->save();
-      InstBuilder::build(I2C_FURI->add_component("scan"))
-          ->domain_range(I2C_FURI, {1, 1}, LST_FURI, {1, 1})
-          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
-            const Lst_p result_set = Obj::to_lst();
-            try {
-              if(!Wire.begin((uint8_t)i2c->rec_get("sda")->int_value(),
-                             (uint8_t)i2c->rec_get("scl")->int_value())) {
-                LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
-                        i2c->toString().c_str());
-                return result_set;
-              }
-              Wire.setClock(i2c->rec_get("freq")->int_value());
-              for(int i = 8; i < 120; i++) {
-                Scheduler::singleton()->feed_local_watchdog();
-                Wire.beginTransmission(i);
-                const int result = Wire.endTransmission();
-                if(0 == result || 4 == result) {
-                  const auto desc = i2c_device_description(i);
-                  result_set->lst_add(Obj::to_rec({
-                      {"hex_addr", vri(StringHelper::int_to_hex(i).insert(0, "0x"))},
-                      {"int_addr", jnt(i)},
-                      {"model", Obj::to_str(desc.first)},
-                      {"type", Obj::to_str(desc.second)},
-                      {"status", Obj::to_str(0 == result ? "ok" : "error")}}));
-                }
-              }
-            } catch(const std::exception &e) {
-              Wire.end();
-              throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
-            }
-            Wire.end();
-            return result_set;
           })
           ->save();
       return nullptr;

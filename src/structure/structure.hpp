@@ -92,11 +92,7 @@ namespace fhatos {
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
-        subscription->on_recv()->apply(message->payload(), Obj::to_rec({
-                                           {"target", vri(message->target())},
-                                           {"payload", message->payload()},
-                                           {"retain", dool(message->retain())}
-                                       }));
+        subscription->apply(message);
         mail = this->outbox_->pop_front();
       }
     }
@@ -150,7 +146,7 @@ namespace fhatos {
         if(!obj->is_noobj()) {
           if(id->matches(*subscription->pattern())) {
             FEED_WATCDOG();
-            subscription->on_recv()->apply(obj, make_shared<Message>(id, obj,RETAIN));
+            subscription->apply(make_shared<Message>(id, obj,RETAIN));
           }
         }
       }
@@ -400,7 +396,6 @@ namespace fhatos {
     }
 
     /////////////////////////////////////////////////////////////////////////////
-  public:
     virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
     virtual IdObjPairs read_raw_pairs(const fURI_p &match) = 0;

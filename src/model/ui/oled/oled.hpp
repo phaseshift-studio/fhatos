@@ -25,7 +25,7 @@ namespace fhatos {
       Typer::singleton()->save_type(
           OLED_FURI, Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
                                   {"config", rec({
-                                       {"i2c_id", Obj::to_type(URI_FURI)},
+                                       {"i2c", Obj::to_type(URI_FURI)},
                                        {"addr", Obj::to_type(INT_FURI)}})}}));
       //////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////
@@ -73,13 +73,13 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
     static ptr<SSD1306AsciiWire> get_ssd1306(const Obj_p &oled) {
-      const ID_p state_id = id_p(OLED_FURI->extend(oled->rec_get("config/i2c_id")->uri_value()));
-      const bool exists = GLOBAL::singleton()->exists(state_id);
+      const ID_p i2c_id = id_p(OLED_FURI->extend(oled->rec_get("config/i2c")->uri_value()));
+      const bool exists = GLOBAL::singleton()->exists(i2c_id);
       const ptr<SSD1306AsciiWire> ssd1306 =
           exists
-            ? GLOBAL::singleton()->load<ptr<SSD1306AsciiWire>>(state_id)
+            ? GLOBAL::singleton()->load<ptr<SSD1306AsciiWire>>(i2c_id)
             : GLOBAL::singleton()->store<ptr<SSD1306AsciiWire>>(
-                state_id, make_shared<SSD1306AsciiWire>());
+                i2c_id, make_shared<SSD1306AsciiWire>());
       if(!exists) {
         ssd1306->begin(&Adafruit128x64, oled->rec_get("config/addr")->int_value());
         ssd1306->setFont(Verdana12_bold);

@@ -26,15 +26,21 @@
 
 namespace fhatos {
   class Fluent {
+
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(Obj_p bcode) : _bcode(std::move(bcode)) {
+    explicit Fluent(const Obj_p& bcode) :
+      _bcode(bcode) {
     }
 
-    explicit Fluent(const ID & = ID(/**UUID::singleton()->mint(7))*/ "fluent_id")) : Fluent(
-      Obj::to_bcode(List<Obj_p>({}))) {
+    explicit Fluent() :
+      Fluent(Obj::to_bcode()) {
+    }
+
+    static Fluent __() {
+      return Fluent();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -73,13 +79,13 @@ namespace fhatos {
     const BCode_p _bcode;
 
   protected:
-    [[nodiscard]] Fluent addInst(const Obj_p &inst) const {
-      List<Obj_p> instList = List<Obj_p>();
-      for(const auto &oldInst: *this->_bcode->bcode_value()) {
-       // instList.push_back(share(Obj(*oldInst)));
+    [[nodiscard]] Fluent extend(const Obj_p &inst) const {
+      const auto insts = make_shared<List<Obj_p>>();
+      for(const auto &old_inst: *this->_bcode->bcode_value()) {
+        insts->push_back(old_inst);
       }
-   //   instList.push_back(share(Obj(*inst)));
-      return Fluent(Obj::to_bcode(instList));
+      insts->push_back(inst);
+      return Fluent(Obj::to_bcode(insts));
     }
 
   public:
@@ -87,7 +93,22 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    operator const Obj &() const { return *this->_bcode; }
+    [[nodiscard]] Fluent as(const fURI_p &type) const {
+      return this->extend(Obj::to_inst(Obj::to_inst_args({vri(type)}), id_p(MMADT_SCHEME "/as")));
+    }
+
+    static Inst_p as_(const fURI_p &type) {
+      return Fluent().as(type).back_();
+    }
+
+    Inst_p front_() const {
+      return this->_bcode->bcode_value()->front();
+    }
+
+    Inst_p back_() const {
+      return this->_bcode->bcode_value()->back();
+    }
+
 
     Fluent start(const List<Obj> &starts) const {
       return Fluent();

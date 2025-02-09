@@ -165,10 +165,17 @@ namespace fhatos {
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Cpp &on_recv) {
       return Subscription::create(source, pattern, InstBuilder::build(INST_FURI)
                                   ->inst_args(rec({
-                                      {"target", from("target",noobj())},
-                                      {"payload", from("payload",noobj())},
-                                      {"retain", from("retain",noobj())}}))
+                                      {"target", from("target", noobj())},
+                                      {"payload", from("payload", noobj())},
+                                      {"retain", from("retain", noobj())}}))
                                   ->inst_f(on_recv)->create());
+    }
+
+    void apply(const Message_p &message) const {
+      this->on_recv()->apply(message->payload(), Obj::to_rec({
+                                 {"target", vri(message->target())},
+                                 {"payload", message->payload()},
+                                 {"retain", dool(message->retain())}}));
     }
   };
 } // namespace fhatos

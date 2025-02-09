@@ -41,6 +41,10 @@ namespace fhatos {
     }
 
   public:
+    static void* import() {
+      return nullptr;
+    }
+
     static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
       //static bool setup = false;
       /*if(!setup) {

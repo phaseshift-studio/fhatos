@@ -2,7 +2,7 @@
 #ifndef fhatos_rgbled_hpp
 #define fhatos_rgbled_hpp
 
-#ifndef NATIVEd
+#ifndef NATIVE
 #include "ext/rgbledxx.h"
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -32,7 +32,7 @@ namespace fhatos {
       ///////////////////////////////////////////////////////
       InstBuilder::build(RGBLED_FURI->add_component("setup"))
           ->domain_range(RGBLED_FURI, {1, 1}, RGBLED_FURI, {1, 1})
-          ->inst_f([](const Obj_p &rgbled, const InstArgs &args) {
+          ->inst_f([](const Obj_p &rgbled, const InstArgs &) {
             const auto xx = make_shared<RGBLEDxx>(
                 rgbled->rec_get("config/pin/r")->int_value(),
                 rgbled->rec_get("config/pin/g")->int_value(),

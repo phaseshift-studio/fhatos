@@ -165,7 +165,7 @@ namespace fhatos {
       return console;
     }
 
-    static void *import(const ID &lib_id = "/io/lib/console") {
+    static void *import() {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       /*InstBuilder::build(ID(lib_id.extend(":create")))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})

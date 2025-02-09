@@ -33,19 +33,21 @@
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
+#include "model/fos/type.hpp"
 /////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
 /////////////////////////////////////////
-#include "model/driver/pin/arduino_gpio.hpp"
-#include "model/driver/pin/arduino_i2c.hpp"
+
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
 #ifdef NATIVE
 #include "model/text/text.hpp"
-#include "model/ui/rgbled/rgbled.hpp"
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
-
+//// FOS MODELS
+#include "model/driver/pin/arduino_gpio.hpp"
+#include "model/driver/pin/arduino_i2c.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
+#include "model/ui/rgbled/rgbled.hpp"
 #include "model/sensor/aht10/aht10.hpp"
 #include "model/soc/esp/ota.hpp"
 #include "model/soc/esp/wifi.hpp"
@@ -101,32 +103,35 @@ namespace fhatos {
         ///////////////////////////////////////////////////////////
         kp
             ->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("/fos/#"))
-            ->mount(Heap<>::create("/boot/#", id_p("/sys/structure/boot")))
+            ->mount(Heap<>::create("/mnt/#"))
+            ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
-            ->import(Router::import())
-            ->drop_config("router")
-            ->import(Scheduler::import())
-            ->drop_config("scheduler");
+            ->import(Router::import())->drop_config("router")
+            ->import(Scheduler::import())->drop_config("scheduler");
         ////////////////////////////////////////////////////////////
         ////////////////// USER IMPORT(S) //////////////////////////
         ////////////////////////////////////////////////////////////
         return kp
-            ->import(Heap<>::import("/sys/structure/lib/heap"))
-            ->import(Mqtt::import("/sys/structure/lib/mqtt"))
+            ->import(Heap<>::import("/mnt/lib/heap"))
+            ->import(Mqtt::import("/mnt/lib/mqtt"))
             ////////////////// USER STRUCTURE(S)
-            ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/sys/structure/mmadt")))
+            ->display_note("!r.!go!bO !yloading !blanguage !yinsts!! !bO!go!r.!!")
+            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")))
             ->import(mmadt::mmADT::import())
-            ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
-            ->mount(Heap<>::create("/io/#", id_p("/sys/structure/io")))
+            ->display_note("!r.!go!bO !yloading !bmodel !ytypes!! !bO!go!r.!!")
+            ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
+            ->import(fOS::import_io())
+            ->import(fOS::import_sensor())
+            ->import(fOS::import_ui())
+
+            ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
-            ->import(Console::import("/io/lib/console"))
+            ->import(Console::import())
 #ifdef NATIVE
             ->import(Text::import("/io/lib/text"))
 #endif
-            ->install(Terminal::singleton("/io/terminal"))
+            ->install(Terminal::singleton())
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log",
                                   Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/log"))
@@ -141,14 +146,9 @@ namespace fhatos {
             ->mount(FSx::create("/disk/#", id_p("/sys/structure/disk"),
                                 Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
-            ->import(ArduinoGPIO::import())
-            ->import(ArduinoI2C::import())
+
 #if defined(ESP_ARCH)
-            ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
-            ->import(ArduinoPWM::import())
-            ->import(RGBLED::import())
-            ->import(AHT10::import())
-            ->import(OLED::import())
+            ->mount(Heap<>::create("/sensor/#",id_p("/mnt/sensor")))
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
