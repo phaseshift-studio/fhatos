@@ -2,7 +2,7 @@
 [router=>[
  resolve=>[
   namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
-  auto_prefix=>[<>,/mmadt/,/fos/,/sys/],
+  auto_prefix=>[<>,/mmadt/,/fos/,/fos/sensor/,/sys/],
   query=>[write=>[lock=>to_do]],
   default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[

@@ -55,6 +55,133 @@ namespace fhatos {
       this->detach();
     }
 
+    void test_rec_embedding() const {
+      ////////////////////////////
+      const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
+      const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
+      ROUTER_WRITE(p("rec/a/b"), recA, true);
+      ////////////////////////////////////////////////////////////////////////////////////
+      for(const auto &test_furi_str: {
+            "rec/a/b/c/d/e/f/../..",
+            "rec/a/b/c/d/e/../././../f",
+            "rec/a/b/c/d/e/./f",
+            "rec/a/b/c/d/e",
+            "rec/a/b/c/d",
+            "rec/a/b"}) {
+        const fURI_p test_furi = p(test_furi_str);
+        const std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        FOS_TEST_FURI_EQUAL(*p("rec/a/b"), *pair->first);
+        FOS_TEST_OBJ_EQUAL(recA, pair->second);
+      }
+      ////////////////////////////////////////////////////////////////////////////////////
+      for(const auto &test_furi_str: {
+            "rec",
+            "rec/a",
+            "rec/a/b/../..",
+            "rec/a/b/..",
+            "rec/a/c",
+            "rec/a/a/b/c"}) {
+        const fURI_p test_furi = p(test_furi_str);
+        std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        TEST_ASSERT_FALSE(pair.has_value());
+      }
+      ////////////////////////////////////////////////////////////////////////////////////
+      /*for(const auto &test_furi_str: {
+            "rec/lst/a",
+            "rec/lst/a/b",
+            "rec/lst/a/b/c"
+          }) {
+        const fURI_p test_furi = p(test_furi_str);
+        Router::singleton()->write(test_furi, lstA);
+        FOS_TEST_OBJ_EQUAL(jnt(1), Router::singleton()->read(id_p(test_furi->extend("0"))));
+        FOS_TEST_OBJ_EQUAL(jnt(2), Router::singleton()->read(id_p(test_furi->extend("1"))));
+        //FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2)}), Router::singleton()->read(test_furi));
+        // TODO: should embedding occur with #
+        //FOS_TEST_OBJ_EQUAL(rec({{test_furi->name(), lst({jnt(1),jnt(2)})}}),
+        //                   Router::singleton()->read(id_p(test_furi->retract().extend("#/"))));
+      }*/
+      ////////////////////////////////////////////////////////////////////////////////////
+      /*for(const auto &test_furi_str: {
+            "rec/rec/a",
+            "rec/rec/a/b",
+            "rec/rec/a/b/c"
+          }) {
+        const fURI_p test_furi = p(test_furi_str);
+        Router::singleton()->write(test_furi, recA);
+        FOS_TEST_OBJ_EQUAL(jnt(1), Router::singleton()->read(id_p(test_furi->extend("x"))));
+        FOS_TEST_OBJ_EQUAL(jnt(2), Router::singleton()->read(id_p(test_furi->extend("y"))));
+        //FOS_TEST_OBJ_EQUAL(rec({{"x",jnt(1)},{"y",jnt(2)}}), Router::singleton()->read(test_furi));
+        // TODO: should embedding occur with #
+        //FOS_TEST_OBJ_EQUAL(rec({{test_furi->name(), lst({jnt(1),jnt(2)})}}),
+        //                   Router::singleton()->read(id_p(test_furi->retract().extend("#/"))));
+      }*/
+      ////////////////////////////////////////////////////////////////////////////////////
+      this->detach();
+    }
+
+    void test_lst_embedding() const {
+      const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
+      const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
+      ROUTER_WRITE(p("lst/a/b"), lstA, true);
+      ////////////////////////////////////////////////////////////////////////////////////
+      for(const auto &test_furi_str: {
+            "lst/a/b/c/d/e/f/../..",
+            "lst/a/b/c/d/e/../././../f",
+            "lst/a/b/c/d/e/./f",
+            "lst/a/b/c/d/e",
+            "lst/a/b/c/d",
+            "lst/a/b"}) {
+        const fURI_p test_furi = p(test_furi_str);
+        const std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        FOS_TEST_FURI_EQUAL(*p("/lst/a/b"), *pair->first);
+        FOS_TEST_OBJ_EQUAL(lstA, pair->second);
+      }
+      ////////////////////////////////////////////////////////////////////////////////////
+      for(const auto &test_furi_str: {
+            "lst",
+            "lst/a",
+            "lst/a/b/../..",
+            "lst/a/b/..",
+            "lst/a/c",
+            "lst/a/a/b/c"}) {
+        const fURI_p test_furi = p(test_furi_str);
+        std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        TEST_ASSERT_FALSE(pair.has_value());
+      }
+      ////////////////////////////////////////////////////////////////////////////////////
+      /*for(const auto &test_furi_str: {
+            "lst/lst/a",
+            "lst/lst/a/b",
+            "lst/lst/a/b/c"
+          }) {
+        const fURI_p test_furi = p(test_furi_str);
+        Router::singleton()->write(test_furi, lstA);
+        //FOS_TEST_OBJ_EQUAL(jnt(1), Router::singleton()->read(id_p(test_furi->extend("0"))));
+        //FOS_TEST_OBJ_EQUAL(jnt(2), Router::singleton()->read(id_p(test_furi->extend("1"))));
+        //FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2)}), Router::singleton()->read(test_furi));
+        // TODO: should embedding occur with #
+        //FOS_TEST_OBJ_EQUAL(rec({{test_furi->name(), lst({jnt(1),jnt(2)})}}),
+        //                   Router::singleton()->read(id_p(test_furi->retract().extend("#/"))));
+      }
+      ////////////////////////////////////////////////////////////////////////////////////
+      for(const auto &test_furi_str: {
+            "lst/rec/a",
+            "lst/rec/a/b",
+            "lst/rec/a/b/c"
+          }) {
+        const fURI_p test_furi = p(test_furi_str);
+        Router::singleton()->write(test_furi, recA);
+//        FOS_TEST_OBJ_EQUAL(jnt(1), Router::singleton()->read(id_p(test_furi->extend("x"))));
+//        FOS_TEST_OBJ_EQUAL(jnt(2), Router::singleton()->read(id_p(test_furi->extend("y"))));
+//        FOS_TEST_OBJ_EQUAL(rec({{"x",jnt(1)},{"y",jnt(2)}}), Router::singleton()->read(test_furi));
+        // TODO: should embedding occur with #
+        //FOS_TEST_OBJ_EQUAL(rec({{test_furi->name(), lst({jnt(1),jnt(2)})}}),
+        //                   Router::singleton()->read(id_p(test_furi->retract().extend("#/"))));
+      }*/
+      ////////////////////////////////////////////////////////////////////////////////////
+      this->detach();
+    }
+
     void test_subscribe() const {
       auto counter = new int(0);
       Router::singleton()->subscribe(Subscription::create(

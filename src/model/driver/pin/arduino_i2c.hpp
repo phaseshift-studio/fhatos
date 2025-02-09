@@ -77,7 +77,9 @@ namespace fhatos {
       InstBuilder::build(I2C_FURI->add_component("setup"))
           ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
           ->inst_f([](const Obj_p &i2c, const InstArgs &) {
-            Wire.begin(i2c->rec_get("sda")->int_value(), i2c->rec_get("scl")->int_value());
+            Wire.begin(
+              (uint8_t)i2c->rec_get("sda")->int_value(),
+              (uint8_t)i2c->rec_get("scl")->int_value());
             Wire.setClock(i2c->rec_get("freq")->int_value());
             return i2c;
           })

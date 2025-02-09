@@ -18,74 +18,57 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_aht10_hpp
 #define fhatos_aht10_hpp
-#ifndef NATIVED
+#ifndef NATIVEd
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../../util/obj_helper.hpp"
-#include "../../../structure/router.hpp"
 #include "../../../util/global.hpp"
-#ifdef ESP_ARCH
+#include "ext/ahtxx.hpp"
+#ifdef ARDUINO
 #include "ext/ahtxx.hpp"
 #endif
 #ifdef RASPBERRYPI
 #include <wiringPi.h>
 #endif
-//#ifdef NATIVE
-//#include <wiringPi.h>
-//#endif
 
 namespace fhatos {
+  static ID_p AHT10_FURI = id_p("/fos/sensor/aht10");
 
-  class AHT10 final : public Rec {
+  class AHT10 final {
   protected:
-
+    static void refresh(const Rec_p &aht10) {
+      if(!aht10->vid_)
+        return;
+      if(!GLOBAL::singleton()->exists(aht10->vid_))
+        GLOBAL::singleton()->store(aht10->vid_,
+                                   make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
+      const auto ahtxx = GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid_);
+      aht10->rec_set("celsius", real(ahtxx->readTemperature()));
+      aht10->rec_set("humidity", real(ahtxx->readHumidity()));
+    }
 
   public:
-    explicit AHT10(const ID &id, const ID &i2c_id, const int addr, const ptr<AHTxx> &ahtxx) :
-      Rec(rmap({
-              {"config", Obj::to_rec({{"addr", jnt(addr)}, {"i2c", vri(i2c_id)}})}}), OType::REC, REC_FURI, id_p(id)) {
-      GLOBAL::singleton()->store(this->vid_, ahtxx);
-      InstBuilder::build(id.add_component("humidity"))
-          ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
-          ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
-            return real(GLOBAL::singleton()->load<ptr<AHTxx>>(lhs->vid_)->readHumidity());
-          })
-          ->save();
-      InstBuilder::build(id.add_component("celcius"))
-          ->domain_range(OBJ_FURI, {0, 1}, REAL_FURI, {1, 1})
-          ->inst_f([](const Obj_p &lhs, const InstArgs &) {
-            return real(GLOBAL::singleton()->load<ptr<AHTxx>>(lhs->vid_)->readTemperature());
-          })
-          ->save();
-    }
-
-    static ptr<AHT10> create(const ID &id, const ID &i2c_id, const int addr) {
-      ptr<AHTxx> athxx = make_shared<AHTxx>(addr, AHT1x_SENSOR);
-      const Rec_p i2c = Router::singleton()->read(id_p(i2c_id));
-      const uint8_t i2c_sda = i2c->rec_get("sda")->int_value();
-      const uint8_t i2c_scl = i2c->rec_get("scl")->int_value();
-      if(athxx->begin(i2c_sda, i2c_scl) != true) {
-        throw fError::create(id.toString(),
-                             "!runable to connect!! to !yaht10 sensor!! on !bi2c!g[!ysda:!!%i,!yscl:!!%i!g]!!", i2c_sda,
-                             i2c_scl);
-      }
-      return std::make_shared<AHT10>(id, i2c_id, addr, athxx);
-    }
-
-    static void *import(const ID &lib_id = "/io/lib/aht10") {
-      //Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      //BCODE_PROCESSOR(OBJ_PARSER("celcius -> |celcius?real<=real()[is(gte(−273.15))]"));
-      InstBuilder::build(ID(lib_id.extend(":create")))
-          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_args(rec({{"id", Obj::to_type(URI_FURI)}, {"i2c_id", Obj::to_type(URI_FURI)},
-                           {"addr", jnt(AHTXX_ADDRESS_X38)}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return AHT10::create(
-                ID(args->arg("id")->uri_value()),
-                args->arg("i2c_id")->uri_value(),
-                args->arg("addr")->int_value());
+    static void *import() {
+      Typer::singleton()->save_type(AHT10_FURI, Obj::to_rec(
+                                    {{"celsius", Obj::to_type(REAL_FURI)},
+                                     {"humidity", Obj::to_type(REAL_FURI)},
+                                     {"config", Obj::to_rec({
+                                          {"addr", Obj::to_type(INT_FURI)},
+                                          {"i2c", Obj::to_type(URI_FURI)}})}}));
+      InstBuilder::build(AHT10_FURI->add_component("setup"))
+          ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
+          ->inst_f([](const Obj_p &aht10, const InstArgs &) {
+            AHT10::refresh(aht10);
+            return aht10;
+          })->save();
+      ////
+      InstBuilder::build(AHT10_FURI->add_component("refresh"))
+          ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
+          ->inst_f([](const Obj_p &aht10, const InstArgs &) {
+            AHT10::refresh(aht10);
+            return aht10;
           })->save();
       return nullptr;
     }

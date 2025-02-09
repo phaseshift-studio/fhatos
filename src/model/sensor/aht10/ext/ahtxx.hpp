@@ -56,7 +56,7 @@
 #pragma once
 #ifndef AHTXX_h
 #define AHTXX_h
-#ifndef NATIVE
+#ifndef NATIVED
 #include <Arduino.h>
 #include <Wire.h>
 

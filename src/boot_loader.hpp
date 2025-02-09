@@ -15,7 +15,6 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-
 #pragma once
 #ifndef fhatos_boot_loader_hpp
 #define fhatos_boot_loader_hpp
@@ -44,13 +43,14 @@
 #include "model/text/text.hpp"
 #include "model/ui/rgbled/rgbled.hpp"
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
+
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
+#include "model/sensor/aht10/aht10.hpp"
 #include "model/soc/esp/ota.hpp"
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #include "model/driver/pin/arduino_pwm.hpp"
-#include "model/sensor/aht10/aht10.hpp"
 #include "model/ui/oled/oled.hpp"
 #include "model/ui/rgbled/rgbled.hpp"
 #ifdef CONFIG_SPIRAM_USE
@@ -128,7 +128,8 @@ namespace fhatos {
 #endif
             ->install(Terminal::singleton("/io/terminal"))
             ->install(mmadt::Parser::singleton("/io/parser"))
-            ->install(Log::create("/io/log", Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/log"))
+            ->install(Log::create("/io/log",
+                                  Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/log"))
                                   ->or_else(Obj::to_rec({
                                       {"INFO", lst({vri("#")})},
                                       {"ERROR", lst({vri("#")})},
@@ -143,10 +144,10 @@ namespace fhatos {
             ->import(ArduinoGPIO::import())
             ->import(ArduinoI2C::import())
 #if defined(ESP_ARCH)
+            ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
             ->import(ArduinoPWM::import())
             ->import(RGBLED::import())
-            ->mount(Heap<>::create("/sensor/#",id_p("/sys/structure/sensor")))
-            ->import(AHT10::import("/sensor/lib/aht10"))
+            ->import(AHT10::import())
             ->import(OLED::import())
             ->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
@@ -159,7 +160,7 @@ namespace fhatos {
              ->drop_config("ota")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
+            /*->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
                                             Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/mqtt"))->or_else(
                                                 Obj::to_rec({
                                                     {"broker",
@@ -167,13 +168,15 @@ namespace fhatos {
                                                          "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
                                                     {"client",
                                                      vri(args_parser->option_string(
-                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))*/
             ->drop_config("mqtt")
             ->process(Console::create("/io/console",
                                       Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/console"))))
             ->drop_config("console")
             ->eval([args_parser] {
+
               Router::singleton()->write(id_p("/sys/structure/boot"), Obj::to_noobj()); // shutdown the boot partition
+              Router::singleton()->loop();
               delete args_parser;
             });
       } catch(const std::exception &e) {

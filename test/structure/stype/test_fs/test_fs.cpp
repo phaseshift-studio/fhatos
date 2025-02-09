@@ -29,17 +29,21 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
-  Structure_p test_fs = std::make_shared<FSx>("/xyz/#",id_p("/sys/test"));
+  Structure_p test_fs = std::make_shared<FSx>("/fs/xyz/#",id_p("/sys/test"));
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 
-  void test_heap_generic_write() { GenericStructureTest(test_fs).test_write(); }
-  void test_heap_generic_subscribe() { GenericStructureTest(test_fs).test_subscribe(); }
+  void test_fs_generic_write() { GenericStructureTest(test_fs).test_write(); }
+  void test_fs_generic_subscribe() { GenericStructureTest(test_fs).test_subscribe(); }
+  void test_fs_generic_lst_embedding() { GenericStructureTest(test_fs).test_lst_embedding(); }
+  void test_fs_generic_rec_embedding() { GenericStructureTest(test_fs).test_rec_embedding(); }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_heap_generic_write); //
-      FOS_RUN_TEST(test_heap_generic_subscribe); //
+      FOS_RUN_TEST(test_fs_generic_write); //
+      FOS_RUN_TEST(test_fs_generic_subscribe); //
+      FOS_RUN_TEST(test_fs_generic_lst_embedding); //
+      FOS_RUN_TEST(test_fs_generic_rec_embedding); //
       );
 
 } // namespace fhatos

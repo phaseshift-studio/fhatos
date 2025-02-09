@@ -37,9 +37,15 @@ namespace fhatos {
 
   void test_heap_generic_subscribe() { GenericStructureTest(test_heap).test_subscribe(); }
 
+  void test_heap_generic_lst_embedding() { GenericStructureTest(test_heap).test_lst_embedding(); }
+
+  void test_heap_generic_rec_embedding() { GenericStructureTest(test_heap).test_rec_embedding(); }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_heap_generic_write); //
       FOS_RUN_TEST(test_heap_generic_subscribe); //
+      //FOS_RUN_TEST(test_heap_generic_lst_embedding); //
+      FOS_RUN_TEST(test_heap_generic_rec_embedding); //
       );
 
 } // namespace fhatos

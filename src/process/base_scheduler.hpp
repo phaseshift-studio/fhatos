@@ -142,9 +142,9 @@ namespace fhatos {
                                  p_p(*spawned_process->vid_),
                                  [this,spawned_process](const Obj_p &, const InstArgs &args) {
                                    if(args->arg("payload")->is_noobj()) {
-                                    if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
-                                     spawned_process->stop();// = true;
-                                     Router::singleton()->unsubscribe(this->vid_,p_p(*spawned_process->vid_));
+                                     if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
+                                       spawned_process->stop(); // = true;
+                                     Router::singleton()->unsubscribe(this->vid_, p_p(*spawned_process->vid_));
                                    }
                                    return Obj::to_noobj();
                                  }));
@@ -179,14 +179,14 @@ namespace fhatos {
             return p;
           })
           ->save();
-     /* InstBuilder::build(scheduler->vid_->extend(":stop"))
-          ->inst_args(rec())
-          ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-          ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
-            scheduler->stop();
-            return noobj();
-          })
-          ->save();*/
+      /* InstBuilder::build(scheduler->vid_->extend(":stop"))
+           ->inst_args(rec())
+           ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+           ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
+             scheduler->stop();
+             return noobj();
+           })
+           ->save();*/
       ///// OBJECTS
       Router::singleton()->write(id_p(SCHEDULER_ID->retract().extend("lib/thread")),
                                  Obj::to_rec({{":loop", Obj::to_bcode()}}));
