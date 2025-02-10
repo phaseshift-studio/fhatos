@@ -12,7 +12,7 @@
 namespace fhatos {
   static ID_p TEXT_FURI = id_p(FOS_URI "/text");
 
-  class Text final {
+  class Text final : public enable_shared_from_this<Text> {
     std::string body;
     ID_p save_id;
 
@@ -26,10 +26,7 @@ namespace fhatos {
     }
 
     static bool postfix_match(const string &text, const string &postfix) {
-      if(text.length() < postfix.length())
-        return false;
-      //sAnsi<>::singleton()->printf("%s==%s\n", text.c_str(), postfix.c_str());
-      return text.substr(text.length() - postfix.length()) == postfix;
+      return text.length() >= postfix.length() && text.substr(text.length() - postfix.length()) == postfix;
     }
 
     static ptr<Text> get_or_create(const ID_p &save_id) {
@@ -39,7 +36,7 @@ namespace fhatos {
     }
 
     void save() {
-      GLOBAL::singleton()->store(this->save_id, ptr<Text>(this));
+      GLOBAL::singleton()->store(this->save_id, this->shared_from_this());
     }
 
     static void *import() {
@@ -50,7 +47,7 @@ namespace fhatos {
           ->domain_range(TEXT_FURI, {1, 1}, TEXT_FURI, {1, 1})
           ->inst_f([](const Obj_p &text, const InstArgs &) {
             const ptr<Text> state = Text::get_or_create(id_p(text->uri_value()));
-            Ansi<>::singleton()->printf("!m[!y:s!g(!bave!g) !y:p!g(!barsing!g) !y:q!g(!buit!g)!m]!b %s!!\n",
+            Ansi<>::singleton()->printf("!m[!y:s!g(!bave!g) !y:p!g(!barse!g) !y:q!g(!buit!g)!m]!b %s!!\n",
                                         state->save_id->toString().c_str());
             if(!state->body.empty())
               Ansi<>::singleton()->printf("%s", state->body.c_str());
@@ -61,16 +58,19 @@ namespace fhatos {
               if(Text::postfix_match(temp, ":s")) {
                 temp = temp.substr(0, temp.length() - 2);
                 state->save();
+                LOG_OBJ(INFO, text, "!b%s !ysource code!! saved\n", text->vid_->toString().c_str());
+                Ansi<>::singleton()->print(state->body.c_str());
+                Ansi<>::singleton()->flush();
               } else if(Text::postfix_match(temp, ":p")) {
                 temp = temp.substr(0, temp.length() - 2);
                 StringHelper::trim(temp);
-                LOG_OBJ(INFO, text, "!yparsing and storing obj!! %s => !b%s!!\n",
-                        temp.c_str(),
-                        state->save_id->toString().c_str());
                 const Obj_p obj = mmadt::Parser::singleton()->parse(temp.c_str());
-                LOG_OBJ(INFO, text, FOS_TAB_2 "%s\n", obj->toString().c_str());
-                state->body = temp;
                 Router::singleton()->write(state->save_id, obj);
+                LOG_OBJ(INFO, text, "!b%s !ysource %s!! parsed\n",
+                        state->save_id->toString().c_str(),
+                        obj->toString().c_str());
+                Ansi<>::singleton()->print(state->body.c_str());
+                Ansi<>::singleton()->flush();
               } else if(Text::postfix_match(temp, ":q")) {
                 break;
               }

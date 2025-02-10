@@ -39,8 +39,8 @@
 /////////////////////////////////////////
 
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
-#ifdef NATIVE
 #include "model/text/text.hpp"
+#ifdef NATIVE
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 //// FOS MODELS
 #include "model/driver/pin/arduino_gpio.hpp"
