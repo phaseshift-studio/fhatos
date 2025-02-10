@@ -124,14 +124,11 @@ namespace fhatos {
             ->import(fOS::import_io())
             ->import(fOS::import_sensor())
             ->import(fOS::import_ui())
-
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import())
-#ifdef NATIVE
-            ->import(Text::import("/io/lib/text"))
-#endif
+            ->import(Text::import())
             ->install(Terminal::singleton())
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log",
