@@ -15,9 +15,44 @@ namespace fhatos {
   static ID_p RGBLED_FURI = id_p(FOS_URI "/rgbled");
 
   class RGBLED final {
+  protected:
+    static ptr<RGBLEDxx> get_or_create(const Obj_p &rgbled) {
+      if(!GLOBAL::singleton()->exists(rgbled->vid_)) {
+        GLOBAL::singleton()->store(rgbled->vid_, make_shared<RGBLEDxx>(
+                                       rgbled->rec_get("config/pin/r")->int_value(),
+                                       rgbled->rec_get("config/pin/g")->int_value(),
+                                       rgbled->rec_get("config/pin/b")->int_value(),
+                                       COMMON_CATHODE));
+        Router::singleton()->subscribe(
+            Subscription::create(rgbled->vid_, p_p(rgbled->vid_->extend("color")),
+                                 [](const Obj_p &payload, const InstArgs &) {
+                                   LOG(INFO, "rgb payload: %s\n", payload->toString().c_str());
+                                   // const int red = payload->rec_get("r")->or_else(jnt(0))->int_value();
+                                   // const int green = payload->rec_get("g")->or_else(jnt(0))->int_value();
+                                   // const int blue = payload->rec_get("b")->or_else(jnt(0))->int_value();
+                                   //const auto xx = GLOBAL::singleton()
+                                   //    ->load<ptr<RGBLEDxx>>(id_p(args->arg("target")->uri_value().retract()));
+                                   //xx->writeRGB(red, green, blue);
+                                   //if(red == 0 && green == 0 && blue == 0)
+                                   //  xx->turnOff();
+                                   return Obj::to_noobj();
+                                 }));
+      }
+      return GLOBAL::singleton()->load<ptr<RGBLEDxx>>(rgbled->vid_);
+    }
+
+    static Obj_p refresh_inst(const Obj_p &rgbled, const InstArgs &) {
+      const ptr<RGBLEDxx> rgbled_state = RGBLED::get_or_create(rgbled);
+      rgbled_state->writeRGB(
+          rgbled->rec_get("color/r")->int_value(),
+          rgbled->rec_get("color/g")->int_value(),
+          rgbled->rec_get("color/b")->int_value());
+      return rgbled;
+    }
+
   public:
     static void *import() {
-      //////////////////////
+      ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(RGBLED_FURI,
                                     Obj::to_rec({
                                         {"color", Obj::to_rec({
@@ -29,35 +64,11 @@ namespace fhatos {
                                                   {"r", Obj::to_type(UINT8_FURI)},
                                                   {"g", Obj::to_type(UINT8_FURI)},
                                                   {"b", Obj::to_type(UINT8_FURI)}})}})}}));
-      ///////////////////////////////////////////////////////
-      InstBuilder::build(RGBLED_FURI->add_component("setup"))
+      ///////////////////////// INSTS ///////////////////////////////////
+      InstBuilder::build(RGBLED_FURI->add_component("refresh"))
           ->domain_range(RGBLED_FURI, {1, 1}, RGBLED_FURI, {1, 1})
-          ->inst_f([](const Obj_p &rgbled, const InstArgs &) {
-            const auto xx = make_shared<RGBLEDxx>(
-                rgbled->rec_get("config/pin/r")->int_value(),
-                rgbled->rec_get("config/pin/g")->int_value(),
-                rgbled->rec_get("config/pin/b")->int_value(),
-                COMMON_CATHODE);
-            xx->writeRGB(
-                rgbled->rec_get("color/r")->int_value(),
-                rgbled->rec_get("color/g")->int_value(),
-                rgbled->rec_get("color/b")->int_value());
-            GLOBAL::singleton()->store(rgbled->vid_, xx);
-            Router::singleton()->subscribe(
-                Subscription::create(rgbled->vid_, p_p(rgbled->vid_->extend("color")),
-                                     [](const Obj_p &payload, const InstArgs &args) {
-                                       LOG(INFO, "rgb payload: %s\n", payload->toString().c_str());
-                                      // const int red = payload->rec_get("r")->or_else(jnt(0))->int_value();
-                                      // const int green = payload->rec_get("g")->or_else(jnt(0))->int_value();
-                                      // const int blue = payload->rec_get("b")->or_else(jnt(0))->int_value();
-                                       //const auto xx = GLOBAL::singleton()
-                                       //    ->load<ptr<RGBLEDxx>>(id_p(args->arg("target")->uri_value().retract()));
-                                       //xx->writeRGB(red, green, blue);
-                                       //if(red == 0 && green == 0 && blue == 0)
-                                       //  xx->turnOff();
-                                       return Obj::to_noobj();
-                                     }));
-            return rgbled;
+          ->inst_f([](const Obj_p &rgbled, const InstArgs &args) {
+            return RGBLED::refresh_inst(rgbled, args);
           })->save();
       return nullptr;
     }

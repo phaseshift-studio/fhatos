@@ -39,15 +39,17 @@ namespace fhatos {
 
   class AHT10 final {
   protected:
-    static void refresh(const Rec_p &aht10) {
-      if(!aht10->vid_)
-        return;
+    static ptr<AHTxx> get_or_create(const Obj_p &aht10) {
       if(!GLOBAL::singleton()->exists(aht10->vid_))
-        GLOBAL::singleton()->store(aht10->vid_,
-                                   make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
-      const auto ahtxx = GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid_);
-      aht10->rec_set("celsius", real(ahtxx->readTemperature()));
-      aht10->rec_set("humidity", real(ahtxx->readHumidity()));
+        GLOBAL::singleton()->store(aht10->vid_, make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
+      return GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid_);
+    }
+
+    static Obj_p refresh_inst(const Obj_p &aht10, const InstArgs &) {
+      const ptr<AHTxx> aht10_state = AHT10::get_or_create(aht10);
+      aht10->rec_set("celsius", real(aht10_state->readTemperature(), CELSIUS_FURI));
+      aht10->rec_set("humidity", real(aht10_state->readHumidity(), PERCENT_FURI));
+      return aht10;
     }
 
   public:
@@ -58,18 +60,10 @@ namespace fhatos {
                                      {"config", Obj::to_rec({
                                           {"addr", Obj::to_type(UINT8_FURI)},
                                           {"i2c", Obj::to_type(URI_FURI)}})}}));
-      InstBuilder::build(AHT10_FURI->add_component("setup"))
-          ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
-          ->inst_f([](const Obj_p &aht10, const InstArgs &) {
-            AHT10::refresh(aht10);
-            return aht10;
-          })->save();
-      ////
       InstBuilder::build(AHT10_FURI->add_component("refresh"))
           ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
-          ->inst_f([](const Obj_p &aht10, const InstArgs &) {
-            AHT10::refresh(aht10);
-            return aht10;
+          ->inst_f([](const Obj_p &aht10, const InstArgs &args) {
+            return AHT10::refresh_inst(aht10, args);
           })->save();
       return nullptr;
     }
