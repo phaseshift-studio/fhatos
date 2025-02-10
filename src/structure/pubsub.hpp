@@ -171,11 +171,11 @@ namespace fhatos {
                                   ->inst_f(on_recv)->create());
     }
 
-    void apply(const Message_p &message) const {
-      this->on_recv()->apply(message->payload(), Obj::to_rec({
-                                 {"target", vri(message->target())},
-                                 {"payload", message->payload()},
-                                 {"retain", dool(message->retain())}}));
+    Obj_p apply(const Message_p &message) const {
+      return this->on_recv()->apply(message->payload(), to_rec({
+                                        {"target", vri(message->target())},
+                                        {"payload", message->payload()},
+                                        {"retain", dool(message->retain())}}));
     }
   };
 } // namespace fhatos

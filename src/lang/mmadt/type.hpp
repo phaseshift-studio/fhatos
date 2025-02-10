@@ -374,8 +374,8 @@ namespace mmadt {
             return lhs;
           })->save();
 
-      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/to_inv"))
-          ->type_args(x(0, "value_id"), x(1, "retain", dool(true)))
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/ref"))
+          ->type_args(x(0, "id"), x(1, "retain", dool(true)))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);

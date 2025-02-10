@@ -133,6 +133,12 @@
         IF(PLAYTIME)
             MAKE_TESTS(play "play" , true)
         ELSE()
+            FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/a")
+            FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/b")
+            FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/lst")
+            FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/rec")
+
+
             MAKE_TESTS(language "test_obj" true)
             MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst" true)
             MAKE_TESTS(language/processor "test_processor" true)

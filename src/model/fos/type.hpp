@@ -37,20 +37,11 @@
 
 namespace fhatos {
   using namespace mmadt;
-  static const ID_p CHAR_FURI = id_p(FOS_URI "/char");
-  static const ID_p HEX_FURI = id_p(FOS_URI "/Ox");
-  static const ID_p INT8_FURI = id_p(FOS_URI" /int8");
-  static const ID_p UINT8_FURI = id_p(FOS_URI "/uint8");
-  static const ID_p INT16_FURI = id_p(FOS_URI "/int16");
-  static const ID_p INT32_FURI = id_p(FOS_URI "/int32");
-  static const ID_p NAT_FURI = id_p(FOS_URI "/nat");
-  static const ID_p CELSIUS_FURI = id_p(FOS_URI "/celsius");
-  static const ID_p PERCENT_FURI = id_p(FOS_URI "/%");
 
   class fOS {
   public:
     static void *import_types() {
-      /////////////////////////////////////////////////////////////////////
+      Typer::singleton()->start_progress_bar(10);
       Typer::singleton()->save_type(
           CHAR_FURI,
           *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
@@ -72,6 +63,8 @@ namespace fhatos {
       Typer::singleton()->save_type(
         HEX_FURI,
         *__(*HEX_FURI,*URI_FURI,*URI_FURI)->is(dool(true)));
+      Typer::singleton()->end_progress_bar(
+         StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
       return nullptr;
     }
 

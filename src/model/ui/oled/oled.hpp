@@ -16,7 +16,7 @@
 #include "../../../lang/type.hpp"
 
 namespace fhatos {
-  static ID_p OLED_FURI = id_p("/fos/oled");
+  static ID_p OLED_FURI = id_p(FOS_URI "/oled");
 
   class OLED {
   public:
@@ -26,7 +26,7 @@ namespace fhatos {
           OLED_FURI, Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
                                   {"config", rec({
                                        {"i2c", Obj::to_type(URI_FURI)},
-                                       {"addr", Obj::to_type(mmadt::UINT8_FURI)}})}}));
+                                       {"addr", Obj::to_type(UINT8_FURI)}})}}));
       //////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////

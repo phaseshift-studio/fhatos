@@ -2,7 +2,7 @@
 #ifndef fhatos_rgbled_hpp
 #define fhatos_rgbled_hpp
 
-#ifndef NATIVE
+#ifndef NATIVEd
 #include "ext/rgbledxx.h"
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -12,7 +12,7 @@
 #include "../../../util/global.hpp"
 
 namespace fhatos {
-  static ID_p RGBLED_FURI = id_p("/fos/rgbled");
+  static ID_p RGBLED_FURI = id_p(FOS_URI "/rgbled");
 
   class RGBLED final {
   public:
@@ -21,14 +21,14 @@ namespace fhatos {
       Typer::singleton()->save_type(RGBLED_FURI,
                                     Obj::to_rec({
                                         {"color", Obj::to_rec({
-                                             {"r", Obj::to_type(mmadt::UINT8_FURI)},
-                                             {"g", Obj::to_type(mmadt::UINT8_FURI)},
-                                             {"b", Obj::to_type(mmadt::UINT8_FURI)}})},
+                                             {"r", Obj::to_type(UINT8_FURI)},
+                                             {"g", Obj::to_type(UINT8_FURI)},
+                                             {"b", Obj::to_type(UINT8_FURI)}})},
                                         {"config", Obj::to_rec({
                                              {"pin", Obj::to_rec({
-                                                  {"r", Obj::to_type(mmadt::UINT8_FURI)},
-                                                  {"g", Obj::to_type(mmadt::UINT8_FURI)},
-                                                  {"b", Obj::to_type(mmadt::UINT8_FURI)}})}})}}));
+                                                  {"r", Obj::to_type(UINT8_FURI)},
+                                                  {"g", Obj::to_type(UINT8_FURI)},
+                                                  {"b", Obj::to_type(UINT8_FURI)}})}})}}));
       ///////////////////////////////////////////////////////
       InstBuilder::build(RGBLED_FURI->add_component("setup"))
           ->domain_range(RGBLED_FURI, {1, 1}, RGBLED_FURI, {1, 1})

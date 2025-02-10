@@ -388,7 +388,7 @@ namespace mmadt {
       };
       auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
-                            id_p(*Router::singleton()->resolve("to_inv")));
+                            id_p(*Router::singleton()->resolve("ref")));
       };
 
 
@@ -532,7 +532,7 @@ namespace mmadt {
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(DROP, "v", "drop");
       SUGAR_GENERATOR(FROM, "*", "from");
-      SUGAR_GENERATOR(REF, "->", "to_inv");
+      SUGAR_GENERATOR(REF, "->", "ref");
       SUGAR_GENERATOR(BLOCK, "|", "block");
       SUGAR_GENERATOR(SPLIT, "-<", "split");
       SUGAR_GENERATOR(EACH, "==", "each");

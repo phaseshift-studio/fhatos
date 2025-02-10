@@ -53,10 +53,10 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->save_type(AHT10_FURI, Obj::to_rec(
-                                    {{"celsius", Obj::to_type(mmadt::CELSIUS_FURI)},
-                                     {"humidity", Obj::to_type(mmadt::PERCENT_FURI)},
+                                    {{"celsius", Obj::to_type(CELSIUS_FURI)},
+                                     {"humidity", Obj::to_type(PERCENT_FURI)},
                                      {"config", Obj::to_rec({
-                                          {"addr", Obj::to_type(mmadt::UINT8_FURI)},
+                                          {"addr", Obj::to_type(UINT8_FURI)},
                                           {"i2c", Obj::to_type(URI_FURI)}})}}));
       InstBuilder::build(AHT10_FURI->add_component("setup"))
           ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})

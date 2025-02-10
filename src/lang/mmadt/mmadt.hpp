@@ -49,7 +49,9 @@ namespace mmadt {
     }
 
     [[nodiscard]] static BCode_p inst_to_bcode(const Inst_p &inst) {
-      return inst->is_inst() ? std::get<Obj_p>(*inst->inst_f()) : inst;
+      return inst->is_inst() && std::holds_alternative<Obj_p>(*inst->inst_f())
+               ? std::get<Obj_p>(*inst->inst_f())
+               : inst;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -60,7 +62,7 @@ namespace mmadt {
       tid(tid), domain(domain), range(range), _bcode(bcode) {
     }
 
-    string toString() const { return this->_bcode->toString(); }
+    [[nodiscard]] string toString() const { return this->_bcode->toString(); }
 
     operator Obj_p() const {
       // Conversion logic here
@@ -158,7 +160,7 @@ namespace mmadt {
     }
 
     [[nodiscard]] _mmadt_p ref(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/to_inv")));
+      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/ref")));
     }
 
 
