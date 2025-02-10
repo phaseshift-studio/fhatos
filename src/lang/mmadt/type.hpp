@@ -28,14 +28,6 @@
 
 namespace mmadt {
   using namespace fhatos;
-  static const ID_p CHAR_FURI = id_p("/mmadt/char");
-  static const ID_p INT8_FURI = id_p("/mmadt/int8");
-  static const ID_p UINT8_FURI = id_p("/mmadt/uint8");
-  static const ID_p INT16_FURI = id_p("/mmadt/int16");
-  static const ID_p INT32_FURI = id_p("/mmadt/int32");
-  static const ID_p NAT_FURI = id_p("/mmadt/nat");
-  static const ID_p CELSIUS_FURI = id_p("/mmadt/celsius");
-  static const ID_p PERCENT_FURI = id_p("/mmadt/%");
 
   class mmADT {
   public:
@@ -54,26 +46,6 @@ namespace mmadt {
       Typer::singleton()->save_type(BCODE_FURI, Obj::to_type(BCODE_FURI));
       Typer::singleton()->save_type(INST_FURI, Obj::to_type(INST_FURI));
       Typer::singleton()->save_type(ERROR_FURI, Obj::to_type(ERROR_FURI));
-      /////////////////////////////////////////////////////////////////////
-      Typer::singleton()->save_type(
-          CHAR_FURI,
-          *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
-      Typer::singleton()->save_type(INT8_FURI, Obj::to_type(INT8_FURI));
-      Typer::singleton()->save_type(
-          UINT8_FURI,
-          *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
-      Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
-      Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
-      Typer::singleton()->save_type(
-          NAT_FURI,
-          *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
-      Typer::singleton()->save_type(
-          CELSIUS_FURI,
-          *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
-      Typer::singleton()->save_type(
-          PERCENT_FURI,
-          *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
-
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }
@@ -289,6 +261,20 @@ namespace mmadt {
           ->type_args(x(0, "count", jnt(INT32_MAX)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0)->int_value() > 0 ? lhs : Obj::to_noobj();
+          })
+          ->save();
+
+      InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/uri" MMADT_INST_SCHEME "/merge"))
+          ->domain_range(URI_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
+          ->type_args(x(0, "count", jnt(INT32_MAX)))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const int max = args->arg(0)->int_value();
+            const Objs_p objs = Obj::to_objs();
+            const Objs_p paths = Obj::to_objs();
+            for(int i = 0; i < lhs->uri_value().path_length() && i < max; i++) {
+              objs->add_obj(vri(lhs->uri_value().segment(i)));
+            }
+            return objs;
           })
           ->save();
 

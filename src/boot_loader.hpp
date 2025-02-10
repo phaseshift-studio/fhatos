@@ -120,6 +120,7 @@ namespace fhatos {
             ->import(mmadt::mmADT::import())
             ->display_note("!r.!go!bO !yloading !bmodel !ytypes!! !bO!go!r.!!")
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
+            ->import(fOS::import_types())
             ->import(fOS::import_io())
             ->import(fOS::import_sensor())
             ->import(fOS::import_ui())

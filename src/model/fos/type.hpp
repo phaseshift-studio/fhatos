@@ -24,6 +24,7 @@
 #include "../../lang/type.hpp"
 #include "../driver/pin/arduino_gpio.hpp"
 #include "../driver/pin/arduino_i2c.hpp"
+#include "../../lang/mmadt/mmadt.hpp"
 #ifdef ARDUINO
 #include "../driver/pin/arduino_pwm.hpp"
 #include "../sensor/aht10/aht10.hpp"
@@ -35,9 +36,45 @@
 #define FOS_URI "/fos"
 
 namespace fhatos {
+  using namespace mmadt;
+  static const ID_p CHAR_FURI = id_p(FOS_URI "/char");
+  static const ID_p HEX_FURI = id_p(FOS_URI "/Ox");
+  static const ID_p INT8_FURI = id_p(FOS_URI" /int8");
+  static const ID_p UINT8_FURI = id_p(FOS_URI "/uint8");
+  static const ID_p INT16_FURI = id_p(FOS_URI "/int16");
+  static const ID_p INT32_FURI = id_p(FOS_URI "/int32");
+  static const ID_p NAT_FURI = id_p(FOS_URI "/nat");
+  static const ID_p CELSIUS_FURI = id_p(FOS_URI "/celsius");
+  static const ID_p PERCENT_FURI = id_p(FOS_URI "/%");
 
   class fOS {
   public:
+    static void *import_types() {
+      /////////////////////////////////////////////////////////////////////
+      Typer::singleton()->save_type(
+          CHAR_FURI,
+          *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
+      Typer::singleton()->save_type(INT8_FURI, Obj::to_type(INT8_FURI));
+      Typer::singleton()->save_type(
+          UINT8_FURI,
+          *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
+      Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
+      Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
+      Typer::singleton()->save_type(
+          NAT_FURI,
+          *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
+      Typer::singleton()->save_type(
+          CELSIUS_FURI,
+          *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
+      Typer::singleton()->save_type(
+          PERCENT_FURI,
+          *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
+      Typer::singleton()->save_type(
+        HEX_FURI,
+        *__(*HEX_FURI,*URI_FURI,*URI_FURI)->is(dool(true)));
+      return nullptr;
+    }
+
     static void import_query_processor() {
       Typer::singleton()->start_progress_bar(14);
       Typer::singleton()->save_type(OBJ_FURI, Obj::to_type(OBJ_FURI));
@@ -59,7 +96,7 @@ namespace fhatos {
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }
 
-    static void* import_io() {
+    static void *import_io() {
       Typer::singleton()->start_progress_bar(6);
       ArduinoGPIO::import();
       ArduinoI2C::import();
@@ -71,7 +108,7 @@ namespace fhatos {
       return nullptr;
     }
 
-    static void* import_sensor() {
+    static void *import_sensor() {
       Typer::singleton()->start_progress_bar(3);
 #ifdef ARDUINO
       AHT10::import();
@@ -81,7 +118,7 @@ namespace fhatos {
       return nullptr;
     }
 
-    static void* import_ui() {
+    static void *import_ui() {
       Typer::singleton()->start_progress_bar(6);
 #ifdef ARDUINO
       RGBLED::import();
