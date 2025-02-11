@@ -43,7 +43,7 @@ namespace fhatos {
 
   void test_noobj_parsing() {
     const Obj_p n = Parser::singleton()->try_parse_obj(FOS_TYPE_PREFIX "noobj/[]").value();
-    TEST_ASSERT_EQUAL(OType::NOOBJ, n->otype_);
+    TEST_ASSERT_EQUAL(OType::NOOBJ, n->otype);
     TEST_ASSERT_TRUE(n->is_noobj());
     TEST_ASSERT_EQUAL_STRING("!rnoobj!!", n->toString().c_str());
   }
@@ -56,9 +56,9 @@ namespace fhatos {
      {"fact[true]", true, BOOL_FURI->resolve("fact")}});
     for (const auto &trip: bools) {
       const Bool_p b = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::BOOL, b->otype_);
+      TEST_ASSERT_EQUAL(OType::BOOL, b->otype);
       TEST_ASSERT_EQUAL(get<1>(trip), b->bool_value());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *b->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *b->tid);
     }
   }
 
@@ -78,9 +78,9 @@ namespace fhatos {
                                                {FOS_TYPE_PREFIX "/int/zero[001]", 1, INT_FURI->extend("zero")}});
     for (auto &trip: ints) {
       const ptr<Int> i = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::INT, i->otype_);
+      TEST_ASSERT_EQUAL(OType::INT, i->otype);
       TEST_ASSERT_EQUAL_INT(get<1>(trip), i->int_value());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *i->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *i->tid);
     }
   }
 
@@ -100,9 +100,9 @@ namespace fhatos {
      {FOS_TYPE_PREFIX "/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}});
     for (auto &trip: reals) {
       const Real_p r = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::REAL, r->otype_);
+      TEST_ASSERT_EQUAL(OType::REAL, r->otype);
       TEST_ASSERT_EQUAL_INT(get<1>(trip), r->real_value());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *r->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *r->tid);
     }
   }
 
@@ -117,9 +117,9 @@ namespace fhatos {
                                                       {"/abc_2467", fURI("/abc_2467"), *URI_FURI}});
     for (auto &trip: uris) {
       const Uri_p u = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::URI, u->otype_);
+      TEST_ASSERT_EQUAL(OType::URI, u->otype);
       FOS_TEST_FURI_EQUAL(get<1>(trip), u->uri_value());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *u->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *u->tid);
     }
   }
 
@@ -135,9 +135,9 @@ namespace fhatos {
           "origin")}});
     for (auto &trip: strs) {
       const Str_p s = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::STR, s->otype_);
+      TEST_ASSERT_EQUAL(OType::STR, s->otype);
       TEST_ASSERT_EQUAL_STRING(get<1>(trip).c_str(), s->str_value().c_str());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *s->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *s->tid);
     }
   }
 
@@ -187,12 +187,12 @@ namespace fhatos {
     for (const auto &trip: lsts) {
       FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", std::get<0>(trip).c_str());
       const Lst_p l = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
-      TEST_ASSERT_EQUAL(OType::LST, l->otype_);
+      TEST_ASSERT_EQUAL(OType::LST, l->otype);
       TEST_ASSERT_EQUAL_STRING("a", l->lst_get(share(Int(0)))->str_value().c_str());
       TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
       FOS_TEST_FURI_EQUAL(ID("actor"), l->lst_get(share(Int(2)))->uri_value());
       TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
-      FOS_TEST_FURI_EQUAL(get<2>(trip), *l->tid_);
+      FOS_TEST_FURI_EQUAL(get<2>(trip), *l->tid);
     }
     ////////// SPLIT
     FOS_SHOULD_RETURN({"1"}, "1");
@@ -222,7 +222,7 @@ namespace fhatos {
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec_p rc1 = Parser::singleton()->try_parse_obj(form).value();
-      TEST_ASSERT_EQUAL(OType::REC, rc1->otype_);
+      TEST_ASSERT_EQUAL(OType::REC, rc1->otype);
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get(str("a"))->int_value()); // a's value is 13
       TEST_ASSERT_TRUE(rc1->rec_get(jnt(13))->is_noobj()); // no key is 13
       TEST_ASSERT_TRUE(rc1->rec_get(str("no key"))->is_noobj()); // no key is no key
@@ -235,21 +235,21 @@ namespace fhatos {
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::singleton()->try_parse_obj(form).value();
-      TEST_ASSERT_EQUAL(OType::REC, rc2->otype_);
-      TEST_ASSERT_EQUAL_STRING("person", rc2->tid_->name().c_str());
+      TEST_ASSERT_EQUAL(OType::REC, rc2->otype);
+      TEST_ASSERT_EQUAL_STRING("person", rc2->tid->name().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(vri(":age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(vri(":name"))->str_value().c_str());
-      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->otype_); // TODO
+      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->otype); // TODO
       TEST_ASSERT_TRUE(rc2->rec_get("no key")->is_noobj());
     } /*
      ///////////////////////////////////
      const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
-     TEST_ASSERT_EQUAL(OType::REC, rc2->otype_);
+     TEST_ASSERT_EQUAL(OType::REC, rc2->otype);
      TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
      //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
      TEST_ASSERT_TRUE(rc2->rec_get("/actor")->is_noobj()); // it's a string, not a uri
      const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
-     TEST_ASSERT_EQUAL(OType::REC, rc3->otype_);
+     TEST_ASSERT_EQUAL(OType::REC, rc3->otype);
      TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
      TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
      TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
@@ -303,7 +303,7 @@ namespace fhatos {
         .value();
     FOS_PRINT_OBJ(bcode);
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->vid_->toString() + "_wait").c_str(),
+    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->vid->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 

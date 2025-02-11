@@ -2,7 +2,7 @@
 #ifndef fhatos_rgbled_hpp
 #define fhatos_rgbled_hpp
 
-#ifndef NATIVEd
+#ifndef NATIVE
 #include "ext/rgbledxx.h"
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -16,15 +16,16 @@ namespace fhatos {
 
   class RGBLED final {
   protected:
-    static ptr<RGBLEDxx> get_or_create(const Obj_p &rgbled) {
-      if(!GLOBAL::singleton()->exists(rgbled->vid_)) {
-        GLOBAL::singleton()->store(rgbled->vid_, make_shared<RGBLEDxx>(
+    RGBLEDxx rgbledxx;
+
+    static ptr<RGBLED> get_or_create(const Obj_p &rgbled) {
+      if(!GLOBAL::singleton()->exists(rgbled->vid)) {
+        GLOBAL::singleton()->store(rgbled->vid, make_shared<RGBLED>(
                                        rgbled->rec_get("config/pin/r")->int_value(),
                                        rgbled->rec_get("config/pin/g")->int_value(),
-                                       rgbled->rec_get("config/pin/b")->int_value(),
-                                       COMMON_CATHODE));
+                                       rgbled->rec_get("config/pin/b")->int_value()));
         Router::singleton()->subscribe(
-            Subscription::create(rgbled->vid_, p_p(rgbled->vid_->extend("color")),
+            Subscription::create(rgbled->vid, p_p(rgbled->vid->extend("color")),
                                  [](const Obj_p &payload, const InstArgs &) {
                                    LOG(INFO, "rgb payload: %s\n", payload->toString().c_str());
                                    // const int red = payload->rec_get("r")->or_else(jnt(0))->int_value();
@@ -38,12 +39,12 @@ namespace fhatos {
                                    return Obj::to_noobj();
                                  }));
       }
-      return GLOBAL::singleton()->load<ptr<RGBLEDxx>>(rgbled->vid_);
+      return GLOBAL::singleton()->load<ptr<RGBLED>>(rgbled->vid);
     }
 
     static Obj_p refresh_inst(const Obj_p &rgbled, const InstArgs &) {
-      const ptr<RGBLEDxx> rgbled_state = RGBLED::get_or_create(rgbled);
-      rgbled_state->writeRGB(
+      const ptr<RGBLED> rgbled_state = RGBLED::get_or_create(rgbled);
+      rgbled_state->rgbledxx.writeRGB(
           rgbled->rec_get("color/r")->int_value(),
           rgbled->rec_get("color/g")->int_value(),
           rgbled->rec_get("color/b")->int_value());
@@ -51,6 +52,10 @@ namespace fhatos {
     }
 
   public:
+    RGBLED(int r_pin, int g_pin, int b_pin) :
+      rgbledxx(r_pin, g_pin, b_pin, COMMON_CATHODE) {
+    }
+
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(RGBLED_FURI,

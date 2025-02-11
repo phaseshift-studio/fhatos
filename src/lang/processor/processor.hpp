@@ -93,7 +93,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p vid_or_tid() const {
-      return this->vid_;
+      return this->vid;
     }
 
     [[nodiscard]] Monad_p M(const Obj_p &obj, const Inst_p &inst, const long bulk = 1l) const {

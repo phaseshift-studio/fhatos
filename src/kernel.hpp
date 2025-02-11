@@ -143,7 +143,7 @@ namespace fhatos {
 
     static ptr<Kernel> import(const void *) {
       // TODO: arg should take a tid
-      // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid_->toString().c_str());
+      // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
       return Kernel::build();
     }
 
@@ -159,16 +159,16 @@ namespace fhatos {
 
     static ptr<Kernel> install(const Obj_p &obj) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      if(obj->vid_) {
-        Router::singleton()->write(obj->vid_, obj,RETAIN);
-        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid_->toString().c_str());
+      if(obj->vid) {
+        Router::singleton()->write(obj->vid, obj,RETAIN);
+        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid->toString().c_str());
       }
       return Kernel::build();
     }
 
     static ptr<Kernel> process(const Process_p &process) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      // ROUTER_WRITE(process->vid_, process,RETAIN);
+      // ROUTER_WRITE(process->vid, process,RETAIN);
       Scheduler::singleton()->spawn(process);
       return Kernel::build();
     }

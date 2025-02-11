@@ -119,7 +119,7 @@ namespace fhatos {
                                          this->function_supplier_,
                                          this->seed_ ? this->seed_ : Obj::to_noobj())),
                                        OType::INST, this->type_,
-                                       root ? id_p(root->vid_->extend(*value_id)) : value_id);
+                                       root ? id_p(root->vid->extend(*value_id)) : value_id);
       // if(!this->doc_.empty())
       // inst->doc_write(this->doc_);
       auto to_delete = unique_ptr<const InstBuilder>(this);

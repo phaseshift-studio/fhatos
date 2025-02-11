@@ -47,13 +47,13 @@ namespace fhatos {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
-      SCHEDULER_ID = this->vid_;
+      SCHEDULER_ID = this->vid;
       LOG_KERNEL_OBJ(INFO, this, "!yscheduler!! started\n");
       // TODO: broadcast when online to trigger bootstrap of other models
-      /*Router::singleton()->write(Router::singleton()->vid_, vri(this->vid_), false);
+      /*Router::singleton()->write(Router::singleton()->vid, vri(this->vid), false);
       Router::singleton()->route_subscription(Subscription::create(
-        this->vid_,
-        p_p(*Router::singleton()->vid_),
+        this->vid,
+        p_p(*Router::singleton()->vid),
         to_inst("on_recv", to_rec({{"msg", to_bcode()}}), [](const Obj_p &lhs, const InstArgs &args) {
           return to_noobj();
         })));*/
@@ -70,7 +70,7 @@ namespace fhatos {
         return 0;
       auto *counter = new atomic_int(0);
       this->processes_->forEach([counter, process_pattern](const Process_p &proc) {
-        if(proc->vid_->matches(process_pattern) && proc->running)
+        if(proc->vid->matches(process_pattern) && proc->running)
           counter->fetch_add(1);
       });
       const int c = counter->load();
@@ -82,7 +82,7 @@ namespace fhatos {
       auto map = make_unique<Map<string, int>>();
       auto list = make_unique<List<Process_p>>();
       this->processes_->forEach([&map,&list](const Process_p &process) {
-        const string name = process->tid_->name();
+        const string name = process->tid->name();
         int count = map->count(name) ? map->at(name) : 0;
         count++;
         if(map->count(name))
@@ -101,7 +101,7 @@ namespace fhatos {
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       this->running_ = false;
-      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid_->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
@@ -123,42 +123,42 @@ namespace fhatos {
     }
 
     virtual bool spawn(const Process_p &process) {
-      if(!process->vid_)
+      if(!process->vid)
         throw fError("value id required to spawn %s", process->toString().c_str());
-      if(this->count(*process->vid_)) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid_->toString().c_str());
+      if(this->count(*process->vid)) {
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid->toString().c_str());
         return false;
       }
       process->setup();
       if(!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid_->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid->toString().c_str());
         return false;
       }
       ////////////////////////////////
       if(const Process_p spawned_process = this->raw_spawn(process)) {
         this->processes_->push_back(process);
         Router::singleton()->subscribe(
-            Subscription::create(this->vid_,
-                                 p_p(*spawned_process->vid_),
+            Subscription::create(this->vid,
+                                 p_p(*spawned_process->vid),
                                  [this,spawned_process](const Obj_p &, const InstArgs &args) {
                                    if(args->arg("payload")->is_noobj()) {
                                      if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
                                        spawned_process->stop(); // = true;
-                                     Router::singleton()->unsubscribe(this->vid_, p_p(*spawned_process->vid_));
+                                     Router::singleton()->unsubscribe(this->vid, p_p(*spawned_process->vid));
                                    }
                                    return Obj::to_noobj();
                                  }));
-        LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", spawned_process->vid_->toString().c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", spawned_process->vid->toString().c_str());
         this->save();
       } else {
-        throw fError("!b%s!! !yprocess!! failed to spawn", process->vid_->toString().c_str());
+        throw fError("!b%s!! !yprocess!! failed to spawn", process->vid->toString().c_str());
       }
       return true;
     }
 
     void save() const override {
       const Lst_p procs = Obj::to_lst();
-      this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid_)); });
+      this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid)); });
       this->rec_set("process", procs);
       Obj::save();
     }
@@ -170,7 +170,7 @@ namespace fhatos {
       if(const Rec_p config = Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID));
         !config->is_noobj())
         scheduler->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
-      InstBuilder::build(scheduler->vid_->extend(":spawn"))
+      InstBuilder::build(scheduler->vid->extend(":spawn"))
           ->type_args(x(0, "obj", Obj::to_bcode()))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
@@ -179,7 +179,7 @@ namespace fhatos {
             return p;
           })
           ->save();
-      /* InstBuilder::build(scheduler->vid_->extend(":stop"))
+      /* InstBuilder::build(scheduler->vid->extend(":stop"))
            ->inst_args(rec())
            ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
            ->inst_f([scheduler](const Obj_p &, const InstArgs &) {

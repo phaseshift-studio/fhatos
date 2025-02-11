@@ -342,7 +342,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     int index = 0;
     for(const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTypes.to_chars(obj->otype_).c_str());
+                       OTypes.to_chars(obj->otype).c_str());
     }
   }
   return result;
@@ -364,7 +364,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 
 #define FOS_PRINT_OBJ(obj) \
   FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
-                   OTypes.to_chars(obj->otype_).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
+                   OTypes.to_chars(obj->otype).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
 
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
@@ -409,7 +409,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
                              InstBuilder::build()->inst_f([temp](const ptr<Rec> &message, const InstArgs &args) {
                                TEST_ASSERT_TRUE_MESSAGE(temp == *args->arg(0),
                                                         (string("Router retain message payload equality: ") +
-                                                          Router::singleton()->vid_->toString() + " " + temp.toString() +
+                                                          Router::singleton()->vid->toString() + " " + temp.toString() +
                                                           " != " + message->rec_get("payload")->toString())
                                                         .c_str());
                                return noobj();

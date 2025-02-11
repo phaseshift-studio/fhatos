@@ -73,7 +73,7 @@ namespace fhatos {
         ->int_value();
       }
       const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
-                                               process->vid_->toString().c_str(), // Name of the task (for debugging)
+                                               process->vid->toString().c_str(), // Name of the task (for debugging)
                                                stack_size, // Stack size (bytes)
                                                process.get(), // Parameter to pass
                                                CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
@@ -107,10 +107,10 @@ namespace fhatos {
       // heap_trace_dump();
 
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->vid_->equals(*thread->vid_);
+        const bool remove = proc->vid->equals(*thread->vid);
         if (remove) {
-          Router::singleton()->unsubscribe(singleton()->vid_,p_p(*proc->vid_));
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid_->toString().c_str());
+          Router::singleton()->unsubscribe(singleton()->vid,p_p(*proc->vid));
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid->toString().c_str());
         }
         return remove;
       });

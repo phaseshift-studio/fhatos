@@ -106,24 +106,24 @@ namespace fhatos {
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
     if(!inst_obj->inst_f()) {
-      if(inst->vid_ /*&& !inst->vid_->is_relative()*/) {
-        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst->vid_));
-        if(dt) dt->emplace_back(id_p(""), inst->vid_, inst_obj);
+      if(inst->vid /*&& !inst->vid->is_relative()*/) {
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst->vid));
+        if(dt) dt->emplace_back(id_p(""), inst->vid, inst_obj);
       }
-      /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid_) {
-         inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid_));
-         if(dt) dt->emplace_back(OBJ_FURI, inst->tid_, inst_obj);
+      /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid) {
+         inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid));
+         if(dt) dt->emplace_back(OBJ_FURI, inst->tid, inst_obj);
        }*/
-      const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid_));
-      if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid_) {
+      const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid));
+      if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(furi_p(lhs->vid_->add_component(*inst_type_id_resolved))));
-        if(dt) dt->emplace_back(lhs->vid_, inst_type_id_resolved, inst_obj);
+          lhs, inst, Router::singleton()->read(furi_p(lhs->vid->add_component(*inst_type_id_resolved))));
+        if(dt) dt->emplace_back(lhs->vid, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(furi_p(lhs->tid_->add_component(*inst_type_id_resolved))));
-        if(dt) dt->emplace_back(lhs->tid_, inst_type_id_resolved, inst_obj);
+          lhs, inst, Router::singleton()->read(furi_p(lhs->tid->add_component(*inst_type_id_resolved))));
+        if(dt) dt->emplace_back(lhs->tid, inst_type_id_resolved, inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
@@ -135,12 +135,12 @@ namespace fhatos {
         }
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        if(!Router::singleton()->resolve(lhs->tid_->no_query())->equals(*OBJ_FURI)) {
+        if(!Router::singleton()->resolve(lhs->tid->no_query())->equals(*OBJ_FURI)) {
           inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
                                        Router::singleton()->read(id_p(
                                          Router::singleton()->read(id_p(*
                                            Router::singleton()->resolve(
-                                             lhs->tid_->no_query())))->domain()->no_query())),
+                                             lhs->tid->no_query())))->domain()->no_query())),
                                        inst_obj));
         }
       }
@@ -152,8 +152,8 @@ namespace fhatos {
           c.resolve_inst(lhs, inst);
           c.print_derivation_tree(&derivation_string);
         }
-        throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->tid_->toString().c_str(),
-                     inst->tid_->toString().c_str(), derivation_string.c_str());
+        throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->tid->toString().c_str(),
+                     inst->tid->toString().c_str(), derivation_string.c_str());
       }
     }
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
@@ -185,9 +185,9 @@ namespace fhatos {
         merged_args,
         inst_resolved->inst_f(),
         inst_resolved->inst_seed_supplier(),
-        inst_resolved->tid_,
-        inst_resolved->vid_);
-      /// TODO ^--- inst->vid_);
+        inst_resolved->tid,
+        inst_resolved->vid);
+      /// TODO ^--- inst->vid);
     } else {
       inst_c = Obj::to_inst(
         inst_provided->inst_op(),
@@ -197,18 +197,18 @@ namespace fhatos {
             return x->apply(lhs, args);
           })),
         inst_provided->inst_seed_supplier(),
-        inst_provided->tid_,
-        inst_provided->vid_);
+        inst_provided->tid,
+        inst_provided->vid);
     }
-    if(dt) this->dt->emplace_back(inst_resolved->tid_, inst_c->tid_, inst_c);
+    if(dt) this->dt->emplace_back(inst_resolved->tid, inst_c->tid, inst_c);
     LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
     return inst_c;
   }
 
 
   Obj_p Compiler::super_type(const Obj_p &value_obj) const {
-    const Obj_p type_obj = Router::singleton()->read(furi_p(value_obj->tid_->no_query()));
-    if(type_obj->tid_->no_query().equals(value_obj->tid_->no_query())) {
+    const Obj_p type_obj = Router::singleton()->read(furi_p(value_obj->tid->no_query()));
+    if(type_obj->tid->no_query().equals(value_obj->tid->no_query())) {
       return Obj::to_noobj();
     }
     return type_obj;
@@ -219,7 +219,7 @@ namespace fhatos {
     if(rhs->is_empty_bcode())
       return true;
     if(rhs->is_type())
-      return IS_TYPE_OF(lhs->tid_, rhs->tid_, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
+      return IS_TYPE_OF(lhs->tid, rhs->tid, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
     if(rhs->is_code() && !lhs->is_code()) {
       Obj_p result = rhs->apply(lhs->clone());
       if(result->is_noobj()) {
@@ -230,14 +230,14 @@ namespace fhatos {
       return !result->is_noobj();
     }
     /* if(!rhs->value_.has_value() &&
-        (rhs->tid_->equals(*OBJ_FURI) || (FURI_OTYPE.count(rhs->tid_->no_query()) && FURI_OTYPE.at(
-                                                   rhs->tid_->no_query()) == lhs->otype_)))
+        (rhs->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(rhs->tid->no_query()) && FURI_OTYPE.at(
+                                                   rhs->tid->no_query()) == lhs->otype)))
        return true;*/
-    if(lhs->otype_ != rhs->otype_)
+    if(lhs->otype != rhs->otype)
       return false;
-    // if(require_same_type_id && (*lhs->tid_ != *rhs->tid_))
+    // if(require_same_type_id && (*lhs->tid != *rhs->tid))
     //  return false;
-    switch(lhs->otype_) {
+    switch(lhs->otype) {
       case OType::TYPE:
         return lhs->type_value()->match(rhs->is_type() ? rhs->type_value() : rhs);
       case OType::NOOBJ:
@@ -304,7 +304,7 @@ namespace fhatos {
         return true;
       }
       default:
-        throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->otype_).c_str());
+        throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->otype).c_str());
     }
   }
 
@@ -326,16 +326,16 @@ namespace fhatos {
     if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
       return true;
     // if the type is a base type and the base types match, then type check passes
-    if(type_id->equals(*OTYPE_FURI.at(value_obj->otype_)))
+    if(type_id->equals(*OTYPE_FURI.at(value_obj->otype)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-    //if(value_obj->tid_->equals(*inst_type_id))
+    //if(value_obj->tid->equals(*inst_type_id))
     //  return true;
     // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-    if(value_obj->otype_ == OType::TYPE || value_obj->otype_ == OType::INST || value_obj->otype_ ==
+    if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype ==
        OType::BCODE)
       return true;
-    if(type_id->equals(*NOOBJ_FURI) && (value_obj->otype_ == OType::NOOBJ || value_obj->tid_->
+    if(type_id->equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->
                                         equals(*OBJ_FURI)))
       return true;
     // get the type definition and match it to the obj
@@ -362,7 +362,7 @@ namespace fhatos {
       // do nothing (fails below)
     }
     if(this->throw_on_miss) {
-      static const auto p = GLOBAL_PRINTERS.at(value_obj->otype_)->clone();
+      static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
       p->show_type = false;
       throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id->toString().c_str(),
                    value_obj->toString(p.get()).c_str(), type_id->toString().c_str(),

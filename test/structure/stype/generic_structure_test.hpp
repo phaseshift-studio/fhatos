@@ -40,7 +40,7 @@ namespace fhatos {
 
     void detach() const {
       structure_->stop();
-      Router::singleton()->write(structure_->vid_, Obj::to_noobj());
+      Router::singleton()->write(structure_->vid, Obj::to_noobj());
       Router::singleton()->loop();
       FOS_TEST_ERROR(p("c/23")->toString().append(" -> 23"));
     }

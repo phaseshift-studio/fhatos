@@ -49,7 +49,7 @@ namespace fhatos {
         OType::REC, REC_FURI, id_p(id)),
     structures_(make_unique<MutexDeque<Structure_p>>()) {
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_ID = id_p(this->vid_);
+    ROUTER_ID = id_p(this->vid);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       this->push_frame(pattern, frame_data);
@@ -108,7 +108,7 @@ namespace fhatos {
       this->structures_->remove_if([this](const Structure_p &structure) {
         if(!structure->available()) {
           LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!! detached\n", structure->pattern->toString().c_str(),
-                         structure->tid_->name().c_str());
+                         structure->tid->name().c_str());
           return true;
         }
         return false;
@@ -120,7 +120,7 @@ namespace fhatos {
   void Router::stop() {
     auto map = make_shared<Map<string, int>>();
     this->structures_->forEach([map](const Structure_p &structure) {
-      const string name = structure->tid_->name();
+      const string name = structure->tid->name();
       int count = map->count(name) ? map->at(name) : 0;
       count++;
       if(map->count(name))
@@ -132,31 +132,34 @@ namespace fhatos {
     }
     this->active = false;
     this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
-    LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid_->toString().c_str());
+    LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid->toString().c_str());
   }
 
   void Router::attach(const Structure_p &structure) const {
     if(structure->pattern->equals(Pattern(""))) {
       LOG_KERNEL_OBJ(INFO, this, "!b%s !yempty structure!! ignored\n", structure->pattern->toString().c_str(),
-                     structure->tid_->name().c_str());
+                     structure->tid->name().c_str());
     } else {
       this->structures_->forEach([structure, this](const Structure_p &s) {
         if(structure->pattern->bimatches(*s->pattern)) {
           // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
           throw fError(ROUTER_FURI_WRAP
                        " only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
-                       this->vid_->toString().c_str(), s->pattern->toString().c_str(),
+                       this->vid->toString().c_str(), s->pattern->toString().c_str(),
                        structure->pattern->toString().c_str());
         }
       });
       this->structures_->push_back(structure);
       structure->setup();
       if(structure->available()) {
-        LOG_KERNEL_OBJ(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern->toString().c_str(),
-                       structure->tid_->name().c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!y%s !b%s !yspanning !b%s!! attached\n",
+                       structure->tid->name().c_str(),
+                       structure->vid ? structure->vid->toString().c_str() : "<none>",
+                       structure->pattern->toString().c_str());
       } else {
-        LOG_KERNEL_OBJ(ERROR, this, "!runable to attach %s: %s!!\n", structure->pattern->toString().c_str(),
-                       structure->tid_->name().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!runable to attach!! %s: %s at %s!!\n", structure->pattern->toString().c_str(),
+                       structure->tid->name().c_str(),
+                       structure->vid ? structure->vid->toString().c_str() : "<none>");
         this->structures_->pop_back();
       }
     }
@@ -190,7 +193,7 @@ namespace fhatos {
       const Structure_p structure = this->get_structure(p_p(*resolved_furi));
       const Objs_p objs = structure->read(resolved_furi);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
-                     this->vid_->toString().c_str(), resolved_furi->toString().c_str(), // make this the current process
+                     this->vid->toString().c_str(), resolved_furi->toString().c_str(), // make this the current process
                      objs->toString().c_str(), structure->pattern->toString().c_str());
       return objs->none_one_all();
     } catch(const fError &e) {
@@ -202,7 +205,7 @@ namespace fhatos {
   void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
     if(!this->active)
       return;
-    if(obj->is_noobj() && furi->is_node() && this->vid_->matches(*furi))
+    if(obj->is_noobj() && furi->is_node() && this->vid->matches(*furi))
       this->active = false;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////// PROCESS FURI QUERIES  ///////////////////////////////////////////////
@@ -210,7 +213,7 @@ namespace fhatos {
     if(furi->has_query()) {
       for(const auto &[query_key, query_value]: furi->query_values()) {
         if(query_key != "sub") {
-          const Obj_p query_processor = this->read(id_p(this->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key)));
+          const Obj_p query_processor = this->read(id_p(this->vid->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key)));
           if(query_processor->is_noobj())
             throw fError("router has no query processor for !y%s!!", query_key.c_str());
           query_processor->apply(obj, Obj::to_inst_args({vri(furi)}));
@@ -223,8 +226,8 @@ namespace fhatos {
     try {
       const Structure_p structure = this->get_structure(p_p(*furi), obj);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                     Process::current_process()->vid_->toString().c_str(), retain ? "retained" : "transient",
-                     furi->toString().c_str(), obj->tid_->toString().c_str(),
+                     Process::current_process()->vid->toString().c_str(), retain ? "retained" : "transient",
+                     furi->toString().c_str(), obj->tid->toString().c_str(),
                      structure->pattern->toString().c_str());
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
@@ -263,44 +266,44 @@ namespace fhatos {
   }
 
   void *Router::import() {
-    Router::singleton()->write(Router::singleton()->vid_, Router::singleton(),RETAIN);
+    Router::singleton()->write(Router::singleton()->vid, Router::singleton(),RETAIN);
     Router::singleton()->write(id_p(FRAME_FURI), Obj::to_type(REC_FURI),RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
-    Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/msg")),
+    Router::singleton()->write(id_p(Router::singleton()->vid->retract().extend("lib/msg")),
                                Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
                                             {"payload", Obj::to_bcode()},
                                             {"retain", Obj::to_type(BOOL_FURI)}}));
-    Router::singleton()->write(id_p(Router::singleton()->vid_->retract().extend("lib/sub")),
+    Router::singleton()->write(id_p(Router::singleton()->vid->retract().extend("lib/sub")),
                                Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
                                             {"pattern", Obj::to_type(URI_FURI)},
                                             {":on_recv", Obj::to_bcode()}}));
-  /*  InstBuilder::build(Router::singleton()->vid_->extend(":detach"))
-        ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-        ->type_args(x(0, ___()))
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
-          return noobj();
-        })->save();*/
-   /* InstBuilder::build(Router::singleton()->vid_->extend(":stop"))
-        ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          Router::singleton()->stop();
-          return Obj::to_noobj();
-        })->save();*/
+    /*  InstBuilder::build(Router::singleton()->vid->extend(":detach"))
+          ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+          ->type_args(x(0, ___()))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
+            return noobj();
+          })->save();*/
+    /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
+         ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+         ->inst_f([](const Obj_p &, const InstArgs &args) {
+           Router::singleton()->stop();
+           return Obj::to_noobj();
+         })->save();*/
     /// query extensions
-    InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
+    InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p obj = args->arg(0);
           if(obj->lock().has_value() && !obj->lock().value().equals(
-                 *Process::current_process()->vid_)) {
+                 *Process::current_process()->vid)) {
             throw fError("!runable write obj!! locked by !b%s!!: %s",
                          obj->lock().value().toString().c_str(),
                          obj->toString().c_str());
           }
           return obj;
         })->save();
-    InstBuilder::build(Router::singleton()->vid_->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
+    InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
           LOG(ERROR, "sub query processor to be implemented\n");
@@ -314,7 +317,7 @@ namespace fhatos {
     // const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
     for(const Structure_p &s: *this->structures_) {
-      if(to_write && to_write->is_noobj() && s->vid_ && pattern->bimatches(*s->vid_)) {
+      if(to_write && to_write->is_noobj() && s->vid && pattern->bimatches(*s->vid)) {
         s->stop();
       } else {
         if(pattern->bimatches(*s->pattern)) {

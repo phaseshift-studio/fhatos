@@ -174,8 +174,8 @@ namespace fhatos {
             x(1, "config", Obj::to_rec({
                 {"terminal",
                   Obj::to_rec({
-                    {"stdin", vri(Terminal::singleton()->vid_->extend(":stdin"))},
-                    {"stdout", vri(Terminal::singleton()->vid_->extend(":stdout"))}})},
+                    {"stdin", vri(Terminal::singleton()->vid->extend(":stdin"))},
+                    {"stdout", vri(Terminal::singleton()->vid->extend(":stdout"))}})},
                 {"nest", jnt(2)},
                 {"strict", dool(false)},
                 {"ansi", dool(true)},

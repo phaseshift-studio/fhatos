@@ -27,7 +27,7 @@ namespace fhatos {
       return text.length() >= postfix.length() && text.substr(text.length() - postfix.length()) == postfix;
     }
 
-    static Obj_p edit_inst(const Obj_p &text_obj, const InstArgs &args) {
+    static Obj_p edit_inst(const Obj_p &text_obj, const InstArgs &) {
       const ID_p text_state_id = id_p(text_obj->uri_value());
       const ptr<Text> text_state = Text::get_or_create(text_obj);
       Ansi<>::singleton()->printf("!m[!y:s!g(!bave!g) !y:p!g(!barse!g) !y:q!g(!buit!g)!m]!b %s!!\n",
@@ -43,7 +43,7 @@ namespace fhatos {
           temp = temp.substr(0, temp.length() - 2);
           text_state->body = temp;
           GLOBAL::singleton()->store(text_state_id, text_state);
-          LOG_OBJ(INFO, text_obj, "!b%s !ysource code!! saved\n", text_obj->vid_->toString().c_str());
+          LOG_OBJ(INFO, text_obj, "!b%s !ysource code!! saved\n", text_obj->vid->toString().c_str());
           Ansi<>::singleton()->print(text_state->body.c_str());
           Ansi<>::singleton()->flush();
         }

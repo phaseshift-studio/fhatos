@@ -8,7 +8,7 @@ TEST_CASE("basic int construction", "[basic_int]" ) {
   INFO("testing int");
   REQUIRE( jnt(1)->int_value() == 1 );
   REQUIRE( *jnt(1) == *jnt(1) );
-  REQUIRE( *jnt(1)->tid_ == *INT_FURI );
+  REQUIRE( *jnt(1)->tid == *INT_FURI );
   /////////////////////////////////////
   /*BENCHMARK("int"){
     return jnt(6);

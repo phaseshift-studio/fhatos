@@ -23,7 +23,7 @@
 #include "../../lang/obj.hpp"
 #include "../../lang/type.hpp"
 #include "../driver/pin/arduino_gpio.hpp"
-#include "../driver/pin/arduino_i2c.hpp"
+#include "../driver/pin/i2c.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
 #ifdef ARDUINO
 #include "../driver/pin/arduino_pwm.hpp"
@@ -92,7 +92,7 @@ namespace fhatos {
     static void *import_io() {
       Typer::singleton()->start_progress_bar(6);
       ArduinoGPIO::import();
-      ArduinoI2C::import();
+      I2C::import();
 #ifdef ARDUINO
       ArduinoPWM::import();
 #endif

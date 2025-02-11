@@ -58,11 +58,11 @@ namespace fhatos {
 
 
     explicit Process() : Rec({}, OType::REC, REC_FURI) { // hack for scheduler "process"
-      this->vid_ = id_p("/sys/scheduler");
+      this->vid = id_p("/sys/scheduler");
     }
 
-    explicit Process(const Obj_p &obj) : Obj(obj->value_, obj->otype_, obj->tid_) {
-      this->vid_ = obj->vid_;
+    explicit Process(const Obj_p &obj) : Obj(obj->value_, obj->otype, obj->tid) {
+      this->vid = obj->vid;
     };
 
     ~Process() override = default;
@@ -80,23 +80,23 @@ namespace fhatos {
         return this_process.load();
       else {
         static auto proc = new Process();
-        proc->vid_ = id_p("/sys/scheduler");
+        proc->vid = id_p("/sys/scheduler");
         return proc;
       }
     }
 
     virtual void setup() {
       this_process = this;
-      /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"),
-                                            InstBuilder::build(this->vid_->extend(":loop"))
+      /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid, this->vid->extend(":loop"),
+                                            InstBuilder::build(this->vid->extend(":loop"))
                                             ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
                                               this->rec_set(":loop", lhs);
                                               return noobj();
                                             })
                                             ->create()));*/
-      const ID_p stop_id = id_p(this->vid_->extend(":stop"));
-      const ID_p delay_id = id_p(this->vid_->extend(":delay"));
-      const ID_p yield_id = id_p(this->vid_->extend(":yield"));
+      const ID_p stop_id = id_p(this->vid->extend(":stop"));
+      const ID_p delay_id = id_p(this->vid->extend(":delay"));
+      const ID_p yield_id = id_p(this->vid->extend(":yield"));
       //if(ROUTER_READ(stop_id)->is_noobj())
       InstBuilder::build(stop_id)
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
@@ -120,13 +120,13 @@ namespace fhatos {
           })->create(yield_id);
       this->load();
 
-      if(const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid_->extend(":setup"))); setup_bcode->is_noobj())
+      if(const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid->extend(":setup"))); setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(setup_bcode);
       ////
       if(this->running) {
-        LOG(WARN, FOS_ALREADY_SETUP, this->vid_->toString().c_str());
+        LOG(WARN, FOS_ALREADY_SETUP, this->vid->toString().c_str());
         return;
       }
       this->running = true;
@@ -147,9 +147,9 @@ namespace fhatos {
         this->yield_ = false;
       }
       if(!this->loop_code_)
-        this->loop_code_ = ROUTER_READ(id_p(this->vid_->extend(":loop")));
+        this->loop_code_ = ROUTER_READ(id_p(this->vid->extend(":loop")));
       if(!this->loop_code_ || this->loop_code_->is_noobj())
-        throw fError("!b%s !ybcode!! undefined: %s", this->vid_->extend(":loop").toString().c_str(),
+        throw fError("!b%s !ybcode!! undefined: %s", this->vid->extend(":loop").toString().c_str(),
                      this->toString().c_str());
       /*this->last_result_ = */
       // TODO: make a BCODE_PROCESSOR that takes both bcode and starts w/o having to inline starts
@@ -159,17 +159,17 @@ namespace fhatos {
     virtual void stop() {
       this_process = this;
       if(!this->running) {
-        LOG(WARN, FOS_ALREADY_STOPPED, this->vid_->toString().c_str());
+        LOG(WARN, FOS_ALREADY_STOPPED, this->vid->toString().c_str());
         return;
       }
-      if(const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid_->extend(":stop"))); stop_bcode->is_noobj())
+      if(const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid->extend(":stop"))); stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(stop_bcode);
       this->running = false;
-      ROUTER_WRITE(id_p(this->vid_->extend(":stop")), Obj::to_noobj(), true);
-      ROUTER_WRITE(id_p(this->vid_->extend(":delay")), Obj::to_noobj(), true);
-      ROUTER_WRITE(id_p(this->vid_->extend(":yield")), Obj::to_noobj(), true);
+      ROUTER_WRITE(id_p(this->vid->extend(":stop")), Obj::to_noobj(), true);
+      ROUTER_WRITE(id_p(this->vid->extend(":delay")), Obj::to_noobj(), true);
+      ROUTER_WRITE(id_p(this->vid->extend(":yield")), Obj::to_noobj(), true);
       this->load();
     };
 

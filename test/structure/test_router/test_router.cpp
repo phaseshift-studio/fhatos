@@ -74,21 +74,21 @@ namespace fhatos {
   void test_lock_query_processor() {
     PROCESS("/router/a -> 12");
     Obj_p a = PROCESS("*/router/a");
-    TEST_ASSERT_NULL(a->vid_);
+    TEST_ASSERT_NULL(a->vid);
     TEST_ASSERT_EQUAL_INT(12, a->int_value());
     a = PROCESS("@/router/a.lock(person)");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a?lock=person"), *a->vid_);
+    FOS_TEST_FURI_EQUAL(fURI("/router/a?lock=person"), *a->vid);
     TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a+1");
     a = PROCESS("@/router/a");
     TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a.lock(/router)");
     a = PROCESS("@/router/a.lock(person)");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid_);
+    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid);
     TEST_ASSERT_EQUAL_INT(12, a->int_value());
     FOS_TEST_ERROR("@/router/a + 1");
     a = PROCESS("@/router/a");
-    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid_);
+    FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid);
     TEST_ASSERT_EQUAL_INT(13, a->int_value());
 
   }

@@ -18,7 +18,7 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_aht10_hpp
 #define fhatos_aht10_hpp
-#ifndef NATIVEd
+#ifndef NATIVE
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
@@ -38,11 +38,12 @@ namespace fhatos {
   static ID_p AHT10_FURI = id_p("/fos/sensor/aht10");
 
   class AHT10 final {
+
   protected:
     static ptr<AHTxx> get_or_create(const Obj_p &aht10) {
-      if(!GLOBAL::singleton()->exists(aht10->vid_))
-        GLOBAL::singleton()->store(aht10->vid_, make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
-      return GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid_);
+      if(!GLOBAL::singleton()->exists(aht10->vid))
+        GLOBAL::singleton()->store(aht10->vid, make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
+      return GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid);
     }
 
     static Obj_p refresh_inst(const Obj_p &aht10, const InstArgs &) {

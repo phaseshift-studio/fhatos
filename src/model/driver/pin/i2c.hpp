@@ -45,9 +45,110 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   static ID_p I2C_FURI = id_p("/fos/i2c");
 
-  class ArduinoI2C final {
+  class I2C final {
+
+  protected:
+    static Obj_p setup_inst(const Obj_p &i2c, const InstArgs &) {
+      Wire.begin(
+          (uint8_t) i2c->rec_get("sda")->int_value(),
+          (uint8_t) i2c->rec_get("scl")->int_value());
+      Wire.setClock(i2c->rec_get("freq")->int_value());
+      return i2c;
+    }
+
+    static Obj_p stop_inst(const Obj_p &i2c, const InstArgs &) {
+      Wire.end();
+      LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
+      return Obj::to_noobj();
+    }
+
+    static Obj_p scan_inst(const Obj_p &i2c, const InstArgs &) {
+      const Lst_p result_set = Obj::to_lst();
+      try {
+        if(!Wire.begin((uint8_t) i2c->rec_get("sda")->int_value(),
+                       (uint8_t) i2c->rec_get("scl")->int_value())) {
+          LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
+                  i2c->toString().c_str());
+          return result_set;
+        }
+        Wire.setClock(i2c->rec_get("freq")->int_value());
+        for(int i = 8; i < 120; i++) {
+          Scheduler::singleton()->feed_local_watchdog();
+          Wire.beginTransmission(i);
+          const int result = Wire.endTransmission();
+          if(0 == result || 4 == result) {
+            const auto [model, type] = i2c_device_description(i);
+            result_set->lst_add(Obj::to_rec({
+                {"hex_addr", vri(StringHelper::int_to_hex(i).insert(0, "0x"))},
+                {"int_addr", jnt(i)},
+                {"model", Obj::to_str(model)},
+                {"type", Obj::to_str(type)},
+                {"status", Obj::to_str(0 == result ? "ok" : "error")}}));
+          }
+        }
+      } catch(const std::exception &e) {
+        Wire.end();
+        throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
+      }
+      return result_set;
+    }
 
   public:
+    static void *import() {
+      Typer::singleton()->save_type(I2C_FURI, Obj::to_rec({
+                                        {"sda", Obj::to_type(GPIO_FURI)},
+                                        {"scl", Obj::to_type(GPIO_FURI)},
+                                        {"freq", Obj::to_type(INT_FURI)}}));
+      InstBuilder::build(I2C_FURI->add_component("setup"))
+          ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
+            return I2C::setup_inst(i2c, args);
+          })
+          ->save();
+      InstBuilder::build(I2C_FURI->add_component("stop"))
+          ->domain_range(I2C_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
+            return I2C::stop_inst(i2c, args);
+          })
+          ->save();
+      InstBuilder::build(I2C_FURI->add_component("scan"))
+          ->domain_range(I2C_FURI, {1, 1}, LST_FURI, {1, 1})
+          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
+            return I2C::scan_inst(i2c, args);
+          })
+          ->save();
+      //////////////////////////////////////////////////////////////////////////////////
+      /*InstBuilder::build(ID(I2C_FURI->extend(":find")))
+          ->domain_range(OBJ_FURI, {0, 1}, LST_FURI, {1, 1})
+          ->inst_args(rec({{"low_pin", jnt(0)}, {"high_pin", jnt(GPIO_PIN_COUNT)}, {"halt_on_find", dool(true)}}))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            int low_pin = args->arg("low_pin")->int_value();
+            int high_pin = args->arg("high_pin")->int_value();
+            bool halt_on_find = args->arg("halt_on_find")->bool_value();
+            const Lst_p i2c_pins = Obj::to_lst();
+            for(int i = low_pin; i <= high_pin; i++) {
+              for(int j = low_pin; j <= high_pin; j++) {
+                Scheduler::singleton()->feed_local_watchdog();
+                if(i != j && i != 1 && j != 1 && i != 3 && j != 3 &&
+                            Helper::gpioToD(i) != 111 && Helper::gpioToD(j) != 111) {
+                  // const ArduinoI2C temp_i2c = ArduinoI2C(i, j);
+                  // LOG(INFO, FOS_TAB_1 "!ychecking existence of %s\n", temp_i2c.toString().c_str());
+                  /*int found = temp_i2c.rec_get(":scan")->apply(Obj::to_noobj())->int_value();
+                  if(found > 0) {
+                    LOG(INFO, "i2c pins located %i/%i", i, j);
+                    i2c_pins->lst_add(Obj::to_rec({{"sda", jnt(i)}, {"scl", jnt(j)}}));
+                    if(halt_on_find)
+                      return i2c_pins;
+                  }
+                }
+              }
+            }
+            return i2c_pins;
+          })
+          ->save();*/
+      return nullptr;
+    }
+
     static std::pair<const char *, const char *> i2c_device_description(const int addr) {
       switch(addr) {
         case 0x20: // 32
@@ -69,93 +170,6 @@ namespace fhatos {
       }
     }
 
-    static void *import() {
-      Typer::singleton()->save_type(I2C_FURI, Obj::to_rec({
-                                        {"sda", Obj::to_type(GPIO_FURI)},
-                                        {"scl", Obj::to_type(GPIO_FURI)},
-                                        {"freq", Obj::to_type(INT_FURI)}}));
-      InstBuilder::build(I2C_FURI->add_component("setup"))
-          ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
-          ->inst_f([](const Obj_p &i2c, const InstArgs &) {
-            Wire.begin(
-                (uint8_t) i2c->rec_get("sda")->int_value(),
-                (uint8_t) i2c->rec_get("scl")->int_value());
-            Wire.setClock(i2c->rec_get("freq")->int_value());
-            return i2c;
-          })
-          ->save();
-      InstBuilder::build(I2C_FURI->add_component("stop"))
-          ->domain_range(I2C_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
-          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
-            Wire.end();
-            LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
-            return Obj::to_noobj();
-          })
-          ->save();
-      InstBuilder::build(I2C_FURI->add_component("scan"))
-          ->domain_range(I2C_FURI, {1, 1}, LST_FURI, {1, 1})
-          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
-            const Lst_p result_set = Obj::to_lst();
-            try {
-              if(!Wire.begin((uint8_t) i2c->rec_get("sda")->int_value(),
-                             (uint8_t) i2c->rec_get("scl")->int_value())) {
-                LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
-                        i2c->toString().c_str());
-                return result_set;
-              }
-              Wire.setClock(i2c->rec_get("freq")->int_value());
-              for(int i = 8; i < 120; i++) {
-                Scheduler::singleton()->feed_local_watchdog();
-                Wire.beginTransmission(i);
-                const int result = Wire.endTransmission();
-                if(0 == result || 4 == result) {
-                  const auto desc = i2c_device_description(i);
-                  result_set->lst_add(Obj::to_rec({
-                      {"hex_addr", vri(StringHelper::int_to_hex(i).insert(0, "0x"))},
-                      {"int_addr", jnt(i)},
-                      {"model", Obj::to_str(desc.first)},
-                      {"type", Obj::to_str(desc.second)},
-                      {"status", Obj::to_str(0 == result ? "ok" : "error")}}));
-                }
-              }
-            } catch(const std::exception &e) {
-              Wire.end();
-              throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
-            }
-            return result_set;
-          })
-          ->save();
-      //////////////////////////////////////////////////////////////////////////////////
-      InstBuilder::build(ID(I2C_FURI->extend(":find")))
-          ->domain_range(OBJ_FURI, {0, 1}, LST_FURI, {1, 1})
-          ->inst_args(rec({{"low_pin", jnt(0)}, {"high_pin", jnt(GPIO_PIN_COUNT)}, {"halt_on_find", dool(true)}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            int low_pin = args->arg("low_pin")->int_value();
-            int high_pin = args->arg("high_pin")->int_value();
-            bool halt_on_find = args->arg("halt_on_find")->bool_value();
-            const Lst_p i2c_pins = Obj::to_lst();
-            for(int i = low_pin; i <= high_pin; i++) {
-              for(int j = low_pin; j <= high_pin; j++) {
-                Scheduler::singleton()->feed_local_watchdog();
-                if(i != j && i != 1 && j != 1 && i != 3 && j != 3 /*&&
-                            Helper::gpioToD(i) != 111 && Helper::gpioToD(j) != 111*/) {
-                  // const ArduinoI2C temp_i2c = ArduinoI2C(i, j);
-                  // LOG(INFO, FOS_TAB_1 "!ychecking existence of %s\n", temp_i2c.toString().c_str());
-                  /*int found = temp_i2c.rec_get(":scan")->apply(Obj::to_noobj())->int_value();
-                  if(found > 0) {
-                    LOG(INFO, "i2c pins located %i/%i", i, j);
-                    i2c_pins->lst_add(Obj::to_rec({{"sda", jnt(i)}, {"scl", jnt(j)}}));
-                    if(halt_on_find)
-                      return i2c_pins;
-                  }*/
-                }
-              }
-            }
-            return i2c_pins;
-          })
-          ->save();
-      return nullptr;
-    }
   };
 } // namespace fhatos
 #endif

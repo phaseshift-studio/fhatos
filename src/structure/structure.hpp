@@ -186,7 +186,7 @@ namespace fhatos {
             const Objs_p objs = Obj::to_objs();
             objs->add_obj(this->read(furi_no_query));
             for(const Obj_p &obj: *objs->objs_value()) {
-              const Obj_p type = ROUTER_READ(obj->tid_);
+              const Obj_p type = ROUTER_READ(obj->tid);
               ret->add_obj(type);
             }
           }
@@ -203,8 +203,8 @@ namespace fhatos {
             objs->objs_value()->clear();
             objs->add_obj(ROUTER_READ(furi_no_query));
             for(const Obj_p &o: *objs->objs_value()) {
-              if(!FURI_OTYPE.count(*o->tid_))
-                insts->rec_merge(ROUTER_READ(furi_p(o->tid_->query("inst")))->rec_value());
+              if(!FURI_OTYPE.count(*o->tid))
+                insts->rec_merge(ROUTER_READ(furi_p(o->tid->query("inst")))->rec_value());
             }
             ret->add_obj(insts);
           }
@@ -288,11 +288,11 @@ namespace fhatos {
             if(obj->is_noobj()) {
               // unsubscribe
               this->recv_unsubscribe(
-                  (Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID), pattern);
+                  (Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), pattern);
             } else if(obj->is_code()) {
               // bcode for on_recv
               this->recv_subscription(Subscription::create(
-                  Process::current_process() ? Process::current_process()->vid_ : SCHEDULER_ID, pattern, obj));
+                  Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, pattern, obj));
             } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
@@ -402,7 +402,7 @@ namespace fhatos {
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
-      return nullptr == obj->vid_ ? obj : Obj::create(obj->value_, obj->otype_, obj->tid_, nullptr);
+      return nullptr == obj->vid ? obj : Obj::create(obj->value_, obj->otype, obj->tid, nullptr);
     }
 
     void check_availability(const string &function) const {

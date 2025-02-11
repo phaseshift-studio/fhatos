@@ -78,9 +78,9 @@ namespace fhatos {
       }
       // when a thread dies, the entire thread pool is searched for stale threads and removes them along with this thread
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->vid_->equals(*thread->vid_) || !proc->running;
+        const bool remove = proc->vid->equals(*thread->vid) || !proc->running;
         if(remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destroyed\n", proc->vid_->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destroyed\n", proc->vid->toString().c_str());
         }
         return remove;
       });

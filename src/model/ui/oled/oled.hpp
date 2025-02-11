@@ -2,7 +2,7 @@
 #ifndef fhatos_oled_hpp
 #define fhatos_oled_hpp
 
-#ifdef ARDUINO 
+#ifdef ARDUINO
 #define I2C_ADDRESS 0x3C
 
 #include "../../../fhatos.hpp"
@@ -19,22 +19,25 @@ namespace fhatos {
   static ID_p OLED_FURI = id_p(FOS_URI "/oled");
 
   class OLED {
+
   protected:
-    static ptr<SSD1306AsciiWire> get_or_create(const Obj_p &oled) {
-      if(!GLOBAL::singleton()->exists(oled->vid_)) {
-        const auto oled_state = make_shared<SSD1306AsciiWire>();
-        GLOBAL::singleton()->store(oled->vid_, oled_state);
-        oled_state->begin(&Adafruit128x64, oled->rec_get("config/addr")->int_value());
-        oled_state->setFont(Verdana12_bold);
-        oled_state->clear();
+    SSD1306AsciiWire ssd1306;
+
+    static ptr<OLED> get_or_create(const Obj_p &oled) {
+      if(!GLOBAL::singleton()->exists(oled->vid)) {
+        auto oled_state = GLOBAL::singleton()->load<ptr<OLED>>(oled->vid);
+        oled_state->ssd1306.begin(&Adafruit128x64, oled->rec_get("config/addr")->int_value());
+        oled_state->ssd1306.setFont(Verdana12_bold);
+        oled_state->ssd1306.clear();
+        GLOBAL::singleton()->store(oled->vid, oled_state);
         return oled_state;
       }
-      return GLOBAL::singleton()->load<ptr<SSD1306AsciiWire>>(oled->vid_);
+      return GLOBAL::singleton()->load<ptr<OLED>>(oled->vid);
     }
 
     static Obj_p print_inst(const Obj_p &oled, const InstArgs &args) {
-      const ptr<SSD1306AsciiWire> oled_state = OLED::get_or_create(oled);
-      oled_state->setCursor(
+      const ptr<OLED> oled_state = OLED::get_or_create(oled);
+      oled_state->ssd1306.setCursor(
           oled->rec_get("pos/0")->int_value(),
           oled->rec_get("pos/1")->int_value());
       string text = args->arg(0)->str_value();
@@ -44,15 +47,15 @@ namespace fhatos {
           text[text.length() - 2] == '\\';
       if(lf)
         text = text.substr(0, text.length() - 2);
-      if(!(lf ? oled_state->println(text.c_str()) : oled_state->print(text.c_str())))
+      if(!(lf ? oled_state->ssd1306.println(text.c_str()) : oled_state->ssd1306.print(text.c_str())))
         throw fError("unable to write to oled at %i", oled->rec_get("addr")->int_value());
-      oled->rec_set("pos", lst({jnt(oled_state->col()), jnt(oled_state->row())}));
+      oled->rec_set("pos", lst({jnt(oled_state->ssd1306.col()), jnt(oled_state->ssd1306.row())}));
       return oled;
     }
 
     static Obj_p clear_inst(const Obj_p &oled, const InstArgs &args) {
-      const ptr<SSD1306AsciiWire> oled_state = get_or_create(oled);
-      oled_state->clear(
+      const ptr<OLED> oled_state = get_or_create(oled);
+      oled_state->ssd1306.clear(
           args->arg("top")->lst_get(0)->int_value(),
           args->arg("bottom")->lst_get(0)->int_value(),
           args->arg("top")->lst_get(1)->int_value(),

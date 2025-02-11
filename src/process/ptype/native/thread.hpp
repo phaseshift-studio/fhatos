@@ -45,7 +45,7 @@ namespace fhatos {
           else
             this->xthread->detach();
         } catch(const std::runtime_error &e) {
-          fError::create(this->vid_->toString(), "unable to halt thread: %s", e.what());
+          fError::create(this->vid->toString(), "unable to halt thread: %s", e.what());
         }
       }
     }

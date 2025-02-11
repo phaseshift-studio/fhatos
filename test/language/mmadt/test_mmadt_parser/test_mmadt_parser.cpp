@@ -52,7 +52,7 @@ namespace fhatos {
   }
 
   void test_type_parsing() {
-    TEST_ASSERT_EQUAL(OType::NOOBJ, PROCESS("noobj")->otype_);
+    TEST_ASSERT_EQUAL(OType::NOOBJ, PROCESS("noobj")->otype);
   }
 
   void test_noobj_parsing() {
@@ -179,11 +179,11 @@ namespace fhatos {
     PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
     // FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zyz"),
-                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid_);
+                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zzz"),
-                        *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid_);
+                        *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
     FOS_TEST_OBJ_EQUAL(dool(false),
@@ -203,13 +203,13 @@ namespace fhatos {
 
     const ID_p ncount = id_p("/abc/ncount");
     const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
-    FOS_TEST_FURI_EQUAL(*ncount, ncount_inst->tid_->query(""));
-    FOS_TEST_FURI_EQUAL(*ncount, *ncount_inst->vid_);
-    TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype_);
-    TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOMAIN));
-    TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_RANGE));
-    TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_DOM_COEF));
-    TEST_ASSERT_TRUE(ncount_inst->tid_->has_query(FOS_RNG_COEF));
+    FOS_TEST_FURI_EQUAL(*ncount, ncount_inst->tid->query(""));
+    FOS_TEST_FURI_EQUAL(*ncount, *ncount_inst->vid);
+    TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype);
+    TEST_ASSERT_TRUE(ncount_inst->tid->has_query(FOS_DOMAIN));
+    TEST_ASSERT_TRUE(ncount_inst->tid->has_query(FOS_RANGE));
+    TEST_ASSERT_TRUE(ncount_inst->tid->has_query(FOS_DOM_COEF));
+    TEST_ASSERT_TRUE(ncount_inst->tid->has_query(FOS_RNG_COEF));
     FOS_TEST_FURI_EQUAL(*OBJS_FURI, *ncount_inst->domain());
     FOS_TEST_FURI_EQUAL(*INT_FURI, *ncount_inst->range());
     //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
@@ -272,7 +272,7 @@ namespace fhatos {
     ////////// |
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("start(1).8"))
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1|8"))
-    // TODO: FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid_);
+    // TODO: FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid);
     ////////// ==
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4),jnt(6)}), PROCESS("[1,2,3]==[x 2,mult(2),x 2]"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(2),jnt(4),jnt(6)}), PROCESS("[1,2,3]==[+ 1,+ 2,+ 3]"));

@@ -115,7 +115,7 @@ namespace fhatos {
   void test_inst_resolution() {
     Compiler compiler = Compiler(true, true);
     FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
-                        compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid_->no_query());
+                        compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid->no_query());
     string ds;
     compiler.print_derivation_tree(&ds);
     LOG_OBJ(INFO, jnt(10), "%s\n", ds.c_str());
@@ -123,7 +123,7 @@ namespace fhatos {
 
   void test_derived_type_inst_resolution() {
     FOS_TEST_FURI_EQUAL(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"),
-                        *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid_);
+                        *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
     FOS_TEST_ERROR("/compiler/nat[-5]");
     FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));

@@ -26,8 +26,8 @@ namespace fhatos {
   class Thread : public Process {
   protected:
     int find_stack_size() {
-      return ROUTER_READ(furi_p(this->vid_->extend("stack_size"))) // check provided obj
-          ->or_else(ROUTER_READ(furi_p(this->vid_->extend("+/stack_size")))->none_one())
+      return ROUTER_READ(furi_p(this->vid->extend("stack_size"))) // check provided obj
+          ->or_else(ROUTER_READ(furi_p(this->vid->extend("+/stack_size")))->none_one())
           // check one depth more (e.g. config/stack_size)
           ->or_else(ROUTER_READ(furi_p(SCHEDULER_ID->extend("config/def_stack_size"))))
           // check default setting in scheduler
@@ -44,7 +44,7 @@ namespace fhatos {
 
     /*void setup() override {
       Process::setup();
-      const ID_p hwm_id = id_p(this->vid_->extend(":hwm"));
+      const ID_p hwm_id = id_p(this->vid->extend(":hwm"));
       InstBuilder::build(hwm_id)
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_f([this](const Obj_p &, const InstArgs &) {

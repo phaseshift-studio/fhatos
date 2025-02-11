@@ -44,7 +44,7 @@
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 //// FOS MODELS
 #include "model/driver/pin/arduino_gpio.hpp"
-#include "model/driver/pin/arduino_i2c.hpp"
+#include "model/driver/pin/i2c.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
 #include "model/ui/rgbled/rgbled.hpp"
@@ -117,7 +117,7 @@ namespace fhatos {
             ////////////////// USER STRUCTURE(S)
             ->display_note("!r.!go!bO !yloading !blanguage !yinsts!! !bO!go!r.!!")
             ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")))
-            ->import(mmadt::mmADT::import())
+            ->import(mmADT::import())
             ->display_note("!r.!go!bO !yloading !bmodel !ytypes!! !bO!go!r.!!")
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
             ->import(fOS::import_types())
@@ -139,9 +139,9 @@ namespace fhatos {
                                       {"DEBUG", lst()},
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
-            ->mount(Heap<>::create("+/#", id_p("/sys/structure/cache")))
+            ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
             ->import(FSx::import("/sys/structure/lib/fs"))
-            ->mount(FSx::create("/disk/#", id_p("/sys/structure/disk"),
+            ->mount(FSx::create("/disk/#", id_p("/mnt/disk"),
                                 Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
             ->drop_config("fs")
 

@@ -58,7 +58,7 @@ namespace fhatos {
 
     void connection_logging() const {
       LOG_STRUCTURE(INFO, this, "!b%s !ymqtt!! %s connected\n",
-                    this->vid_->toString().c_str(),
+                    this->vid->toString().c_str(),
                     this->rec_get("config")->toString().c_str());
     }
 

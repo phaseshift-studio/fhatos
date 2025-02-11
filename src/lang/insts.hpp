@@ -537,7 +537,7 @@ namespace fhatos {
                     return lhs->rec_get(args.at(0));
                   if (lhs->is_lst())
                     return lhs->lst_get(args.at(0));
-                  throw fError("from_get doesn't support {}", lhs->tid_->toString().c_str());
+                  throw fError("from_get doesn't support {}", lhs->tid->toString().c_str());
                 };
               },
               IType::ONE_TO_ONE);

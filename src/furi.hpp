@@ -1085,10 +1085,10 @@ namespace fhatos {
   public:
     virtual ~Typed() = default;
 
-    ID_p tid_;
+    ID_p tid;
 
     explicit Typed(const ID_p &type) :
-      tid_(type) {
+      tid(type) {
     }
 
     explicit Typed(const ID &id) :
@@ -1102,14 +1102,14 @@ namespace fhatos {
 
   class Valued {
   public:
-    ID_p vid_;
+    ID_p vid;
 
     virtual ~Valued() = default;
 
     explicit Valued(const ID_p &id) :
-      vid_(id) {
+      vid(id) {
       if(id && id->empty())
-        vid_ = nullptr;
+        vid = nullptr;
     }
 
     explicit Valued(const ID &id) :

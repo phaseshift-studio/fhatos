@@ -47,7 +47,7 @@ namespace fhatos {
       } else if(obj->is_lst() && max_depth > depth) {
         if(!parent_rec) {
           ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b"
-              << (obj->is_base_type() ? "" : obj->tid_->name().c_str());
+              << (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
         for(const auto &e: *obj->lst_value()) {
@@ -62,11 +62,11 @@ namespace fhatos {
           }
         }
         ss << string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b";
-        ss << (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid_->name().length(), " ").c_str()) << "!m]!!\n";
+        ss << (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid->name().length(), " ").c_str()) << "!m]!!\n";
       } else if(obj->is_rec() && max_depth > depth) {
         if(!parent_rec) {
           ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b" <<
-              (obj->is_base_type() ? "" : obj->tid_->name().c_str());
+              (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
         for(const auto &[key, value]: *obj->rec_value()) {
@@ -88,9 +88,9 @@ namespace fhatos {
         }
         ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ")
             << (char_indent ? ">" : " ") << "!b" << "!m]";
-        if(obj->vid_) {
+        if(obj->vid) {
           ss << "!m@!b";
-          ss << obj->vid_->toString();
+          ss << obj->vid->toString();
         }
         ss << "!!\n";
       } else {
@@ -111,7 +111,7 @@ namespace fhatos {
       auto ss = std::ostream(sb);
       string close;
       if(!obj_printer)
-        obj_printer = GLOBAL_PRINTERS.at(obj->otype_);
+        obj_printer = GLOBAL_PRINTERS.at(obj->otype);
       if(obj->is_noobj())
         ss << "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       else {
@@ -129,7 +129,7 @@ namespace fhatos {
           if(!obj->domain_range().is_single() || !obj->is_base_type() || obj->is_inst() || obj->is_type() || obj->
              is_uri()) {
             type_printed = true;
-            ss << string("!b").append(obj_printer->strict ? obj->tid_->toString() : obj->tid_->name()).append("!!");
+            ss << string("!b").append(obj_printer->strict ? obj->tid->toString() : obj->tid->name()).append("!!");
           }
           // TODO: remove base_type check
           if(!obj->domain_range().is_single() || obj_printer->show_domain_range) {
@@ -160,7 +160,7 @@ namespace fhatos {
                                                      .append(",")
                                                      .append(to_string(obj->range_coefficient().second));
 
-            if(!dom_str.empty() || !rng_str.empty() || !obj->range()->equals(obj->tid_->no_query()) || !obj->domain()->
+            if(!dom_str.empty() || !rng_str.empty() || !obj->range()->equals(obj->tid->no_query()) || !obj->domain()->
                equals(*OBJ_FURI)) {
               ss << "!m?!!"
                   << "!c" << (obj_printer->strict ? obj->range()->toString() : obj->range()->name())
@@ -177,7 +177,7 @@ namespace fhatos {
 
         if(type_printed && !obj->is_inst())
           ss << "!g[!!";
-        switch(obj->otype_) {
+        switch(obj->otype) {
           case OType::BOOL:
             ss << (obj->bool_value() ? "!ytrue!!" : "!yfalse!!");
             break;
@@ -310,14 +310,14 @@ namespace fhatos {
             break;
           }
           default:
-            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->otype_).c_str());
+            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(obj->otype).c_str());
         }
         if(type_printed && !obj->is_inst())
           ss << "!g]!!";
       }
 
-      if(obj_printer->show_id && obj->vid_)
-        ss << "!m@!b" << obj->vid_->toString() << "!!";
+      if(obj_printer->show_id && obj->vid)
+        ss << "!m@!b" << obj->vid->toString() << "!!";
 
       //obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
     }
