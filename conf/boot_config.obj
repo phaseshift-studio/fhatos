@@ -1,8 +1,8 @@
 --- standard boot config obj
-[router=>[
+/boot/config -> [router=>[
  resolve=>[
-  namespace=>[:=>/mmadt/,fos:=>/fos/,math:=>/mmadt/ext/math],
-  auto_prefix=>[<>,/mmadt/,/fos/,/fos/sensor/,/sys/],
+  namespace=>[:=>/mmadt/,fos:=>/fos/],
+  auto_prefix=>[<>,/mmadt/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/sys/],
   query=>[write=>[lock=>to_do]],
   default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[

@@ -1,0 +1,4 @@
+i2c[[sda=>gpio[9],scl=>gpio[10],freq=>40000]]@/io/i2c/a;
+oled[[pos=>[0,0],config=>[addr=>uint8[60],i2c=>/io/i2c/a]]]@/io/oled/a;
+aht10[[humidity=>prnt[0.0],celsius=>C[0.0],config=>[addr=>uint8[32],i2c=>/io/i2c/a]]]@/io/aht/a;
+rgbled[[color=>[r=>uint8[255],g=>uint8[0],b=>uint8[0]],config=>[pin=>[r=>gpio[17],g=>gpio[16],b=>gpio[15]]]]]@/io/rgbled/a

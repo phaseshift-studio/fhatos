@@ -11,21 +11,45 @@ namespace fhatos {
   public:
     virtual ~Model() = default;
 
-  protected:
-    virtual MODEL_STATE create_state(const Obj_p &model_obj);
+    static ptr<MODEL_STATE> create_state(const Obj_p &model_obj);
 
-    static MODEL_STATE get_or_create(const Obj_p &model_obj) {
+    static ptr<MODEL_STATE> get_or_create(const Obj_p &model_obj) {
       if(GLOBAL::singleton()->exists(model_obj->vid))
-        return GLOBAL::singleton()->load<MODEL_STATE>(model_obj->vid);
+        return GLOBAL::singleton()->load<ptr<MODEL_STATE>>(model_obj->vid);
       else {
-        MODEL_STATE model_state = this->create_state(model_obj);
+        ptr<MODEL_STATE> model_state = MODEL_STATE::create_state(model_obj);
         GLOBAL::singleton()->store(model_obj->vid, model_state);
         return model_state;
       }
     }
 
-  public:
-    virtual void *import();
+    static Obj_p get_inst(const ID &inst_id, const Obj_p &obj, const InstArgs &args) {
+      // nat[23].plus()
+      Inst_p inst = Router::singleton()->read(id_p(obj->vid->add_component(inst_id)));
+      if(inst->is_applicable_inst()) return inst; //inst->apply(obj, args);
+      // nat.plus()
+      inst = Router::singleton()->read(id_p(obj->tid->add_component(inst_id)));
+      if(inst->is_applicable_inst()) return inst; //inst->apply(obj, args);
+      // plus()
+      inst = Router::singleton()->read(id_p(inst_id));
+      if(inst->is_applicable_inst()) return inst; //inst->apply(obj, args);
+      ////
+      /// int[23].plus(), int.plus(), plus() ...
+      const Obj_p objs = Router::singleton()->read(id_p(obj->tid->add_component("#")));
+      if(objs->is_objs()) {
+        for(const Inst_p &i: *objs->objs_value()) {
+          if(i->range()->no_query() == *obj->tid && i->domain()->no_query() != *obj->tid) {
+            inst = get_inst(i->domain()->no_query(),
+                              make_shared<Obj>(obj->value_, obj->otype, i->domain(), obj->vid), args);
+            if(inst->is_applicable_inst())
+              return inst;
+          }
+        }
+      }
+      return nullptr;
+    }
+
+    static void *import();
   };
 }
 

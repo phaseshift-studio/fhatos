@@ -1597,6 +1597,8 @@ namespace fhatos {
 
     [[nodiscard]] bool is_inst() const { return this->otype == OType::INST; }
 
+    [[nodiscard]] bool is_applicable_inst() const { return this->is_inst() && this->inst_f(); }
+
     [[nodiscard]] bool is_objs() const { return this->otype == OType::OBJS; }
 
     [[nodiscard]] bool is_bcode() const { return this->otype == OType::BCODE; }
@@ -1692,7 +1694,7 @@ namespace fhatos {
         ROUTER_POP_FRAME();
         return result;
       } catch(const std::exception &e) {
-      //  LOG_EXCEPTION(this, e);
+        //  LOG_EXCEPTION(this, e);
         ROUTER_POP_FRAME();
         throw;
       }

@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_gpio_hpp
-#define fhatos_gpio_hpp
+#ifndef fhatos_gpioxx_hpp
+#define fhatos_gpioxx_hpp
 #ifdef NATIVE
 #include <gpiod.h>
 

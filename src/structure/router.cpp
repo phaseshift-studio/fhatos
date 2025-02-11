@@ -88,7 +88,7 @@ namespace fhatos {
   void Router::load_config(const ID &config_id) {
     const Obj_p config = this->read(id_p(config_id));
     if(config->is_noobj())
-      LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", FOS_BOOT_CONFIG_VALUE_ID);
+      LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", config_id.toString().c_str());
     if(!config->is_noobj()) {
       const Rec_p router_config = config->rec_get(vri("router"));
       this->rec_set("config", router_config);

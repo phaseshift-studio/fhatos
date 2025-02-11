@@ -16,16 +16,16 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_arduino_i2c_hpp
-#define fhatos_arduino_i2c_hpp
+#ifndef fhatos_i2c_hpp
+#define fhatos_i2c_hpp
 
-#include "../../../fhatos.hpp"
-#include "../../../lang/obj.hpp"
-#include "../../../lang/type.hpp"
-#include "../../../structure/router.hpp"
-#include "../../../util/obj_helper.hpp"
-#include STR(../../../process/ptype/HARDWARE/scheduler.hpp)
-#include "arduino_gpio.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/obj.hpp"
+#include "../../../../lang/type.hpp"
+#include "../../../../util/obj_helper.hpp"
+#include STR(../../../../process/ptype/HARDWARE/scheduler.hpp)
+#include "../gpio/gpio.hpp"
+#include "../../../model.hpp"
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -43,35 +43,33 @@ FhatOS: A Distributed Operating System
 #endif
 
 namespace fhatos {
-  static ID_p I2C_FURI = id_p("/fos/i2c");
+  static ID_p I2C_FURI = id_p("/fos/io/i2c");
 
-  class I2C final {
+  class I2C final : public Model<I2C> {
 
-  protected:
-    static Obj_p setup_inst(const Obj_p &i2c, const InstArgs &) {
-      Wire.begin(
+  public:
+    static ptr<I2C> create_state(const Obj_p &i2c) {
+      const auto i2c_state = make_shared<I2C>();
+      if(!Wire.begin(
           (uint8_t) i2c->rec_get("sda")->int_value(),
-          (uint8_t) i2c->rec_get("scl")->int_value());
+          (uint8_t) i2c->rec_get("scl")->int_value())) {
+        throw fError::create(i2c->toString(), "!runable to communicate!! with i2c hardware!!");
+      }
       Wire.setClock(i2c->rec_get("freq")->int_value());
-      return i2c;
+      return i2c_state;
     }
 
     static Obj_p stop_inst(const Obj_p &i2c, const InstArgs &) {
+      const ptr<I2C> oled_state = I2C::get_or_create(i2c);
       Wire.end();
       LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
       return Obj::to_noobj();
     }
 
     static Obj_p scan_inst(const Obj_p &i2c, const InstArgs &) {
+      const ptr<I2C> oled_state = I2C::get_or_create(i2c);
       const Lst_p result_set = Obj::to_lst();
       try {
-        if(!Wire.begin((uint8_t) i2c->rec_get("sda")->int_value(),
-                       (uint8_t) i2c->rec_get("scl")->int_value())) {
-          LOG_OBJ(ERROR, i2c, "!runable to communicate!! with %s!!\n",
-                  i2c->toString().c_str());
-          return result_set;
-        }
-        Wire.setClock(i2c->rec_get("freq")->int_value());
         for(int i = 8; i < 120; i++) {
           Scheduler::singleton()->feed_local_watchdog();
           Wire.beginTransmission(i);
@@ -93,18 +91,11 @@ namespace fhatos {
       return result_set;
     }
 
-  public:
     static void *import() {
       Typer::singleton()->save_type(I2C_FURI, Obj::to_rec({
                                         {"sda", Obj::to_type(GPIO_FURI)},
                                         {"scl", Obj::to_type(GPIO_FURI)},
                                         {"freq", Obj::to_type(INT_FURI)}}));
-      InstBuilder::build(I2C_FURI->add_component("setup"))
-          ->domain_range(I2C_FURI, {1, 1}, I2C_FURI, {1, 1})
-          ->inst_f([](const Obj_p &i2c, const InstArgs &args) {
-            return I2C::setup_inst(i2c, args);
-          })
-          ->save();
       InstBuilder::build(I2C_FURI->add_component("stop"))
           ->domain_range(I2C_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &i2c, const InstArgs &args) {

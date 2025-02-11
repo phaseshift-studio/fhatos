@@ -16,50 +16,47 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_arduino_pwm_hpp
-#define fhatos_arduino_pwm_hpp
-
-#ifndef NATIVE
-#include "../../../fhatos.hpp"
-#include "../../../lang/type.hpp"
-#include "../../../lang/obj.hpp"
-#include "../../../util/obj_helper.hpp"
-#include "../../../structure/router.hpp"
+#ifndef fhatos_gpio_hpp
+#define fhatos_gpio_hpp
+//
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/type.hpp"
+#include "../../../../lang/obj.hpp"
+#include "../../../../util/obj_helper.hpp"
 //
 #ifdef ARDUINO
 #include <Arduino.h>
 #elif defined(RASPBERRYPI)
 #include <wiringPi.h>
 #elif defined(NATIVE)
-#include "ext/gpio.h"
+#include "ext/gpioxx.h"
 #endif
 
 namespace fhatos {
-  static ID_p PWM_FURI = id_p("/fos/pwm");
+  static ID_p GPIO_FURI = id_p("/fos/io/gpio");
 
-  class ArduinoPWM final {
+  class GPIO final {
   public:
     static void *import() {
-      Typer::singleton()->save_type(PWM_FURI, Obj::to_type(INT_FURI));
-      InstBuilder::build(PWM_FURI->add_component("write"))
-          ->domain_range(PWM_FURI, {1, 1}, PWM_FURI, {1, 1})
+      Typer::singleton()->save_type(GPIO_FURI, Obj::to_type(INT_FURI));
+      InstBuilder::build(GPIO_FURI->add_component("write"))
+          ->domain_range(GPIO_FURI, {1, 1}, GPIO_FURI, {1, 1})
           ->inst_args(rec({{"value", Obj::to_type(INT_FURI)}}))
           ->inst_f([](const Obj_p &gpio, const InstArgs &args) {
             const uint8_t pin = gpio->int_value();
             const uint8_t value = args->arg("value")->int_value();
             pinMode(pin, OUTPUT);
-            analogWrite(pin, value);
+            digitalWrite(pin, value);
             return gpio;
           })->save();
       ///////////////////////////////////////////////////////
-      InstBuilder::build(PWM_FURI->add_component("read"))
-          ->domain_range(PWM_FURI, {1, 1}, INT_FURI, {1, 1})
-          ->inst_f([](const Obj_p &pwm, const InstArgs &) {
-            return jnt(analogRead(pwm->int_value()));
+      InstBuilder::build(GPIO_FURI->add_component("read"))
+          ->domain_range(GPIO_FURI, {1, 1}, INT_FURI, {1, 1})
+          ->inst_f([](const Obj_p &gpio, const InstArgs &) {
+            return jnt(digitalRead(gpio->int_value()));
           })->save();
       return nullptr;
     }
   };
 } // namespace fhatos
-#endif
 #endif

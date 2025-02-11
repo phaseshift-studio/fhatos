@@ -18,15 +18,15 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_aht10_hpp
 #define fhatos_aht10_hpp
+#include "../../io/i2c/i2c.hpp"
 #ifndef NATIVE
 
-#include "../../../fhatos.hpp"
-#include "../../../lang/type.hpp"
-#include "../../../lang/obj.hpp"
-#include "../../../lang/mmadt/type.hpp"
-#include "../../../util/obj_helper.hpp"
-#include "../../../util/global.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/type.hpp"
+#include "../../../../lang/obj.hpp"
+#include "../../../../util/obj_helper.hpp"
 #include "ext/ahtxx.hpp"
+#include "../../../model.hpp"
 #ifdef ARDUINO
 #include "ext/ahtxx.hpp"
 #endif
@@ -37,23 +37,27 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   static ID_p AHT10_FURI = id_p("/fos/sensor/aht10");
 
-  class AHT10 final {
-
+  class AHT10 final : Model<AHT10> {
   protected:
-    static ptr<AHTxx> get_or_create(const Obj_p &aht10) {
-      if(!GLOBAL::singleton()->exists(aht10->vid))
-        GLOBAL::singleton()->store(aht10->vid, make_shared<AHTxx>(aht10->rec_get("config/addr")->int_value()));
-      return GLOBAL::singleton()->load<ptr<AHTxx>>(aht10->vid);
+    AHTxx ahtxx;
+
+  public:
+    explicit AHT10(const uint8_t addr) :
+      ahtxx(AHTxx(addr)) {
+    }
+
+    static ptr<AHT10> create_state(const Obj_p &aht10) {
+      I2C::get_or_create(Router::singleton()->read(id_p(aht10->rec_get("config/i2c")->uri_value())));
+      return make_shared<AHT10>(aht10->rec_get("config/addr")->int_value());
     }
 
     static Obj_p refresh_inst(const Obj_p &aht10, const InstArgs &) {
-      const ptr<AHTxx> aht10_state = AHT10::get_or_create(aht10);
-      aht10->rec_set("celsius", real(aht10_state->readTemperature(), CELSIUS_FURI));
-      aht10->rec_set("humidity", real(aht10_state->readHumidity(), PERCENT_FURI));
+      const ptr<AHT10> aht10_state = AHT10::get_or_create(aht10);
+      aht10->rec_set("celsius", real(aht10_state->ahtxx.readTemperature(), CELSIUS_FURI));
+      aht10->rec_set("humidity", real(aht10_state->ahtxx.readHumidity(), PERCENT_FURI));
       return aht10;
     }
 
-  public:
     static void *import() {
       Typer::singleton()->save_type(AHT10_FURI, Obj::to_rec(
                                     {{"celsius", Obj::to_type(CELSIUS_FURI)},

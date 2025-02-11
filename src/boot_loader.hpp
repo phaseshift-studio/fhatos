@@ -43,18 +43,18 @@
 #ifdef NATIVE
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 //// FOS MODELS
-#include "model/driver/pin/arduino_gpio.hpp"
-#include "model/driver/pin/i2c.hpp"
+#include "model/fos/io/gpio/gpio.hpp"
+#include "model/fos/io/i2c/i2c.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
-#include "model/ui/rgbled/rgbled.hpp"
-#include "model/sensor/aht10/aht10.hpp"
+#include "model/fos/ui/rgbled/rgbled.hpp"
+#include "model/fos/sensor/aht10/aht10.hpp"
+#include "model/fos/io/pwm/pwm.hpp"
+#include "model/fos/ui/oled/oled.hpp"
+#include "model/fos/ui/rgbled/rgbled.hpp"
 #include "model/soc/esp/ota.hpp"
 #include "model/soc/esp/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
-#include "model/driver/pin/arduino_pwm.hpp"
-#include "model/ui/oled/oled.hpp"
-#include "model/ui/rgbled/rgbled.hpp"
 #ifdef CONFIG_SPIRAM_USE
 #include "util/esp32/psram_allocator.hpp"
 #endif
@@ -77,6 +77,8 @@ namespace fhatos {
 #endif
 #ifdef ESP_ARCH
         args_parser->set_option("--boot:config","/boot/boot_config.obj");
+#else
+       args_parser->set_option("--boot:config", "../conf/boot_config.obj");
 #endif
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
@@ -173,7 +175,7 @@ namespace fhatos {
             ->drop_config("console")
             ->eval([args_parser] {
 
-              Router::singleton()->write(id_p("/sys/structure/boot"), Obj::to_noobj()); // shutdown the boot partition
+              Router::singleton()->write(id_p("/mnt/boot"), Obj::to_noobj()); // shutdown the boot partition
               Router::singleton()->loop();
               delete args_parser;
             });

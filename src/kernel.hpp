@@ -27,9 +27,6 @@
 #include "util/memory_helper.hpp"
 #include "util/print_helper.hpp"
 #include "boot_config_loader.hpp"
-#ifdef ESP_ARCH
-#include STR(structure/stype/fs/HARDWARE/fs.hpp)
-#endif
 
 namespace fhatos {
 
@@ -204,8 +201,8 @@ namespace fhatos {
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-         MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
-         config_obj = Router::singleton()->read(config_id);
+        MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
+        config_obj = Router::singleton()->read(config_id);
       }
       if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         free(boot_config_obj_copy);

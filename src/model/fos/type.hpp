@@ -16,22 +16,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fos_type_hpp
-#define fos_type_hpp
+#ifndef fhatos_fos_type_hpp
+#define fhatos_fos_type_hpp
 
 #include "../../fhatos.hpp"
 #include "../../lang/obj.hpp"
 #include "../../lang/type.hpp"
-#include "../driver/pin/arduino_gpio.hpp"
-#include "../driver/pin/i2c.hpp"
+#include "io/gpio/gpio.hpp"
+#include "io/i2c/i2c.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
 #ifdef ARDUINO
-#include "../driver/pin/arduino_pwm.hpp"
-#include "../sensor/aht10/aht10.hpp"
-#include "../ui/oled/oled.hpp"
+#include "io/pwm/pwm.hpp"
+#include "sensor/aht10/aht10.hpp"
+#include "ui/oled/oled.hpp"
+#include "ui/rgbled/rgbled.hpp"
 #endif
-#include "../ui/rgbled/rgbled.hpp"
-
 #define TOTAL_INSTRUCTIONS 100
 #define FOS_URI "/fos"
 
@@ -70,31 +69,16 @@ namespace fhatos {
 
     static void import_query_processor() {
       Typer::singleton()->start_progress_bar(14);
-      Typer::singleton()->save_type(OBJ_FURI, Obj::to_type(OBJ_FURI));
-      Typer::singleton()->save_type(NOOBJ_FURI, Obj::to_type(NOOBJ_FURI));
-      Typer::singleton()->save_type(BOOL_FURI, Obj::to_type(BOOL_FURI));
-      Typer::singleton()->save_type(INT_FURI, Obj::to_type(INT_FURI));
-      Typer::singleton()->save_type(REAL_FURI, Obj::to_type(REAL_FURI));
-      Typer::singleton()->save_type(STR_FURI, Obj::to_type(STR_FURI));
-      Typer::singleton()->save_type(URI_FURI, Obj::to_type(URI_FURI));
-      Typer::singleton()->save_type(LST_FURI, Obj::to_type(LST_FURI));
-      Typer::singleton()->save_type(REC_FURI, Obj::to_type(REC_FURI));
-      Typer::singleton()->save_type(OBJS_FURI, Obj::to_type(OBJS_FURI));
-      Typer::singleton()->save_type(BCODE_FURI, Obj::to_type(BCODE_FURI));
-      Typer::singleton()->save_type(INST_FURI, Obj::to_type(INST_FURI));
-      Typer::singleton()->save_type(ERROR_FURI, Obj::to_type(ERROR_FURI));
-      //      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
-      //      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }
 
     static void *import_io() {
       Typer::singleton()->start_progress_bar(6);
-      ArduinoGPIO::import();
+      GPIO::import();
       I2C::import();
 #ifdef ARDUINO
-      ArduinoPWM::import();
+      PWM::import();
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));

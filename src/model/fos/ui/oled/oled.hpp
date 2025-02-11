@@ -5,34 +5,32 @@
 #ifdef ARDUINO
 #define I2C_ADDRESS 0x3C
 
-#include "../../../fhatos.hpp"
-#include "../../../lang/obj.hpp"
-#include "../../../structure/router.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/obj.hpp"
+#include "../../../../structure/router.hpp"
 #include "ext/SSD1306Ascii.h"
 #include "ext/SSD1306AsciiWire.h"
 #include <Wire.h>
 #include <Arduino.h>
-#include "../../../util/global.hpp"
-#include "../../../lang/type.hpp"
+#include "../../../../util/global.hpp"
+#include "../../../../lang/type.hpp"
+#include "../../../model.hpp"
 
 namespace fhatos {
   static ID_p OLED_FURI = id_p(FOS_URI "/oled");
 
-  class OLED {
+  class OLED final : public Model<OLED> {
 
-  protected:
+  public:
     SSD1306AsciiWire ssd1306;
 
-    static ptr<OLED> get_or_create(const Obj_p &oled) {
-      if(!GLOBAL::singleton()->exists(oled->vid)) {
-        auto oled_state = GLOBAL::singleton()->load<ptr<OLED>>(oled->vid);
-        oled_state->ssd1306.begin(&Adafruit128x64, oled->rec_get("config/addr")->int_value());
-        oled_state->ssd1306.setFont(Verdana12_bold);
-        oled_state->ssd1306.clear();
-        GLOBAL::singleton()->store(oled->vid, oled_state);
-        return oled_state;
-      }
-      return GLOBAL::singleton()->load<ptr<OLED>>(oled->vid);
+    static ptr<OLED> create_state(const Obj_p &oled) {
+      I2C::get_or_create(Router::singleton()->read(id_p(oled->rec_get("config/i2c")->uri_value())));
+      auto oled_state = make_shared<OLED>();
+      oled_state->ssd1306.begin(&Adafruit128x64, oled->rec_get("config/addr")->int_value());
+      oled_state->ssd1306.setFont(Verdana12_bold);
+      oled_state->ssd1306.clear();
+      return oled_state;
     }
 
     static Obj_p print_inst(const Obj_p &oled, const InstArgs &args) {

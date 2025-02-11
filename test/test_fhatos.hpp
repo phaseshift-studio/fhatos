@@ -37,11 +37,13 @@
 #include "../src/lang/fluent.hpp"
 #include "../src/util/fhat_error.hpp"
 #include "../src/structure/stype/heap.hpp"
+#include "../src/structure/router.hpp"
 #include "../src/util/logger.hpp"
 #include "../src/model/log.hpp"
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #include "../src/boot_config_loader.hpp"
+//#include STR(../src/structure/stype/fs/HARDWARE/fs.hpp)
 
 
 #define FOS_DEPLOY_PRINTER
