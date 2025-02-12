@@ -513,6 +513,17 @@ namespace fhatos {
       }
     }
 
+    virtual Obj_p load() const {
+      if(this->vid) {
+        const Obj_p other = ROUTER_READ(this->vid);
+        if(this->otype != other->otype || !this->tid->equals(*other->tid))
+          throw fError("type of obj structural encoding changed (try locking): %s %s", this->tid->toString().c_str(),
+                       other->tid->toString().c_str());
+        return other;
+      }
+      return this->shared_from_this();
+    }
+
     template<typename VALUE>
     [[nodiscard]] VALUE value() const {
       try {
