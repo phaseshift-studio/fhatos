@@ -43,11 +43,12 @@ namespace fhatos {
     explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
                   const Rec_p &config = Obj::to_rec()) :
       Structure(pattern, id_p(HEAP_FURI), value_id, config) {
-     // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
+      // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
-    static ptr<Heap<ALLOCATOR>> create(const Pattern& pattern, const ID_p& value_id = nullptr, const Rec_p& config = Obj::to_rec()) {
-      return Structure::create<Heap<ALLOCATOR>>(pattern,value_id,config);
+    static ptr<Heap<ALLOCATOR>> create(const Pattern &pattern, const ID_p &value_id = nullptr,
+                                       const Rec_p &config = Obj::to_rec()) {
+      return Structure::create<Heap<ALLOCATOR>>(pattern, value_id, config);
     }
 
     static void *import(const ID &import_id) {
@@ -84,9 +85,14 @@ namespace fhatos {
     IdObjPairs read_raw_pairs(const fURI_p &match) override {
       std::shared_lock<std::shared_mutex> lock(this->map_mutex);
       auto list = IdObjPairs();
-      for(const auto &[id, obj]: *this->data_) {
-        if(id->matches(*match)) {
-          list.push_back({id, obj});
+      if(!match->is_pattern()) {
+        if(const ID_p id_p_match = id_p(*match); this->data_->count(id_p_match))
+          list.push_back({id_p_match, this->data_->at(id_p_match)});
+      } else {
+        for(const auto &[id, obj]: *this->data_) {
+          if(id->matches(*match)) {
+            list.push_back({id, obj});
+          }
         }
       }
       return list;

@@ -213,11 +213,10 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const fURI_p temp = furi->is_branch()
-                              ? furi_p(furi->extend("+").no_query())
-                              : furi->has_query()
-                              ? furi_p(furi->no_query())
-                              : furi;
+        const fURI furi_no_query = furi->no_query();
+        const fURI_p temp = furi_no_query.is_branch()
+                              ? furi_p(furi_no_query.extend("+"))
+                              : furi_p(furi_no_query);
         const IdObjPairs matches = this->read_raw_pairs(temp);
         if(furi->is_branch()) {
           const Rec_p rec = Obj::to_rec();
@@ -316,8 +315,7 @@ namespace fhatos {
             for(const auto &[key, value]: *obj->rec_value()) {
               if(key->is_uri()) {
                 // uri key
-                this->write(id_p(key->uri_value()), value, retain);
-                // may be wrong, should be outside recursion
+                this->write_raw_pairs(id_p(new_furi->extend(key->uri_value())), value, retain);
               } else // non-uri key
                 remaining->rec_value()->insert({key, value});
             }
