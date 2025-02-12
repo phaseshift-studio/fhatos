@@ -42,6 +42,7 @@ namespace fhatos {
   public:
     explicit MLX90614(const uint8_t addr) :
       mlx90614xx(MLX90614xx_I2C(addr)) {
+        this->mlx90614xx.begin();
     }
 
     static ptr<MLX90614> create_state(const Obj_p &mlx90614) {
@@ -51,15 +52,15 @@ namespace fhatos {
 
     static Obj_p refresh_inst(const Obj_p &mlx90614, const InstArgs &) {
       const ptr<MLX90614> mlx90614_state = MLX90614::get_or_create(mlx90614);
-     // aht10->rec_set("celsius", real(aht10_state->ahtxx.readTemperature(), CELSIUS_FURI));
-     // aht10->rec_set("humidity", real(aht10_state->ahtxx.readHumidity(), PERCENT_FURI));
+      mlx90614->rec_set("ambient", real(mlx90614_state->mlx90614xx.getAmbientTempCelsius(), CELSIUS_FURI));
+      mlx90614->rec_set("object", real(mlx90614_state->mlx90614xx.getObjectTempCelsius(), CELSIUS_FURI));
       return mlx90614;
     }
 
     static void *import() {
       Typer::singleton()->save_type(MLX90614_FURI, Obj::to_rec(
-                                    {{"celsius", Obj::to_type(CELSIUS_FURI)},
-                                     {"humidity", Obj::to_type(PERCENT_FURI)},
+                                    {{"ambient", Obj::to_type(CELSIUS_FURI)},
+                                     {"object", Obj::to_type(CELSIUS_FURI)},
                                      {"config", Obj::to_rec({
                                           {"addr", Obj::to_type(UINT8_FURI)},
                                           {"i2c", Obj::to_type(URI_FURI)}})}}));
