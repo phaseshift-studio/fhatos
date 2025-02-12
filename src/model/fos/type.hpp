@@ -28,6 +28,7 @@
 #ifdef ARDUINO
 #include "io/pwm/pwm.hpp"
 #include "sensor/aht10/aht10.hpp"
+#include "sensor/mlx90614/mlx90614.hpp"
 #include "ui/oled/oled.hpp"
 #include "ui/rgbled/rgbled.hpp"
 #endif
@@ -89,6 +90,7 @@ namespace fhatos {
       Typer::singleton()->start_progress_bar(3);
 #ifdef ARDUINO
       AHT10::import();
+      MLX90614::import();
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysensor types!! loaded!g]!! \n",FOS_URI "/sensor/+"));

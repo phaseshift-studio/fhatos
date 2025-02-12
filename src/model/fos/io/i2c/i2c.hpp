@@ -143,7 +143,7 @@ namespace fhatos {
     static std::pair<const char *, const char *> i2c_device_description(const int addr) {
       switch(addr) {
         case 0x20: // 32
-          return {"pcf8575", "gpio exapnder"};
+          return {"pcf8575", "gpio exapander"};
         case 0x38: // 56
           return {"aht10", "temp/humidity"};
         case 0x39: // 57
@@ -152,6 +152,8 @@ namespace fhatos {
           return {"oled", "screen"};
         case 0x40: // 64
           return {"pca9685", "pwm expander"};
+        case 0x5a: //90
+          return {"mlx90614", "infrared thermometer"};
         case 0x70: // 112
           return {"tca9548a", "i2c expander"};
         case 0x77: // 119
