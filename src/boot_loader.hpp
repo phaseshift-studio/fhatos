@@ -30,6 +30,7 @@
 #include "model/console.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
+#include "model/fos/sys/thread/thread.hpp"
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
@@ -78,7 +79,7 @@ namespace fhatos {
 #ifdef ESP_ARCH
         args_parser->set_option("--boot:config","/boot/boot_config.obj");
 #else
-       args_parser->set_option("--boot:config", "../conf/boot_config.obj");
+        args_parser->set_option("--boot:config", "../conf/boot_config.obj");
 #endif
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
@@ -126,6 +127,7 @@ namespace fhatos {
             ->import(fOS::import_io())
             ->import(fOS::import_sensor())
             ->import(fOS::import_ui())
+            ->import(ThreadX::import())
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             //->install(rec()->at(id_p("/io/lib")))
             ->import(Log::import("/io/lib/log"))

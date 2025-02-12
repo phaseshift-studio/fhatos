@@ -14,6 +14,8 @@ namespace fhatos {
     static ptr<MODEL_STATE> create_state(const Obj_p &model_obj);
 
     static ptr<MODEL_STATE> get_or_create(const Obj_p &model_obj) {
+      if(!model_obj->vid)
+        throw fError("!ystateful objs !rmust have !ya value id!!: %s",model_obj->toString().c_str());
       if(GLOBAL::singleton()->exists(model_obj->vid))
         return GLOBAL::singleton()->load<ptr<MODEL_STATE>>(model_obj->vid);
       else {

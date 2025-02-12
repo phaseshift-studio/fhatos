@@ -190,6 +190,27 @@ namespace fhatos {
       return (this->path_ && this->path_length_ > segment) ? this->path_[segment] : EMPTY_CHARS;
     }
 
+    [[nodiscard]] bool starts_with(const fURI &prefix_path) const {
+      if(this->path_length_ < prefix_path.path_length_)
+        return false;
+      for(int i = 0; i < prefix_path.path_length_; i++) {
+        if(strcmp(this->path_[i], prefix_path.path_[i]) != 0)
+          return false;
+      }
+      return true;
+    }
+
+    [[nodiscard]] bool ends_with(const fURI &prefix_path) const {
+      if(this->path_length_ < prefix_path.path_length_)
+        return false;
+      for(int i = 0; i < prefix_path.path_length_; i++) {
+        if(strcmp(this->path_[(this->path_length_ - 1) - i],
+                  prefix_path.path_[(prefix_path.path_length_ - 1) - i]) != 0)
+          return false;
+      }
+      return true;
+    }
+
     [[nodiscard]] fURI path(const string &path) const {
       auto new_uri = fURI(*this);
       StringHelper::trim(path);
@@ -408,13 +429,15 @@ namespace fhatos {
       return this->path(new_path);
     }
 
-    [[nodiscard]] fURI retract() const {
+    [[nodiscard]] fURI retract(const int steps = 1) const {
+      /// pathless clone
       auto new_uri = fURI(*this);
       for(uint8_t i = 0; i < new_uri.path_length_; i++) {
         free(new_uri.path_[i]);
       }
       delete[] new_uri.path_;
-      new_uri.path_length_ = this->path_length_ > 1 ? this->path_length_ - 1 : 0;
+      /////////////////////////////////////////
+      new_uri.path_length_ = this->path_length_ > steps ? this->path_length_ - steps : 0;
       new_uri.path_ = new char *[new_uri.path_length_];
       for(uint8_t i = 0; i < new_uri.path_length_; i++) {
         new_uri.path_[i] = strdup(this->path_[i]);
@@ -428,18 +451,48 @@ namespace fhatos {
                : new_uri;
     }
 
-    [[nodiscard]] fURI pretract() const {
+    [[nodiscard]] fURI head() const {
+      if(this->empty())
+        return fURI(*this);
+      return fURI(this->segment(0));
+    }
+
+    [[nodiscard]] fURI pretract(const fURI prefix) const {
+      if(!this->starts_with(prefix))
+        return fURI(*this);
+      else {
+        return this->pretract(prefix.path_length_);
+      }
+    }
+
+    [[nodiscard]] fURI retract(const fURI prefix) const {
+      if(!this->ends_with(prefix))
+        return fURI(*this);
+      else {
+        return this->retract(prefix.path_length_);
+      }
+    }
+
+    [[nodiscard]] fURI pretract(const int steps = 1) const {
+      /// pathless clone
       auto new_uri = fURI(*this);
       for(uint8_t i = 0; i < new_uri.path_length_; i++) {
         free(new_uri.path_[i]);
       }
       delete[] new_uri.path_;
-      new_uri.path_length_ = this->path_length_ > 1 ? this->path_length_ - 1 : 0;
+      /////////////////////////////////////////
+      new_uri.path_length_ = (this->path_length_ > steps) ? ((this->path_length_ - steps)) : 0;
       new_uri.path_ = new char *[new_uri.path_length_];
-      for(uint8_t i = 1; i < this->path_length_; i++) {
-        new_uri.path_[i - 1] = strdup(this->path_[i]);
+      for(uint8_t i = steps; i < this->path_length_; i++) {
+        new_uri.path_[i - steps] = strdup(this->path_[i]);
       }
-      return new_uri;
+      if(new_uri.path_length_ == 0) {
+        new_uri.spostfix_ = false;
+        new_uri.sprefix_ = false;
+      }
+      return new_uri.path_length_ > 1 && 0 == strcmp(new_uri.path_[0], COMPONENT_SEPARATOR)
+               ? new_uri.pretract()
+               : new_uri;
     }
 
     [[nodiscard]] fURI prepend(const fURI &furi_path) const { return this->prepend(furi_path.path().c_str()); }

@@ -84,11 +84,15 @@ namespace mmadt {
         if(last[0] == '<' && angles > 0) // <=
           angles--;
       } else if(c == '<') {
-        if(last[0] != '-' && last[0] != '=') // -< =<
+        if(last[0] != '-' && last[0] != '=' && last[0] != '<') // -< =< <<
           angles++;
-      } else if(c == '>') {
-        if(last[0] != '-' && last[0] != '=') // -> =>
+        if(last[0] == '<')
           angles--;
+      } else if(c == '>') {
+        if(last[0] != '-' && last[0] != '=' && last[0] != '>') // -> => >>
+          angles--;
+        if(last[0] == '>')
+          angles++;
       } else if(c == '-' && last[0] != '-') {
         if(last[0] == '>') // >-
           angles++;
@@ -145,7 +149,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition
-        EMPTY_BCODE, AT, REPEAT, END, FROM, REF, PASS,
+        EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
         MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP,
         SPLIT, EACH;
 #endif
@@ -172,8 +176,8 @@ namespace mmadt {
         if(result->is_empty_bcode())
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
         return std::move(result->is_bcode() && result->bcode_value()->size() == 1
-                               ? result->bcode_value()->front()
-                               : result);
+                           ? result->bcode_value()->front()
+                           : result);
       } else {
         ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
         throw fError("parse failed: %s\n", source);
@@ -386,6 +390,12 @@ namespace mmadt {
         return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
                             id_p(*Router::singleton()->resolve("merge")));
       };
+      auto lshift_0_action = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst(rec(), id_p(*Router::singleton()->resolve("lshift")));
+      };
+      auto rshift_0_action = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst(rec(), id_p(*Router::singleton()->resolve("rshift")));
+      };
       auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
                             id_p(*Router::singleton()->resolve("ref")));
@@ -435,17 +445,14 @@ namespace mmadt {
       FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+,")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
                             oom(cls("a-zA-Z:/%?_#+")),
-                            zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))),
-                          ">"), furi_action;
+                            zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))), ">"), furi_action;
       FURI_NO_Q <= WRAP("<", tok(seq(
                           oom(cls("a-zA-Z:/%_.#+")),
-                          zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))),
-                        ">"), furi_action;
-      DOM_RNG <= cho(
-          seq(lit("<"), lit(">")),
-          WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
-          WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
-      TYPE_ID <= seq(cho(DOM_RNG, FURI_INLINE));
+                          zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))), ">"), furi_action;
+      DOM_RNG <= cho(seq(lit("<"), lit(">")),
+                     WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
+                     WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;
+      TYPE_ID <= seq(ign(npd(lit("<<"))), cho(DOM_RNG, FURI_INLINE));
       VALUE_ID <= seq(chr('@'), FURI_INLINE);
       /////////////////// BASE TYPES ///////////////////////////
       NOOBJ <= lit("noobj"), noobj_action;
@@ -526,10 +533,13 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(AT, PLUS, MULT, BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS, REF,
+      SUGAR_INST <= cho(AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS,
+                        REF,
                         BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
+      SUGAR_GENERATOR(RSHIFT, ">>", "rshift");
+      SUGAR_GENERATOR(LSHIFT, "<<", "lshift");
       SUGAR_GENERATOR(DROP, "v", "drop");
       SUGAR_GENERATOR(FROM, "*", "from");
       SUGAR_GENERATOR(REF, "->", "ref");
@@ -538,6 +548,8 @@ namespace mmadt {
       SUGAR_GENERATOR(EACH, "==", "each");
       SUGAR_GENERATOR(PLUS, "+", "plus");
       SUGAR_GENERATOR(MULT, "x", "mult");
+      LSHIFT_0 <= lit("<<"), lshift_0_action;
+      RSHIFT_0 <= lit(">>"), rshift_0_action;
       PASS <= seq(lit("-->"), WRAQ("(", OBJ, START, ")")), pass_action;
       MERGE <= seq(chr('>'), opt(OBJ), chr('-')), merge_action;
       END <= lit(";"), end_action;

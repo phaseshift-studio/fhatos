@@ -781,14 +781,20 @@ namespace fhatos {
         Objs_p segment_value = Obj::to_objs();
         const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
+        const Objs_p full_match = Obj::to_objs();
         for(const auto &[k,v]: *this->rec_value()) {
-          if(match_all || k->match(segment_uri))
+          if(match_all || k->match(segment_uri)) {
             segment_value->add_obj(v);
+          } else if(k->uri_value().matches(key->uri_value())) {
+            full_match->add_obj(v);
+          }
         }
         segment_value = segment_value->none_one_all();
-        result = key->uri_value().path_length() <= 1
-                   ? segment_value
-                   : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
+        const Obj_p temp = key->uri_value().path_length() <= 1
+                             ? segment_value
+                             : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
+        full_match->add_obj(temp);
+        result = full_match->none_one_all();
       } else {
         const Objs_p segment_value = Obj::to_objs();
         for(const auto &[k, v]: *this->rec_value()) {

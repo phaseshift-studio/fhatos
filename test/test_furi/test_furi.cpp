@@ -470,6 +470,30 @@ namespace fhatos {
   FOS_TEST_FURI_EQUAL(fURI("abc/:loop"), fURI("abc").extend(":loop"));
   }
 
+  void test_uri_pretract() {
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/d"), fURI("a/b/c/d").pretract(0));
+    FOS_TEST_FURI_EQUAL(fURI("b/c/d"), fURI("a/b/c/d").pretract());
+  FOS_TEST_FURI_EQUAL(fURI("b/c/d"), fURI("a/b/c/d").pretract(1));
+  FOS_TEST_FURI_EQUAL(fURI("c/d"), fURI("a/b/c/d").pretract(2));
+  FOS_TEST_FURI_EQUAL(fURI("d"), fURI("a/b/c/d").pretract(3));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").pretract(4));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").pretract(5));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").pretract(6));
+  ///
+  FOS_TEST_FURI_EQUAL(fURI("b/::/c/d"), fURI("a/b/::/c/d").pretract(1));
+  FOS_TEST_FURI_EQUAL(fURI("c/d"), fURI("a/b/::/c/d").pretract(2));
+// TODO  FOS_TEST_FURI_EQUAL(fURI("d"), fURI("a/b/::/c/d").pretract(3));
+// TODO  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/::/c/d").pretract(4));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/::/c/d").pretract(5));
+  /////////
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/d"), fURI("a/b/c/d").pretract(""));
+  FOS_TEST_FURI_EQUAL(fURI("b/c/d"), fURI("a/b/c/d").pretract("a"));
+  FOS_TEST_FURI_EQUAL(fURI("c/d"), fURI("a/b/c/d").pretract("a/b"));
+  FOS_TEST_FURI_EQUAL(fURI("d"), fURI("a/b/c/d").pretract("a/b/c"));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").pretract("a/b/c/d"));
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/d"), fURI("a/b/c/d").pretract("x/y/z"));
+    }
+
 void test_uri_prepend() {
   /// TRUE
   FOS_TEST_FURI_EQUAL(fURI("b/a"), fURI("a").prepend("b"));
@@ -485,12 +509,18 @@ void test_uri_prepend() {
 }
 
 void test_uri_retract() {
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/"), fURI("a/b/c/").retract(0));
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c"), fURI("a/b/c").retract(0));
   FOS_TEST_FURI_EQUAL(fURI("a/b/"), fURI("a/b/c/").retract());
   FOS_TEST_FURI_EQUAL(fURI("a/b"), fURI("a/b/c").retract());
   FOS_TEST_FURI_EQUAL(fURI("a/"), fURI("a/b/c/").retract().retract());
   FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/c").retract().retract());
+  FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/c").retract(2));
   FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/c/#").retract().retract().retract());
+  FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/c/#").retract(3));
   FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").retract().retract().retract().retract());
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").retract(4));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").retract(5));
   //
   FOS_TEST_FURI_EQUAL(fURI("a/b/::/c/"), fURI("a/b/::/c/d/").retract());
   FOS_TEST_FURI_EQUAL(fURI("a/b/::/c"), fURI("a/b/::/c/d").retract());
@@ -499,6 +529,13 @@ void test_uri_retract() {
   FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/::/c/d").retract().retract().retract());
   FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/::/c/d/").retract().retract().retract().retract());
   FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/::/c/d").retract().retract().retract().retract());
+  /////////
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/d"), fURI("a/b/c/d").retract(""));
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c"), fURI("a/b/c/d").retract("d"));
+  FOS_TEST_FURI_EQUAL(fURI("a/b"), fURI("a/b/c/d").retract("c/d"));
+  FOS_TEST_FURI_EQUAL(fURI("a"), fURI("a/b/c/d").retract("b/c/d"));
+  FOS_TEST_FURI_EQUAL(fURI(""), fURI("a/b/c/d").retract("a/b/c/d"));
+  FOS_TEST_FURI_EQUAL(fURI("a/b/c/d"), fURI("a/b/c/d").retract("x/y/z"));
 }
 
 void test_uri_retract_pattern() {
@@ -846,10 +883,11 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_name); //
       //
       FOS_RUN_TEST(test_uri_extend); //
+      FOS_RUN_TEST(test_uri_pretract); //
       FOS_RUN_TEST(test_uri_prepend); //
-      FOS_RUN_TEST(test_uri_retract);
-      FOS_RUN_TEST(test_uri_retract_pattern);
-      FOS_RUN_TEST(test_uri_remove_subpath);
+      FOS_RUN_TEST(test_uri_retract); //
+      FOS_RUN_TEST(test_uri_retract_pattern); //
+      FOS_RUN_TEST(test_uri_remove_subpath); //
       FOS_RUN_TEST(test_uri_is_relative); //
       FOS_RUN_TEST(test_uri_branch_node);
       FOS_RUN_TEST(test_uri_resolve); //
