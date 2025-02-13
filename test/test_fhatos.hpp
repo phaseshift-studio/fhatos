@@ -43,8 +43,6 @@
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #include "../src/boot_config_loader.hpp"
-//#include STR(../src/structure/stype/fs/HARDWARE/fs.hpp)
-
 
 #define FOS_DEPLOY_PRINTER
 
@@ -161,7 +159,7 @@ using namespace fhatos;
   }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
-  void RUN_UNITY_TESTS() {  \
+  void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \

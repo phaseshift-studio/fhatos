@@ -96,7 +96,7 @@ namespace fhatos {
   }
 
 
-  void Router::loop() const {
+  void Router::loop() {
     bool remove = false;
     for(const Structure_p &s: *this->structures_) {
       if(!s->available())
@@ -115,6 +115,7 @@ namespace fhatos {
       });
       this->save();
     }
+    //this->load();
   }
 
   void Router::stop() {
@@ -235,6 +236,8 @@ namespace fhatos {
     }
     if(!this->active)
       this->stop();
+    /*if(furi->matches(this->vid->extend("#")))
+      this->stale = true;*/
   }
 
   void Router::unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
@@ -309,7 +312,7 @@ namespace fhatos {
           LOG(ERROR, "sub query processor to be implemented\n");
           return obj;
         })->save();
-
+    //  Router::singleton()->load();
     return nullptr;
   }
 

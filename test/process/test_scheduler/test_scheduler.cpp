@@ -16,11 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ******************************************************************************/
 
-#define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_COMPILER
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SHARED_MEMORY /scheduler/#

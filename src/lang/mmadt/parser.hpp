@@ -440,7 +440,7 @@ namespace mmadt {
       ////////////////////// COMMENTS ///////////////////////////
       COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT), [](const SemanticValues &) { return str("comment"); };
       SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
-      MULTI_COMMENT <= seq(~WS, lit("###"), zom(seq(npd(lit("###")), dot())), lit("###"), ~WS);
+      MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
       FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+,")))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(

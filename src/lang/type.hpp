@@ -40,6 +40,8 @@ namespace fhatos {
   static const ID_p NAT_FURI = id_p(FOS_URI "/nat");
   static const ID_p CELSIUS_FURI = id_p(FOS_URI "/C");
   static const ID_p PERCENT_FURI = id_p(FOS_URI "/prnt");
+  static const ID_p MILLISECOND_FURI = id_p(FOS_URI "/ms");
+  static const ID_p SECOND_FURI = id_p(FOS_URI "/sec");
 
 
   class Typer final : public Obj {

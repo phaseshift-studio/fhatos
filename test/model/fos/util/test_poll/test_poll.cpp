@@ -16,25 +16,28 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_test_mqtt_cpp
-#define fhatos_test_mqtt_cpp
+#ifndef fhatos_test_poll_cpp
+#define fhatos_test_poll_cpp
 
-#include "../../../test_base_structure.hpp"
-#include FOS_MQTT(mqtt.hpp)
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPE
+#define FOS_DEPLOY_SHARED_MEMORY
+#include "../../../../test_fhatos.hpp"
 
 namespace fhatos {
+
+  void test_poll_freq() {
+
+  }
+
   FOS_RUN_TESTS( //
-    begin_test_structure(Mqtt::create("//test/#",Mqtt::Settings(),"/mqtt")); //
-    FOS_RUN_TEST(test_subscribe); //
-    //FOS_RUN_TEST(test_data_types); //
-    FOS_RUN_TEST(test_write); //
-    FOS_RUN_TEST(test_read); //
-    FOS_RUN_TEST(test_patterned_reads); //
-    FOS_RUN_TEST(test_ided_reads); //
-    FOS_RUN_TEST(test_embedding); //
-    FOS_RUN_TEST(test_from_at); //
-    end_test_structure();
+    FOS_RUN_TEST(test_poll_freq); //
+    //FOS_RUN_TEST(test_files); //
   );
 } // namespace fhatos
-SETUP_AND_LOOP();
+
+SETUP_AND_LOOP()
+
 #endif

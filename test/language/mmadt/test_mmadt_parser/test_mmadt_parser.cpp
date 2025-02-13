@@ -45,8 +45,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment\n"));
     //FOS_TEST_OBJ_EQUAL(noobj(),  PROCESS("--- a single line comment"));
     FOS_TEST_ERROR("---\nsdfOo_asdf");
-    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("### sdfdasdf\n\t\nsdfsfasfsf ###"));
+    FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("=== sdfdasdf\n\t\nsdfsfasfsf ==="));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1] --- end\n"));
    // FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n### a comment ---\n--- end\n\n ###\nstr['bcd']"));
    // FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(### a comment ---\n--- end\n\n ###\nstr['bcd'])"));
   }

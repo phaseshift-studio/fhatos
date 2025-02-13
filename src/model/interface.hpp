@@ -1,5 +1,5 @@
 /*******************************************************************************
-  FhatOS: A Distributed Operating System
+FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -15,26 +15,19 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+#pragma once
+#ifndef fhatos_interface_hpp
+#define fhatos_interface_hpp
 
-#ifndef fhatos_test_heap_cpp
-#define fhatos_test_heap_cpp
-
-#include "../../../test_base_structure.hpp"
-#include <structure/stype/heap.hpp>
+#include "../fhatos.hpp"
+#include "../lang/obj.hpp"
 
 namespace fhatos {
-  FOS_RUN_TESTS( //
-    begin_test_structure(Heap<>::create("/test/#")); //
-    FOS_RUN_TEST(test_subscribe); //
-    //FOS_RUN_TEST(test_data_types); //
-    FOS_RUN_TEST(test_write); //
-    FOS_RUN_TEST(test_read); //
-    FOS_RUN_TEST(test_patterned_reads); //
-    FOS_RUN_TEST(test_ided_reads); //
-    FOS_RUN_TEST(test_embedding); //
-    FOS_RUN_TEST(test_from_at); //
-    end_test_structure()
-  );
+
+  class Refresh {
+  public:
+  Obj_p refresh() const;
+  };
+
 } // namespace fhatos
-SETUP_AND_LOOP();
 #endif

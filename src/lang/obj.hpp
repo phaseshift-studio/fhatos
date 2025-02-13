@@ -499,6 +499,10 @@ namespace fhatos {
       return this->vid ? this->vid : this->tid;
     }
 
+    static Obj_p load(const ID& vid) {
+      return ROUTER_READ(id_p(vid));
+    }
+
     virtual void save() const {
       this->at(this->vid);
     }

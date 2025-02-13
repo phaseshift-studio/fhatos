@@ -25,6 +25,7 @@
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
+#include "util/poll.hpp"
 #ifdef ARDUINO
 #include "io/pwm/pwm.hpp"
 #include "sensor/aht10/aht10.hpp"
@@ -51,20 +52,18 @@ namespace fhatos {
           *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
       Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
       Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
-      Typer::singleton()->save_type(
-          NAT_FURI,
-          *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
+      Typer::singleton()->save_type(NAT_FURI, *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
       Typer::singleton()->save_type(
           CELSIUS_FURI,
           *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
       Typer::singleton()->save_type(
           PERCENT_FURI,
           *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
-      Typer::singleton()->save_type(
-        HEX_FURI,
-        *__(*HEX_FURI,*URI_FURI,*URI_FURI)->is(dool(true)));
+      Typer::singleton()->save_type(HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
+      Typer::singleton()->save_type(MILLISECOND_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(SECOND_FURI, Obj::to_type(INT_FURI));
       Typer::singleton()->end_progress_bar(
-         StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
       return nullptr;
     }
 
@@ -105,6 +104,14 @@ namespace fhatos {
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yui types!! loaded!g]!! \n",FOS_URI "/ui/+"));
+      return nullptr;
+    }
+
+    static void *import_util() {
+      Typer::singleton()->start_progress_bar(6);
+      Poll::import();
+      Typer::singleton()->end_progress_bar(
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
       return nullptr;
     }
 

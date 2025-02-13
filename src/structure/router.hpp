@@ -36,6 +36,7 @@ namespace fhatos {
   class Router final : public Rec {
   protected:
     bool active = true;
+    bool stale = false;
     const unique_ptr<MutexDeque<Structure_p>> structures_;
 
   public:
@@ -51,7 +52,7 @@ namespace fhatos {
 
     [[nodiscard]] fURI_p resolve(const fURI &furi) const;
 
-    void loop() const;
+    void loop();
 
     void stop();
 
