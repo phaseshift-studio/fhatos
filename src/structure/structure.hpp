@@ -107,17 +107,17 @@ namespace fhatos {
 
     /////////////////////////////////////////////////
 
-    virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
+    virtual void recv_unsubscribe(const ID &source, const fURI &target) {
       if(!this->available_.load())
-        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
-                    target->toString().c_str());
+        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source.toString().c_str(),
+                    target.toString().c_str());
       else {
         this->subscriptions_->remove_if(
             [source, target](const Subscription_p &sub) {
               const bool removing =
-                  sub->source()->equals(*source) && (sub->pattern()->matches(*target));
+                  sub->source()->equals(source) && (sub->pattern()->matches(target));
               if(removing)
-                LOG_UNSUBSCRIBE(OK, source, target);
+                LOG_UNSUBSCRIBE(OK, &source, &target);
               return removing;
             });
       }
@@ -130,7 +130,7 @@ namespace fhatos {
       }
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-      this->recv_unsubscribe(subscription->source(), subscription->pattern());
+      this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
       if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
         this->subscriptions_->push_back(subscription);
@@ -141,7 +141,7 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs list = this->read_raw_pairs(subscription->pattern());
+      const IdObjPairs list = this->read_raw_pairs(*subscription->pattern());
       for(const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
           if(id->matches(*subscription->pattern())) {
@@ -152,8 +152,8 @@ namespace fhatos {
       }
     }
 
-    virtual bool has(const fURI_p &furi) {
-      return furi->is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(furi_p(furi->extend("+"))).empty();
+    virtual bool has(const fURI &furi) {
+      return furi.is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(*furi_p(furi.extend("+"))).empty();
     }
 
     Obj_p read(const fURI &furi) {
@@ -167,16 +167,16 @@ namespace fhatos {
       }
       try {
         if(furi->has_query()) {
-          const fURI_p furi_no_query = furi_p(furi->no_query());
+          const fURI furi_no_query = furi->no_query();
           Objs_p ret = Obj::to_objs();
           if(furi->has_query("sub")) {
             ret = this->get_subscription_objs(furi_no_query);
             LOG_OBJ(DEBUG, this, "%i subscriptions received from %s\n",
                     ret->objs_value()->size(),
-                    furi_no_query->toString().c_str());
+                    furi_no_query.toString().c_str());
           }
           if(furi->has_query("doc")) {
-            if(const IdObjPairs doc = this->read_raw_pairs(furi); !doc.empty()) {
+            if(const IdObjPairs doc = this->read_raw_pairs(*furi); !doc.empty()) {
               for(const auto &pair: doc) {
                 ret->add_obj(pair.second);
               }
@@ -194,14 +194,14 @@ namespace fhatos {
             const List<string> opcodes = furi->query_values("inst");
             const Rec_p insts = Obj::to_rec();
             const Objs_p objs = Obj::to_objs();
-            objs->add_obj(ROUTER_READ(furi_p(furi_no_query->extend(":inst"))));
+            objs->add_obj(ROUTER_READ(furi_p(furi_no_query.extend(":inst"))));
             for(const Obj_p &o: *objs->objs_value()) {
               if(!o->is_rec())
                 throw fError("obj instructs must be records: %s", o->toString().c_str());
               insts->rec_merge(o->rec_value());
             }
             objs->objs_value()->clear();
-            objs->add_obj(ROUTER_READ(furi_no_query));
+            objs->add_obj(ROUTER_READ(id_p(furi_no_query)));
             for(const Obj_p &o: *objs->objs_value()) {
               if(!FURI_OTYPE.count(*o->tid))
                 insts->rec_merge(ROUTER_READ(furi_p(o->tid->query("inst")))->rec_value());
@@ -217,7 +217,7 @@ namespace fhatos {
         const fURI_p temp = furi_no_query.is_branch()
                               ? furi_p(furi_no_query.extend("+"))
                               : furi_p(furi_no_query);
-        const IdObjPairs matches = this->read_raw_pairs(temp);
+        const IdObjPairs matches = this->read_raw_pairs(*temp);
         if(furi->is_branch()) {
           const Rec_p rec = Obj::to_rec();
           // BRANCH ID AND PATTERN
@@ -283,15 +283,14 @@ namespace fhatos {
           /// SUBSCRIBE ?sub={code|subscription|noobj} // noobj for unsubscribe
           ////////////////////////////////////////////////////////////////////////////////////////////////////////
           if(retain && furi->query_value("sub").has_value()) {
-            const Pattern_p pattern = p_p(furi->no_query());
             if(obj->is_noobj()) {
               // unsubscribe
               this->recv_unsubscribe(
-                  (Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), pattern);
+                  *(Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), furi->no_query());
             } else if(obj->is_code()) {
               // bcode for on_recv
               this->recv_subscription(Subscription::create(
-                  Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, pattern, obj));
+                  Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi->no_query()), obj));
             } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
@@ -304,7 +303,7 @@ namespace fhatos {
         if(const fURI_p new_furi = !furi->has_query() ? furi : furi_p(furi->no_query()); new_furi->is_branch()) {
           // BRANCH (POLYS)
           if(obj->is_noobj()) {
-            const IdObjPairs ids = this->read_raw_pairs(furi_p(new_furi->extend("+")));
+            const IdObjPairs ids = this->read_raw_pairs(new_furi->extend("+"));
             // noobj
             for(const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
@@ -340,7 +339,7 @@ namespace fhatos {
         } else {
           // NODE PATTERN
           if(new_furi->is_pattern()) {
-            const IdObjPairs matches = this->read_raw_pairs(new_furi);
+            const IdObjPairs matches = this->read_raw_pairs(*new_furi);
             for(const auto &[key, value]: matches) {
               this->write(key, obj, retain);
             }
@@ -396,7 +395,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////
     virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
-    virtual IdObjPairs read_raw_pairs(const fURI_p &match) = 0;
+    virtual IdObjPairs read_raw_pairs(const fURI &match) = 0;
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
@@ -415,29 +414,29 @@ namespace fhatos {
       });
     }
 
-    bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) const {
+    bool has_equal_subscription_pattern(const fURI &topic, const ID &source = "") const {
       return this->subscriptions_->exists([source,topic](const Subscription_p &sub) {
-        if(source && !source->equals(*sub->source()))
+        if(source.empty() && !source.equals(*sub->source()))
           return false;
-        if(topic->equals(*sub->pattern()))
+        if(topic.equals(*sub->pattern()))
           return true;
         return false;
       });
     }
 
-    List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) const {
+    List_p<Subscription_p> get_matching_subscriptions(const fURI &topic, const ID &source = "") const {
       const List_p<Subscription_p> matches = make_shared<List<Subscription_p>>();
       this->subscriptions_->forEach([topic,source,matches](const Subscription_p &subscription) {
-        if(!(source && !source->equals(*subscription->source())) && topic->bimatches(*subscription->pattern()))
+        if(!(source.empty() && !source.equals(*subscription->source())) && topic.bimatches(*subscription->pattern()))
           matches->push_back(subscription);
       });
       return matches;
     }
 
-    Objs_p get_subscription_objs(const fURI_p &pattern = p_p("#")) const {
+    Objs_p get_subscription_objs(const fURI &pattern = "#") const {
       const Objs_p objs = Obj::to_objs();
       this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
-        if(subscription->pattern()->bimatches(*pattern)) {
+        if(subscription->pattern()->bimatches(pattern)) {
           objs->add_obj(subscription);
         }
       });

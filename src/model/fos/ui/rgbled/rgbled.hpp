@@ -47,7 +47,7 @@ namespace fhatos {
     }
 
     static Obj_p refresh_inst(const Obj_p &rgbled, const InstArgs &) {
-      const ptr<RGBLED> rgbled_state = RGBLED::get_or_create(rgbled);
+      const ptr<RGBLED> rgbled_state = RGBLED::get_state(rgbled);
       rgbled_state->rgbledxx.writeRGB(
           rgbled->rec_get("color/r")->int_value(),
           rgbled->rec_get("color/g")->int_value(),

@@ -50,7 +50,7 @@ namespace fhatos {
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
 
-    virtual void native_mqtt_unsubscribe(const fURI_p &pattern) = 0;
+    virtual void native_mqtt_unsubscribe(const fURI &pattern) = 0;
 
     virtual void native_mqtt_publish(const Message_p &message) = 0;
 
@@ -80,7 +80,7 @@ namespace fhatos {
 
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
-      const bool mqtt_sub = !this->has_equal_subscription_pattern(subscription->pattern());
+      const bool mqtt_sub = !this->has_equal_subscription_pattern(*subscription->pattern());
       Structure::recv_subscription(subscription);
       if(mqtt_sub) {
         LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
@@ -89,13 +89,13 @@ namespace fhatos {
       }
     }
 
-    void recv_unsubscribe(const ID_p &source, const fURI_p &target) override {
+    void recv_unsubscribe(const ID &source, const fURI &target) override {
       check_availability("unsubscribe");
       const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
       if(mqtt_sub && !this->has_equal_subscription_pattern(target)) {
         LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
-                      target->toString().c_str());
+                      target.toString().c_str());
         native_mqtt_unsubscribe(target);
       }
     }
@@ -105,16 +105,16 @@ namespace fhatos {
       ///  Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &furi) override {
+    IdObjPairs read_raw_pairs(const fURI &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
-      const Pattern_p temp = furi->is_branch() ? p_p(furi->extend("+")) : p_p(*furi);
+      const bool pattern_or_branch = furi.is_pattern() || furi.is_branch();
+      const Pattern temp = furi.is_branch() ? furi.extend("+") : furi;
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = id_p(
           this->rec_get("config/client", vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
-          Subscription::create(source_id, temp,
+          Subscription::create(source_id, p_p(temp),
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
                                ->inst_f([thing](const Obj_p &lhs, const InstArgs &args) {
                                         thing->load()->push_back({
@@ -131,7 +131,7 @@ namespace fhatos {
         this->loop();
       }
       ///////////////////////////////////////////////
-      this->recv_unsubscribe(id_p(source_id), temp);
+      this->recv_unsubscribe(*source_id, temp);
       const auto list = IdObjPairs(*thing->load());
       delete thing;
       return list;

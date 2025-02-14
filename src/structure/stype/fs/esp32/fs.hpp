@@ -98,13 +98,13 @@ namespace fhatos {
       file.close();
     }
 
-    IdObjPairs read_raw_pairs_dir(const fURI_p &match, fs::File& dir) {
+    IdObjPairs read_raw_pairs_dir(const fURI &match, fs::File& dir) {
       IdObjPairs pairs =  List<Pair<ID_p, Obj_p>>();
       fs::File file = dir.openNextFile();
       while (file) {
        if(!file.isDirectory()) {
         const ID_p path = id_p(map_fs_to_fos(file.path()));
-        if(path->matches(*match)) {
+        if(path->matches(match)) {
           const String contents =  file.readString();
           file.close();
           const BObj_p bobj = make_shared<BObj>(contents.length(), (fbyte *) contents.c_str());
@@ -120,7 +120,7 @@ namespace fhatos {
       return pairs;
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &match) {
+    IdObjPairs read_raw_pairs(const fURI &match) override {
       fs::File root = FOS_FS.open(this->root.toString().c_str());
       return read_raw_pairs_dir(match, root);
     }

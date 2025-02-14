@@ -90,7 +90,7 @@ namespace fhatos {
           const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
           LOG_STRUCTURE(TRACE, this, "received message %s\n", message->toString().c_str());
           for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
-            for(const List_p<Subscription_p> matches = client->get_matching_subscriptions(message->target());
+            for(const List_p<Subscription_p> matches = client->get_matching_subscriptions(*message->target());
                 const Subscription_p &sub: *matches) {
               client->outbox_->push_back(make_shared<Mail>(std::make_pair(sub, message)));
             }
@@ -110,8 +110,8 @@ namespace fhatos {
       MQTT_CONNECTION->subscribe(subscription->pattern()->toString(), 1)->wait();
     }
 
-    void native_mqtt_unsubscribe(const fURI_p &pattern) override {
-      MQTT_CONNECTION->unsubscribe(pattern->toString())->wait();
+    void native_mqtt_unsubscribe(const fURI &pattern) override {
+      MQTT_CONNECTION->unsubscribe(pattern.toString())->wait();
     }
 
     void native_mqtt_publish(const Message_p &message) override {

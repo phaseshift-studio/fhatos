@@ -20,18 +20,18 @@
 #define fhatos_boot_runner_cpp
 
 #include <chrono>
-#include <fhatos.hpp>
-#include <kernel.hpp>
-#include <language/insts.hpp>
-#include <language/parser.hpp>
-#include <language/type.hpp>
-#include <model/console.hpp>
-#include <model/terminal.hpp>
-#include <process/ptype/native/scheduler.hpp>
+#include "../../../src/fhatos.hpp"
+#include "../../../src/kernel.hpp"
+#include "../../../src/lang/mmadt/type.hpp"
+#include "../../../src/lang/mmadt/parser.hpp"
+#include "../../../src/lang/type.hpp"
+#include "../../../src/model/console.hpp"
+#include "../../../src/model/terminal.hpp"
+#include "../../../src/process/ptype/native/scheduler.hpp"
 #include <thread>
-#include <util/ansi.hpp>
-#include <util/options.hpp>
-#include <boot_loader.hpp>
+#include "../../../src/util/ansi.hpp"
+#include "../../../src/util/options.hpp"
+#include "../../../src/boot_loader.hpp"
 
 using namespace fhatos;
 using namespace std;
@@ -47,8 +47,8 @@ int main(int, char **) {
     argv_parser->init(4,args);
     cout << "++++\n[source,mmadt,subs=\"verbatim\"]\n----\n";
     BootLoader::primary_boot(argv_parser)
-        ->displaying_splash("----\n")
-        ->displaying_splash("++++");
+        ->display_splash("----\n")
+        ->display_splash("++++");
     Options::singleton()->printer<Ansi<>>()->on(false);
     cout << "\n----\n++++";
     return 0;

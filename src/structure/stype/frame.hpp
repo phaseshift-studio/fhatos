@@ -89,7 +89,7 @@ namespace fhatos {
       throw fError("frame::write_raw_pairs is unreachable code");
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &) override {
+    IdObjPairs read_raw_pairs(const fURI &) override {
       throw fError("frame::read_raw_pairs is unreachable code");
     }
   };

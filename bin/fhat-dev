@@ -218,7 +218,7 @@ edit_partition() {
   fi
 }
 
-make_native() {
+build_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
     shift
     shift
@@ -235,7 +235,7 @@ make_native() {
   fi
 }
 
-make_esp32() {
+build_esp32() {
   if [[ $platform == esp32* || -z "${platform}" ]]; then
     shift
     shift
@@ -248,7 +248,7 @@ make_esp32() {
   fi
 }
 
-make_rpi() {
+build_rpi() {
   if [[ $platform == "rpi" || -z "${platform}"  ]]; then
     shift
     shift
@@ -274,7 +274,7 @@ package_native() {
 
 test_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
-    make_native ${@} -DBUILD_TESTS=ON
+    build_native ${@} -DBUILD_TESTS=ON
     shift
     shift
     local extra_args=${@:1}
@@ -328,7 +328,7 @@ build_docs() {
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args} --parallel=${j};
+    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args}
     status_check $? "cmake docs"
     make -j${j} -o1; # j6 parallel and o1 low optimization level
     status_check $? "make docs"
@@ -355,9 +355,9 @@ elif [[ $1 == "package" ]]; then
   package_native "${@}"
 elif [[ $1 == "build" ]]; then
   build_boot_config
-  make_native "${@}"
-  make_esp32 "${@}"
-  make_rpi "${@}"
+  build_native "${@}"
+  build_esp32 "${@}"
+  build_rpi "${@}"
   build_rlwrap_completions
 elif [[ $1 == "partition" ]]; then
   edit_partition

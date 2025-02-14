@@ -1170,6 +1170,12 @@ namespace fhatos {
     }
   };
 
+  struct furi_less : std::less<fURI> {
+    auto operator()(const fURI &a, const fURI &b) const {
+      return std::greater<string>()(a.toString(), b.toString());
+    }
+  };
+
   struct furi_p_less : std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const {
       return std::greater<string>()(a->toString(), b->toString());

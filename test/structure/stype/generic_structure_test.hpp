@@ -207,7 +207,7 @@ namespace fhatos {
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);
-      Router::singleton()->unsubscribe(id_p("tester"), p_p(*p("b/#")));
+      Router::singleton()->unsubscribe("tester", *p("b/#"));
       for(int i = 0; i < 25; i++) {
         Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
         Router::singleton()->loop();

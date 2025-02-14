@@ -60,7 +60,7 @@ namespace fhatos {
     PROCESS("/scheduler/a/:loop -> noobj");
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("*/scheduler/a"));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("*/scheduler/a/:loop"));
-    Router::singleton()->unsubscribe(Router::singleton()->vid, p_p("#"));
+    Router::singleton()->unsubscribe(*Router::singleton()->vid, "#");
   }
 
   void test_scheduler_spawn_destroy_for_mono() {

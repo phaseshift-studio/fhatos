@@ -76,10 +76,11 @@ namespace fhatos {
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 
 #endif
+        if(args_parser->option_string("--boot:config", "NONE") == "NONE")
 #ifdef ESP_ARCH
         args_parser->set_option("--boot:config","/boot/boot_config.obj");
 #else
-        args_parser->set_option("--boot:config", "../conf/boot_config.obj");
+          args_parser->set_option("--boot:config", "../conf/boot_config.obj");
 #endif
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()

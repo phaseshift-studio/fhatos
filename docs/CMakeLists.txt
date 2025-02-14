@@ -19,14 +19,14 @@ IF(BUILD_DOCS)
             ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}.cpp)
             IF(USE_PAHO_MQTT_HACK)
                 MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} PUBLIC
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} PUBLIC "${PROJECT_NAME}-lib"
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
                         paho-mqttpp3)
                 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ELSE()
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} paho-mqttpp3)
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a)
             ENDIF()
             TARGET_PRECOMPILE_HEADERS(${PACKAGE_RUNNER} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES

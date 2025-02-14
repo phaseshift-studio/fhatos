@@ -22,61 +22,59 @@
 #include <future>
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
-#include "../../interface.hpp"
 #include "../../model.hpp"
 #include "../../../lang/type.hpp"
 
 namespace fhatos {
   const ID_p POLL_FURI = id_p("/fos/util/poll");
 
-  class Poll final : public Model<Poll> {
-    std::thread poll_thread;
+  class Poll final : public ThreadX {
 
   public:
-    static ptr<Poll> create_state(const Obj_p &) {
-      return make_shared<Poll>();
+    explicit Poll(const Obj_p &poll_obj, const Consumer<Obj_p> &function) :
+      ThreadX(poll_obj, function) {
     }
 
-    static Obj_p poll_inst(const Obj_p &poll, const InstArgs &args) {
-      const ptr<Poll> poll_state = Poll::get_or_create(poll);
-      poll_state->poll_thread = std::thread([](const ID &poll_id) {
-        Obj_p poll = Obj::load(poll_id);
+    static ptr<Poll> get_state(const Obj_p &poll_obj) {
+      return Model::get_state<Poll>(poll_obj);
+    }
+
+    static ptr<Poll> create_state(const Obj_p &poll_obj) {
+      return make_shared<Poll>(poll_obj, [](const Obj_p &poll_obj) {
         try {
           const auto start_time = std::chrono::high_resolution_clock::now();
-          LOG_OBJ(INFO, poll, "!ypolling !b%s !ystarted!! [freq:%i ms]\n",
-                  poll->rec_get("code")->toString().c_str(),
-                  poll->rec_get("freq")->int_value());
-          while(!poll->rec_get("halt")->bool_value()) {
-            const Obj_p code = poll->rec_get("code");
+          LOG_OBJ(INFO, poll_obj, "!ypolling !b%s !ystarted!! [delay:%i ms]\n",
+                  poll_obj->rec_get("loop")->toString().c_str(),
+                  poll_obj->rec_get("delay")->int_value());
+          Obj_p running_poll = poll_obj;
+          while(!running_poll->rec_get("halt")->bool_value()) {
+            const Obj_p code = running_poll->rec_get("loop");
             const Obj_p result = BCODE_PROCESSOR(code);
-            std::this_thread::sleep_for(std::chrono::milliseconds(poll->rec_get("freq")->int_value()));
-            poll = Obj::load(poll_id);
+            std::this_thread::sleep_for(std::chrono::milliseconds(running_poll->rec_get("delay")->int_value()));
+            running_poll = running_poll->load();
           }
-          const std::chrono::duration<double,milli> duration = std::chrono::high_resolution_clock::now() - start_time;
-          LOG_OBJ(INFO, poll, "!ypolling !b%s !ystopped!! [runtime:%f sec]\n",
-                  poll->rec_get("code")->toString().c_str(),
-                  duration.count() * 1000.0f);
+          const std::chrono::duration<double, milli> duration = std::chrono::high_resolution_clock::now() - start_time;
+          LOG_OBJ(INFO, poll_obj, "!ypolling !b%s !ystopped!! [runtime:%f sec]\n",
+                  running_poll->rec_get("loop")->toString().c_str(),
+                  duration.count() / 1000.0f);
         } catch(const std::exception &e) {
-          LOG_EXCEPTION(poll, fError::create(poll_id.toString(), "poll failure: %s", e.what()));
+          LOG_EXCEPTION(poll_obj, fError("poll failure: %s", e.what()));
         }
-      }, *poll->vid);
-
-      GLOBAL::singleton()->store(poll->vid, poll_state);
-      return poll;
+      });
     }
-
 
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
-        POLL_FURI, Obj::to_rec({
-          {"freq", Obj::to_type(MILLISECOND_FURI)},
-          {"code", Obj::to_bcode()},
-          {"halt", Obj::to_type(BOOL_FURI)}
-        }));
+          POLL_FURI, Obj::to_rec({
+              {"delay", Obj::to_type(MILLISECOND_FURI)},
+              {"loop", Obj::to_bcode()},
+              {"halt", Obj::to_type(BOOL_FURI)}
+          }));
       InstBuilder::build(POLL_FURI->add_component("poll"))
-          ->inst_f([](const Obj_p &poll, const InstArgs &args) {
-            return Poll::poll_inst(poll, args);
+          ->inst_f([](const Obj_p &poll, const InstArgs &) {
+            Poll::get_state(poll);
+            return poll;
           })
           ->save();
       return nullptr;

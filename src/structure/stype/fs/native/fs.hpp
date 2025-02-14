@@ -112,11 +112,11 @@ namespace fhatos {
       this->distribute_to_subscribers(Message::create(id, obj, retain));
     }
 
-    void read_raw_pairs_dir(const fURI_p &match, const fs::path &fs_path, IdObjPairs *pairs) {
+    void read_raw_pairs_dir(const fURI &match, const fs::path &fs_path, IdObjPairs *pairs) {
 
       const ID fos_path = map_fs_to_fos(fs_path);
       //LOG(INFO, "matching %s with %s via %s\n", match->toString().c_str(), fos_path.toString().c_str(), fs_path.c_str());
-      if(fos_path.is_node() && fs::is_regular_file(fs_path) && fos_path.matches(*match)) {
+      if(fos_path.is_node() && fs::is_regular_file(fs_path) && fos_path.matches(match)) {
         auto infile = std::ifstream(fs_path, ios::in);
         if(!infile.is_open())
           throw fError("unable to read from !b%s!! via !b%s!!", fos_path.toString().c_str(), fs_path.c_str());
@@ -131,7 +131,7 @@ namespace fhatos {
       }
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &match) override {
+    IdObjPairs read_raw_pairs(const fURI &match) override {
       auto pairs = IdObjPairs();
       // LOG(INFO, "trying to read %s starting at %s\n", match->toString().c_str(),fs::path(this->root.toString()).c_str());
       read_raw_pairs_dir(match, fs::path(this->root.toString()), &pairs);

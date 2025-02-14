@@ -32,6 +32,52 @@
 #include "string_printer.hpp"
 
 namespace fhatos {
+
+  class PPrinter {
+  public:
+    virtual ~PPrinter() = default;
+
+    [[nodiscard]] virtual std::pair<uint16_t, uint16_t> pos();
+
+    virtual void newline() {
+      this->down(1);
+      this->left(this->pos().first);
+    }
+
+    virtual void italic();
+
+    virtual void bold();
+
+    virtual void normal();
+
+    virtual void down(uint16_t rows);
+
+    virtual void up(uint16_t rows);
+
+    virtual void left(uint16_t columns);
+
+    virtual void right(uint16_t columns);
+
+    virtual void home() {
+      this->teleport(0, 0);
+    }
+
+    virtual void clear();
+
+    virtual void teleport(uint16_t column, uint16_t row);
+
+    virtual void print(const char *chars) {
+      for(int i = 0; i < strlen(chars); i++) {
+        this->print(chars[i]);
+      }
+    }
+
+    virtual void print(char character);
+
+    virtual void flush() {
+    }
+  };
+
   class CPrinter {
   public:
     static CPrinter *singleton() {
@@ -113,7 +159,7 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if('!' == j)
             this->normal();
-            ////////////////////////////////// POSITION
+            ////////////////////////////////// POSITION !^d = down
           else if('^' == j) {
             const char dir = buffer[i + 2];
             string s;
@@ -207,13 +253,16 @@ namespace fhatos {
     }
 
   public:
-    Ansi() : Ansi(*CPrinter::singleton()) {
+    Ansi() :
+      Ansi(*CPrinter::singleton()) {
     }
 
-    explicit Ansi(string *str) : Ansi(StringPrinter(str)) {
+    explicit Ansi(string *str) :
+      Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(const PRINTER printer) : printer(printer) {
+    explicit Ansi(const PRINTER printer) :
+      printer(printer) {
       for(int i = 0; i < 10; i++) {
         uint16_t t[2] = {0, 0};
         this->slots[i] = t;
@@ -494,7 +543,8 @@ namespace fhatos {
     uint8_t current_counts_;
     const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
+      ansi_(ansi),
       total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 

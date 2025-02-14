@@ -60,12 +60,12 @@ namespace fhatos {
       this->distribute_to_subscribers(Message::create(id, obj, retain));
     }
 
-    IdObjPairs read_raw_pairs(const fURI_p &furi) override {
+    IdObjPairs read_raw_pairs(const fURI &furi) override {
       auto list = IdObjPairs();
       for(const auto &[furi2, func]: *this->read_functions_) {
-        if(furi->bimatches(*furi2)) {
+        if(furi.bimatches(*furi2)) {
           Scheduler::singleton()->feed_local_watchdog();
-          const IdObjPairs list2 = func(furi);
+          const IdObjPairs list2 = func(furi_p(furi));
           list.insert(list.end(), list2.begin(), list2.end());
           scheduler()->feed_local_watchdog();
         }

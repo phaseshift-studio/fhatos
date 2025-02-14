@@ -149,7 +149,7 @@ namespace fhatos {
                                 Terminal::STD_OUT_DIRECT(
                                     str(StringHelper::format("%s\n", args->arg(0)->str_value().c_str())));
                                 string code = args->arg(0)->str_value();
-                                if(FOS_IS_DOC_BUILD)
+                                if(STR(BUILD_DOCS) == "ON")
                                   StringHelper::replace(
                                       &code, "\\|", "|");
                                 this->process_line(code);

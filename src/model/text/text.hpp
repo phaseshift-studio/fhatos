@@ -6,21 +6,20 @@
 #include "../../lang/type.hpp"
 #include "../../lang/obj.hpp"
 #include "../../util/obj_helper.hpp"
-#include "../../util/global.hpp"
 #include "../../lang/mmadt/parser.hpp"
+#include "../model.hpp"
 
 namespace fhatos {
   static ID_p TEXT_FURI = id_p(FOS_URI "/text");
 
-  class Text final {
+  class Text final : public Model<Text> {
     std::string body;
 
-  protected:
-    static ptr<Text> get_or_create(const Obj_p &text) {
-      const ID_p text_state_id = id_p(text->uri_value());
-      if(!GLOBAL::singleton()->exists(text_state_id))
-        GLOBAL::singleton()->store(text_state_id, make_shared<Text>());
-      return GLOBAL::singleton()->load<ptr<Text>>(text_state_id);
+  public:
+    explicit Text() = default;
+
+    static ptr<Text> create_state(const Obj_p &) {
+      return make_shared<Text>();
     }
 
     static bool postfix_match(const string &text, const string &postfix) {
@@ -29,7 +28,7 @@ namespace fhatos {
 
     static Obj_p edit_inst(const Obj_p &text_obj, const InstArgs &) {
       const ID_p text_state_id = id_p(text_obj->uri_value());
-      const ptr<Text> text_state = Text::get_or_create(text_obj);
+      const ptr<Text> text_state = Text::get_state(text_obj);
       Ansi<>::singleton()->printf("!m[!y:s!g(!bave!g) !y:p!g(!barse!g) !y:q!g(!buit!g)!m]!b %s!!\n",
                                   text_state_id->toString().c_str());
       if(!text_state->body.empty())
@@ -42,7 +41,7 @@ namespace fhatos {
         if(Text::postfix_match(temp, ":s")) {
           temp = temp.substr(0, temp.length() - 2);
           text_state->body = temp;
-          GLOBAL::singleton()->store(text_state_id, text_state);
+          MODEL_STATES::singleton()->store(text_state_id, text_state);
           LOG_OBJ(INFO, text_obj, "!b%s !ysource code!! saved\n", text_obj->vid->toString().c_str());
           Ansi<>::singleton()->print(text_state->body.c_str());
           Ansi<>::singleton()->flush();
@@ -67,7 +66,6 @@ namespace fhatos {
       return text_obj;
     }
 
-  public:
     static void *import() {
       //////////////////////
       Typer::singleton()->save_type(TEXT_FURI, Obj::to_type(URI_FURI));

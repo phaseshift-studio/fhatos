@@ -240,14 +240,14 @@ namespace fhatos {
       this->stale = true;*/
   }
 
-  void Router::unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
+  void Router::unsubscribe(const ID &subscriber, const fURI &pattern) {
     if(!this->active)
       return;
     try {
       this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
-        if(structure->pattern->matches(*pattern) || pattern->matches(*structure->pattern)) {
-          LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
-                         subscriber->toString().c_str());
+        if(structure->pattern->matches(pattern) || pattern.matches(*structure->pattern)) {
+          LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern.toString().c_str(),
+                         subscriber.toString().c_str());
           structure->recv_unsubscribe(subscriber, pattern);
         }
       });
@@ -352,7 +352,7 @@ namespace fhatos {
     fURI_p p = furi_p(furi);
     if(furi.empty())
       return p;
-    if(const Structure_p structure = this->get_structure(p_p(*p), nullptr, false); structure && structure->has(p))
+    if(const Structure_p structure = this->get_structure(p_p(*p), nullptr, false); structure && structure->has(furi))
       return p;
     if(!furi.headless() && !furi.has_components())
       return p;
@@ -372,13 +372,13 @@ namespace fhatos {
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {
-        const fURI_p x = furi_p(prefix->uri_value().extend(c));
-        if(const Structure_p structure = this->get_structure(p_p(*x), nullptr, false); structure && structure->has(x)) {
+        const fURI x = prefix->uri_value().extend(c);
+        if(const Structure_p structure = this->get_structure(p_p(x), nullptr, false); structure && structure->has(x)) {
           LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
                          furi.toString().c_str(),
                          structure->toString().c_str(),
-                         x->toString().c_str());
-          found = x;
+                         x.toString().c_str());
+          found = furi_p(x);
           break;
         }
       }

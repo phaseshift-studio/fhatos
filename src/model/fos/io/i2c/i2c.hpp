@@ -44,36 +44,44 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   static ID_p I2C_FURI = id_p("/fos/io/i2c");
+  static int bus_num = 0;
 
   class I2C final : public Model<I2C> {
+  protected:
+   // TwoWire i2c_wire;
 
   public:
+   //explicit I2C(TwoWire wire): i2c_wire(Wire) {
+    //}
+    explicit I2C() = default;
+
     static ptr<I2C> create_state(const Obj_p &i2c) {
-      const auto i2c_state = make_shared<I2C>();
-      if(!Wire.begin(
-          (uint8_t) i2c->rec_get("sda")->int_value(),
-          (uint8_t) i2c->rec_get("scl")->int_value())) {
-        throw fError::create(i2c->toString(), "!runable to communicate!! with i2c hardware!!");
+      const uint8_t sda = i2c->rec_get("sda")->int_value();
+      const uint8_t scl = i2c->rec_get("scl")->int_value();
+      if(!Wire.begin(sda, scl)) {
+        throw fError::create(i2c->toString(),
+                             "!runable to communicate!! with i2c [sda:%i,scl:%i] hardware", sda, scl);
       }
       Wire.setClock(i2c->rec_get("freq")->int_value());
+      const auto i2c_state = make_shared<I2C>();
       return i2c_state;
     }
 
     static Obj_p stop_inst(const Obj_p &i2c, const InstArgs &) {
-      const ptr<I2C> oled_state = I2C::get_or_create(i2c);
-      Wire.end();
+      const ptr<I2C> i2c_state = I2C::get_state(i2c);
+    Wire.end();
       LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
       return Obj::to_noobj();
     }
 
     static Obj_p scan_inst(const Obj_p &i2c, const InstArgs &) {
-      const ptr<I2C> oled_state = I2C::get_or_create(i2c);
+      const ptr<I2C> i2c_state = I2C::get_state(i2c);
       const Lst_p result_set = Obj::to_lst();
       try {
         for(int i = 8; i < 120; i++) {
           Scheduler::singleton()->feed_local_watchdog();
-          Wire.beginTransmission(i);
-          const int result = Wire.endTransmission();
+        Wire.beginTransmission(i);
+          const int result =Wire.endTransmission();
           if(0 == result || 4 == result) {
             const auto [model, type] = i2c_device_description(i);
             result_set->lst_add(Obj::to_rec({
@@ -85,7 +93,7 @@ namespace fhatos {
           }
         }
       } catch(const std::exception &e) {
-        Wire.end();
+      Wire.end();
         throw fError("i2c %s bus error: %s", i2c->toString().c_str(), e.what());
       }
       return result_set;

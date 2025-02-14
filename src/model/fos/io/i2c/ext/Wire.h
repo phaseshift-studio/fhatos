@@ -65,6 +65,7 @@ class TwoWire
     static void onReceiveService(uint8_t*, int);
   public:
     TwoWire();
+    explicit TwoWire(uint8_t bus_num) : TwoWire() {}
     void begin();
     void begin(uint8_t);
     bool begin(uint8_t,uint8_t);

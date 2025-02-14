@@ -47,12 +47,12 @@ namespace fhatos {
     }
 
     static ptr<AHT10> create_state(const Obj_p &aht10) {
-      I2C::get_or_create(Router::singleton()->read(id_p(aht10->rec_get("config/i2c")->uri_value())));
+      I2C::get_state(Router::singleton()->read(id_p(aht10->rec_get("config/i2c")->uri_value())));
       return make_shared<AHT10>(aht10->rec_get("config/addr")->int_value());
     }
 
     static Obj_p refresh_inst(const Obj_p &aht10, const InstArgs &) {
-      const ptr<AHT10> aht10_state = AHT10::get_or_create(aht10);
+      const ptr<AHT10> aht10_state = AHT10::get_state(aht10);
       aht10->rec_set("celsius", real(aht10_state->ahtxx.readTemperature(), CELSIUS_FURI));
       aht10->rec_set("humidity", real(aht10_state->ahtxx.readHumidity(), PERCENT_FURI));
       return aht10;

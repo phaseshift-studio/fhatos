@@ -46,12 +46,12 @@ namespace fhatos {
     }
 
     static ptr<MLX90614> create_state(const Obj_p &mlx90614) {
-      I2C::get_or_create(Router::singleton()->read(id_p(mlx90614->rec_get("config/i2c")->uri_value())));
+      I2C::get_state(Router::singleton()->read(id_p(mlx90614->rec_get("config/i2c")->uri_value())));
       return make_shared<MLX90614>(mlx90614->rec_get("config/addr")->int_value());
     }
 
     static Obj_p refresh_inst(const Obj_p &mlx90614, const InstArgs &) {
-      const ptr<MLX90614> mlx90614_state = MLX90614::get_or_create(mlx90614);
+      const ptr<MLX90614> mlx90614_state = MLX90614::get_state(mlx90614);
       mlx90614->rec_set("ambient", real(mlx90614_state->mlx90614xx.getAmbientTempCelsius(), CELSIUS_FURI));
       mlx90614->rec_set("object", real(mlx90614_state->mlx90614xx.getObjectTempCelsius(), CELSIUS_FURI));
       return mlx90614;

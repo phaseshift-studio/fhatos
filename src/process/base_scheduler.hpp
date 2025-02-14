@@ -144,7 +144,7 @@ namespace fhatos {
                                    if(args->arg("payload")->is_noobj()) {
                                      if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
                                        spawned_process->stop(); // = true;
-                                     Router::singleton()->unsubscribe(this->vid, p_p(*spawned_process->vid));
+                                     Router::singleton()->unsubscribe(*this->vid, *spawned_process->vid);
                                    }
                                    return Obj::to_noobj();
                                  }));
