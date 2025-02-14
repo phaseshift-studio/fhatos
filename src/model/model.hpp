@@ -68,35 +68,6 @@ namespace fhatos {
       }
     }
 
-    static Obj_p get_inst(const ID &inst_id, const Obj_p &obj, const InstArgs &args) {
-      // nat[23].plus()
-      Inst_p inst = Router::singleton()->read(obj->vid->add_component(inst_id));
-      if(inst->is_applicable_inst())
-        return inst; //inst->apply(obj, args);
-      // nat.plus()
-      inst = Router::singleton()->read(obj->tid->add_component(inst_id));
-      if(inst->is_applicable_inst())
-        return inst; //inst->apply(obj, args);
-      // plus()
-      inst = Router::singleton()->read(inst_id);
-      if(inst->is_applicable_inst())
-        return inst; //inst->apply(obj, args);
-      ////
-      /// int[23].plus(), int.plus(), plus() ...
-      const Obj_p objs = Router::singleton()->read(obj->tid->add_component("#"));
-      if(objs->is_objs()) {
-        for(const Inst_p &i: *objs->objs_value()) {
-          if(i->range()->no_query() == *obj->tid && i->domain()->no_query() != *obj->tid) {
-            inst = get_inst(i->domain()->no_query(),
-                            make_shared<Obj>(obj->value_, obj->otype, i->domain(), obj->vid), args);
-            if(inst->is_applicable_inst())
-              return inst;
-          }
-        }
-      }
-      return nullptr;
-    }
-
     static void *import();
   };
 }

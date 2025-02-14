@@ -26,44 +26,45 @@ FhatOS: A Distributed Operating System
 #include STR(HARDWARE/threadxx.hpp)
 
 namespace fhatos {
-  static ID_p THREADX_FURI = id_p("/fos/threadx");
-  static ID_p THREADX_FURI_DEFAULT = id_p("/fos/threadx::default");
+  static ID_p THREADX_FURI = id_p("/fos/sys/threadx");
+  static ID_p THREADX_FURI_DEFAULT = id_p("/fos/sys/threadx::default");
 
   class ThreadX : public Model<ThreadX> {
   public:
     ThreadXX threadxx;
 
-    explicit ThreadX(const Obj_p &thread_obj, const Consumer<Obj_p> &function) : threadxx(function,thread_obj) {
+    explicit ThreadX(const Obj_p &thread_obj, const Consumer<Obj_p> &function) :
+      threadxx(function, thread_obj) {
     }
 
     static ptr<ThreadX> create_state(const Obj_p &thread_obj) {
       return make_shared<ThreadX>(thread_obj, [](const Obj_p &thread_obj) -> void {
         try {
-        const auto thread_state = ThreadX::get_state(thread_obj);
-        const Obj_p loop_code = thread_obj->rec_get("loop");
-        LOG_OBJ(INFO, thread_obj, "!ythread!! spawned: %s\n", loop_code->toString().c_str());
-        //Obj_p running = thread_obj;
-        while(true) {
-          const Obj_p thread_obj_fresh = thread_obj->load();
-          thread_obj_fresh->rec_get("loop")->apply(thread_obj_fresh);
-          if(const int delay = thread_obj_fresh->rec_get("delay")->or_else(jnt(0))->int_value(); delay > 0) {
-            thread_state->threadxx.delay(delay);
-          }
-          if(thread_obj_fresh->rec_get("halt")->bool_value()) {
-            try {
-              thread_state->threadxx.stop();
-              MODEL_STATES::singleton()->remove(*thread_obj->vid);
-              break;
-            } catch(const std::runtime_error &e) {
-              MODEL_STATES::singleton()->remove(*thread_obj->vid);
-              throw fError::create(thread_obj->vid->toString(), "unable to halt thread: %s", e.what());
+          const auto thread_state = ThreadX::get_state(thread_obj);
+          const Obj_p loop_code = thread_obj->rec_get("loop");
+          LOG_OBJ(INFO, thread_obj, "!ythread!! spawned: %s\n", loop_code->toString().c_str());
+          //Obj_p running = thread_obj;
+          while(true) {
+            Router::singleton()->read(thread_obj->vid->extend("loop"))->apply(thread_obj);
+            if(const int delay = Router::singleton()->read(thread_obj->vid->extend("delay"))->or_else(jnt(0))->
+                int_value(); delay > 0) {
+              thread_state->threadxx.delay(delay);
+            }
+            if(Router::singleton()->read(thread_obj->vid->extend("halt"))->or_else(dool(true))->bool_value()) {
+              try {
+                thread_state->threadxx.stop();
+                MODEL_STATES::singleton()->remove(*thread_obj->vid);
+                break;
+              } catch(const std::exception &e) {
+                MODEL_STATES::singleton()->remove(*thread_obj->vid);
+                throw fError::create(thread_obj->vid->toString(), "unable to halt thread: %s", e.what());
+              }
             }
           }
-        }
-        LOG_OBJ(INFO, thread_obj, "!ythread!! stopped\n");
+          LOG_OBJ(INFO, thread_obj, "!ythread!! stopped\n");
         } catch(std::exception &e) {
           MODEL_STATES::singleton()->remove(*thread_obj->vid);
-            throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
+          throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
         }
       });
     }
@@ -75,14 +76,14 @@ namespace fhatos {
 
     static void *import() {
       Typer::singleton()->save_type(*THREADX_FURI, Obj::to_rec({
-                                      {"loop", Obj::to_bcode()},
-                                      {"delay", Obj::to_type(NAT_FURI)},
-                                      {"halt", Obj::to_type(BOOL_FURI)}
+                                        {"loop", Obj::to_bcode()},
+                                        {"delay", Obj::to_type(NAT_FURI)},
+                                        {"halt", Obj::to_type(BOOL_FURI)}
                                     }));
       Typer::singleton()->save_type(*THREADX_FURI_DEFAULT, Obj::to_rec({
-                                      {"loop", Obj::to_bcode()},
-                                      {"delay", jnt(0, NAT_FURI)},
-                                      {"halt", dool(false)}
+                                        {"loop", Obj::to_bcode()},
+                                        {"delay", jnt(0, NAT_FURI)},
+                                        {"halt", dool(false)}
                                     }));
 
       InstBuilder::build(THREADX_FURI->add_component("spawn"))

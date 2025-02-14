@@ -40,7 +40,7 @@
 /////////////////////////////////////////
 
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
-#include "model/text/text.hpp"
+#include "model/fos/util/text.hpp"
 #ifdef NATIVE
 #include STR(model/soc/memory/HARDWARE/memory.hpp)
 //// FOS MODELS
@@ -54,7 +54,7 @@
 #include "model/fos/ui/oled/oled.hpp"
 #include "model/fos/ui/rgbled/rgbled.hpp"
 #include "model/soc/esp/ota.hpp"
-#include "model/soc/esp/wifi.hpp"
+#include "model/fos/io/wifi/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #ifdef CONFIG_SPIRAM_USE
 #include "util/esp32/psram_allocator.hpp"
@@ -149,29 +149,33 @@ namespace fhatos {
             ->mount(FSx::create("/disk/#", id_p("/mnt/disk"),
                                 Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
             ->drop_config("fs")
-
 #if defined(ESP_ARCH)
             ->mount(Heap<>::create("/sensor/#",id_p("/mnt/sensor")))
-            ->mount(make_shared<Wifi>("/soc/wifi/+",
+            ->install(*__(WIFIx::obj(rmap({
+              {"halt", dool(false)},
+              {"config", *__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin()}}),id_p("/io/wifi"))))
+              ->inst("connect")->begin())
+            ->drop_config("wifi")
+            /*->mount(make_shared<Wifi>("/soc/wifi/+",
                   Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
-                                                             args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
+                                                             args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))*/
              ->mount(Structure::create<Memory>("/soc/memory/#"))
              ->mount(Heap<>::create("/soc/ota/#",id_p("/sys/structure/ota")))
            //  ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
              ->drop_config("ota")
              //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            /*->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
-                                            Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/mqtt"))->or_else(
+            ->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
+                                            Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
                                                 Obj::to_rec({
                                                     {"broker",
                                                      vri(args_parser->option_string(
                                                          "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
                                                     {"client",
                                                      vri(args_parser->option_string(
-                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))*/
+                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
             ->process(Console::create("/io/console",
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))

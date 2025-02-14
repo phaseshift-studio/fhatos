@@ -69,7 +69,7 @@ namespace fhatos {
         if(obj->is_noobj())
           this->data_->erase(id);
         else
-          this->data_->insert_or_assign(id, obj);
+          this->data_->insert_or_assign(std::move(ID(id)), obj);
         send_obj = obj;
       } else {
         auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);

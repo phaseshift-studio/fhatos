@@ -2,12 +2,12 @@
 #ifndef fhatos_text_hpp
 #define fhatos_text_hpp
 
-#include "../../fhatos.hpp"
-#include "../../lang/type.hpp"
-#include "../../lang/obj.hpp"
-#include "../../util/obj_helper.hpp"
-#include "../../lang/mmadt/parser.hpp"
-#include "../model.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../lang/type.hpp"
+#include "../../../lang/obj.hpp"
+#include "../../../util/obj_helper.hpp"
+#include "../../../lang/mmadt/parser.hpp"
+#include "../../model.hpp"
 
 namespace fhatos {
   static ID_p TEXT_FURI = id_p(FOS_URI "/text");

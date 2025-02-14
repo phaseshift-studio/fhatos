@@ -30,12 +30,11 @@ namespace fhatos {
     Obj_p thread_obj;
     std::thread threadxx;
 
-     ThreadXX(const Consumer<Obj_p> function,const Obj_p& thread_obj) : thread_obj(thread_obj), threadxx(std::move(function),thread_obj) {
+     ThreadXX(const Consumer<Obj_p>& function,const Obj_p& thread_obj) : thread_obj(thread_obj), threadxx(function,thread_obj) {
        }
 
 
     void stop()  {
-
       if(this->threadxx.joinable()) {
         try {
           if(this->threadxx.get_id() != std::this_thread::get_id() /*&& std::this_thread::get_id() == *scheduler_thread*/)

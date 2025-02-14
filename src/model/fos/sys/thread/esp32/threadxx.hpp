@@ -36,65 +36,67 @@ namespace fhatos {
     }
 
   public:
-  const Obj* thread_obj;
-  const Consumer<Obj_p> thread_function;
-   TaskHandle_t* threadxx;
+    const Obj_p thread_obj;
+    const Consumer<Obj_p> thread_function;
+    TaskHandle_t *threadxx;
 
- ThreadXX(const Consumer<Obj_p> function,const Obj_p& thread_obj) : thread_obj(new Obj(*thread_obj)), thread_function(std::move(function)), threadxx(nullptr) {
-  int stack_size;
-  if(thread_obj->is_rec()) {
+    ThreadXX(const Consumer<Obj_p> function, const Obj_p &thread_obj) :
+      thread_obj(thread_obj), thread_function(std::move(function)), threadxx(nullptr) {
+      int stack_size;
+      if(thread_obj->is_rec()) {
         stack_size = thread_obj->rec_get("stack_size") // check provided obj
-        ->or_else(thread_obj->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
-       // ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
-        ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
-        ->int_value();
+            ->or_else(thread_obj->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
+            // ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
+            ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
+            ->int_value();
       } else {
         stack_size = ///= this->rec_get("config/def_stack_size") // check default setting in scheduler
-        jnt(FOS_ESP_THREAD_STACK_SIZE) // use default environmental variable
-        ->int_value();
+            jnt(FOS_ESP_THREAD_STACK_SIZE) // use default environmental variable
+            ->int_value();
       }
       const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTIONXX, // Function that should be called
-                                               thread_obj->vid->toString().c_str(), // Name of the task (for debugging)
-                                               stack_size, // Stack size (bytes)
-                                              (void*) this, // Parameter to pass
-                                               CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                               this->threadxx, // Task handle
-                                               tskNO_AFFINITY); // Processor core
-if(pdPASS != threadResult) 
-throw fError("unable to spawn thread: %s",this->thread_obj->toString().c_str());
-       }
+                                                              thread_obj->vid->toString().c_str(),
+                                                              // Name of the task (for debugging)
+                                                              stack_size, // Stack size (bytes)
+                                                              static_cast<void *>(this), // Parameter to pass
+                                                              CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+                                                              this->threadxx, // Task handle
+                                                              tskNO_AFFINITY); // Processor core
+      if(pdPASS != threadResult)
+        throw fError("unable to spawn thread: %s", this->thread_obj->toString().c_str());
+    }
 
 
     static void THREAD_FUNCTIONXX(void *vptr_thread) {
-      auto *thread = static_cast<ThreadXX *>(vptr_thread);
-      if(!thread->thread_obj)
-      throw fError("unable to acquire thread obj");
-      if(!thread->thread_function)
-      throw fError("unable to acquire thread function: %s",thread->thread_obj->toString().c_str());
-
-      const Obj_p o = thread->thread_obj->clone();
-      thread->thread_function(o);
-      // ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
-    /*  try {
-        while (!thread->thread_obj->rec_get("halt")->bool_value()) {
-          thread->thread_obj->rec_get("loop")->apply(thread->thread_obj);
-          FEED_WATCDOG(); // feeds the watchdog for the task
-        }
-      } catch (fError error) {
-        LOG_PROCESS(ERROR, thread->thread_obj, "thread processor error: %s\n", error.what());
+      const auto *thread = static_cast<ThreadXX *>(vptr_thread);
+      if(!thread) {
+        LOG_EXCEPTION(Obj::to_noobj(), fError("unable to acquire thread state"));
+        return;
       }
-       thread->stop();*/
-      // ESP_ERROR_CHECK(heap_trace_stop());
-      // heap_trace_dump();
-    
+      if(!thread->thread_obj) {
+        LOG_EXCEPTION(Obj::to_noobj(), fError("unable to acquire thread obj"));
+        return;
+      }
+      if(!thread->thread_function) {
+        LOG_EXCEPTION(thread->thread_obj,
+                      fError("unable to acquire thread function: %s", thread->thread_obj->toString().c_str()));
+        return;
+      }
+      try {
+        thread->thread_function(thread->thread_obj);
+        vTaskDelete(nullptr);
+      } catch(const std::exception &e) {
+        LOG_EXCEPTION(thread->thread_obj, e);
+      }
+
     }
 
 
-    void stop()  {
-  vTaskDelete(nullptr);
+    void stop() {
+      vTaskDelete(nullptr);
     }
-    
-    void yield()  {
+
+    void yield() {
       taskYIELD();
     }
 

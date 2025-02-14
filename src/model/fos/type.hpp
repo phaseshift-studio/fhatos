@@ -24,8 +24,10 @@
 #include "../../lang/type.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
+#include "io/wifi/wifi.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
 #include "util/poll.hpp"
+#include "util/text.hpp"
 #ifdef ARDUINO
 #include "io/pwm/pwm.hpp"
 #include "sensor/aht10/aht10.hpp"
@@ -79,6 +81,7 @@ namespace fhatos {
       I2C::import();
 #ifdef ARDUINO
       PWM::import();
+      WIFIx::import();
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));
@@ -110,6 +113,7 @@ namespace fhatos {
     static void *import_util() {
       Typer::singleton()->start_progress_bar(6);
       Poll::import();
+      Text::import();
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
       return nullptr;

@@ -19,6 +19,8 @@
 #ifndef mmadt_mmadt_hpp
 #define mmadt_mmadt_hpp
 
+#include <utility>
+
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 
@@ -48,6 +50,10 @@ namespace mmadt {
       return make_shared<_mmADT>(this->tid, this->domain, this->range, Obj::to_bcode(insts));
     }
 
+    [[nodiscard]] _mmadt_p extend(const fURI &inst_op, const Obj_p &rhs = nullptr) const {
+      return this->extend(Obj::to_inst(rhs ? Obj::to_inst_args({rhs}) : Obj::to_inst_args(), id_p(inst_op)));
+    }
+
     [[nodiscard]] static BCode_p inst_to_bcode(const Inst_p &inst) {
       return inst->is_inst() && std::holds_alternative<Obj_p>(*inst->inst_f())
                ? std::get<Obj_p>(*inst->inst_f())
@@ -58,13 +64,13 @@ namespace mmadt {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, const BCode_p &bcode) :
-      tid(tid), domain(domain), range(range), _bcode(bcode) {
+    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, BCode_p bcode) :
+      tid(tid), domain(domain), range(range), _bcode(std::move(bcode)) {
     }
 
     [[nodiscard]] string toString() const { return this->_bcode->toString(); }
 
-    operator Obj_p() const {
+     operator Obj_p() const {
       // Conversion logic here
       return InstBuilder::build(this->tid)
           ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
@@ -76,8 +82,16 @@ namespace mmadt {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] _mmadt_p as(const fURI_p &type) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({vri(type)}), id_p(MMADT_SCHEME "/as")));
+    [[nodiscard]] _mmadt_p as(const Obj_p &rhs) const {
+      return this->extend("as", rhs);
+    }
+
+    [[nodiscard]] _mmadt_p as(const fURI &rhs) const {
+      return this->extend("as", vri(rhs));
+    }
+
+    [[nodiscard]] _mmadt_p start(const Obj_p &rhs) const {
+      return this->extend("start", rhs);
     }
 
 
@@ -86,81 +100,93 @@ namespace mmadt {
     /////////////////////////////////////////////////////////////////////
 
     [[nodiscard]] _mmadt_p plus(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/plus")));
+      return this->extend("plus", rhs);
     }
 
 
     [[nodiscard]] _mmadt_p mult(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/mult")));
+      return this->extend("mult", rhs);
     }
 
 
     [[nodiscard]] _mmadt_p eq(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/eq")));
+      return this->extend("eq", rhs);
     }
 
     [[nodiscard]] _mmadt_p neq(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/neq")));
+      return this->extend("neq", rhs);
     }
 
     [[nodiscard]] _mmadt_p gt(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/gt")));
+      return this->extend("gt", rhs);
     }
 
     [[nodiscard]] _mmadt_p lt(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/lt")));
+      return this->extend("lt", rhs);
     }
 
     [[nodiscard]] _mmadt_p gte(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/gte")));
+      return this->extend("gte", rhs);
     }
 
     [[nodiscard]] _mmadt_p lte(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/lte")));
+      return this->extend("lte", rhs);
     }
 
     [[nodiscard]] _mmadt_p is(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/is")));
+      return this->extend("is", rhs);
     }
 
     [[nodiscard]] _mmadt_p mod(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/mod")));
+      return this->extend("mod", rhs);
     }
 
     [[nodiscard]] _mmadt_p count() const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args(), id_p(MMADT_SCHEME "/count")));
+      return this->extend("count");
     }
 
     [[nodiscard]] _mmadt_p to(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/to")));
+      return this->extend("to", rhs);
+    }
+
+    [[nodiscard]] _mmadt_p to(const fURI &rhs) const {
+      return this->extend("to", vri(rhs));
     }
 
     [[nodiscard]] _mmadt_p from(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/from")));
+      return this->extend("from", rhs);
+    }
+
+    [[nodiscard]] _mmadt_p from(const fURI &rhs) const {
+      return this->from(vri(rhs));
+    }
+
+    [[nodiscard]] _mmadt_p map(const Obj_p &rhs) const {
+      return this->extend("map", rhs);
     }
 
     [[nodiscard]] _mmadt_p print(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/print")));
-    }
-
-    [[nodiscard]] _mmadt_p as(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/as")));
+      return this->extend("print", rhs);
     }
 
     [[nodiscard]] _mmadt_p block(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/block")));
+      return this->extend("block", rhs);
     }
 
     [[nodiscard]] _mmadt_p split(const Poly_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/split")));
+      return this->extend("split", rhs);
     }
 
     [[nodiscard]] _mmadt_p merge(const Int_p &rhs = jnt(INT_MAX)) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/merge")));
+      return this->extend("merge", rhs);
     }
 
     [[nodiscard]] _mmadt_p ref(const Obj_p &rhs) const {
-      return this->extend(Obj::to_inst(Obj::to_inst_args({inst_to_bcode(rhs)}), id_p(MMADT_SCHEME "/ref")));
+      return this->extend("ref", rhs);
+    }
+
+    [[nodiscard]] _mmadt_p inst(const fURI &inst_furi, const Obj_p &rhs) const {
+      return this->extend(inst_furi, rhs);
     }
 
 
@@ -173,6 +199,15 @@ namespace mmadt {
     }*/
 
     //Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
+
+    ///////////////////////////////////////////////////////////////////
+    //////////////////////////// EVALUATE /////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
+    std::vector<Obj_p>::iterator begin() {
+      return BCODE_PROCESSOR(this->_bcode)->objs_value()->begin();
+    }
+
   };
 
   static ptr<_mmADT> __() {
@@ -181,6 +216,10 @@ namespace mmadt {
 
   static ptr<_mmADT> __(const fURI &tid, const fURI &range, const fURI &domain) {
     return make_shared<_mmADT>(tid, domain, range, Obj::to_bcode());
+  }
+
+  static ptr<_mmADT> __(const Obj_p &start) {
+    return __()->map(start);
   }
 } // namespace fhatos
 
