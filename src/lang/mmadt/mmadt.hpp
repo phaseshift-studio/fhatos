@@ -185,7 +185,7 @@ namespace mmadt {
       return this->extend("ref", rhs);
     }
 
-    [[nodiscard]] _mmadt_p inst(const fURI &inst_furi, const Obj_p &rhs) const {
+    [[nodiscard]] _mmadt_p inst(const fURI &inst_furi, const Obj_p &rhs = nullptr) const {
       return this->extend(inst_furi, rhs);
     }
 

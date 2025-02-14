@@ -965,8 +965,12 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p domain() const {
-      if(this->tid->has_query(FOS_DOMAIN))
-        return id_p(ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_DOMAIN).value())));
+      if(this->tid->has_query(FOS_DOMAIN)) {
+        const string rs = this->tid->query_value(FOS_DOMAIN).value();
+        const fURI rf = ROUTER_RESOLVE(rs);
+        const ID_p ri = id_p(rf);
+        return ri;
+      }
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->front()->domain();
       if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f()))
@@ -986,8 +990,12 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p range() const {
-      if(this->tid->has_query(FOS_RANGE))
-        return id_p(ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_RANGE).value())));
+      if(this->tid->has_query(FOS_RANGE)) {
+        const string rs = this->tid->query_value(FOS_RANGE).value();
+        const fURI rf = ROUTER_RESOLVE(rs);
+        const ID_p ri = id_p(rf);
+        return ri;
+      }
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->back()->range();
       if(this->is_inst())

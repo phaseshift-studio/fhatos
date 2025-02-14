@@ -24,6 +24,7 @@
 #include "structure/router.hpp"
 #include "util/argv_parser.hpp"
 #include STR(process/ptype/HARDWARE/scheduler.hpp)
+#include "lang/obj.hpp"
 #include "lang/mmadt/type.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
@@ -151,9 +152,9 @@ namespace fhatos {
             ->drop_config("fs")
 #if defined(ESP_ARCH)
             ->mount(Heap<>::create("/sensor/#",id_p("/mnt/sensor")))
-            ->install(*__(WIFIx::obj(rmap({
+            ->install(*__(WIFIx::obj({
               {"halt", dool(false)},
-              {"config", *__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin()}}),id_p("/io/wifi"))))
+              {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin())}},"/io/wifi"))
               ->inst("connect")->begin())
             ->drop_config("wifi")
             /*->mount(make_shared<Wifi>("/soc/wifi/+",

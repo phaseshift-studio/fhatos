@@ -61,8 +61,8 @@ namespace fhatos {
       return wifi_obj;
     }
 
-    static Rec_p obj(const Obj::RecMap<>& body, const ID& value_id) {
-      return rec(body,WIFI_URI,id_p(value_id));
+    static Rec_p obj(const std::initializer_list<Pair<const string, Obj_p>> &map, const ID& value_id) {
+      return rec(map,WIFI_FURI,id_p(value_id));
     }
 
     static void *import(const Obj_p& wifi_config = nullptr) {
