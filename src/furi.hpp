@@ -22,6 +22,7 @@
 
 #define FOS_MAX_PATH_SEGMENTS 15
 #define COMPONENT_SEPARATOR STR(::)
+#define COEFFICIENT_SEPARATOR STR($)
 
 #include "fhatos.hpp"
 //
@@ -30,7 +31,7 @@
 #include "util/string_helper.hpp"
 
 namespace fhatos {
-  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, /*FRAGMENT,*/ QUERY };
+  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, COEFFICIENT,/*FRAGMENT,*/ QUERY };
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
@@ -51,6 +52,7 @@ namespace fhatos {
     bool spostfix_ = false;
     uint8_t path_length_ = 0;
     const char *query_ = nullptr;
+    const char *coefficient_ = nullptr;
     // const char *fragment_ = nullptr;
 
   public:
@@ -279,7 +281,6 @@ namespace fhatos {
     [[nodiscard]] bool empty() const {
       return this->path_length_ == 0 && !this->host_ && !this->scheme_ &&
              !this->user_ && !this->password_ && !this->query_;
-      /*!this->fragment_ && */
     }
 
     [[nodiscard]] uint8_t path_length() const { return this->path_length_; }
@@ -307,6 +308,54 @@ namespace fhatos {
           {FOS_DOM_COEF, to_string(domain_coeff.first).append(",").append(to_string(domain_coeff.second))},
           {FOS_RANGE, range.no_query().toString()},
           {FOS_RNG_COEF, to_string(range_coeff.first).append(",").append(to_string(range_coeff.second))}});
+    }
+
+    [[nodiscard]] bool has_coefficient() const {
+      return nullptr != this->coefficient_;
+    }
+
+    [[nodiscard]] const char *coefficient() const {
+      return this->coefficient_ ? this->coefficient_ : "";
+    }
+
+    [[nodiscard]] std::pair<int, int> coefficients() const {
+      if(!this->coefficient_)
+        return make_pair<int, int>(1, 1);
+      const auto coeff_str = string(this->coefficient_);
+      if(this->coefficient_[coeff_str.length() - 1] == ',')
+        return make_pair<int, int>(std::stoi(coeff_str.substr(0, coeff_str.length() - 2)),
+                                   INT_MAX);
+      if(string::npos == coeff_str.find(',')) {
+        int d = std::stoi(coeff_str);
+        const auto pair = std::pair(d, d);
+        return pair;
+      }
+      const std::vector<int> pairs = StringHelper::tokenize<int>(',', coeff_str, [](const string &d) {
+        return std::stoi(d);
+      });
+      const auto pair = std::pair(pairs.at(0), pairs.at(1));
+      return pair;
+    }
+
+    [[nodiscard]] fURI coefficient(const char *coefficient) const {
+      auto new_uri = fURI(*this);
+      FOS_SAFE_FREE(new_uri.coefficient_);
+      new_uri.coefficient_ = nullptr == coefficient || 0 == strlen(coefficient) ? nullptr : strdup(coefficient);
+      return new_uri;
+    }
+
+    [[nodiscard]] fURI coefficient(const int low, const int high) const {
+      auto new_uri = fURI(*this);
+      FOS_SAFE_FREE(new_uri.coefficient_);
+      if(low == INT_MIN)
+        new_uri.coefficient_ = high == INT_MAX ? strdup(",") : strdup(to_string(high).insert(0, ",").c_str());
+      else if(high == INT_MAX)
+        new_uri.coefficient_ = strdup((to_string(low) + ",").c_str());
+      else if(low == high)
+        new_uri.coefficient_ = strdup(to_string(low).c_str());
+      else
+        new_uri.coefficient_ = strdup((to_string(low) + "," + to_string(high)).c_str());
+      return new_uri;
     }
 
     [[nodiscard]] const char *query() const { return this->query_ ? this->query_ : ""; }
@@ -769,6 +818,7 @@ namespace fhatos {
       free((void *) this->host_);
       free((void *) this->user_);
       free((void *) this->password_);
+      free((void *) this->coefficient_);
       free((void *) this->query_);
       // free((void *) this->fragment_);
       for(size_t i = 0; i < this->path_length_; i++) {
@@ -786,6 +836,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
+      this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
       this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
@@ -934,8 +985,35 @@ namespace fhatos {
               this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
               this->path_[this->path_length_++] = strdup("..");
             }
-          } else if(c == '?') {
+          } else if(c == '$') {
             if(part == URI_PART::PATH || part == URI_PART::SCHEME) {
+              if(!token.empty()) {
+                if(!this->path_)
+                  this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
+                this->path_[this->path_length_] = strdup(token.c_str());
+                this->path_length_ = this->path_length_ + 1;
+                check_path_length(uri_chars);
+              }
+              part = URI_PART::COEFFICIENT;
+              // this->query_ = strdup("");
+              token.clear();
+            } else if(part == URI_PART::HOST || part == URI_PART::USER) {
+              this->host_ = strdup(token.c_str());
+              part = URI_PART::COEFFICIENT;
+              token.clear();
+            } else {
+              token += c;
+            }
+          } else if(c == '?') {
+            if(part == URI_PART::COEFFICIENT) {
+              if(!token.empty()) {
+                if(this->coefficient_)
+                  free((void *) this->coefficient_);
+                this->coefficient_ = strdup(token.c_str());
+              }
+              part = URI_PART::QUERY;
+              token.clear();
+            } else if(part == URI_PART::PATH || part == URI_PART::SCHEME) {
               if(!token.empty()) {
                 if(!this->path_)
                   this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
@@ -954,7 +1032,7 @@ namespace fhatos {
               token += c;
             }
           } else if(!isspace(c) && isascii(c)) {
-            if(part != URI_PART::QUERY)
+            if(part != URI_PART::QUERY && part != URI_PART::COEFFICIENT)
               this->spostfix_ = false;
             token += c;
           }
@@ -963,7 +1041,9 @@ namespace fhatos {
         }
         StringHelper::trim(token);
         if(!token.empty()) {
-          if((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) ||
+          if((!foundAuthority &&
+              part != URI_PART::COEFFICIENT &&
+              part != URI_PART::QUERY) ||
              part == URI_PART::PATH || part == URI_PART::SCHEME) {
             if(!this->path_)
               this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
@@ -976,6 +1056,9 @@ namespace fhatos {
             if(!StringHelper::is_integer(token))
               throw fError("!yuri!! port not an !bint!!: %s", token.c_str());
             this->port_ = stoi(token);
+          } else if(part == URI_PART::COEFFICIENT) {
+            free((void *) this->coefficient_);
+            this->coefficient_ = strdup(token.c_str());
           } else if(part == URI_PART::QUERY) {
             free((void *) this->query_);
             this->query_ = strdup(token.c_str());
@@ -1025,6 +1108,7 @@ namespace fhatos {
       }
       return this->spostfix_ == other.spostfix_ &&
              this->sprefix_ == other.sprefix_ &&
+             StringHelper::char_ptr_equal(this->coefficient_, other.coefficient_) &&
              StringHelper::char_ptr_equal(this->query_, other.query_) &&
              StringHelper::char_ptr_equal(this->scheme_, other.scheme_) &&
              StringHelper::char_ptr_equal(this->host_, other.host_) &&
@@ -1059,6 +1143,8 @@ namespace fhatos {
         if(i < (this->path_length_ - 1) || this->spostfix_)
           uri.append("/");
       }
+      if(this->coefficient_)
+        uri.append("$").append(this->coefficient_);
       if(this->query_)
         uri.append("?").append(this->query_);
       // if (this->_fragment)

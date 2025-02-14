@@ -281,6 +281,22 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("/a/b/c").authority().empty());
   }
 
+  void test_uri_coefficient() {
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$1"), fURI("").extend("a/b/c").coefficient("1"));
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$1"), fURI("").extend("a/b/c").coefficient(1,1));
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$1,"), fURI("").extend("a/b/c").coefficient(1,INT_MAX));
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$,34"), fURI("").extend("a/b/c").coefficient(INT_MIN,34));
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$1,?stuff"), fURI("").extend("a/b/c").coefficient(1,INT_MAX).query("stuff"));
+  FOS_TEST_FURI_EQUAL(fURI("/a/b/c$,23?stuff2"), fURI("").extend("a/b/c").coefficient(INT_MIN,23).query("stuff2"));
+  FOS_TEST_FURI_EQUAL(fURI("fos:/a/b/c$12,24?stuff3"), fURI("").scheme("fos").path("a/b/c").coefficient(12,24).query("stuff3"));
+  FOS_TEST_FURI_EQUAL(fURI("fos:/a/b/c$35,57?stuff4=more_stuff"), fURI("")
+                                                                      .scheme("fos")
+                                                                      .path("a/b/c")
+                                                                      .coefficient(12,24)
+                                                                      .coefficient(35,57)
+                                                                      .query({{"stuff4","more_stuff"}}));
+    }
+
   void test_uri_path() {
     TEST_ASSERT_EQUAL_STRING("", fURI("").path().c_str());
     TEST_ASSERT_EQUAL_STRING("", fURI("//127.0.0.1").path().c_str());
@@ -888,6 +904,7 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_host); //
       FOS_RUN_TEST(test_uri_authority); //
       FOS_RUN_TEST(test_uri_path); //
+      FOS_RUN_TEST(test_uri_coefficient); //
       FOS_RUN_TEST(test_uri_query); //
       FOS_RUN_TEST(test_uri_query_value); //
       FOS_RUN_TEST(test_uri_scheme_path); //

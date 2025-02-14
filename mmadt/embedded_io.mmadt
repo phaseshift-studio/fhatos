@@ -1,0 +1,2 @@
+i2c[[sda=>gpio[9],scl=>gpio[10],freq=>40000]]@/io/i2c.scan()
+
