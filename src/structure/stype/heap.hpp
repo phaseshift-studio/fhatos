@@ -87,11 +87,11 @@ namespace fhatos {
       auto list = IdObjPairs();
       if(!match.is_pattern()) {
         if(const ID id_match = ID(match); this->data_->count(id_match))
-          list.push_back({id_p(id_match), this->data_->at(id_match)});
+          list.push_back({id_match, this->data_->at(id_match)});
       } else {
         for(const auto &[id, obj]: *this->data_) {
           if(id.matches(match)) {
-            list.push_back({id_p(id), obj});
+            list.push_back({id, obj});
           }
         }
       }

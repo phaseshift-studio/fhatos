@@ -191,7 +191,7 @@ namespace fhatos {
           return frame_obj;
       }
       const fURI resolved_furi = this->resolve(furi);
-      const Structure_p structure = this->get_structure(p_p(resolved_furi));
+      const Structure_p structure = this->get_structure(resolved_furi);
       const Objs_p objs = structure->read(resolved_furi);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                      this->vid->toString().c_str(), resolved_furi.toString().c_str(), // make this the current process
@@ -225,7 +225,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
-      const Structure_p structure = this->get_structure(p_p(furi), obj);
+      const Structure_p structure = this->get_structure(furi, obj);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                      Process::current_process()->vid->toString().c_str(), retain ? "retained" : "transient",
                      furi.toString().c_str(), obj->tid->toString().c_str(),
@@ -260,7 +260,7 @@ namespace fhatos {
     if(!this->active)
       return;
     try {
-      const Structure_p struc = this->get_structure(subscription->pattern());
+      const Structure_p struc = this->get_structure(*subscription->pattern());
       LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
       struc->recv_subscription(subscription);
     } catch(const fError &e) {
@@ -316,30 +316,30 @@ namespace fhatos {
     return nullptr;
   }
 
-  Structure_p Router::get_structure(const Pattern_p &pattern, const Obj_p &to_write, const bool throw_on_error) const {
+  Structure_p Router::get_structure(const Pattern &pattern, const Obj_p &to_write, const bool throw_on_error) const {
     // const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
     Structure_p found = nullptr;
     for(const Structure_p &s: *this->structures_) {
-      if(to_write && to_write->is_noobj() && s->vid && pattern->bimatches(*s->vid)) {
+      if(to_write && to_write->is_noobj() && s->vid && pattern.bimatches(*s->vid)) {
         s->stop();
       } else {
-        if(pattern->bimatches(*s->pattern)) {
+        if(pattern.bimatches(*s->pattern)) {
           if(found && throw_on_error)
-            throw fError("!b%s!! crosses multiple structures", pattern->toString().c_str());
+            throw fError("!b%s!! crosses multiple structures", pattern.toString().c_str());
           found = s;
         }
       }
     }
     if(!found && throw_on_error) { // && !pattern->empty() ??
       const Lst_p related = Obj::to_lst();
-      const fURI sub_pattern = pattern->retract_pattern();
+      const fURI sub_pattern = pattern.retract_pattern();
       for(const auto &s: *this->structures_) {
         if(sub_pattern.is_subfuri_of(*s->pattern)) {
           related->lst_add(vri(s->pattern));
         }
       }
       throw fError("!rno attached structure!! for !b%s!! %s %s",
-                   pattern->toString().c_str(),
+                   pattern.toString().c_str(),
                    related->lst_value()->empty() ? "" : "\n" FOS_TAB_2 "!yavailable !bsub-structures!!:",
                    related->lst_value()->empty() ? "" : PrintHelper::pretty_print_obj(related, 1).c_str());
     }
@@ -351,7 +351,7 @@ namespace fhatos {
       return furi;
     if(furi.empty())
       return furi;
-    if(const Structure_p structure = this->get_structure(p_p(furi), nullptr, false); structure && structure->has(furi))
+    if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
       return furi;
     if(!furi.headless() && !furi.has_components())
       return furi;
@@ -372,7 +372,7 @@ namespace fhatos {
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {
         const fURI x = prefix->uri_value().extend(c);
-        if(const Structure_p structure = this->get_structure(p_p(x), nullptr, false); structure && structure->has(x)) {
+        if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
           LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
                          furi.toString().c_str(),
                          structure->toString().c_str(),

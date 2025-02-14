@@ -99,16 +99,16 @@ namespace fhatos {
     }
 
     IdObjPairs read_raw_pairs_dir(const fURI &match, fs::File& dir) {
-      IdObjPairs pairs =  List<Pair<ID_p, Obj_p>>();
+      IdObjPairs pairs =  List<Pair<ID, Obj_p>>();
       fs::File file = dir.openNextFile();
       while (file) {
        if(!file.isDirectory()) {
-        const ID_p path = id_p(map_fs_to_fos(file.path()));
-        if(path->matches(match)) {
+        const ID path = map_fs_to_fos(file.path());
+        if(path.matches(match)) {
           const String contents =  file.readString();
           file.close();
           const BObj_p bobj = make_shared<BObj>(contents.length(), (fbyte *) contents.c_str());
-          pairs.emplace_back(std::make_pair<ID_p,Obj_p>(id_p(*path),Obj::deserialize(bobj)));
+          pairs.emplace_back(Pair<ID,Obj_p>(path,Obj::deserialize(bobj)));
         }
        } else {
           IdObjPairs new_pairs = this->read_raw_pairs_dir(match,file);

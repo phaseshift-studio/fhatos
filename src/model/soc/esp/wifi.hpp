@@ -80,30 +80,30 @@ namespace fhatos {
     virtual void setup() override {
       Computed::setup();
       this->read_functions_->insert(
-          {this->pattern, [this](const fURI_p furi) {
+          {*this->pattern, [this](const fURI furi) {
              IdObjPairs map = IdObjPairs();
              ID_p current;
-             if (FOS_WIFI_CONNECT->matches(*furi))
-               map.push_back({FOS_WIFI_CONNECT, dool(WiFi.isConnected())});
-             if (FOS_WIFI_SSID->matches(*furi))
-               map.push_back({FOS_WIFI_SSID, str(this->settings_.ssid_)});
-             if (FOS_WIFI_PASSWORD->matches(*furi))
-               map.push_back({FOS_WIFI_PASSWORD, str(this->settings_.password_)});
-             if (FOS_WIFI_MDNS->matches(*furi))
-               map.push_back({FOS_WIFI_MDNS, vri(WiFi.getHostname())});
-             if (FOS_WIFI_ID_ADDR->matches(*furi))
-               map.push_back({FOS_WIFI_ID_ADDR, vri(WiFi.localIP().toString().c_str())});
-             if (FOS_WIFI_GATEWAY_ADDR->matches(*furi))
-               map.push_back({FOS_WIFI_GATEWAY_ADDR, vri(WiFi.gatewayIP().toString().c_str())});
-             if (FOS_WIFI_SUBNET_MASK->matches(*furi))
-               map.push_back({FOS_WIFI_SUBNET_MASK, vri(WiFi.subnetMask().toString().c_str())});
-             if (FOS_WIFI_DNS_ADDR->matches(*furi))
-               map.push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
+             if (FOS_WIFI_CONNECT->matches(furi))
+               map.push_back({*FOS_WIFI_CONNECT, dool(WiFi.isConnected())});
+             if (FOS_WIFI_SSID->matches(furi))
+               map.push_back({*FOS_WIFI_SSID, str(this->settings_.ssid_)});
+             if (FOS_WIFI_PASSWORD->matches(furi))
+               map.push_back({*FOS_WIFI_PASSWORD, str(this->settings_.password_)});
+             if (FOS_WIFI_MDNS->matches(furi))
+               map.push_back({*FOS_WIFI_MDNS, vri(WiFi.getHostname())});
+             if (FOS_WIFI_ID_ADDR->matches(furi))
+               map.push_back({*FOS_WIFI_ID_ADDR, vri(WiFi.localIP().toString().c_str())});
+             if (FOS_WIFI_GATEWAY_ADDR->matches(furi))
+               map.push_back({*FOS_WIFI_GATEWAY_ADDR, vri(WiFi.gatewayIP().toString().c_str())});
+             if (FOS_WIFI_SUBNET_MASK->matches(furi))
+               map.push_back({*FOS_WIFI_SUBNET_MASK, vri(WiFi.subnetMask().toString().c_str())});
+             if (FOS_WIFI_DNS_ADDR->matches(furi))
+               map.push_back({*FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
              return map;
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern->toString().c_str());
       this->write_functions_->insert(
-          {make_shared<fURI>(this->pattern->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {
+          {this->pattern->resolve("./connect"), [this](const fURI furi, const Obj_p &obj) {
              if (obj->is_bool()) {
                if (obj->bool_value()) {
                  if (!WiFi.isConnected())
@@ -114,7 +114,7 @@ namespace fhatos {
                }
              } else if (obj->is_noobj() && WiFi.isConnected())
                WiFi.disconnect();
-             return List<Pair<ID_p, Obj_p>>{{id_p(this->pattern->resolve("./connect")), dool(WiFi.isConnected())}};
+             return List<Pair<ID, Obj_p>>{{this->pattern->resolve("./connect"), dool(WiFi.isConnected())}};
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
                     this->pattern->resolve("connect").toString().c_str());

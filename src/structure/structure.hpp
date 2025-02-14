@@ -34,8 +34,8 @@
 
 
 namespace fhatos {
-  using IdObjPairs = List<Pair<ID_p, Obj_p>>;
-  using IdObjPairs_p = List_p<Pair<ID_p, Obj_p>>;
+  using IdObjPairs = List<Pair<ID, Obj_p>>;
+  using IdObjPairs_p = List_p<Pair<ID, Obj_p>>;
 
   class Router;
 
@@ -144,9 +144,9 @@ namespace fhatos {
       const IdObjPairs list = this->read_raw_pairs(*subscription->pattern());
       for(const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
-          if(id->matches(*subscription->pattern())) {
+          if(id.matches(*subscription->pattern())) {
             FEED_WATCDOG();
-            subscription->apply(make_shared<Message>(id, obj,RETAIN));
+            subscription->apply(make_shared<Message>(id_p(id), obj,RETAIN));
           }
         }
       }
@@ -309,7 +309,7 @@ namespace fhatos {
             const IdObjPairs ids = this->read_raw_pairs(new_furi.extend("+"));
             // noobj
             for(const auto &[key, value]: ids) {
-              this->write_raw_pairs(*key, obj, retain);
+              this->write_raw_pairs(key, obj, retain);
             }
           } else if(obj->is_rec()) {
             // rec
@@ -341,7 +341,7 @@ namespace fhatos {
           if(new_furi.is_pattern()) {
             const IdObjPairs matches = this->read_raw_pairs(new_furi);
             for(const auto &[key, value]: matches) {
-              this->write(*key, obj, retain);
+              this->write(key, obj, retain);
             }
           }
           //////////////////////////////////////////////////////////////////////////////////////////////////////////

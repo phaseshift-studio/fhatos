@@ -110,7 +110,7 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi.is_pattern() || furi.is_branch();
       const Pattern temp = furi.is_branch() ? furi.extend("+") : furi;
-      auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
+      auto thing = new std::atomic<List<Pair<ID, Obj_p>> *>(new List<Pair<ID, Obj_p>>());
       const auto source_id = id_p(
           this->rec_get("config/client", vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
@@ -118,7 +118,7 @@ namespace fhatos {
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
                                ->inst_f([thing](const Obj_p &lhs, const InstArgs &args) {
                                         thing->load()->push_back({
-                                        id_p(ROUTER_READ("target")->uri_value()),
+                                        ROUTER_READ("target")->uri_value(),
                                         ROUTER_READ("payload")});
                                      return lhs;
                                    })->create()));

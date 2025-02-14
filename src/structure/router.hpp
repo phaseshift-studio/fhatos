@@ -98,7 +98,7 @@ namespace fhatos {
     }
 
   protected:
-    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, const Obj_p &to_write = nullptr,
+    [[nodiscard]] Structure_p get_structure(const Pattern &pattern, const Obj_p &to_write = nullptr,
                                             bool throw_on_error = true) const;
   };
 } // namespace fhatos

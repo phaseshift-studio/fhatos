@@ -31,7 +31,8 @@ namespace fhatos {
 
   class Memory : public Computed {
   public:
-    explicit Memory(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p& config = Obj::to_rec()) : Computed(pattern, id_p(MEMORY_FURI), value_id) {
+    explicit Memory(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+      Computed(pattern, id_p(MEMORY_FURI), value_id) {
       const ID_p percent_id = REAL_FURI;
       /*const ID_p percent_id = id_p(MMADT_SCHEME "/%");
       InstBuilder::build(*percent_id)
@@ -39,29 +40,30 @@ namespace fhatos {
           ->itype_and_seed(IType::ONE_TO_ONE)
           ->inst_f(OBJ_PARSER("is(gte(0.0)).is(lte(100.0))"))
           ->save();*/
-      const ID_p inst = id_p(this->pattern->resolve("./inst"));
-      const ID_p heap = id_p(this->pattern->resolve("./heap"));
-      const ID_p psram = id_p(this->pattern->resolve("./psram"));
-      const ID_p hwm = id_p(this->pattern->resolve("./hwm"));
+    const  fURI inst = this->pattern->resolve("./inst");
+     const fURI heap = this->pattern->resolve("./heap");
+      const fURI psram = this->pattern->resolve("./psram");
+     const  fURI hwm = this->pattern->resolve("./hwm");
       ///////
-      this->read_functions_->insert(
-        {inst, [this, inst, percent_id](const fURI_p &) {
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, instruction_memory()}}));
-        }});
-      this->read_functions_->insert(
-        {heap, [this, heap, percent_id](const fURI_p &) {
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, main_memory()}}));
-        }});
+      this->read_functions_->emplace(
+      inst, [this, inst, percent_id](const fURI &) {
+        return IdObjPairs(
+            initializer_list<Pair<ID, Obj_p>>({make_pair<ID, Obj_p>(inst, instruction_memory())}));
+      });
+      this->read_functions_->emplace(
+      heap, [this, heap, percent_id](const fURI &) {
+        return IdObjPairs({make_pair<ID,Obj_p>(heap, main_memory())});
+      });
 #ifdef CONFIG_SPIRAM_USE
       this->read_functions_->insert(
-        {psram, [this, psram, percent_id](const fURI_p &) {
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, psram_memory()}}));
+        {psram, [this, psram, percent_id](const fURI &) {
+          return IdObjPairs(initializer_list<Pair<ID, Obj_p>>({make_pair<ID,Obj_p>(psram, psram_memory())}));
         }});
 #endif
       this->read_functions_->insert(
-        {hwm, [this, hwm, percent_id](const fURI_p &) {
-          return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, high_water_mark()}}));
-        }});
+      {hwm, [this, hwm, percent_id](const fURI &) {
+        return IdObjPairs({make_pair<ID, Obj_p>(ID(hwm), high_water_mark())});
+      }});
     }
 
     // TODO: flash/partition/0x4434
@@ -74,40 +76,43 @@ namespace fhatos {
 
     static Rec_p instruction_memory() {
       return Obj::to_rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
-        {"free", jnt(ESP.getFreeSketchSpace())},
-        {"used", real(ESP.getSketchSize() == 0
-                        ? 0.0f
-                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) / static_cast<float>(
-                                               ESP.getSketchSize() + ESP.getFreeSketchSpace())))), REAL_FURI)}});
+                          {"free", jnt(ESP.getFreeSketchSpace())},
+                          {"used", real(ESP.getSketchSize() == 0
+                                          ? 0.0f
+                                          : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) /
+                                                               static_cast<float>(
+                                                                 ESP.getSketchSize() + ESP.getFreeSketchSpace())))),
+                                        REAL_FURI)}});
     }
 
     static Rec_p main_memory() {
       return Obj::to_rec({{"total", jnt(ESP.getHeapSize())},
-        {"free", jnt(ESP.getFreeHeap())},
-        {"used", real(static_cast<float>(ESP.getHeapSize()) == 0
-                        ? 0.0f
-                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<float>(ESP.
-                                               getHeapSize())))), REAL_FURI)}});
+                          {"free", jnt(ESP.getFreeHeap())},
+                          {"used", real(static_cast<float>(ESP.getHeapSize()) == 0
+                                          ? 0.0f
+                                          : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<
+                                                                 float>(ESP.
+                                                                 getHeapSize())))), REAL_FURI)}});
     }
 
     static Rec_p psram_memory() {
       return Obj::to_rec({{"total", jnt(ESP.getPsramSize())},
-        {"free", jnt(ESP.getFreePsram())},
-        {"used",
-          real(static_cast<float>(ESP.getPsramSize()) == 0
-                 ? 0.0f
-                 : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
-                                        getPsramSize())))), REAL_FURI)}});
+                          {"free", jnt(ESP.getFreePsram())},
+                          {"used",
+                           real(static_cast<float>(ESP.getPsramSize()) == 0
+                                  ? 0.0f
+                                  : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
+                                                         getPsramSize())))), REAL_FURI)}});
     }
 
     static Rec_p high_water_mark() {
       const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
       return Obj::to_rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
-        {"min_free", jnt(free)},
-        {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
-                        ? 0.0f
-                        : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
-                                       FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
+                          {"min_free", jnt(free)},
+                          {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
+                                          ? 0.0f
+                                          : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
+                                                         FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
     }
   };
 } // namespace fhatos

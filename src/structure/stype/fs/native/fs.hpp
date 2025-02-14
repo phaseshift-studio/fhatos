@@ -113,7 +113,6 @@ namespace fhatos {
     }
 
     void read_raw_pairs_dir(const fURI &match, const fs::path &fs_path, IdObjPairs *pairs) {
-
       const ID fos_path = map_fs_to_fos(fs_path);
       //LOG(INFO, "matching %s with %s via %s\n", match->toString().c_str(), fos_path.toString().c_str(), fs_path.c_str());
       if(fos_path.is_node() && fs::is_regular_file(fs_path) && fos_path.matches(match)) {
@@ -123,7 +122,7 @@ namespace fhatos {
         const auto content = string((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
         infile.close();
         const Obj_p obj = Obj::deserialize(make_shared<BObj>(content.length(), (fbyte *) content.c_str()));
-        pairs->push_back(make_pair<ID_p, Obj_p>(make_shared<ID>(fos_path), static_cast<Obj_p>(obj)));
+        pairs->push_back(Pair<ID, Obj_p>(fos_path, static_cast<Obj_p>(obj)));
       } else if(fs::is_directory(fs_path)) {
         for(const auto &p: fs::directory_iterator(fs_path)) {
           this->read_raw_pairs_dir(match, p, pairs);
