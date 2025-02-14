@@ -157,7 +157,7 @@ namespace fhatos {
     static ptr<Kernel> install(const Obj_p &obj) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       if(obj->vid) {
-        Router::singleton()->write(obj->vid, obj,RETAIN);
+        Router::singleton()->write(*obj->vid, obj,RETAIN);
         LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid->toString().c_str());
       }
       return Kernel::build();
@@ -219,13 +219,13 @@ namespace fhatos {
 
     static ptr<Kernel> drop_config(const string &id) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      Router::singleton()->write(id_p((string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id).c_str()), noobj());
+      Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id, noobj());
       LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s !yboot config!! dropped\n", id.c_str());
       return Kernel::build();
     }
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
-      Router::singleton()->write(id_p(string(FOS_BOOT_CONFIG_VALUE_ID).c_str()), noobj());
+      Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH

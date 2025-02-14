@@ -67,7 +67,7 @@ namespace fhatos {
     };
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_WRITE = [this](const fURI_p &furi, const Obj_p &obj, const bool retain) {
-      this->write(furi, obj, retain);
+      this->write(*furi, obj, retain);
     };
     ////////////////////////////////////////////////////////////////////////////////////
     LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
@@ -203,16 +203,16 @@ namespace fhatos {
     }
   }
 
-  void Router::write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
+  void Router::write(const fURI &furi, const Obj_p &obj, const bool retain) {
     if(!this->active)
       return;
-    if(obj->is_noobj() && furi->is_node() && this->vid->matches(*furi))
+    if(obj->is_noobj() && furi.is_node() && this->vid->matches(furi))
       this->active = false;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////// PROCESS FURI QUERIES  ///////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(furi->has_query()) {
-      for(const auto &[query_key, query_value]: furi->query_values()) {
+    if(furi.has_query()) {
+      for(const auto &[query_key, query_value]: furi.query_values()) {
         if(query_key != "sub") {
           const Obj_p query_processor = this->read(this->vid->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key));
           if(query_processor->is_noobj())
@@ -225,12 +225,12 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
-      const Structure_p structure = this->get_structure(p_p(*furi), obj);
+      const Structure_p structure = this->get_structure(p_p(furi), obj);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                      Process::current_process()->vid->toString().c_str(), retain ? "retained" : "transient",
-                     furi->toString().c_str(), obj->tid->toString().c_str(),
+                     furi.toString().c_str(), obj->tid->toString().c_str(),
                      structure->pattern->toString().c_str());
-      structure->write(*furi, obj, retain);
+      structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
     }
@@ -269,14 +269,14 @@ namespace fhatos {
   }
 
   void *Router::import() {
-    Router::singleton()->write(Router::singleton()->vid, Router::singleton(),RETAIN);
-    Router::singleton()->write(id_p(FRAME_FURI), Obj::to_type(REC_FURI),RETAIN);
+    Router::singleton()->write(*Router::singleton()->vid, Router::singleton(),RETAIN);
+    Router::singleton()->write(FRAME_FURI, Obj::to_type(REC_FURI),RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
-    Router::singleton()->write(id_p(Router::singleton()->vid->retract().extend("lib/msg")),
+    Router::singleton()->write(Router::singleton()->vid->retract().extend("lib/msg"),
                                Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
                                             {"payload", Obj::to_bcode()},
                                             {"retain", Obj::to_type(BOOL_FURI)}}));
-    Router::singleton()->write(id_p(Router::singleton()->vid->retract().extend("lib/sub")),
+    Router::singleton()->write(Router::singleton()->vid->retract().extend("lib/sub"),
                                Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
                                             {"pattern", Obj::to_type(URI_FURI)},
                                             {":on_recv", Obj::to_bcode()}}));

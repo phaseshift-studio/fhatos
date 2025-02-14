@@ -58,7 +58,7 @@ namespace fhatos {
     }
 
     static void *import() {
-      Typer::singleton()->save_type(MLX90614_FURI, Obj::to_rec(
+      Typer::singleton()->save_type(*MLX90614_FURI, Obj::to_rec(
                                     {{"ambient", Obj::to_type(CELSIUS_FURI)},
                                      {"object", Obj::to_type(CELSIUS_FURI)},
                                      {"config", Obj::to_rec({

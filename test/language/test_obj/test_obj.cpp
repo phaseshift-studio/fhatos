@@ -164,8 +164,8 @@ namespace fhatos {
 
 
   void test_uri() {
-    Typer::singleton()->save_type(id_p("/obj/webpage"), Obj::to_bcode());
-    Typer::singleton()->save_type(id_p("/obj/ftp"), Obj::to_bcode());
+    Typer::singleton()->save_type("/obj/webpage", Obj::to_bcode());
+    Typer::singleton()->save_type("/obj/ftp", Obj::to_bcode());
     const Uri_p uriA = Obj::to_uri("home/web/html/index.html");
     const Uri_p uriB = vri("home/web/html/index.html");
     const Uri_p uriC = Obj::to_uri("home/web/html/index.html", id_p("/obj/webpage"));
@@ -288,7 +288,7 @@ void FOS_TEST_IS_A(const OType o_type, const Obj_p obj) {
 }
 
 void test_bool() {
-    Typer::singleton()->save_type(id_p("/obj/truth"), Obj::to_bcode()); //
+    Typer::singleton()->save_type("/obj/truth", Obj::to_bcode()); //
     const Bool_p bool_a = Obj::to_bool(true,id_p("/obj/truth"));
     const Bool_p bool_b = Obj::to_bool(false, id_p("/obj/truth"));
     FOS_TEST_IS_A(OType::BOOL,bool_a);
@@ -310,8 +310,8 @@ void test_bool() {
   }
 
  void test_str() {
-    Typer::singleton()->save_type(id_p("/obj/first_name"), Obj::to_type(STR_FURI)); //
-    Typer::singleton()->save_type(id_p("/obj/letter"),Obj::to_type(STR_FURI)); //
+    Typer::singleton()->save_type("/obj/first_name", Obj::to_type(STR_FURI)); //
+    Typer::singleton()->save_type("/obj/letter",Obj::to_type(STR_FURI)); //
     const Str_p strA = Obj::to_str("fhat", id_p("/obj/first_name"));
     TEST_ASSERT_FALSE(strA->is_bcode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
@@ -322,7 +322,7 @@ void test_bool() {
   }
 
   void test_lst() {
-    Typer::singleton()->save_type(id_p("/obj/ones"), Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
+    Typer::singleton()->save_type("/obj/ones", Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
     const Lst lstA = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
     const Lst lstB = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
     const Lst lstC = *Obj::to_lst({jnt(2), jnt(3), jnt(4)});

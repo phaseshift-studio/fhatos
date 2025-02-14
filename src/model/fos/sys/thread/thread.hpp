@@ -52,17 +52,17 @@ namespace fhatos {
           if(thread_obj_fresh->rec_get("halt")->bool_value()) {
             try {
               thread_state->threadxx.stop();
-              MODEL_STATES::singleton()->remove(thread_obj->vid);
+              MODEL_STATES::singleton()->remove(*thread_obj->vid);
               break;
             } catch(const std::runtime_error &e) {
-              MODEL_STATES::singleton()->remove(thread_obj->vid);
+              MODEL_STATES::singleton()->remove(*thread_obj->vid);
               throw fError::create(thread_obj->vid->toString(), "unable to halt thread: %s", e.what());
             }
           }
         }
         LOG_OBJ(INFO, thread_obj, "!ythread!! stopped\n");
         } catch(std::exception &e) {
-          MODEL_STATES::singleton()->remove(thread_obj->vid);
+          MODEL_STATES::singleton()->remove(*thread_obj->vid);
             throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
         }
       });
@@ -74,12 +74,12 @@ namespace fhatos {
     }
 
     static void *import() {
-      Typer::singleton()->save_type(THREADX_FURI, Obj::to_rec({
+      Typer::singleton()->save_type(*THREADX_FURI, Obj::to_rec({
                                       {"loop", Obj::to_bcode()},
                                       {"delay", Obj::to_type(NAT_FURI)},
                                       {"halt", Obj::to_type(BOOL_FURI)}
                                     }));
-      Typer::singleton()->save_type(THREADX_FURI_DEFAULT, Obj::to_rec({
+      Typer::singleton()->save_type(*THREADX_FURI_DEFAULT, Obj::to_rec({
                                       {"loop", Obj::to_bcode()},
                                       {"delay", jnt(0, NAT_FURI)},
                                       {"halt", dool(false)}

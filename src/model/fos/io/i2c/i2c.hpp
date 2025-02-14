@@ -100,7 +100,7 @@ namespace fhatos {
     }
 
     static void *import() {
-      Typer::singleton()->save_type(I2C_FURI, Obj::to_rec({
+      Typer::singleton()->save_type(*I2C_FURI, Obj::to_rec({
                                         {"sda", Obj::to_type(GPIO_FURI)},
                                         {"scl", Obj::to_type(GPIO_FURI)},
                                         {"freq", Obj::to_type(INT_FURI)}}));

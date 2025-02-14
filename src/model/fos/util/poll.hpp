@@ -66,7 +66,7 @@ namespace fhatos {
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
-          POLL_FURI, Obj::to_rec({
+          *POLL_FURI, Obj::to_rec({
               {"delay", Obj::to_type(MILLISECOND_FURI)},
               {"loop", Obj::to_bcode()},
               {"halt", Obj::to_type(BOOL_FURI)}

@@ -42,7 +42,7 @@ namespace fhatos {
       if(this->direct_stdin_out)
         Terminal::STD_OUT_DIRECT(s);
       else
-        Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_p_value<ID>(), s, TRANSIENT);
+        Router::singleton()->write(this->this_get("config/terminal/stdout")->uri_value(), s, TRANSIENT);
     }
 
     Str_p read_stdin(const char until) const {

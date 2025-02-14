@@ -178,7 +178,7 @@ namespace fhatos {
             ->drop_config("console")
             ->eval([args_parser] {
 
-              Router::singleton()->write(id_p("/mnt/boot"), Obj::to_noobj()); // shutdown the boot partition
+              Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
               Router::singleton()->loop();
               delete args_parser;
             });

@@ -44,24 +44,24 @@ namespace fhatos {
     static void *import_types() {
       Typer::singleton()->start_progress_bar(10);
       Typer::singleton()->save_type(
-          CHAR_FURI,
+          *CHAR_FURI,
           *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
-      Typer::singleton()->save_type(INT8_FURI, Obj::to_type(INT8_FURI));
+      Typer::singleton()->save_type(*INT8_FURI, Obj::to_type(INT8_FURI));
       Typer::singleton()->save_type(
-          UINT8_FURI,
+          *UINT8_FURI,
           *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
-      Typer::singleton()->save_type(INT16_FURI, Obj::to_type(INT16_FURI));
-      Typer::singleton()->save_type(INT32_FURI, Obj::to_type(INT32_FURI));
-      Typer::singleton()->save_type(NAT_FURI, *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
+      Typer::singleton()->save_type(*INT16_FURI, Obj::to_type(INT16_FURI));
+      Typer::singleton()->save_type(*INT32_FURI, Obj::to_type(INT32_FURI));
+      Typer::singleton()->save_type(*NAT_FURI, *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
       Typer::singleton()->save_type(
-          CELSIUS_FURI,
+          *CELSIUS_FURI,
           *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
       Typer::singleton()->save_type(
-          PERCENT_FURI,
+          *PERCENT_FURI,
           *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
-      Typer::singleton()->save_type(HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
-      Typer::singleton()->save_type(MILLISECOND_FURI, Obj::to_type(INT_FURI));
-      Typer::singleton()->save_type(SECOND_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
+      Typer::singleton()->save_type(*MILLISECOND_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*SECOND_FURI, Obj::to_type(INT_FURI));
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
       return nullptr;

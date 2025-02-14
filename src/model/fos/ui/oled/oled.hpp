@@ -138,7 +138,7 @@ namespace fhatos {
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
-          OLED_FURI, Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
+          *OLED_FURI, Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
                                   {"config", rec({
                                        {"i2c", Obj::to_type(URI_FURI)},
                                        {"addr", Obj::to_type(UINT8_FURI)}})}}));

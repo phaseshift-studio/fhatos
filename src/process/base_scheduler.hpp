@@ -188,7 +188,7 @@ namespace fhatos {
            })
            ->save();*/
       ///// OBJECTS
-      Router::singleton()->write(id_p(SCHEDULER_ID->retract().extend("lib/thread")),
+      Router::singleton()->write(SCHEDULER_ID->retract().extend("lib/thread"),
                                  Obj::to_rec({{":loop", Obj::to_bcode()}}));
       scheduler->save();
       return nullptr;

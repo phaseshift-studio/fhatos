@@ -32,7 +32,6 @@
 namespace fhatos {
 
 
-
   class Router final : public Rec {
   protected:
     bool active = true;
@@ -44,7 +43,7 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    void log_frame_stack( LOG_TYPE log_type) const;
+    void log_frame_stack(LOG_TYPE log_type) const;
 
     void load_config(const ID &config_id);
 
@@ -64,7 +63,7 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI &furi);
 
-    void write(const fURI_p &furi, const Obj_p &obj, bool retain = RETAIN);
+    void write(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
 
     void unsubscribe(const ID &subscriber, const fURI &pattern = "#");
 
@@ -79,14 +78,14 @@ namespace fhatos {
     template<typename STRUCTURE>
     static void *import_structure(const ID &import_id, const ID &type_id) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      Router::singleton()->write(id_p(type_id), Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
+      Router::singleton()->write(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
       InstBuilder::build(id_p(import_id.extend(":create")))
           ->inst_args(Obj::to_rec({
               {"pattern", Obj::to_type(URI_FURI)},
               {"id", Obj::to_noobj()},
               {"config", Obj::to_rec()}}))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_f([type_id](const Obj_p &, const InstArgs &args) {
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Pattern pattern = args->arg("pattern")->uri_value();
             const ID_p id = args->arg("id")->is_noobj() ? nullptr : id_p(args->arg("id")->uri_value());
             const Rec_p config = args->arg("config");
@@ -99,7 +98,8 @@ namespace fhatos {
     }
 
   protected:
-    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, const Obj_p& to_write = nullptr, bool throw_on_error = true) const;
+    [[nodiscard]] Structure_p get_structure(const Pattern_p &pattern, const Obj_p &to_write = nullptr,
+                                            bool throw_on_error = true) const;
   };
 } // namespace fhatos
 

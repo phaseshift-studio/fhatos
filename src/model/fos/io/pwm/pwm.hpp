@@ -38,7 +38,7 @@ namespace fhatos {
   class PWM final {
   public:
     static void *import() {
-      Typer::singleton()->save_type(PWM_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*PWM_FURI, Obj::to_type(INT_FURI));
       InstBuilder::build(PWM_FURI->add_component("write"))
           ->domain_range(PWM_FURI, {1, 1}, PWM_FURI, {1, 1})
           ->inst_args(rec({{"value", Obj::to_type(INT_FURI)}}))

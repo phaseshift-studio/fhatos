@@ -57,7 +57,7 @@ namespace fhatos {
 
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
-      Typer::singleton()->save_type(RGBLED_FURI,
+      Typer::singleton()->save_type(*RGBLED_FURI,
                                     Obj::to_rec({
                                         {"color", Obj::to_rec({
                                              {"r", Obj::to_type(UINT8_FURI)},

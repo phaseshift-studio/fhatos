@@ -98,7 +98,7 @@
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
   Router::singleton()->attach(Structure::create<Heap<>>("/parser/#")); \
-  Router::singleton()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
+  Router::singleton()->write("/parser/", mmadt::Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -116,7 +116,7 @@
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
   Router::singleton()->attach(Structure::create<Heap<>>("/mmadt/#")); \
-  Router::singleton()->write(id_p("/mmadt/"),Typer::singleton("/mmadt/")); \
+  Router::singleton()->write("/mmadt/",Typer::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
 #define FOS_DEPLOY_TYPE_2 ;

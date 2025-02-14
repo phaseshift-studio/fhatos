@@ -287,23 +287,23 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p &type_id, const Obj_p &type_def) const {
+    void save_type(const ID &type_id, const Obj_p &type_def) const {
       try {
-        const Obj_p current = Router::singleton()->read(*type_id);
+        const Obj_p current = Router::singleton()->read(type_id);
         if(type_progress_bar_) {
           Router::singleton()->write(type_id, type_def,RETAIN);
-          type_progress_bar_->incr_count(type_id->toString());
+          type_progress_bar_->incr_count(type_id.toString());
           if(type_progress_bar_->done())
-            Router::singleton()->write(this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+            Router::singleton()->write(*this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
         } else {
           Router::singleton()->write(type_id, type_def,RETAIN);
           if(current->is_noobj()) {
             LOG_OBJ(INFO, this, "!b%s !ytype!! defined\n",
-                    type_id->toString().c_str(),
-                    type_id->toString().c_str());
+                    type_id.toString().c_str(),
+                    type_id.toString().c_str());
           } else {
             LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
-                    type_id->toString().c_str(), current->toString().c_str());
+                    type_id.toString().c_str(), current->toString().c_str());
           }
         }
       } catch(const fError &e) {

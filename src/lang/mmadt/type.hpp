@@ -33,19 +33,19 @@ namespace mmadt {
   public:
     static void import_base_types() {
       Typer::singleton()->start_progress_bar(14);
-      Typer::singleton()->save_type(OBJ_FURI, Obj::to_type(OBJ_FURI));
-      Typer::singleton()->save_type(NOOBJ_FURI, Obj::to_type(NOOBJ_FURI));
-      Typer::singleton()->save_type(BOOL_FURI, Obj::to_type(BOOL_FURI));
-      Typer::singleton()->save_type(INT_FURI, Obj::to_type(INT_FURI));
-      Typer::singleton()->save_type(REAL_FURI, Obj::to_type(REAL_FURI));
-      Typer::singleton()->save_type(STR_FURI, Obj::to_type(STR_FURI));
-      Typer::singleton()->save_type(URI_FURI, Obj::to_type(URI_FURI));
-      Typer::singleton()->save_type(LST_FURI, Obj::to_type(LST_FURI));
-      Typer::singleton()->save_type(REC_FURI, Obj::to_type(REC_FURI));
-      Typer::singleton()->save_type(OBJS_FURI, Obj::to_type(OBJS_FURI));
-      Typer::singleton()->save_type(BCODE_FURI, Obj::to_type(BCODE_FURI));
-      Typer::singleton()->save_type(INST_FURI, Obj::to_type(INST_FURI));
-      Typer::singleton()->save_type(ERROR_FURI, Obj::to_type(ERROR_FURI));
+      Typer::singleton()->save_type(*OBJ_FURI, Obj::to_type(OBJ_FURI));
+      Typer::singleton()->save_type(*NOOBJ_FURI, Obj::to_type(NOOBJ_FURI));
+      Typer::singleton()->save_type(*BOOL_FURI, Obj::to_type(BOOL_FURI));
+      Typer::singleton()->save_type(*INT_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*REAL_FURI, Obj::to_type(REAL_FURI));
+      Typer::singleton()->save_type(*STR_FURI, Obj::to_type(STR_FURI));
+      Typer::singleton()->save_type(*URI_FURI, Obj::to_type(URI_FURI));
+      Typer::singleton()->save_type(*LST_FURI, Obj::to_type(LST_FURI));
+      Typer::singleton()->save_type(*REC_FURI, Obj::to_type(REC_FURI));
+      Typer::singleton()->save_type(*OBJS_FURI, Obj::to_type(OBJS_FURI));
+      Typer::singleton()->save_type(*BCODE_FURI, Obj::to_type(BCODE_FURI));
+      Typer::singleton()->save_type(*INST_FURI, Obj::to_type(INST_FURI));
+      Typer::singleton()->save_type(*ERROR_FURI, Obj::to_type(ERROR_FURI));
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
     }
@@ -428,7 +428,7 @@ namespace mmadt {
       InstBuilder::build(Router::singleton()->resolve(MMADT_SCHEME "/to"))
           ->type_args(x(0, "uri"), x(1, "retain", dool(true)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            Router::singleton()->write(furi_p(args->arg(0)->uri_value()), lhs, args->arg(1)->bool_value());
+            Router::singleton()->write(args->arg(0)->uri_value(), lhs, args->arg(1)->bool_value());
             return lhs;
           })->save();
 
@@ -437,7 +437,7 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);
-            Router::singleton()->write(furi_p(lhs->uri_value()), ret, args->arg(1)->bool_value());
+            Router::singleton()->write(lhs->uri_value(), ret, args->arg(1)->bool_value());
             return ret;
           })
           ->save();

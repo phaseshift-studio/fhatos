@@ -38,7 +38,7 @@ namespace fhatos {
   class GPIO final {
   public:
     static void *import() {
-      Typer::singleton()->save_type(GPIO_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*GPIO_FURI, Obj::to_type(INT_FURI));
       InstBuilder::build(GPIO_FURI->add_component("write"))
           ->domain_range(GPIO_FURI, {1, 1}, GPIO_FURI, {1, 1})
           ->inst_args(rec({{"value", Obj::to_type(INT_FURI)}}))

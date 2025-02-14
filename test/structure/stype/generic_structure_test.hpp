@@ -40,7 +40,7 @@ namespace fhatos {
 
     void detach() const {
       structure_->stop();
-      Router::singleton()->write(structure_->vid, Obj::to_noobj());
+      Router::singleton()->write(*structure_->vid, Obj::to_noobj());
       Router::singleton()->loop();
       FOS_TEST_ERROR(p("c/23").toString().append(" -> 23"));
     }
@@ -203,13 +203,13 @@ namespace fhatos {
           return Obj::to_noobj();
         }));
       for(int i = 0; i < 25; i++) {
-        Router::singleton()->write(id_p(p(string("b/b").append(to_string(i)))), jnt(i));
+        Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);
       Router::singleton()->unsubscribe("tester", p("b/#"));
       for(int i = 0; i < 25; i++) {
-        Router::singleton()->write(id_p(p(string("b/b").append(to_string(i)))), jnt(i));
+        Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);

@@ -59,7 +59,7 @@ namespace fhatos {
     }
 
     static void *import() {
-      Typer::singleton()->save_type(AHT10_FURI, Obj::to_rec(
+      Typer::singleton()->save_type(*AHT10_FURI, Obj::to_rec(
                                     {{"celsius", Obj::to_type(CELSIUS_FURI)},
                                      {"humidity", Obj::to_type(PERCENT_FURI)},
                                      {"config", Obj::to_rec({
