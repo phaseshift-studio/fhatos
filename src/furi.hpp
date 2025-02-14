@@ -1219,7 +1219,6 @@ namespace fhatos {
 
   using ValueO = ID;
   using ValueO_p = ID_p;
-  using ID = ID;
   using TypeO_p = ID_p;
 
   /*class vID : public std::variant<ID, ID_p> {

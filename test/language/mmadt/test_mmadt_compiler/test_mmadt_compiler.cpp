@@ -34,21 +34,21 @@ namespace fhatos {
 
   void test_type_check_base_types() {
     Compiler compiler = Compiler(false, false);
-    FOS_TEST_COMPILER_TRUE(dool(true), BOOL_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(jnt(1), INT_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(real(1.2), REAL_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(str("one.two"), STR_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(vri("http://one/two"), URI_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(lst({jnt(1),str("point"),real(2.0)}), LST_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_TRUE(rec({{jnt(1),str("point")},{real(2.0),dool(true)}}), REC_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(dool(true), *BOOL_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(jnt(1), *INT_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(real(1.2), *REAL_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(str("one.two"), *STR_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(vri("http://one/two"), *URI_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(lst({jnt(1),str("point"),real(2.0)}), *LST_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_TRUE(rec({{jnt(1),str("point")},{real(2.0),dool(true)}}), *REC_FURI, compiler.type_check);
     ////
-    FOS_TEST_COMPILER_FALSE(dool(true), INT_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(jnt(1), REAL_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(real(1.2), BOOL_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(str("one.two"), URI_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(vri("http://one/two"), STR_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("point"),real(2.0)}), REC_FURI, compiler.type_check);
-    FOS_TEST_COMPILER_FALSE(rec({{jnt(1),str("point")},{real(2.0),dool(true)}}), LST_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(dool(true), *INT_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(jnt(1), *REAL_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(real(1.2), *BOOL_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(str("one.two"), *URI_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(vri("http://one/two"), *STR_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("point"),real(2.0)}), *REC_FURI, compiler.type_check);
+    FOS_TEST_COMPILER_FALSE(rec({{jnt(1),str("point")},{real(2.0),dool(true)}}), *LST_FURI, compiler.type_check);
   }
 
   void test_type_check_derived_mono_types() {
@@ -62,27 +62,27 @@ namespace fhatos {
             }})) {
       /////////////////////////////////// BOOL /////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/truth", "true");
-      FOS_TEST_COMPILER_TRUE(dool(true), id_p("/compiler/truth"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(dool(false), id_p("/compiler/truth"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(jnt(43), id_p("/compiler/truth"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(str("true"), id_p("/compiler/truth"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(dool(true), ID("/compiler/truth"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(dool(false), ID("/compiler/truth"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(jnt(43), ID("/compiler/truth"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(str("true"), ID("/compiler/truth"), compiler.type_check);
       /////////////////////////////////// INT /////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/nat", "is(gt(0))");
-      FOS_TEST_COMPILER_TRUE(jnt(1), id_p("/compiler/nat"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(jnt(-1), id_p("/compiler/nat"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(real(1.46), id_p("/compiler/nat"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(real(-1.46), id_p("/compiler/nat"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(jnt(-1), ID("/compiler/nat"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(real(1.46), ID("/compiler/nat"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(real(-1.46), ID("/compiler/nat"), compiler.type_check);
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/nat2", "/compiler/nat2?int<=int(=>)[is(gt(0))]");
-      FOS_TEST_COMPILER_TRUE(jnt(1), id_p("/compiler/nat2"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(jnt(-1), id_p("/compiler/nat2"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(real(-1.23), id_p("/compiler/nat2"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat2"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(jnt(-1), ID("/compiler/nat2"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(real(-1.23), ID("/compiler/nat2"), compiler.type_check);
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/nat3", "/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
-      FOS_TEST_COMPILER_TRUE(jnt(1), id_p("/compiler/nat3"), compiler.type_check);
-      FOS_TEST_COMPILER_TRUE(jnt(-1), id_p("/compiler/nat3"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(real(1.23), id_p("/compiler/nat3"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(real(-1.23), id_p("/compiler/nat3"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat3"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(jnt(-1), ID("/compiler/nat3"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(real(1.23), ID("/compiler/nat3"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(real(-1.23), ID("/compiler/nat3"), compiler.type_check);
     }
   }
 
@@ -97,17 +97,17 @@ namespace fhatos {
             }})) {
       // lst
       TYPE_MAKER("/compiler/lst_alias", "[lst][]");
-      FOS_TEST_COMPILER_TRUE(lst(), id_p("/compiler/lst_alias"), compiler.type_check);
-      FOS_TEST_COMPILER_TRUE(lst({jnt(1),jnt(2)}), id_p("/compiler/lst_alias"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(lst(), ID("/compiler/lst_alias"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(lst({jnt(1),jnt(2)}), ID("/compiler/lst_alias"), compiler.type_check);
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/lst_swap_name", "/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
-      //FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),id_p("/compiler/lst_swap_name"),compiler.type_check); // TODO: start vs. map mid-monoid
-      FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), id_p("/compiler/lst_swap_name"), compiler.type_check);
-      //FOS_TEST_COMPILER_FALSE(lst({str("one")}),id_p("/compiler/lst_swap_name"),compiler.type_check);
+      //FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),ID("/compiler/lst_swap_name"),compiler.type_check); // TODO: start vs. map mid-monoid
+      FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name"), compiler.type_check);
+      //FOS_TEST_COMPILER_FALSE(lst({str("one")}),ID("/compiler/lst_swap_name"),compiler.type_check);
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER("/compiler/lst_swap_name2", "/compiler/lst_swap_name2?lst<=lst()[==[as(str),as(str)]]");
-      FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}), id_p("/compiler/lst_swap_name2"), compiler.type_check);
-      FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), id_p("/compiler/lst_swap_name2"), compiler.type_check);
+      FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}), ID("/compiler/lst_swap_name2"), compiler.type_check);
+      FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name2"), compiler.type_check);
       //FOS_TEST_COMPILER_FALSE(lst({str("one")}),id_p("/compiler/lst_swap_name2"),compiler.type_check);
       ////////////////////////////////////////////////////////////////////////////////////////////////////
     }

@@ -137,7 +137,7 @@ namespace fhatos {
             ->install(Terminal::singleton())
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log",
-                                  Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/log"))
+                                  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
                                   ->or_else(Obj::to_rec({
                                       {"INFO", lst({vri("#")})},
                                       {"ERROR", lst({vri("#")})},
@@ -147,7 +147,7 @@ namespace fhatos {
             ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
             ->import(FSx::import("/sys/structure/lib/fs"))
             ->mount(FSx::create("/disk/#", id_p("/mnt/disk"),
-                                Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/fs"))))
+                                Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
             ->drop_config("fs")
 
 #if defined(ESP_ARCH)
@@ -174,7 +174,7 @@ namespace fhatos {
                                                          "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))*/
             ->drop_config("mqtt")
             ->process(Console::create("/io/console",
-                                      Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/console"))))
+                                      Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")
             ->eval([args_parser] {
 

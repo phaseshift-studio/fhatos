@@ -100,8 +100,8 @@ namespace fhatos {
     //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
     //          "|<+/#>./fos/lib/heap/create(_);")));
 
-    FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID))));
-    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(id_p(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router"))));
+    FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID)));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router")));
   }
 
   FOS_RUN_TESTS( //

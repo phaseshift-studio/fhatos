@@ -111,7 +111,7 @@ namespace fhatos {
 
     Inst_p InstBuilder::create(const ID_p &value_id , const Obj_p &root) const {
       if(value_id) {
-        if(const Inst_p maybe = Router::singleton()->read(value_id); !maybe->is_noobj())
+        if(const Inst_p maybe = Router::singleton()->read(*value_id); !maybe->is_noobj())
           return maybe;
       }
       const Inst_p inst = Inst::create(make_shared<InstValue>(make_tuple(

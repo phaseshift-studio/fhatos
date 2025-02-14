@@ -107,27 +107,27 @@ namespace fhatos {
     Obj_p inst_obj = inst;
     if(!inst_obj->inst_f()) {
       if(inst->vid /*&& !inst->vid->is_relative()*/) {
-        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst->vid));
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
         if(dt) dt->emplace_back(id_p(""), inst->vid, inst_obj);
       }
       /* if((inst_obj->is_noobj() || !inst_obj->inst_f()) && inst->tid) {
          inst_obj = convert_to_inst(lhs,Router::singleton()->read(inst->tid));
          if(dt) dt->emplace_back(OBJ_FURI, inst->tid, inst_obj);
        }*/
-      const ID_p inst_type_id_resolved = id_p(*Router::singleton()->resolve(*inst->tid));
+      const ID inst_type_id_resolved = Router::singleton()->resolve(*inst->tid);
       if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(furi_p(lhs->vid->add_component(*inst_type_id_resolved))));
-        if(dt) dt->emplace_back(lhs->vid, inst_type_id_resolved, inst_obj);
+          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
+        if(dt) dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(furi_p(lhs->tid->add_component(*inst_type_id_resolved))));
-        if(dt) dt->emplace_back(lhs->tid, inst_type_id_resolved, inst_obj);
+          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
+        if(dt) dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-        if(dt) dt->emplace_back(id_p(""), inst_type_id_resolved, inst_obj);
+        if(dt) dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
         if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
@@ -135,12 +135,12 @@ namespace fhatos {
         }
       }
       if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
-        if(!Router::singleton()->resolve(lhs->tid->no_query())->equals(*OBJ_FURI)) {
+        if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
           inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
-                                       Router::singleton()->read(id_p(
-                                         Router::singleton()->read(id_p(*
+                                       Router::singleton()->read(
+                                         Router::singleton()->read(
                                            Router::singleton()->resolve(
-                                             lhs->tid->no_query())))->domain()->no_query())),
+                                             lhs->tid->no_query()))->domain()->no_query()),
                                        inst_obj));
         }
       }
@@ -207,7 +207,7 @@ namespace fhatos {
 
 
   Obj_p Compiler::super_type(const Obj_p &value_obj) const {
-    const Obj_p type_obj = Router::singleton()->read(furi_p(value_obj->tid->no_query()));
+    const Obj_p type_obj = Router::singleton()->read(value_obj->tid->no_query());
     if(type_obj->tid->no_query().equals(value_obj->tid->no_query())) {
       return Obj::to_noobj();
     }
@@ -320,13 +320,13 @@ namespace fhatos {
     return true;
   }
 
-  bool Compiler::type_check(const Obj *value_obj, const ID_p &type_id) const {
-    if(value_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
+  bool Compiler::type_check(const Obj *value_obj, const ID &type_id) const {
+    if(value_obj->is_noobj() && !type_id.equals(*NOOBJ_FURI))
       return false;
-    if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
+    if(type_id.equals(*OBJ_FURI) || type_id.equals(*NOOBJ_FURI)) // TODO: hack on noobj
       return true;
     // if the type is a base type and the base types match, then type check passes
-    if(type_id->equals(*OTYPE_FURI.at(value_obj->otype)))
+    if(type_id.equals(*OTYPE_FURI.at(value_obj->otype)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
     //if(value_obj->tid->equals(*inst_type_id))
@@ -335,7 +335,7 @@ namespace fhatos {
     if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype ==
        OType::BCODE)
       return true;
-    if(type_id->equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->
+    if(type_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->
                                         equals(*OBJ_FURI)))
       return true;
     // get the type definition and match it to the obj
@@ -348,7 +348,7 @@ namespace fhatos {
     if(type_obj->is_noobj()) {
       if(this->throw_on_miss)
         throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", value_obj->vid_or_tid()->toString().c_str(),
-                     type_id->toString().c_str());
+                     type_id.toString().c_str());
       return false;
     }
     if(!this->coefficient_check(value_obj->range_coefficient(), type_obj->domain_coefficient()))
@@ -364,8 +364,8 @@ namespace fhatos {
     if(this->throw_on_miss) {
       static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
       p->show_type = false;
-      throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id->toString().c_str(),
-                   value_obj->toString(p.get()).c_str(), type_id->toString().c_str(),
+      throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id.toString().c_str(),
+                   value_obj->toString(p.get()).c_str(), type_id.toString().c_str(),
                    type_obj->toString().c_str());
     }
     return false;

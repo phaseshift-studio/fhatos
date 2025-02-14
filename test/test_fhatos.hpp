@@ -275,12 +275,12 @@ static auto serialization_check = [](const Obj_p& obj) -> Obj_p {
   TEST_ASSERT_FALSE((x).matches(y));
 
 #define FOS_TEST_COMPILER_TRUE(x,y,compiler_f)                                                                         \
-  FOS_TEST_MESSAGE("!b%s!! =!rcompiler true!!= !b%s!!", (x)->toString().c_str(), (y)->toString().c_str());             \
+  FOS_TEST_MESSAGE("!b%s!! =!rcompiler true!!= !b%s!!", (x)->toString().c_str(), (y).toString().c_str());             \
   TEST_ASSERT_TRUE(compiler_f(x,y));
 
 #define FOS_TEST_COMPILER_FALSE(x,y,compiler_f)                                                                        \
   FOS_TEST_MESSAGE("!b%s!! =!r%s false!!= !b%s!!",                                                                     \
-     (x)->toString().c_str(), "compiler", (y)->toString().c_str());                                                    \
+     (x)->toString().c_str(), "compiler", (y).toString().c_str());                                                    \
   TEST_ASSERT_FALSE(compiler_f(x,y));
 
 #define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \

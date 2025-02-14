@@ -50,7 +50,7 @@ namespace fhatos {
 
     static ptr<Router> singleton(const ID &value_id = "/sys/router/");
 
-    [[nodiscard]] fURI_p resolve(const fURI &furi) const;
+    [[nodiscard]] fURI resolve(const fURI &furi) const;
 
     void loop();
 
@@ -60,11 +60,9 @@ namespace fhatos {
 
     void save() const override;
 
-    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg);
+    [[nodiscard]] Obj_p exec(const ID &bcode_id, const Obj_p &arg);
 
-    [[nodiscard]] Objs_p read(const fURI_p &furi);
-
-    //[[nodiscard]] Objs_p read(const vID& &variant);
+    [[nodiscard]] Objs_p read(const fURI &furi);
 
     void write(const fURI_p &furi, const Obj_p &obj, bool retain = RETAIN);
 

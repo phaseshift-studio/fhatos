@@ -252,7 +252,7 @@ namespace mmadt {
       auto inst_action = [](const SemanticValues &vs) -> Inst_p {
         const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
         const InstArgs args = any_cast<InstArgs>(vs[1]);
-        return Obj::to_inst(args, id_p(*Router::singleton()->resolve(*op)),
+        return Obj::to_inst(args, id_p(Router::singleton()->resolve(*op)),
                             vs.size() == 3 ? id_p(*any_cast<fURI_p>(vs[2])) : nullptr);
       };
       auto furi_action = [](const SemanticValues &vs) {
@@ -276,9 +276,9 @@ namespace mmadt {
         const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[0] : vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[1] : vs[2]);
         const fURI_p dom_rng = furi_p(name->query({
-            {FOS_DOMAIN, Router::singleton()->resolve(*df)->toString()},
+            {FOS_DOMAIN, Router::singleton()->resolve(*df).toString()},
             {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
-            {FOS_RANGE, Router::singleton()->resolve(*rf)->toString()},
+            {FOS_RANGE, Router::singleton()->resolve(*rf).toString()},
             {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
@@ -328,14 +328,14 @@ namespace mmadt {
       auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         switch(vs.choice()) {
           case 0: { // [a][b]@xyz
-            const ID_p type_id = id_p(*Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::to_type(type_id,
                                 Obj::create(v, o, type_id),
                                 vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 1: { // a(c)[b]@xyz
-            const ID_p type_id = id_p(*Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
             const auto args = any_cast<InstArgs>(vs[1]);
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);
@@ -348,7 +348,7 @@ namespace mmadt {
             return any_cast<Inst_p>(vs[0]);
           }
           case 3: { // a[b]@xyz
-            const ID_p type_id = id_p(*Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id,
                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
@@ -374,31 +374,31 @@ namespace mmadt {
       const auto SUGAR_GENERATOR = [this](Definition &definition, const string &sugar, const string &opcode) {
         definition <= seq(lit(sugar.c_str()), WRAQ("(", OBJ, START, ")")),
             [opcode](const SemanticValues &vs) -> Inst_p const {
-              return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve(opcode)));
+              return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve(opcode)));
             };
       };
       auto barrier_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve("barrier")));
+        return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve("barrier")));
       };
       auto within_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(*Router::singleton()->resolve("within")));
+        return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve("within")));
       };
       auto end_action = [](const SemanticValues &) -> Inst_p {
-        return Obj::to_inst(Obj::to_inst_args(), id_p(*Router::singleton()->resolve("end")));
+        return Obj::to_inst(Obj::to_inst_args(), id_p(Router::singleton()->resolve("end")));
       };
       auto merge_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
-                            id_p(*Router::singleton()->resolve("merge")));
+                            id_p(Router::singleton()->resolve("merge")));
       };
       auto lshift_0_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(rec(), id_p(*Router::singleton()->resolve("lshift")));
+        return Obj::to_inst(rec(), id_p(Router::singleton()->resolve("lshift")));
       };
       auto rshift_0_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(rec(), id_p(*Router::singleton()->resolve("rshift")));
+        return Obj::to_inst(rec(), id_p(Router::singleton()->resolve("rshift")));
       };
       auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
-                            id_p(*Router::singleton()->resolve("ref")));
+                            id_p(Router::singleton()->resolve("ref")));
       };
 
 

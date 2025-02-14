@@ -83,9 +83,8 @@ namespace mmadt {
           ->type_args(x(0, "var"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            const ID_p at_id = id_p(args->arg(0)->uri_value());
-            const Obj_p new_lhs = lhs->is_noobj() ? Router::singleton()->read(at_id) : lhs;
-            return (new_lhs->is_noobj() || new_lhs->vid) ? new_lhs : new_lhs->at(at_id);
+            const Obj_p new_lhs = lhs->is_noobj() ? Router::singleton()->read(args->arg(0)->uri_value()) : lhs;
+            return (new_lhs->is_noobj() || new_lhs->vid) ? new_lhs : new_lhs->at(id_p(args->arg(0)->uri_value()));
           })
           ->save();
 
@@ -282,7 +281,7 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "uri", Obj::to_bcode()), x(1, "default", Obj::to_noobj()))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Obj_p result = Router::singleton()->read(args->arg(0)->uri_p_value<fURI>());
+            const Obj_p result = Router::singleton()->read(args->arg(0)->uri_value());
             return result->is_noobj() ? args->arg(1) : result;
           })
           ->save();
@@ -397,12 +396,12 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {1, 1})
           ->type_args(x(0, "inst_id"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            if(const Inst_p inst = Router::singleton()->read(args->arg(0)->uri_p_value<fURI>()); !inst->is_inst())
+            if(const Inst_p inst = Router::singleton()->read(args->arg(0)->uri_value()); !inst->is_inst())
               throw fError("!bgoto!! must resolve to an !binst!!: %s !m=>!! %s",
                            args->arg(0)->toString().c_str(),
                            inst->toString().c_str());
             ROUTER_PUSH_FRAME("^", args);
-            const Obj_p result = Router::singleton()->read(id_p("v"));
+            const Obj_p result = Router::singleton()->read("v");
             ROUTER_POP_FRAME();
             return result;
           })->save();
@@ -956,7 +955,7 @@ namespace mmadt {
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
-      const Obj_p type = Router::singleton()->read(lhs->tid);
+      const Obj_p type = Router::singleton()->read(*lhs->tid);
       const Rec_p rec = Obj::to_rec();
       rec->rec_set("type/type_id", vri(lhs->tid));
       rec->rec_set("type/obj", Obj::to_type(lhs->tid));
@@ -970,7 +969,7 @@ namespace mmadt {
                        jnt(lhs->range_coefficient().second)}));
       if(lhs->vid) {
         rec->rec_set("value/value_id", vri(lhs->vid));
-        if(const Obj_p subs = Router::singleton()->read(id_p(lhs->vid->query("sub"))); !subs->is_noobj())
+        if(const Obj_p subs = Router::singleton()->read(lhs->vid->query("sub")); !subs->is_noobj())
           rec->rec_set("subscription", subs);
       }
       return rec;

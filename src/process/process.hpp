@@ -120,7 +120,7 @@ namespace fhatos {
           })->create(yield_id);
       this->load();
 
-      if(const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid->extend(":setup"))); setup_bcode->is_noobj())
+      if(const BCode_p setup_bcode = ROUTER_READ(this->vid->extend(":setup")); setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(setup_bcode);
@@ -147,7 +147,7 @@ namespace fhatos {
         this->yield_ = false;
       }
       if(!this->loop_code_)
-        this->loop_code_ = ROUTER_READ(id_p(this->vid->extend(":loop")));
+        this->loop_code_ = ROUTER_READ(this->vid->extend(":loop"));
       if(!this->loop_code_ || this->loop_code_->is_noobj())
         throw fError("!b%s !ybcode!! undefined: %s", this->vid->extend(":loop").toString().c_str(),
                      this->toString().c_str());
@@ -162,7 +162,7 @@ namespace fhatos {
         LOG(WARN, FOS_ALREADY_STOPPED, this->vid->toString().c_str());
         return;
       }
-      if(const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid->extend(":stop"))); stop_bcode->is_noobj())
+      if(const BCode_p stop_bcode = ROUTER_READ(this->vid->extend(":stop")); stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       else
         BCODE_PROCESSOR(stop_bcode);

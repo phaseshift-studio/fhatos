@@ -96,7 +96,7 @@ namespace fhatos {
     }
 
     static ptr<OLED> create_state(const Obj_p &oled) {
-      I2C::get_state(Router::singleton()->read(id_p(oled->rec_get("config/i2c")->uri_value())));
+      I2C::get_state(Router::singleton()->read(oled->rec_get("config/i2c")->uri_value()));
       auto oled_state = make_shared<OLED>();
       oled_state->oled_obj = const_cast<Obj *>(oled.get());
       oled_state->ssd1306.begin(&Adafruit128x64, oled_state->oled_obj->rec_get("config/addr")->int_value());

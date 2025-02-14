@@ -118,8 +118,8 @@ namespace fhatos {
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
                                ->inst_f([thing](const Obj_p &lhs, const InstArgs &args) {
                                         thing->load()->push_back({
-                                        id_p(ROUTER_READ(id_p("target"))->uri_value()), 
-                                        ROUTER_READ(id_p("payload"))});
+                                        id_p(ROUTER_READ("target")->uri_value()),
+                                        ROUTER_READ("payload")});
                                      return lhs;
                                    })->create()));
       ///////////////////////////////////////////////

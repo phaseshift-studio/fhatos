@@ -167,7 +167,7 @@ namespace fhatos {
     virtual Process_p raw_spawn(const Process_p &) = 0;
 
     static void *base_import(const ptr<BaseScheduler> &scheduler) {
-      if(const Rec_p config = Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID));
+      if(const Rec_p config = Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
         !config->is_noobj())
         scheduler->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
       InstBuilder::build(scheduler->vid->extend(":spawn"))

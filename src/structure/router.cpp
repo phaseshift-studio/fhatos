@@ -58,11 +58,11 @@ namespace fhatos {
       this->pop_frame();
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_RESOLVE = [this](const fURI &furi) -> fURI_p {
+    ROUTER_RESOLVE = [this](const fURI &furi) -> fURI {
       return this->resolve(furi);
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_READ = [this](const fURI_p &furi) -> Obj_p {
+    ROUTER_READ = [this](const fURI &furi) -> Obj_p {
       return this->read(furi);
     };
     ////////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ namespace fhatos {
   }
 
   void Router::load_config(const ID &config_id) {
-    const Obj_p config = this->read(id_p(config_id));
+    const Obj_p config = this->read(config_id);
     if(config->is_noobj())
       LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", config_id.toString().c_str());
     if(!config->is_noobj()) {
@@ -175,26 +175,26 @@ namespace fhatos {
     Obj::save();
   }
 
-  [[nodiscard]] Obj_p Router::exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
+  [[nodiscard]] Obj_p Router::exec(const ID &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
   //[[nodiscard]] Objs_p Router::read(const vID &variant) {
   //  return this->read(furi_p(variant.as_()));
   // }
 
-  [[nodiscard]] Objs_p Router::read(const fURI_p &furi) {
+  [[nodiscard]] Objs_p Router::read(const fURI &furi) {
     if(!this->active)
       return Obj::to_noobj();
     try {
       if(THREAD_FRAME_STACK) {
-        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(*furi);
+        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
           nullptr != frame_obj)
           return frame_obj;
       }
-      const fURI_p resolved_furi = this->resolve(*furi);
-      const Structure_p structure = this->get_structure(p_p(*resolved_furi));
+      const fURI resolved_furi = this->resolve(furi);
+      const Structure_p structure = this->get_structure(p_p(resolved_furi));
       const Objs_p objs = structure->read(resolved_furi);
       LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
-                     this->vid->toString().c_str(), resolved_furi->toString().c_str(), // make this the current process
+                     this->vid->toString().c_str(), resolved_furi.toString().c_str(), // make this the current process
                      objs->toString().c_str(), structure->pattern->toString().c_str());
       return objs->none_one_all();
     } catch(const fError &e) {
@@ -214,7 +214,7 @@ namespace fhatos {
     if(furi->has_query()) {
       for(const auto &[query_key, query_value]: furi->query_values()) {
         if(query_key != "sub") {
-          const Obj_p query_processor = this->read(id_p(this->vid->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key)));
+          const Obj_p query_processor = this->read(this->vid->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key));
           if(query_processor->is_noobj())
             throw fError("router has no query processor for !y%s!!", query_key.c_str());
           query_processor->apply(obj, Obj::to_inst_args({vri(furi)}));
@@ -346,16 +346,15 @@ namespace fhatos {
     return found ? found : nullptr;
   }
 
-  [[nodiscard]] fURI_p Router::resolve(const fURI &furi) const {
+  [[nodiscard]] fURI Router::resolve(const fURI &furi) const {
     if(!this->active)
-      return furi_p(furi);
-    fURI_p p = furi_p(furi);
+      return furi;
     if(furi.empty())
-      return p;
-    if(const Structure_p structure = this->get_structure(p_p(*p), nullptr, false); structure && structure->has(furi))
-      return p;
+      return furi;
+    if(const Structure_p structure = this->get_structure(p_p(furi), nullptr, false); structure && structure->has(furi))
+      return furi;
     if(!furi.headless() && !furi.has_components())
-      return p;
+      return furi;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
     if(furi.has_components()) {
       for(const auto &c: furi.components()) {
@@ -392,6 +391,6 @@ namespace fhatos {
         test = furi_p(test->add_component(found ? *found : c));
       }
     }
-    return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
+    return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ *test;
   }
 } // namespace fhatos

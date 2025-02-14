@@ -26,10 +26,10 @@ namespace fhatos {
   class ThreadXX {
   protected:
     int find_stack_size() {
-      return ROUTER_READ(furi_p(this->thread_obj->vid->extend("stack_size"))) // check provided obj
-          ->or_else(ROUTER_READ(furi_p(this->thread_obj->vid->extend("+/stack_size")))->none_one())
+      return ROUTER_READ(this->thread_obj->vid->extend("stack_size")) // check provided obj
+          ->or_else(ROUTER_READ(this->thread_obj->vid->extend("+/stack_size"))->none_one())
           // check one depth more (e.g. config/stack_size)
-          ->or_else(ROUTER_READ(furi_p(SCHEDULER_ID->extend("config/def_stack_size"))))
+          ->or_else(ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))
           // check default setting in scheduler
           ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
           ->int_value();

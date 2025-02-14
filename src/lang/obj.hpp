@@ -381,15 +381,15 @@ namespace fhatos {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  inline Function<const fURI, const fURI_p> ROUTER_RESOLVE = [](const fURI &furi) {
+  inline Function<const fURI, const fURI> ROUTER_RESOLVE = [](const fURI &furi) {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
-    return furi_p(furi);
+    return furi;
   };
   inline TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
       [](const fURI_p &, const Obj_p &, const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
-  inline Function<const fURI_p &, const Obj_p> ROUTER_READ = [](const fURI_p &) -> Obj_p {
+  inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -500,7 +500,7 @@ namespace fhatos {
     }
 
     static Obj_p load(const ID& vid) {
-      return ROUTER_READ(id_p(vid));
+      return ROUTER_READ(vid);
     }
 
     virtual void save() const {
@@ -509,7 +509,7 @@ namespace fhatos {
 
     virtual void load() {
       if(this->vid) {
-        const Obj_p other = ROUTER_READ(this->vid);
+        const Obj_p other = ROUTER_READ(*this->vid);
         if(this->otype != other->otype || !this->tid->equals(*other->tid))
           throw fError("type of obj structural encoding changed (try locking): %s %s", this->tid->toString().c_str(),
                        other->tid->toString().c_str());
@@ -519,7 +519,7 @@ namespace fhatos {
 
     virtual Obj_p load() const {
       if(this->vid) {
-        const Obj_p other = ROUTER_READ(this->vid);
+        const Obj_p other = ROUTER_READ(*this->vid);
         if(this->otype != other->otype || !this->tid->equals(*other->tid))
           throw fError("type of obj structural encoding changed (try locking): %s %s", this->tid->toString().c_str(),
                        other->tid->toString().c_str());
@@ -576,7 +576,7 @@ namespace fhatos {
     [[nodiscard]] Obj_p uri_resolve() const {
       if(!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return ROUTER_READ(furi_p(this->uri_value()));
+      return ROUTER_READ(this->uri_value());
     }
 
     [[nodiscard]] ID_p id_p_value() const {
@@ -734,7 +734,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          Compiler(true, false).type_check(this, this->tid);
+          Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->lst_set(index, undo);
           LOG_OBJ(WARN, this, "!blst!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
@@ -861,7 +861,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          Compiler(true, false).type_check(this, this->tid);
+          Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->rec_set(key, undo);
           LOG_OBJ(WARN, this, "!brec!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
@@ -966,7 +966,7 @@ namespace fhatos {
 
     [[nodiscard]] ID_p domain() const {
       if(this->tid->has_query(FOS_DOMAIN))
-        return id_p(*ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_DOMAIN).value())));
+        return id_p(ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_DOMAIN).value())));
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->front()->domain();
       if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f()))
@@ -987,7 +987,7 @@ namespace fhatos {
 
     [[nodiscard]] ID_p range() const {
       if(this->tid->has_query(FOS_RANGE))
-        return id_p(*ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_RANGE).value())));
+        return id_p(ROUTER_RESOLVE(fURI(this->tid->query_value(FOS_RANGE).value())));
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->back()->range();
       if(this->is_inst())
@@ -1072,7 +1072,7 @@ namespace fhatos {
 
 
     [[nodiscard]] Obj_p type() const {
-      return ROUTER_READ(this->tid);
+      return ROUTER_READ(*this->tid);
     }
 
     [[nodiscard]] InstList_p bcode_value() const {
@@ -1114,13 +1114,13 @@ namespace fhatos {
 
     Obj_p this_get(const char *key) const {
       // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
-      Obj_p result = ROUTER_READ(furi_p(this->vid->extend(key)));
+      Obj_p result = ROUTER_READ(this->vid->extend(key));
       return result;
     }
 
     Obj_p this_get(const fURI &furi) const {
       // TODO: if not, vid, then tid, then tid -> tid, then tid -> tid -> tid;
-      Obj_p result = ROUTER_READ(furi_p(this->vid->extend(furi)));
+      Obj_p result = ROUTER_READ(this->vid->extend(furi));
       return result;
     }
 
@@ -1130,7 +1130,7 @@ namespace fhatos {
     }
 
     Obj_p static_get(const char *key) const {
-      return ROUTER_READ(furi_p(this->tid->extend(key)));
+      return ROUTER_READ(this->tid->extend(key));
     }
 
     ////////////////////////////////////////////////////////////
@@ -1734,7 +1734,7 @@ namespace fhatos {
         auto next = lhs->type_value();
         if(this->is_inst()) {
           LOG(INFO, "apply type to inst: %s => %s\n", lhs->toString().c_str(), this->toString().c_str());
-          if(Compiler(true, false).type_check(lhs, this->domain())) {
+          if(Compiler(true, false).type_check(lhs, *this->domain())) {
           }
           if(lhs->range_coefficient().first < this->domain_coefficient().first) {
             throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
@@ -1795,7 +1795,7 @@ namespace fhatos {
           const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
           if(!lhs->is_code()) {
             //TYPE_CHECKER(lhs.get(), inst->domain(), true);
-            if(compiler.reset(true, true)->type_check(lhs, inst->domain())) {
+            if(compiler.reset(true, true)->type_check(lhs, *inst->domain())) {
             }
           }
           // compute args
@@ -1825,7 +1825,7 @@ namespace fhatos {
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
             if(!result->is_code())
-              compiler.reset(true, true)->type_check(result, inst->range());
+              compiler.reset(true, true)->type_check(result, *inst->range());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
@@ -2159,7 +2159,7 @@ namespace fhatos {
     static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF_p &function,
                           const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
-      const ID_p fix = type_id != nullptr ? type_id : id_p(*ROUTER_RESOLVE(fURI(opcode)));
+      const ID_p fix = type_id != nullptr ? type_id : id_p(ROUTER_RESOLVE(fURI(opcode)));
       return to_inst(make_shared<InstValue>(make_tuple(args, function, seed)), fix, value_id);
     }
 
@@ -2443,7 +2443,7 @@ namespace fhatos {
         "from", Obj::to_inst_args({uri, default_arg}),
         make_shared<InstF>(make_shared<BiFunction<const Obj_p, const InstArgs, Obj_p>>(
             [](const Uri_p &, const InstArgs &args) {
-              const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
+              const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
               return result->is_noobj() ? args->arg(1) : result;
             })));
   }

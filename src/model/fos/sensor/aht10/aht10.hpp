@@ -47,7 +47,7 @@ namespace fhatos {
     }
 
     static ptr<AHT10> create_state(const Obj_p &aht10) {
-      I2C::get_state(Router::singleton()->read(id_p(aht10->rec_get("config/i2c")->uri_value())));
+      I2C::get_state(Router::singleton()->read(aht10->rec_get("config/i2c")->uri_value()));
       return make_shared<AHT10>(aht10->rec_get("config/addr")->int_value());
     }
 

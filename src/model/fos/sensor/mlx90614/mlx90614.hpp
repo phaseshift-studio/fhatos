@@ -46,7 +46,7 @@ namespace fhatos {
     }
 
     static ptr<MLX90614> create_state(const Obj_p &mlx90614) {
-      I2C::get_state(Router::singleton()->read(id_p(mlx90614->rec_get("config/i2c")->uri_value())));
+      I2C::get_state(Router::singleton()->read(mlx90614->rec_get("config/i2c")->uri_value()));
       return make_shared<MLX90614>(mlx90614->rec_get("config/addr")->int_value());
     }
 

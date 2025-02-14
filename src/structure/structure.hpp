@@ -186,7 +186,7 @@ namespace fhatos {
             const Objs_p objs = Obj::to_objs();
             objs->add_obj(this->read(furi_no_query));
             for(const Obj_p &obj: *objs->objs_value()) {
-              const Obj_p type = ROUTER_READ(obj->tid);
+              const Obj_p type = ROUTER_READ(*obj->tid);
               ret->add_obj(type);
             }
           }
@@ -194,17 +194,17 @@ namespace fhatos {
             const List<string> opcodes = furi.query_values("inst");
             const Rec_p insts = Obj::to_rec();
             const Objs_p objs = Obj::to_objs();
-            objs->add_obj(ROUTER_READ(furi_p(furi_no_query.extend(":inst"))));
+            objs->add_obj(ROUTER_READ(furi_no_query.extend(":inst")));
             for(const Obj_p &o: *objs->objs_value()) {
               if(!o->is_rec())
                 throw fError("obj instructs must be records: %s", o->toString().c_str());
               insts->rec_merge(o->rec_value());
             }
             objs->objs_value()->clear();
-            objs->add_obj(ROUTER_READ(id_p(furi_no_query)));
+            objs->add_obj(ROUTER_READ(furi_no_query));
             for(const Obj_p &o: *objs->objs_value()) {
               if(!FURI_OTYPE.count(*o->tid))
-                insts->rec_merge(ROUTER_READ(furi_p(o->tid->query("inst")))->rec_value());
+                insts->rec_merge(ROUTER_READ(o->tid->query("inst"))->rec_value());
             }
             ret->add_obj(insts);
           }
@@ -294,7 +294,7 @@ namespace fhatos {
               this->recv_subscription(Subscription::create(
                   Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi.no_query()),
                   obj));
-            } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), SUBSCRIPTION_FURI)) {
+            } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), *SUBSCRIPTION_FURI)) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
             }

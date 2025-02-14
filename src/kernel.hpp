@@ -202,7 +202,7 @@ namespace fhatos {
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
-        config_obj = Router::singleton()->read(config_id);
+        config_obj = Router::singleton()->read(*config_id);
       }
       if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         free(boot_config_obj_copy);

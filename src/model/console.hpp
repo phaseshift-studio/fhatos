@@ -48,7 +48,7 @@ namespace fhatos {
     Str_p read_stdin(const char until) const {
       return this->direct_stdin_out
                ? Terminal::STD_IN_LINE_DIRECT(until)
-               : Router::singleton()->exec(this->this_get("config/terminal/stdin")->uri_p_value<ID>(), noobj());
+               : Router::singleton()->exec(this->this_get("config/terminal/stdin")->uri_value(), noobj());
     }
 
     void print_exception(const std::exception &ex) const {
