@@ -62,24 +62,24 @@ namespace fhatos {
     }
 
   protected:
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+    void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       Obj_p send_obj = Obj::to_noobj();
       if(retain) {
         auto lock = std::lock_guard<std::shared_mutex>(this->map_mutex);
         if(obj->is_noobj())
-          this->data_->erase(*id);
+          this->data_->erase(id);
         else
-          this->data_->insert_or_assign(*id, obj);
+          this->data_->insert_or_assign(id, obj);
         send_obj = obj;
       } else {
         auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
-        const Obj_p eval_obj = this->data_->count(*id) ? this->data_->at(*id) : Obj::to_noobj();
+        const Obj_p eval_obj = this->data_->count(id) ? this->data_->at(id) : Obj::to_noobj();
         lock.unlock();
         send_obj = eval_obj->apply(obj);
         /*LOG(INFO, "[%s] %s => %s = %s\n", id->toString().c_str(), obj->toString().c_str(), eval_obj->toString().c_str(),
             send_obj->toString().c_str());*/
       }
-      this->distribute_to_subscribers(Message::create(id, send_obj, retain));
+      this->distribute_to_subscribers(Message::create(id_p(id), send_obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {

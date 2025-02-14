@@ -77,7 +77,7 @@ namespace fhatos {
       BaseFS::setup();
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+    void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
      // TODO: retain is overwrite and transient is append
      const char* file_name = map_fos_to_fs(id).toString().c_str();
     if(obj->is_noobj()) {
@@ -86,7 +86,7 @@ namespace fhatos {
       return;
     } 
     
-    const char* dir_name = map_fos_to_fs(id_p(id->retract())).toString().c_str();
+    const char* dir_name = map_fos_to_fs(id.retract()).toString().c_str();
       if (!FOS_FS.exists(dir_name))
         FOS_FS.mkdir(dir_name);
       fs::File file = FOS_FS.open(file_name,retain ? "w" : "a", true);
@@ -130,8 +130,6 @@ namespace fhatos {
         BaseFS::stop();
     }
   };
-
-
 }
 #endif
 #endif

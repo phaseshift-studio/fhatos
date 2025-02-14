@@ -186,7 +186,7 @@ namespace fhatos {
       return Obj::to_noobj();
     try {
       if(THREAD_FRAME_STACK) {
-        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
+        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(*furi);
           nullptr != frame_obj)
           return frame_obj;
       }
@@ -230,7 +230,7 @@ namespace fhatos {
                      Process::current_process()->vid->toString().c_str(), retain ? "retained" : "transient",
                      furi->toString().c_str(), obj->tid->toString().c_str(),
                      structure->pattern->toString().c_str());
-      structure->write(furi, obj, retain);
+      structure->write(*furi, obj, retain);
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
     }

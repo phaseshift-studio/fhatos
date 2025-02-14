@@ -137,13 +137,13 @@ namespace fhatos {
       return list;
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+    void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       LOG_STRUCTURE(DEBUG, this, "!g!_writing!! %s => !b%s!! !g[!y%s!g]!!\n", obj->toString().c_str(),
-                    id->toString().c_str(), retain ? "retain" : "transient");
+                    id.toString().c_str(), retain ? "retain" : "transient");
       /*if(id == this->pattern->retract_pattern()->extend("config/connected")) {
         this->
       }*/
-      native_mqtt_publish(Message::create(id, obj, retain));
+      native_mqtt_publish(Message::create(id_p(id), obj, retain));
     }
 
     void publish_retained(const Subscription_p &) override {

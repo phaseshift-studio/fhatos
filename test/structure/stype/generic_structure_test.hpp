@@ -31,18 +31,18 @@ namespace fhatos {
                                                                  prefix_(id_p(structure->pattern->retract_pattern())) {
       Router::singleton()->attach(structure);
       TEST_ASSERT_TRUE(structure->available());
-      FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), *p("xxx"));
+      FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
     }
 
-    [[nodiscard]] fURI_p p(const fURI &furi) const {
-      return id_p(prefix_->extend(furi));
+    [[nodiscard]] fURI p(const fURI &furi) const {
+      return prefix_->extend(furi);
     }
 
     void detach() const {
       structure_->stop();
       Router::singleton()->write(structure_->vid, Obj::to_noobj());
       Router::singleton()->loop();
-      FOS_TEST_ERROR(p("c/23")->toString().append(" -> 23"));
+      FOS_TEST_ERROR(p("c/23").toString().append(" -> 23"));
     }
 
     void test_write() const {
@@ -59,7 +59,7 @@ namespace fhatos {
       ////////////////////////////
       const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
       const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
-      ROUTER_WRITE(p("rec/a/b"), recA, true);
+      ROUTER_WRITE(id_p(p("rec/a/b")), recA, true);
       ////////////////////////////////////////////////////////////////////////////////////
       for(const auto &test_furi_str: {
             "rec/a/b/c/d/e/f/../..",
@@ -68,9 +68,9 @@ namespace fhatos {
             "rec/a/b/c/d/e",
             "rec/a/b/c/d",
             "rec/a/b"}) {
-        const fURI_p test_furi = p(test_furi_str);
-        const std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
-        FOS_TEST_FURI_EQUAL(*p("rec/a/b"), *pair->first);
+        const fURI test_furi = p(test_furi_str);
+        const std::optional<Pair<ID, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        FOS_TEST_FURI_EQUAL(p("rec/a/b"), pair->first);
         FOS_TEST_OBJ_EQUAL(recA, pair->second);
       }
       ////////////////////////////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ namespace fhatos {
             "rec/a/b/..",
             "rec/a/c",
             "rec/a/a/b/c"}) {
-        const fURI_p test_furi = p(test_furi_str);
-        std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        const fURI test_furi = p(test_furi_str);
+        std::optional<Pair<ID, Obj_p>> pair = structure_->locate_base_poly(test_furi);
         TEST_ASSERT_FALSE(pair.has_value());
       }
       ////////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ namespace fhatos {
     void test_lst_embedding() const {
       const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
       const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
-      ROUTER_WRITE(p("lst/a/b"), lstA, true);
+      ROUTER_WRITE(id_p(p("lst/a/b")), lstA, true);
       ////////////////////////////////////////////////////////////////////////////////////
       for(const auto &test_furi_str: {
             "lst/a/b/c/d/e/f/../..",
@@ -131,9 +131,9 @@ namespace fhatos {
             "lst/a/b/c/d/e",
             "lst/a/b/c/d",
             "lst/a/b"}) {
-        const fURI_p test_furi = p(test_furi_str);
-        const std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
-        FOS_TEST_FURI_EQUAL(*p("/lst/a/b"), *pair->first);
+        const fURI test_furi = p(test_furi_str);
+        const std::optional<Pair<ID, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        FOS_TEST_FURI_EQUAL(p("/lst/a/b"), pair->first);
         FOS_TEST_OBJ_EQUAL(lstA, pair->second);
       }
       ////////////////////////////////////////////////////////////////////////////////////
@@ -144,8 +144,8 @@ namespace fhatos {
             "lst/a/b/..",
             "lst/a/c",
             "lst/a/a/b/c"}) {
-        const fURI_p test_furi = p(test_furi_str);
-        std::optional<Pair<ID_p, Obj_p>> pair = structure_->locate_base_poly(test_furi);
+        const fURI test_furi = p(test_furi_str);
+        std::optional<Pair<ID, Obj_p>> pair = structure_->locate_base_poly(test_furi);
         TEST_ASSERT_FALSE(pair.has_value());
       }
       ////////////////////////////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ namespace fhatos {
       auto counter = new int(0);
       Router::singleton()->subscribe(Subscription::create(
         id_p("tester"),
-        p_p(*p("b/#")), [this,counter](const Obj_p &obj, const InstArgs &args) {
+        p_p(p("b/#")), [this,counter](const Obj_p &obj, const InstArgs &args) {
           TEST_ASSERT_EQUAL_INT(3, args->rec_value()->size());
           TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("payload")));
           TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("target")));
@@ -195,21 +195,21 @@ namespace fhatos {
           FOS_TEST_OBJ_EQUAL(obj, args->arg("payload"));
           TEST_ASSERT_TRUE(args->arg("retain")->bool_value());
           TEST_ASSERT_GREATER_THAN_INT(obj->int_value(), counter);
-          FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), *p("b/#"));
-          FOS_TEST_FURI_EQUAL(*p((string("b/b").append(std::to_string(args->arg("payload")->int_value())))),
+          FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), p("b/#"));
+          FOS_TEST_FURI_EQUAL(p((string("b/b").append(std::to_string(args->arg("payload")->int_value())))),
                               fURI(args->arg("target")->uri_value()));
 
           *counter = *counter + 1;
           return Obj::to_noobj();
         }));
       for(int i = 0; i < 25; i++) {
-        Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
+        Router::singleton()->write(id_p(p(string("b/b").append(to_string(i)))), jnt(i));
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);
-      Router::singleton()->unsubscribe("tester", *p("b/#"));
+      Router::singleton()->unsubscribe("tester", p("b/#"));
       for(int i = 0; i < 25; i++) {
-        Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
+        Router::singleton()->write(id_p(p(string("b/b").append(to_string(i)))), jnt(i));
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);

@@ -30,8 +30,8 @@ namespace fhatos {
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Frame final : public Structure {
   protected:
-    const unique_ptr<OrderedMap<const ID_p, Obj_p, furi_p_hash, furi_p_equal_to>> data_ =
-        make_unique<OrderedMap<const ID_p, Obj_p, furi_p_hash, furi_p_equal_to>>();
+    const unique_ptr<OrderedMap<const ID, Obj_p, furi_hash, furi_equal_to>> data_ =
+        make_unique<OrderedMap<const ID, Obj_p, furi_hash, furi_equal_to>>();
 
   public:
     ptr<Frame<>> previous;
@@ -42,7 +42,7 @@ namespace fhatos {
       Structure(pattern,id_p(FRAME_FURI)), //id_p(pattern.retract())),
       previous{previous} {
       for(const auto &[key,value]: *frame_data->rec_value()) {
-        this->data_->insert({id_p(key->uri_value()), value});
+        this->data_->insert({key->uri_value(), value});
       }
     }
 
@@ -54,38 +54,37 @@ namespace fhatos {
     Rec_p full_frame() const {
       const Rec_p all_frames = this->previous ? this->previous->full_frame() : Obj::to_rec();
       for(const auto &[key,value]: *this->data_) {
-        all_frames->rec_value()->insert({vri(*key), value});
+        all_frames->rec_value()->insert({vri(key), value});
       }
       return all_frames;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    Obj_p read(const fURI_p &furi) override {
-      if(this->previous && StringHelper::is_integer(furi->toString())) { // unnamed args accessed by index
-        const int index = stoi(furi->toString());
+    Obj_p read(const fURI &furi) override {
+      if(this->previous && StringHelper::is_integer(furi.toString())) { // unnamed args accessed by index
+        const int index = stoi(furi.toString());
         if(index >= this->previous->data_->size())
           return Obj::to_noobj();
         auto itty = this->previous->data_->begin();
         std::advance(itty, index);
         return itty->second;
       }
-      const ID_p id = id_p(*furi);
-      return !furi->matches(*this->pattern) || this->data_->count(id) == 0
+      return !furi.matches(*this->pattern) || this->data_->count(furi) == 0
                ? (nullptr == this->previous ? nullptr : this->previous->read(furi))
-               : this->data_->at(id);
+               : this->data_->at(furi);
     }
 
-    void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {
-      if(const ID_p &id = id_p(*furi); this->data_->count(id))
+    void write(const fURI &furi, const Obj_p &obj, const bool retain) override {
+      if(this->data_->count(furi))
         throw fError("frame structures objs are read-only");
       if(this->previous)
         this->previous->write(furi, obj, retain);
       else
-        ROUTER_WRITE(furi, obj, retain);
+        ROUTER_WRITE(id_p(furi), obj, retain);
     }
 
-    void write_raw_pairs(const ID_p &, const Obj_p &, bool retain) override {
+    void write_raw_pairs(const ID &, const Obj_p &, bool retain) override {
       throw fError("frame::write_raw_pairs is unreachable code");
     }
 

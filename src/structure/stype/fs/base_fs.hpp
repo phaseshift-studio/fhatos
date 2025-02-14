@@ -38,9 +38,8 @@ namespace fhatos {
       Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
     }
 
-    ID map_fos_to_fs(const ID_p &fos_id) const {
-      auto fs_id = ID(*fos_id);
-      const fURI fs_retracted_id = fs_id.remove_subpath(this->pattern->retract_pattern().toString());
+    ID map_fos_to_fs(const ID &fos_id) const {
+      const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
       return this->root.extend(fs_retracted_id);
     }
 

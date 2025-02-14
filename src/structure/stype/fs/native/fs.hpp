@@ -84,17 +84,17 @@ namespace fhatos {
       }
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+    void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       // TODO: retain is overwrite and transient is append
       const fs::path file_path = map_fos_to_fs(id).toString();
       //LOG(INFO, "trying to write to %s\n", file_path.c_str());
       if(obj->is_noobj()) {
         if(is_regular_file(file_path))
           fs::remove(file_path);
-        this->distribute_to_subscribers(Message::create(id, obj, retain));
+        this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
         return;
       }
-      if(id->is_node()) {
+      if(id.is_node()) {
         const fs::path parent_path = file_path.parent_path();
         if(!fs::exists(parent_path))
           fs::create_directories(parent_path);
@@ -102,14 +102,14 @@ namespace fhatos {
         const BObj_p bobj = obj->serialize();
         auto outfile = std::ofstream(file_path, retain ? ios::trunc : ios::app);
         if(!outfile.is_open())
-          throw fError("unable to write to !b%s!! via !b%s!!", id->toString().c_str(), file_path.c_str());
+          throw fError("unable to write to !b%s!! via !b%s!!", id.toString().c_str(), file_path.c_str());
         outfile << bobj->second;
         outfile.flush();
         outfile.close();
       } else {
         throw fError("unimplemented dir writer\n");
       }
-      this->distribute_to_subscribers(Message::create(id, obj, retain));
+      this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
     }
 
     void read_raw_pairs_dir(const fURI &match, const fs::path &fs_path, IdObjPairs *pairs) {

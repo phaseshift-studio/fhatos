@@ -1186,8 +1186,16 @@ namespace fhatos {
     size_t operator()(const fURI_p &furi) const { return std::hash<std::string>{}(furi->toString()); }
   };
 
-  struct furi_p_equal_to : std::binary_function<fURI_p &, fURI_p &, bool> {
+  struct furi_p_equal_to {
     bool operator()(const fURI_p &a, const fURI_p &b) const { return a->equals(*b); }
+  };
+
+  struct furi_hash {
+    size_t operator()(const fURI &furi) const { return std::hash<std::string>{}(furi.toString()); }
+  };
+
+  struct furi_equal_to {
+    bool operator()(const fURI &a, const fURI &b) const { return a.equals(b); }
   };
 
   [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return make_shared<fURI>(id_chars); }

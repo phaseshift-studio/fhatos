@@ -46,18 +46,18 @@ namespace fhatos {
           write_map)) {
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+    void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       if(retain) {
         for(const auto &[furi, func]: *this->write_functions_) {
-          if(id->matches(*furi)) {
+          if(id.matches(*furi)) {
             scheduler()->feed_local_watchdog();
-            func(id, obj);
+            func(id_p(id), obj);
             scheduler()->feed_local_watchdog();
-            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
+            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id.toString().c_str(), obj->toString().c_str());
           }
         }
       }
-      this->distribute_to_subscribers(Message::create(id, obj, retain));
+      this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI &furi) override {
