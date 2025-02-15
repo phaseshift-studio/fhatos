@@ -66,8 +66,8 @@ namespace fhatos {
       return this->read(furi);
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_WRITE = [this](const fURI_p &furi, const Obj_p &obj, const bool retain) {
-      this->write(*furi, obj, retain);
+    ROUTER_WRITE = [this](const fURI &furi, const Obj_p &obj, const bool retain) {
+      this->write(furi, obj, retain);
     };
     ////////////////////////////////////////////////////////////////////////////////////
     LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");

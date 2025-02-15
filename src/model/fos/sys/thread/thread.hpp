@@ -26,8 +26,8 @@ FhatOS: A Distributed Operating System
 #include STR(HARDWARE/threadxx.hpp)
 
 namespace fhatos {
-  static ID_p THREADX_FURI = id_p("/fos/sys/threadx");
-  static ID_p THREADX_FURI_DEFAULT = id_p("/fos/sys/threadx::default");
+  static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
+  static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");
 
   class ThreadX : public Model<ThreadX> {
   public:
@@ -43,23 +43,20 @@ namespace fhatos {
           const auto thread_state = ThreadX::get_state(thread_obj);
           const Obj_p loop_code = thread_obj->rec_get("loop");
           LOG_OBJ(INFO, thread_obj, "!ythread!! spawned: %s\n", loop_code->toString().c_str());
-          //Obj_p running = thread_obj;
-          while(true) {
-            Router::singleton()->read(thread_obj->vid->extend("loop"))->apply(thread_obj);
-            if(const int delay = Router::singleton()->read(thread_obj->vid->extend("delay"))->or_else(jnt(0))->
-                int_value(); delay > 0) {
+          while(!thread_obj->get<bool>("halt")) {
+            const BCode_p &code = thread_obj->rec_get("loop");
+            code->apply(thread_obj);
+            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
               thread_state->threadxx.delay(delay);
+              thread_obj->rec_set("delay",jnt(0,NAT_FURI));
             }
-            if(Router::singleton()->read(thread_obj->vid->extend("halt"))->or_else(dool(true))->bool_value()) {
-              try {
-                thread_state->threadxx.stop();
-                MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                break;
-              } catch(const std::exception &e) {
-                MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                throw fError::create(thread_obj->vid->toString(), "unable to halt thread: %s", e.what());
-              }
-            }
+          }
+          try {
+            thread_state->threadxx.stop();
+            MODEL_STATES::singleton()->remove(*thread_obj->vid);
+          } catch(const std::exception &e) {
+            MODEL_STATES::singleton()->remove(*thread_obj->vid);
+            throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
           }
           LOG_OBJ(INFO, thread_obj, "!ythread!! stopped\n");
         } catch(std::exception &e) {

@@ -39,7 +39,7 @@ namespace fhatos {
    }
 
     void tearDown(void) {
-     ROUTER_WRITE(id_p("/zzz/a/b"),Obj::to_noobj(),true);
+     ROUTER_WRITE("/zzz/a/b",Obj::to_noobj(),true);
      }
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ namespace fhatos {
     setUp();
     ////////////////////////////
     const Rec_p recA = Obj::to_rec({{"x",jnt(1)},{"y",jnt(2)}});
-    ROUTER_WRITE(id_p("/zzz/a/b"),recA,true);
+    ROUTER_WRITE("/zzz/a/b",recA,true);
     ////////////////////////////////////////////////////////////////////////////////////
     for(const auto& test_furi_str : {
           "/zzz/a/b/c/d/e/f/../..",
@@ -81,7 +81,7 @@ namespace fhatos {
   void test_locate_lst_base() {
      setUp();
     const Rec_p lstA = Obj::to_lst({jnt(1),jnt(2)});
-    ROUTER_WRITE(id_p("/zzz/a/b"),lstA,true);
+    ROUTER_WRITE("/zzz/a/b",lstA,true);
     ////////////////////////////////////////////////////////////////////////////////////
     for(const auto& test_furi_str : {
           "/zzz/a/b/c/d/e/f/../..",

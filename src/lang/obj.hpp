@@ -385,16 +385,16 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
     return furi;
   };
-  inline TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
-      [](const fURI_p &, const Obj_p &, const bool) -> void {
+  inline TriConsumer<const fURI&, const Obj_p &, const bool> ROUTER_WRITE =
+      [](const fURI&, const Obj_p &, const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
   inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  inline BiConsumer<const ID_p, const Obj_p> TYPE_SAVER = [](const ID_p &type_id, const Obj_p &obj) {
-    LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
+  inline BiConsumer<const ID, const Obj_p> TYPE_SAVER = [](const ID &type_id, const Obj_p &obj) {
+    LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
   inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
@@ -474,7 +474,7 @@ namespace fhatos {
           const Obj_p strip = this->clone();
           //   if(!vid->has_query())
           //const_cast<Obj *>(strip.get())->vid = nullptr;
-          ROUTER_WRITE(value_id, strip, true);
+          ROUTER_WRITE(*value_id, strip, true);
         }
       } else {
         this->tid = type_id; // type token
@@ -499,7 +499,7 @@ namespace fhatos {
       return this->vid ? this->vid : this->tid;
     }
 
-    static Obj_p load(const ID& vid) {
+    static Obj_p load(const ID &vid) {
       return ROUTER_READ(vid);
     }
 
@@ -829,6 +829,11 @@ namespace fhatos {
       return rec_get(to_uri(uri_key), or_else);
     }
 
+    template <typename T>
+    [[nodiscard]] T get(const fURI &key) const {
+      return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
+    }
+
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
       for(const auto &[key, value]: *rmap) {
         this->rec_value()->insert_or_assign(key, value);
@@ -843,7 +848,7 @@ namespace fhatos {
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
-      if(nest && key->is_uri() && key->uri_value().path_length() > 1) {
+      if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
         const Uri_p current_key = Obj::to_uri(key->uri_value().segment(0));
         Obj_p current_obj = this->rec_get(current_key);
         const bool is_lst = StringHelper::is_integer(key->uri_value().segment(1));
@@ -890,7 +895,7 @@ namespace fhatos {
         this->rec_set(k, v);
       }
       if(this->vid)
-        ROUTER_WRITE(this->vid, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->tid)), true);
+        ROUTER_WRITE(*this->vid, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->tid)), true);
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
@@ -1108,7 +1113,7 @@ namespace fhatos {
       if(!at_type && !this->vid)
         throw fError("only objs with a value id can have properties and insts");
       //if(inst->is_code())
-      ROUTER_WRITE(id_p(this->vid->append(relative_id)), inst, true);
+      ROUTER_WRITE(this->vid->append(relative_id), inst, true);
       return this->shared_from_this();
     }
 
@@ -1116,7 +1121,7 @@ namespace fhatos {
       if(!at_type && !this->vid)
         throw fError("only objs with a value id can have properties and insts");
       //if(inst->is_code())
-      ROUTER_WRITE(id_p(this->vid->add_component(relative_id)), inst, true);
+      ROUTER_WRITE(this->vid->add_component(relative_id), inst, true);
       return this->shared_from_this();
     }
 
@@ -1133,7 +1138,7 @@ namespace fhatos {
     }
 
     Obj_p this_set(const char *key, const Obj_p &obj) {
-      ROUTER_WRITE(furi_p(this->vid->extend(key)), obj, true);
+      ROUTER_WRITE(this->vid->extend(key), obj, true);
       return this->shared_from_this();
     }
 
@@ -1161,7 +1166,7 @@ namespace fhatos {
     }
 
     Obj_p doc_write(const string &documentation) {
-      ROUTER_WRITE(furi_p(this->vid_or_tid()->query("doc")), Obj::to_str(documentation), true);
+      ROUTER_WRITE(this->vid_or_tid()->query("doc"), Obj::to_str(documentation), true);
       return this->shared_from_this();
     }
 
@@ -2303,8 +2308,7 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  protected
-  :
+  protected:
     class ObjsSet {
     public:
       const unique_ptr<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>> internal =

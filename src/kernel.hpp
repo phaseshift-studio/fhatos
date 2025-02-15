@@ -186,8 +186,8 @@ namespace fhatos {
         fhatos::FSx::load_boot_config(boot_config_loader);
         if(boot_config_obj_copy_len > 0) {
           LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                         "!b" FOS_BOOT_CONFIG_FS_URI " !yboot config file!! loaded (size: %i bytes)\n",
-                         boot_config_obj_copy_len);
+                         "!b%s !yboot config file!! loaded (size: %i bytes)\n",
+                         boot_config_loader.toString().c_str(), boot_config_obj_copy_len);
           to_free_boot = true;
         }
       }

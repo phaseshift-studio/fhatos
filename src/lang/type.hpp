@@ -46,29 +46,30 @@ namespace fhatos {
 
   class Typer final : public Obj {
   protected:
-    explicit Typer(const ID &value_id, const ID &type_id) : Obj(std::make_shared<RecMap<>>(),
-                                                                OType::REC,
-                                                                id_p(type_id),
-                                                                id_p(value_id)) {
+    explicit Typer(const ID &value_id, const ID &type_id) :
+      Obj(std::make_shared<RecMap<>>(),
+          OType::REC,
+          id_p(type_id),
+          id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
+      TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) {
         try {
-          const Obj_p current = ROUTER_READ(*type_id);
+          const Obj_p current = ROUTER_READ(type_id);
           if(type_progress_bar_) {
             ROUTER_WRITE(type_id, type_def,RETAIN);
-            type_progress_bar_->incr_count(type_id->toString());
+            type_progress_bar_->incr_count(type_id.toString());
             if(type_progress_bar_->done())
-              ROUTER_WRITE(this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
           } else {
             ROUTER_WRITE(type_id, type_def,RETAIN);
             if(current->is_noobj()) {
               LOG_OBJ(INFO, this, FURI_WRAP " !ytype!! defined\n",
-                      type_id->toString().c_str(),
-                      type_id->toString().c_str());
+                      type_id.toString().c_str(),
+                      type_id.toString().c_str());
             } else {
               LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
-                      type_id->toString().c_str(), current->toString().c_str());
+                      type_id.toString().c_str(), current->toString().c_str());
             }
           }
         } catch(const fError &e) {
@@ -135,7 +136,7 @@ namespace fhatos {
         if(inst->is_noobj())
           return inst;
         if(!lhs->is_noobj())
-          compiler.coefficient_check(lhs->range_coefficient(), inst->domain_coefficient());
+          compiler.coefficient_check<IntCoefficient>(lhs->range_coefficient(), inst->domain_coefficient());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
           const ID inst_type_id = Router::singleton()->resolve(*inst->tid);
@@ -147,7 +148,7 @@ namespace fhatos {
               Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                           inst_type_id.toString().c_str());
               const ID next_inst_type_id =
-                current_obj->vid->add_component(inst_type_id);
+                  current_obj->vid->add_component(inst_type_id);
               maybe = Router::singleton()->read(next_inst_type_id);
               if(dt)
                 dt->emplace_back(current_obj->vid, id_p(next_inst_type_id), maybe);
@@ -159,8 +160,8 @@ namespace fhatos {
             Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
                         inst_type_id.toString().c_str());
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
-                                                  ? ID(inst_type_id) // drop back to flat namespace
-                                                  : current_obj->tid->no_query().add_component(inst_type_id);
+                                           ? ID(inst_type_id) // drop back to flat namespace
+                                           : current_obj->tid->no_query().add_component(inst_type_id);
             maybe = Router::singleton()->read(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid->no_query()), id_p(next_inst_type_id), maybe);
@@ -168,7 +169,7 @@ namespace fhatos {
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
             if(current_obj->tid->no_query().equals(
-              (current_obj = Router::singleton()->read(current_obj->tid->no_query()))->tid->no_query())) {
+                (current_obj = Router::singleton()->read(current_obj->tid->no_query()))->tid->no_query())) {
               // infinite loop (i.e. base type)
               return noobj();
             }
@@ -209,11 +210,11 @@ namespace fhatos {
                   if(counter != 0) {
                     string indent = StringHelper::repeat(counter, "-").append("!g>!!");
                     derivation_string.append(StringHelper::format(
-                      "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
-                      indent.c_str(),
-                      std::get<0>(oir)->toString().c_str(),
-                      std::get<1>(oir)->toString().c_str(),
-                      std::get<2>(oir)->toString().c_str()));
+                        "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+                        indent.c_str(),
+                        std::get<0>(oir)->toString().c_str(),
+                        std::get<1>(oir)->toString().c_str(),
+                        std::get<2>(oir)->toString().c_str()));
                   }
                 }
               }
@@ -243,23 +244,23 @@ namespace fhatos {
           }
           // TODO: recurse off inst for all inst_arg getter/setters
           final_inst = Obj::to_inst(
-            final_inst->inst_op(),
-            merged_args,
-            final_inst->inst_f(),
-            final_inst->inst_seed_supplier(),
-            final_inst->tid,
-            final_inst->vid);
+              final_inst->inst_op(),
+              merged_args,
+              final_inst->inst_f(),
+              final_inst->inst_seed_supplier(),
+              final_inst->tid,
+              final_inst->vid);
           /// TODO ^--- inst->vid);
         } else {
           final_inst = Obj::to_inst(
-            inst->inst_op(),
-            inst->inst_args(),
-            make_shared<InstF>(make_shared<Cpp>(
-              [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                return x->apply(lhs, args);
-              })),
-            inst->inst_seed_supplier(),
-            inst->tid, inst->vid);
+              inst->inst_op(),
+              inst->inst_args(),
+              make_shared<InstF>(make_shared<Cpp>(
+                  [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                    return x->apply(lhs, args);
+                  })),
+              inst->inst_seed_supplier(),
+              inst->tid, inst->vid);
         }
         LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;

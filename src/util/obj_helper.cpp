@@ -106,7 +106,7 @@ namespace fhatos {
 
     void InstBuilder::save(const Obj_p &root ) const {
       const Inst_p inst = this->create(nullptr, root);
-      TYPE_SAVER(id_p(inst->vid_or_tid()->no_query()), inst);
+      TYPE_SAVER(inst->vid_or_tid()->no_query(), inst);
     }
 
     Inst_p InstBuilder::create(const ID_p &value_id , const Obj_p &root) const {

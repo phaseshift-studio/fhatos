@@ -451,6 +451,32 @@ namespace fhatos {
   //FOS_TEST_FURI_EQUAL(fURI("/mmadt/int//::/zero"),fURI("/mmadt/int/::zero"));
   }
 
+  void test_uri_ends_with() {
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with(""));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("c"));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("b/c"));
+  TEST_ASSERT_FALSE(fURI("a/b/c").ends_with("c/"));
+//
+  TEST_ASSERT_TRUE(fURI("a/b/c/").ends_with("c/"));
+  TEST_ASSERT_TRUE(fURI("a/b/c/").ends_with("/c/"));
+  TEST_ASSERT_TRUE(fURI("a/b/c/").ends_with("b/c/"));
+  TEST_ASSERT_TRUE(fURI("a/b/c/").ends_with("/b/c/"));
+  TEST_ASSERT_TRUE(fURI("a/b/c/").ends_with("a/b/c/"));
+  TEST_ASSERT_FALSE(fURI("a/b/c/").ends_with("d/a/b/c/"));
+  //
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("c"));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("/c"));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("b/c"));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("/b/c"));
+  TEST_ASSERT_TRUE(fURI("a/b/c").ends_with("a/b/c"));
+  TEST_ASSERT_FALSE(fURI("a/b/c").ends_with("d/a/b/c"));
+  //
+  TEST_ASSERT_TRUE(fURI("a/b/#").ends_with("#"));
+  TEST_ASSERT_FALSE(fURI("a/b/#/").ends_with("#"));
+  TEST_ASSERT_TRUE(fURI("a/b/+").ends_with("+"));
+  TEST_ASSERT_FALSE(fURI("a/b/+/").ends_with("+"));
+  }
+
 
   void test_uri_empty() {
     TEST_ASSERT_TRUE(fURI("").empty());
@@ -909,6 +935,7 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_query_value); //
       FOS_RUN_TEST(test_uri_scheme_path); //
       FOS_RUN_TEST(test_uri_colon_path); //
+      FOS_RUN_TEST(test_uri_ends_with); //
       FOS_RUN_TEST(test_uri_empty); //
       FOS_RUN_TEST(test_uri_name); //
       //

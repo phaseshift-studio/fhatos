@@ -55,7 +55,7 @@ namespace fhatos {
     Compiler compiler = Compiler(false, false);
     for(const auto &TYPE_MAKER: List<BiConsumer<string, string>>({
             [](const string id, const string source) {
-              TYPE_SAVER(id_p(id.c_str()), mmadt::Parser::singleton()->parse(source.c_str()));
+              TYPE_SAVER(id, mmadt::Parser::singleton()->parse(source.c_str()));
             },
             [](const string id, const string source) {
               PROCESS(StringHelper::format("%s -> |%s",id.c_str(),source.c_str()));
@@ -90,7 +90,7 @@ namespace fhatos {
     Compiler compiler = Compiler(false, false);
     for(const auto &TYPE_MAKER: List<BiConsumer<string, string>>({
             [](const string id, const string source) {
-              TYPE_SAVER(id_p(id.c_str()), mmadt::Parser::singleton()->parse(source.c_str()));
+              TYPE_SAVER(id, mmadt::Parser::singleton()->parse(source.c_str()));
             },
             [](const string id, const string source) {
               PROCESS(StringHelper::format("%s -> |%s",id.c_str(),source.c_str()));

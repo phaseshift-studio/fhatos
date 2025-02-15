@@ -59,7 +59,7 @@ namespace fhatos {
       ////////////////////////////
       const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
       const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
-      ROUTER_WRITE(id_p(p("rec/a/b")), recA, true);
+      ROUTER_WRITE(p("rec/a/b"), recA, true);
       ////////////////////////////////////////////////////////////////////////////////////
       for(const auto &test_furi_str: {
             "rec/a/b/c/d/e/f/../..",
@@ -122,7 +122,7 @@ namespace fhatos {
     void test_lst_embedding() const {
       const Rec_p lstA = Obj::to_lst({jnt(1), jnt(2)});
       const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
-      ROUTER_WRITE(id_p(p("lst/a/b")), lstA, true);
+      ROUTER_WRITE(p("lst/a/b"), lstA, true);
       ////////////////////////////////////////////////////////////////////////////////////
       for(const auto &test_furi_str: {
             "lst/a/b/c/d/e/f/../..",

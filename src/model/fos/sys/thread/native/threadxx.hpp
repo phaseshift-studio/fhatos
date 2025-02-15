@@ -30,30 +30,32 @@ namespace fhatos {
     Obj_p thread_obj;
     std::thread threadxx;
 
-     ThreadXX(const Consumer<Obj_p>& function,const Obj_p& thread_obj) : thread_obj(thread_obj), threadxx(function,thread_obj) {
-       }
+    ThreadXX(const Consumer<Obj_p> &function, const Obj_p &thread_obj) :
+      thread_obj(thread_obj), threadxx(function, thread_obj) {
+    }
 
 
-    void stop()  {
+    void stop() {
       if(this->threadxx.joinable()) {
         try {
-          if(this->threadxx.get_id() != std::this_thread::get_id() /*&& std::this_thread::get_id() == *scheduler_thread*/)
+          if(this->threadxx.get_id() != std::this_thread::get_id()
+            /*&& std::this_thread::get_id() == *scheduler_thread*/)
             this->threadxx.join();
           else
             this->threadxx.detach();
         } catch(const std::runtime_error &e) {
-          fError::create(this->thread_obj-> toString(), "unable to halt thread: %s", e.what());
+          fError::create(this->thread_obj->toString(), "unable to halt thread: %s", e.what());
         }
       }
     }
 
-    void delay(const uint64_t milliseconds)  {
+    void delay(const uint64_t milliseconds) {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
-    void yield()  {
+    void yield() {
       std::this_thread::yield();
-      }
+    }
 
   };
 } // namespace fhatos

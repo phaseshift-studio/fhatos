@@ -50,8 +50,13 @@ namespace mmadt {
       return make_shared<_mmADT>(this->tid, this->domain, this->range, Obj::to_bcode(insts));
     }
 
-    [[nodiscard]] _mmadt_p extend(const fURI &inst_op, const Obj_p &rhs = nullptr) const {
-      return this->extend(Obj::to_inst(rhs ? Obj::to_inst_args({rhs}) : Obj::to_inst_args(), id_p(inst_op)));
+    [[nodiscard]] _mmadt_p extend(const fURI &inst_op, const Obj_p &rhs = nullptr, const Obj_p &rhs1 = nullptr) const {
+      const InstArgs args = rhs1
+                              ? Obj::to_inst_args({rhs, rhs1})
+                              : rhs
+                              ? Obj::to_inst_args({rhs})
+                              : Obj::to_inst_args();
+      return this->extend(Obj::to_inst(args, id_p(inst_op)));
     }
 
     [[nodiscard]] static BCode_p inst_to_bcode(const Inst_p &inst) {
@@ -70,7 +75,7 @@ namespace mmadt {
 
     [[nodiscard]] string toString() const { return this->_bcode->toString(); }
 
-     operator Obj_p() const {
+    operator Obj_p() const {
       // Conversion logic here
       return InstBuilder::build(this->tid)
           ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
@@ -181,12 +186,16 @@ namespace mmadt {
       return this->extend("merge", rhs);
     }
 
+    [[nodiscard]] _mmadt_p each(const Poly_p &rhs) const {
+      return this->extend("each", rhs);
+    }
+
     [[nodiscard]] _mmadt_p ref(const Obj_p &rhs) const {
       return this->extend("ref", rhs);
     }
 
-    [[nodiscard]] _mmadt_p inst(const fURI &inst_furi, const Obj_p &rhs = nullptr) const {
-      return this->extend(inst_furi, rhs);
+    [[nodiscard]] _mmadt_p inst(const fURI &inst_furi, const Obj_p &rhs = nullptr, const Obj_p &rhs1 = nullptr) const {
+      return this->extend(inst_furi, rhs, rhs1);
     }
 
 

@@ -81,7 +81,7 @@ namespace fhatos {
       if(this->previous)
         this->previous->write(furi, obj, retain);
       else
-        ROUTER_WRITE(id_p(furi), obj, retain);
+        ROUTER_WRITE(furi, obj, retain);
     }
 
     void write_raw_pairs(const ID &, const Obj_p &, bool retain) override {

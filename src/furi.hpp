@@ -193,7 +193,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool starts_with(const fURI &prefix_path) const {
-      if(this->path_length_ < prefix_path.path_length_)
+      if(this->sprefix_ != prefix_path.sprefix_ ||
+         this->path_length_ < prefix_path.path_length_)
         return false;
       for(int i = 0; i < prefix_path.path_length_; i++) {
         if(strcmp(this->path_[i], prefix_path.path_[i]) != 0)
@@ -202,12 +203,13 @@ namespace fhatos {
       return true;
     }
 
-    [[nodiscard]] bool ends_with(const fURI &prefix_path) const {
-      if(this->path_length_ < prefix_path.path_length_)
+    [[nodiscard]] bool ends_with(const fURI &postfix_path) const {
+      if(this->spostfix_ != postfix_path.spostfix_ ||
+         this->path_length_ < postfix_path.path_length_)
         return false;
-      for(int i = 0; i < prefix_path.path_length_; i++) {
+      for(int i = 0; i < postfix_path.path_length_; i++) {
         if(strcmp(this->path_[(this->path_length_ - 1) - i],
-                  prefix_path.path_[(prefix_path.path_length_ - 1) - i]) != 0)
+                  postfix_path.path_[(postfix_path.path_length_ - 1) - i]) != 0)
           return false;
       }
       return true;

@@ -10,7 +10,7 @@
 #include "../../model.hpp"
 
 namespace fhatos {
-  static ID_p TEXT_FURI = id_p(FOS_URI "/text");
+  static ID_p TEXT_FURI = id_p(FOS_URI "/util/text");
 
   class Text final : public Model<Text> {
     std::string body;

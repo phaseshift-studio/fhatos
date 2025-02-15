@@ -70,6 +70,7 @@ namespace fhatos {
           this->data_->erase(id);
         else
           this->data_->insert_or_assign(std::move(ID(id)), obj);
+
         send_obj = obj;
       } else {
         auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
@@ -83,17 +84,21 @@ namespace fhatos {
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {
-      std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+
       auto list = IdObjPairs();
       if(!match.is_pattern()) {
+       auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
         if(const ID id_match = ID(match); this->data_->count(id_match))
           list.push_back({id_match, this->data_->at(id_match)});
+        lock.unlock();
       } else {
+        auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
         for(const auto &[id, obj]: *this->data_) {
           if(id.matches(match)) {
             list.push_back({id, obj});
           }
         }
+        lock.unlock();
       }
       return list;
     }

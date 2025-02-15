@@ -306,7 +306,9 @@ namespace fhatos {
         if(const fURI new_furi = !furi.has_query() ? furi : furi.no_query(); new_furi.is_branch()) {
           // BRANCH (POLYS)
           if(obj->is_noobj()) {
-            const IdObjPairs ids = this->read_raw_pairs(new_furi.extend("+"));
+            const IdObjPairs ids = this->read_raw_pairs(new_furi.ends_with("#") || new_furi.ends_with("#/")
+                                                          ? new_furi
+                                                          : new_furi.append("+"));
             // noobj
             for(const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
@@ -334,7 +336,7 @@ namespace fhatos {
           } else {
             // BRANCH (MONOS)
             // monos written to /0
-            this->write_raw_pairs(new_furi, obj, retain);
+            this->write_raw_pairs(new_furi.extend("0"), obj, retain);
           }
         } else {
           // NODE PATTERN

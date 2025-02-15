@@ -167,9 +167,9 @@ namespace fhatos {
       else
         BCODE_PROCESSOR(stop_bcode);
       this->running = false;
-      ROUTER_WRITE(id_p(this->vid->extend(":stop")), Obj::to_noobj(), true);
-      ROUTER_WRITE(id_p(this->vid->extend(":delay")), Obj::to_noobj(), true);
-      ROUTER_WRITE(id_p(this->vid->extend(":yield")), Obj::to_noobj(), true);
+      ROUTER_WRITE(this->vid->extend(":stop"), Obj::to_noobj(), true);
+      ROUTER_WRITE(this->vid->extend(":delay"), Obj::to_noobj(), true);
+      ROUTER_WRITE(this->vid->extend(":yield"), Obj::to_noobj(), true);
       this->load();
     };
 

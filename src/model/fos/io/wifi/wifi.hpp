@@ -49,7 +49,9 @@
 
 namespace fhatos {
 
-  const ID_p WIFI_FURI = id_p("/fos/io/wifi");
+  const ID_p WIFI_FURI = id_p(FOS_URI "/io/wifi");
+  const ID_p MAC_FURI = id_p(FOS_URI "/io/mac");
+  const ID_p IP_FURI = id_p(FOS_URI "/io/ip");
 
   class WIFIx : public Model<WIFIx> {
 
@@ -73,6 +75,8 @@ namespace fhatos {
                          {"ssid",Obj::to_type(URI_FURI)},
                          {"password", Obj::to_type(STR_FURI)},
                          {"mdns", Obj::to_type(URI_FURI)}})}}));
+      Typer::singleton()->save_type(*MAC_FURI, Obj::to_type(URI_FURI));
+      Typer::singleton()->save_type(*IP_FURI, Obj::to_type(URI_FURI));
       ///////////////////////////////////////////////////////
       InstBuilder::build(WIFI_FURI->add_component("connect"))
           ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
@@ -126,24 +130,6 @@ namespace fhatos {
         if (multi.run() == WL_CONNECTED) {
           const string mdns_name = config->rec_get("mdns")->uri_value().toString();
           const bool mdnsStatus = MDNS.begin(mdns_name.c_str());
-          LOG_OBJ(INFO, wifi_obj,
-                        "\n\t!g[!bwifi station config!g]!!\n"
-                        "\t!yid             : !m%s\n"
-                        "\t!ystatus         : !m%s\n"
-                        "\t!yssid           : !m%s\n"
-                        "\t!ymac address    : !m%s\n"
-                        "\t!yip address     : !m%s\n"
-                        "\t!yhostname       : !m%s\n"
-                        "\t!ymdns name      : !m%s\n"
-                        "\t!ygateway address: !m%s\n"
-                        "\t!ysubnet mask    : !m%s\n"
-                        "\t!ydns address    : !m%s\n"
-                        "\t!ychannel        : !m%i!!\n",
-                        mdns_name.c_str(), WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
-                        WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
-                        WiFi.getHostname(), mdnsStatus ? (mdns_name + ".local").c_str() : "<error>",
-                        WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
-                        WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
             LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", mdns_name.c_str());
           }
@@ -155,6 +141,15 @@ namespace fhatos {
         LOG_OBJ(ERROR, wifi_obj, "unable to connect to WIFI after %i attempts\n", attempts);
         return false;
       }
+      wifi_obj->rec_set("mac",vri(WiFi.macAddress().c_str(),MAC_FURI));
+      wifi_obj->rec_set("ip",vri(WiFi.localIP().toString().c_str(),IP_FURI));
+      wifi_obj->rec_set("host",vri(WiFi.getHostname()));
+      wifi_obj->rec_set("gateway",vri(WiFi.gatewayIP().toString().c_str(),IP_FURI));
+      wifi_obj->rec_set("subnet",vri(WiFi.subnetMask().toString().c_str(),IP_FURI));
+      wifi_obj->rec_set("dns",vri(WiFi.dnsIP().toString().c_str(),IP_FURI));
+      string wifi_str = PrintHelper::pretty_print_obj(wifi_obj, 3);
+      StringHelper::prefix_each_line(FOS_TAB_1, &wifi_str);
+      LOG_OBJ(INFO, wifi_obj, "\n%s\n", wifi_str.c_str());
       return true;
     }
 

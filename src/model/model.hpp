@@ -47,7 +47,6 @@ namespace fhatos {
     }
   };
 
-
   template<typename MODEL_STATE>
   class Model {
   public:

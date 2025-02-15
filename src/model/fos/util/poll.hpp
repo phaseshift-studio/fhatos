@@ -26,7 +26,7 @@
 #include "../../../lang/type.hpp"
 
 namespace fhatos {
-  const ID_p POLL_FURI = id_p("/fos/util/poll");
+  const ID_p POLL_FURI = id_p(FOS_URI "/util/poll");
 
   class Poll final : public ThreadX {
 
@@ -45,17 +45,15 @@ namespace fhatos {
           const auto start_time = std::chrono::high_resolution_clock::now();
           LOG_OBJ(INFO, poll_obj, "!ypolling !b%s !ystarted!! [delay:%i ms]\n",
                   poll_obj->rec_get("loop")->toString().c_str(),
-                  poll_obj->rec_get("delay")->int_value());
-          Obj_p running_poll = poll_obj;
-          while(!running_poll->rec_get("halt")->bool_value()) {
-            const Obj_p code = running_poll->rec_get("loop");
+                  poll_obj->get<int>("delay"));
+          while(!poll_obj->get<bool>("halt")) {
+            const Obj_p code = poll_obj->rec_get("loop");
             const Obj_p result = BCODE_PROCESSOR(code);
-            std::this_thread::sleep_for(std::chrono::milliseconds(running_poll->rec_get("delay")->int_value()));
-            running_poll = running_poll->load();
+            std::this_thread::sleep_for(std::chrono::milliseconds(poll_obj->get<int>("delay")));
           }
           const std::chrono::duration<double, milli> duration = std::chrono::high_resolution_clock::now() - start_time;
           LOG_OBJ(INFO, poll_obj, "!ypolling !b%s !ystopped!! [runtime:%f sec]\n",
-                  running_poll->rec_get("loop")->toString().c_str(),
+                  poll_obj->rec_get("loop")->toString().c_str(),
                   duration.count() / 1000.0f);
         } catch(const std::exception &e) {
           LOG_EXCEPTION(poll_obj, fError("poll failure: %s", e.what()));
