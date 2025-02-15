@@ -116,9 +116,12 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("a"), PROCESS("a"));
     FOS_TEST_OBJ_EQUAL(vri("../../a"), PROCESS("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), PROCESS("abc/cba"));
+    FOS_TEST_OBJ_EQUAL(vri("scheme:abc/cba?a=1&b=2"), PROCESS("scheme:abc/cba?a=1&b=2"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), PROCESS("aBc_cBa"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("<aaa_bbb/ccc/../ddd>"));
+    FOS_TEST_OBJ_EQUAL(vri("roDkns-2G"), PROCESS("<roDkns-2G>"));
+    FOS_TEST_ERROR("roDkns-2G");
   }
 
   void test_lst_parsing() {

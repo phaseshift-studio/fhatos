@@ -442,7 +442,7 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI <= WRAP("<", tok(oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+")))), ">"), furi_action;
+      FURI <= WRAP("<", tok(seq(npd(chr('-')),oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+-"))),npd(chr('-')))), ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
                             oom(cls("a-zA-Z:/%?_#+")),
                             zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))), ">"), furi_action;
