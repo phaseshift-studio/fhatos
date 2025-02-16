@@ -31,7 +31,7 @@
 #include "model/console.hpp"
 #include "model/terminal.hpp"
 #include "model/log.hpp"
-#include "model/fos/sys/thread/thread.hpp"
+#include "model/fos/sys/thread/fthread.hpp"
 #include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
@@ -78,7 +78,7 @@ namespace fhatos {
 
 #endif
         if(args_parser->option_string("--boot:config", "NONE") == "NONE")
-          args_parser->set_option("--boot:config","boot/boot_config.obj");
+          args_parser->set_option("--boot:config", "boot/boot_config.obj");
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
             ->using_printer(Ansi<>::singleton())
@@ -116,21 +116,23 @@ namespace fhatos {
             ->import(Heap<>::import("/mnt/lib/heap"))
             ->import(Mqtt::import("/mnt/lib/mqtt"))
             ////////////////// USER STRUCTURE(S)
-            ->display_note("!r.!go!bO !yloading !blanguage !yinsts!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")))
-            ->import(mmADT::import())
-            ->display_note("!r.!go!bO !yloading !bmodel !ytypes!! !bO!go!r.!!")
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
             ->import(fOS::import_types())
+            ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
+            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")))
+            ->import(mmADT::import())
+            ////////
+            ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
+
             ->import(fOS::import_io())
+            ->import(fOS::import_sys())
             ->import(fOS::import_sensor())
             ->import(fOS::import_ui())
             ->import(fOS::import_util())
-            ->import(ThreadX::import())
+            /////////
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             ->import(Log::import("/io/lib/log"))
             ->import(Console::import())
-            ->import(Text::import())
             ->install(Terminal::singleton())
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log",
@@ -153,11 +155,6 @@ namespace fhatos {
               {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin())}},"/io/wifi"))
               ->inst("connect")->begin())
             ->drop_config("wifi")
-            /*->mount(make_shared<Wifi>("/soc/wifi/+",
-                  Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
-                                                             args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
-                                                             args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
-                                                             args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))*/
              ->mount(Structure::create<Memory>("/soc/memory/#"))
              ->mount(Heap<>::create("/soc/ota/#",id_p("/sys/structure/ota")))
            //  ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))

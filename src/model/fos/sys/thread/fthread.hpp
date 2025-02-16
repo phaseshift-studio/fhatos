@@ -16,43 +16,56 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_sys_thread_hpp
-#define fhatos_sys_thread_hpp
+#ifndef fhatos_fthread_hpp
+#define fhatos_fthread_hpp
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../util/obj_helper.hpp"
 #include "../../../model.hpp"
-#include STR(HARDWARE/threadxx.hpp)
+#include STR(HARDWARE/fmutex.hpp)
 
 namespace fhatos {
   static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
   static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");
 
-  class ThreadX : public Model<ThreadX> {
-  public:
-    ThreadXX threadxx;
+  class fThread : public Model<fThread> {
 
-    explicit ThreadX(const Obj_p &thread_obj, const Consumer<Obj_p> &function) :
-      threadxx(function, thread_obj) {
+  public:
+    Obj_p thread_obj_;
+    Consumer<Obj_p> thread_function_;
+    Any handler_;
+
+    template<typename HANDLER>
+    HANDLER get_handler() {
+      return std::any_cast<HANDLER>(this->handler_);
     }
 
-    static ptr<ThreadX> create_state(const Obj_p &thread_obj) {
-      return make_shared<ThreadX>(thread_obj, [](const Obj_p &thread_obj) -> void {
+  public:
+    explicit fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function);
+
+    void delay(uint64_t milliseconds);
+
+    void yield();
+
+    void halt();
+
+    static ptr<fThread> create_state(const Obj_p &thread_obj) {
+      return make_shared<fThread>(thread_obj, [](const Obj_p &thread_obj) -> void {
         try {
-          const auto thread_state = ThreadX::get_state(thread_obj);
+          const ptr<fThread> thread_state = fThread::get_state(thread_obj);
           const Obj_p loop_code = thread_obj->rec_get("loop");
           LOG_OBJ(INFO, thread_obj, "!ythread!! spawned: %s\n", loop_code->toString().c_str());
           while(!thread_obj->get<bool>("halt")) {
             const BCode_p &code = thread_obj->rec_get("loop");
             code->apply(thread_obj);
             if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-              thread_state->threadxx.delay(delay);
-              thread_obj->rec_set("delay",jnt(0,NAT_FURI));
+              thread_state->delay(delay);
+              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
             }
           }
           try {
-            thread_state->threadxx.stop();
+            thread_state->halt();
             MODEL_STATES::singleton()->remove(*thread_obj->vid);
           } catch(const std::exception &e) {
             MODEL_STATES::singleton()->remove(*thread_obj->vid);
@@ -67,7 +80,7 @@ namespace fhatos {
     }
 
     static Obj_p start_inst(const Obj_p &thread_obj, const InstArgs &args) {
-      const ptr<ThreadX> threadx = ThreadX::get_state(thread_obj);
+      const ptr<fThread> threadx = fThread::get_state(thread_obj);
       return thread_obj;
     }
 
@@ -86,7 +99,7 @@ namespace fhatos {
       InstBuilder::build(THREADX_FURI->add_component("spawn"))
           ->domain_range(THREADX_FURI, {1, 1}, THREADX_FURI, {1, 1})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-            return ThreadX::start_inst(thread_obj, args);
+            return fThread::start_inst(thread_obj, args);
           })->save();
       /* InstBuilder::build(THREADX_FURI->add_component("stop"))
            ->domain_range(THREADX_FURI, {1, 1}, NOOBJ_FURI, {0, 0})

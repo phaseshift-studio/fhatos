@@ -26,6 +26,7 @@
 #include "pubsub.hpp"
 #include "../util/enums.hpp"
 #include "../util/mutex_deque.hpp"
+#include STR(../model/fos/sys/thread/HARDWARE/fmutex.hpp)
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
@@ -47,6 +48,8 @@ namespace fhatos {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
+    Map<ID, Inst_p> on_read_qs_ = Map<ID, Inst_p>();
+    Map<ID, Inst_p> on_write_qs_ = Map<ID, Inst_p>();
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
@@ -165,55 +168,28 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi.toString().c_str());
         return noobj();
       }
+      const fURI furi_no_query = furi.no_query();
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
         if(furi.has_query()) {
-          const fURI furi_no_query = furi.no_query();
-          Objs_p ret = Obj::to_objs();
-          if(furi.has_query("sub")) {
-            ret = this->get_subscription_objs(furi_no_query);
-            LOG_OBJ(DEBUG, this, "%i subscriptions received from %s\n",
-                    ret->objs_value()->size(),
-                    furi_no_query.toString().c_str());
-          }
-          if(furi.has_query("doc")) {
-            if(const IdObjPairs doc = this->read_raw_pairs(furi); !doc.empty()) {
-              for(const auto &pair: doc) {
-                ret->add_obj(pair.second);
-              }
+          const Objs_p results = Obj::to_objs();
+          for(const auto &[key,values]: furi.query_values()) {
+            if(this->on_read_qs_.count(ID(key))) {
+              const Inst_p inst = this->on_read_qs_.at(key);
+              const List<Str_p> vs = furi.query_values<Str_p>(key.c_str(), [](const string &v) {
+                return Obj::to_str(v);
+              });
+              const Obj_p result = inst->apply(vri(furi_no_query), lst(vs));
+              results->add_obj(result);
             }
           }
-          if(furi.query_value("type")) {
-            const Objs_p objs = Obj::to_objs();
-            objs->add_obj(this->read(furi_no_query));
-            for(const Obj_p &obj: *objs->objs_value()) {
-              const Obj_p type = ROUTER_READ(*obj->tid);
-              ret->add_obj(type);
-            }
-          }
-          if(furi.has_query("inst")) {
-            const List<string> opcodes = furi.query_values("inst");
-            const Rec_p insts = Obj::to_rec();
-            const Objs_p objs = Obj::to_objs();
-            objs->add_obj(ROUTER_READ(furi_no_query.extend(":inst")));
-            for(const Obj_p &o: *objs->objs_value()) {
-              if(!o->is_rec())
-                throw fError("obj instructs must be records: %s", o->toString().c_str());
-              insts->rec_merge(o->rec_value());
-            }
-            objs->objs_value()->clear();
-            objs->add_obj(ROUTER_READ(furi_no_query));
-            for(const Obj_p &o: *objs->objs_value()) {
-              if(!FURI_OTYPE.count(*o->tid))
-                insts->rec_merge(ROUTER_READ(o->tid->query("inst"))->rec_value());
-            }
-            ret->add_obj(insts);
-          }
-          return ret;
+          return results;
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const fURI furi_no_query = furi.no_query();
         const IdObjPairs matches = this->read_raw_pairs(furi_no_query.is_branch()
                                                           ? furi_no_query.extend("+")
                                                           : furi_no_query);
@@ -279,7 +255,24 @@ namespace fhatos {
                              obj->toString().c_str(),
                              furi.toString().c_str());
       }
+      const fURI furi_no_query = furi.no_query();
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
+        if(furi.has_query()) {
+          //const Objs_p results = Obj::to_objs();
+          for(const auto &[key,values]: furi.query_values()) {
+            if(this->on_write_qs_.count(ID(key))) {
+              const Inst_p inst = this->on_write_qs_.at(key);
+              const List<Str_p> vs = furi.query_values<Str_p>(key.c_str(), [](const string &v) {
+                return Obj::to_str(v);
+              });
+              const Obj_p result = inst->apply(vri(furi_no_query), lst(vs));
+              //results->add_obj(result);
+            }
+          }
+        }
         if(furi.has_query()) {
           ////////////////////////////////////////////////////////////////////////////////////////////////////////
           /// SUBSCRIBE ?sub={code|subscription|noobj} // noobj for unsubscribe
@@ -294,7 +287,7 @@ namespace fhatos {
               this->recv_subscription(Subscription::create(
                   Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi.no_query()),
                   obj));
-            } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), *SUBSCRIPTION_FURI)) {
+            } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), ID("/fos/q/sub"))) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
             }

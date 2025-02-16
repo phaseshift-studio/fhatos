@@ -24,11 +24,13 @@
 #include "../../lang/type.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
-#include "io/wifi/wifi.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
+#include "sys/thread/fthread.hpp"
+#include "../../lang/mmadt/mmadt.hpp"
 #ifdef ARDUINO
+#include "io/wifi/wifi.hpp"
 #include "io/pwm/pwm.hpp"
 #include "sensor/aht10/aht10.hpp"
 #include "sensor/mlx90614/mlx90614.hpp"
@@ -40,11 +42,20 @@
 
 namespace fhatos {
   using namespace mmadt;
-
   class fOS {
   public:
     static void *import_types() {
       Typer::singleton()->start_progress_bar(10);
+      Typer::singleton()->save_type(
+                  *MESSAGE_FURI, Obj::to_rec({
+                      {"target", Obj::to_type(URI_FURI)},
+                      {"payload", Obj::to_bcode()},
+                      {"retain", Obj::to_type(BOOL_FURI)}}));
+      Typer::singleton()->save_type(
+          *SUBSCRIPTION_FURI, Obj::to_rec({
+              {"source", Obj::to_type(URI_FURI)},
+              {"pattern", Obj::to_type(URI_FURI)},
+              {"on_recv", Obj::to_bcode()}}));
       Typer::singleton()->save_type(
           *CHAR_FURI,
           *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
@@ -85,6 +96,14 @@ namespace fhatos {
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));
+      return nullptr;
+    }
+
+    static void* import_sys() {
+      Typer::singleton()->start_progress_bar(1);
+      fThread::import();
+      Typer::singleton()->end_progress_bar(
+      StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
       return nullptr;
     }
 

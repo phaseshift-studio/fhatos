@@ -3,6 +3,7 @@
 
 #include "../lang/obj.hpp"
 #include "../fhatos.hpp"
+#include <shared_mutex>
 
 namespace fhatos {
   class MODEL_STATES;

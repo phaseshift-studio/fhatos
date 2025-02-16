@@ -105,7 +105,7 @@ namespace fhatos {
       if (!MQTT_CONNECTION->loop()) {
         LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r%s!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
-      }
+                            }
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {

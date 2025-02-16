@@ -15,49 +15,41 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-#pragma once
-#ifndef fhatos_threadxx_hpp
-#define fhatos_threadxx_hpp
-
+#ifdef NATIVE
 #include <chrono>
 #include <thread>
+#include "../fthread.hpp"
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/obj.hpp"
 
 namespace fhatos {
-  class ThreadXX {
-  public:
-    Obj_p thread_obj;
-    std::thread threadxx;
 
-    ThreadXX(const Consumer<Obj_p> &function, const Obj_p &thread_obj) :
-      thread_obj(thread_obj), threadxx(function, thread_obj) {
-    }
+  fThread::fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
+    thread_obj_(thread_obj), thread_function_(thread_function),
+    handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {
+  }
 
-
-    void stop() {
-      if(this->threadxx.joinable()) {
-        try {
-          if(this->threadxx.get_id() != std::this_thread::get_id()
-            /*&& std::this_thread::get_id() == *scheduler_thread*/)
-            this->threadxx.join();
-          else
-            this->threadxx.detach();
-        } catch(const std::runtime_error &e) {
-          fError::create(this->thread_obj->toString(), "unable to halt thread: %s", e.what());
-        }
+  void fThread::halt() {
+    if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {
+      try {
+        if(this->get_handler<std::thread *>()->get_id() != std::this_thread::get_id()
+          /*&& std::this_thread::get_id() == *scheduler_thread*/)
+          xthread->join();
+        else
+          xthread->detach();
+        delete xthread;
+      } catch(const std::runtime_error &e) {
+        fError::create(this->thread_obj_->toString(), "unable to halt thread: %s", e.what());
       }
     }
+  }
 
-    void delay(const uint64_t milliseconds) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-    }
+  void fThread::delay(const uint64_t milliseconds) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+  }
 
-    void yield() {
-      std::this_thread::yield();
-    }
-
-  };
-} // namespace fhatos
-
+  void fThread::yield() {
+    std::this_thread::yield();
+  }
+}
 #endif

@@ -80,7 +80,8 @@ namespace fhatos {
   struct Message;
   using Message_p = ptr<Message>;
 
-  static const ID_p MESSAGE_FURI = id_p("/sys/lib/msg");
+  // static const ID_p MESSAGE_FURI = id_p(/*FOS_URI*/ "/fos/q/msg");
+  // static const ID_p SUBSCRIPTION_FURI = id_p(/*FOS_URI*/ "/fos/q/sub");
 
   struct Message final : Rec {
     explicit Message(const Rec_p &rec) :
@@ -91,7 +92,7 @@ namespace fhatos {
       Rec(rmap({
               {"target", vri(target)},
               {"payload", payload},
-              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+              {"retain", dool(retain)}}), OType::REC, id_p("/fos/q/msg")) {
     }
 
     ID_p target() const {
@@ -131,7 +132,6 @@ namespace fhatos {
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
 
-  static const ID_p SUBSCRIPTION_FURI = id_p("/sys/lib/sub");
 
   struct Subscription final : Rec {
     explicit Subscription(const Rec_p &rec) :
@@ -143,7 +143,7 @@ namespace fhatos {
               {"source", vri(source)},
               {"pattern", vri(pattern)},
               {"on_recv", on_recv}
-          }), OType::REC, SUBSCRIPTION_FURI) {
+          }), OType::REC, id_p("/fos/q/sub")) {
     }
 
     ID_p source() const {

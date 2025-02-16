@@ -31,6 +31,8 @@ namespace fhatos {
   using std::const_pointer_cast;
   inline thread_local ptr<ProgressBar> type_progress_bar_;
 
+  static const ID_p MESSAGE_FURI = id_p(/*FOS_URI*/ "/fos/q/msg");
+  static const ID_p SUBSCRIPTION_FURI = id_p(/*FOS_URI*/ "/fos/q/sub");
   static const ID_p CHAR_FURI = id_p(FOS_URI "/char");
   static const ID_p HEX_FURI = id_p(FOS_URI "/Ox");
   static const ID_p INT8_FURI = id_p(FOS_URI" /int8");
@@ -88,7 +90,6 @@ namespace fhatos {
         if(obj->is_noobj()) {
           if(const vector<string> coef = typex_id->query_values(FOS_RNG_COEF);
             !coef.empty() && stoi(coef.front()) == 0) {
-            //LOG(INFO,"HERE: %s\n", type_id->toString().c_str());
             return true;
           }
         }

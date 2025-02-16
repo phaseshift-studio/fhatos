@@ -76,8 +76,8 @@ namespace fhatos {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
         ->using_router(Router::singleton("/sys/router"))
         ////////////////// SYS STRUCTURE
-        ->mount(Structure::create<Heap<ALLOC>>("/boot/#"))
-        ->mount(Structure::create<Heap<ALLOC>>("/sys/#"))
+        ->mount(Heap<ALLOC>::create("/boot/#"))
+        ->mount(Heap<ALLOC>::create("/sys/#"))
         ->import(Heap<>::import("/sys/lib/heap"))
         ->using_boot_config()
         ->import(Router::import())

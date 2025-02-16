@@ -24,6 +24,8 @@
 #include <shared_mutex>
 #include "../../lang/obj.hpp"
 #include "../structure.hpp"
+#include "../router.hpp"
+#include STR(../../model/fos/sys/thread/HARDWARE/fmutex.hpp)
 
 #ifdef ESP_ARCH
 #include "../../util/esp32/psram_allocator.hpp"
@@ -37,7 +39,7 @@ namespace fhatos {
   protected:
     const unique_ptr<Map<const ID, Obj_p, furi_less, ALLOCATOR>> data_ =
         make_unique<Map<const ID, Obj_p, furi_less, ALLOCATOR>>();
-    std::shared_mutex map_mutex;
+   fMutex map_mutex;
 
   public:
     explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -65,7 +67,7 @@ namespace fhatos {
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       Obj_p send_obj = Obj::to_noobj();
       if(retain) {
-        auto lock = std::lock_guard<std::shared_mutex>(this->map_mutex);
+        auto lock = std::lock_guard<fMutex>(this->map_mutex);
         if(obj->is_noobj())
           this->data_->erase(id);
         else
@@ -73,7 +75,7 @@ namespace fhatos {
 
         send_obj = obj;
       } else {
-        auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
+        auto lock = std::shared_lock<fMutex>(this->map_mutex);
         const Obj_p eval_obj = this->data_->count(id) ? this->data_->at(id) : Obj::to_noobj();
         lock.unlock();
         send_obj = eval_obj->apply(obj);
@@ -87,12 +89,12 @@ namespace fhatos {
 
       auto list = IdObjPairs();
       if(!match.is_pattern()) {
-       auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
+       auto lock = std::shared_lock<fMutex>(this->map_mutex);
         if(const ID id_match = ID(match); this->data_->count(id_match))
           list.push_back({id_match, this->data_->at(id_match)});
         lock.unlock();
       } else {
-        auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
+        auto lock = std::shared_lock<fMutex>(this->map_mutex);
         for(const auto &[id, obj]: *this->data_) {
           if(id.matches(match)) {
             list.push_back({id, obj});
@@ -104,7 +106,7 @@ namespace fhatos {
     }
 
     bool has(const fURI &furi) override {
-      std::shared_lock<std::shared_mutex> lock(this->map_mutex);
+      std::shared_lock<fMutex> lock(this->map_mutex);
       if(!furi.is_pattern() && this->data_->count(furi))
         return true;
       for(const auto &[id, obj]: *this->data_) {

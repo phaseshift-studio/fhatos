@@ -20,6 +20,7 @@
 #define fhatos_mutex_deque_hpp
 
 #include  "../fhatos.hpp"
+#include STR(../model/fos/sys/thread/HARDWARE/fmutex.hpp)
 #include <shared_mutex>
 
 namespace fhatos {
@@ -29,14 +30,13 @@ namespace fhatos {
 
   protected:
     Deque<T> deque_;
-    std::shared_mutex deque_mutex_;
+    fMutex deque_mutex_;
 
   public:
     explicit MutexDeque() = default;
 
     bool exists(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       for(const T &t: this->deque_) {
         if(predicate(t))
           return true;
@@ -45,8 +45,7 @@ namespace fhatos {
     }
 
     Option<T> find(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      std::shared_lock<fMutex> lock(this->deque_mutex_);
       for(const T &t: this->deque_) {
         if(predicate(t)) {
           return Option<T>(t);
@@ -56,8 +55,7 @@ namespace fhatos {
     }
 
     List<T> find_all(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      std::shared_lock<fMutex> lock(this->deque_mutex_);
       List<T> list;
       for(const T &t: deque_) {
         if(predicate(t)) {
@@ -68,8 +66,7 @@ namespace fhatos {
     }
 
     Option<T> pop_front(const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       if(deque_.empty()) {
         return Option<T>();
       } else {
@@ -80,8 +77,7 @@ namespace fhatos {
     }
 
     List_p<T> match(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       auto results = make_shared<List<T>>();
       for(const T &t: deque_) {
         if(predicate(t))
@@ -91,16 +87,14 @@ namespace fhatos {
     }
 
     void forEach(const Consumer<T> &consumer, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       for(const T &t: deque_) {
         consumer(t);
       }
     }
 
     Option<T> get(const int index, const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       int counter = 0;
       for(const T &t: deque_) {
         if(counter++ == index) {
@@ -121,8 +115,7 @@ namespace fhatos {
 
 
     void remove_if(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
                                   [predicate](T t) {
                                     return predicate(t);
@@ -131,8 +124,7 @@ namespace fhatos {
     }
 
     List_p<T> remove_if_list(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       ptr<List<T>> removed = make_shared<List<T>>();
       deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
                                   [predicate, removed](T t) {
@@ -146,8 +138,7 @@ namespace fhatos {
     }
 
     int remove_if_count(const Predicate<T> &predicate, const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       const ptr<atomic_int> count = make_shared<atomic_int>(0);
       deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
                                   [predicate, count](T t) {
@@ -165,8 +156,7 @@ namespace fhatos {
     }
 
     Option<T> pop_back(const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       if(deque_.empty())
         return Option<T>();
       const T t = deque_.back();
@@ -175,34 +165,29 @@ namespace fhatos {
     }
 
     bool push_front(const T t, const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       deque_.push_front(t);
       return true;
     }
 
     bool push_back(const T t, const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       this->deque_.push_back(t);
       return true;
     }
 
     SIZE_TYPE size(const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       return this->deque_.size();
     }
 
     bool empty(const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       return this->deque_.empty();
     }
 
     string toString(const bool with_mutex = true) {
-      if(with_mutex)
-        std::shared_lock<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       string temp = "[";
       for(const auto &t: this->deque_) {
         if(t)
@@ -213,8 +198,7 @@ namespace fhatos {
     }
 
     void clear(const bool with_mutex = true) {
-      if(with_mutex)
-        std::lock_guard<std::shared_mutex> lock(this->deque_mutex_);
+      auto lock = std::lock_guard<fMutex>(this->deque_mutex_);
       if(!this->deque_.empty())
         this->deque_.clear();
     }

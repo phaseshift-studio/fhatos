@@ -385,8 +385,8 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
     return furi;
   };
-  inline TriConsumer<const fURI&, const Obj_p &, const bool> ROUTER_WRITE =
-      [](const fURI&, const Obj_p &, const bool) -> void {
+  inline TriConsumer<const fURI &, const Obj_p &, const bool> ROUTER_WRITE =
+      [](const fURI &, const Obj_p &, const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
   inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
@@ -829,7 +829,7 @@ namespace fhatos {
       return rec_get(to_uri(uri_key), or_else);
     }
 
-    template <typename T>
+    template<typename T>
     [[nodiscard]] T get(const fURI &key) const {
       return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
     }
