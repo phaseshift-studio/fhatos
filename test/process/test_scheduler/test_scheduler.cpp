@@ -78,9 +78,9 @@ namespace fhatos {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     const Obj_p obj_z_2 = PROCESS("*/scheduler/a");
     FOS_TEST_OBJ_GT(obj_z_2, obj_z_1);
-    Router::singleton()->loop(); // TODO: why necessary?
+   // Router::singleton()->loop(); // TODO: why necessary?
     PROCESS("/scheduler/a -> noobj");
-    Router::singleton()->loop(); // TODO: why necessary?
+  //  Router::singleton()->loop(); // TODO: why necessary?
     std::this_thread::sleep_for(std::chrono::seconds(1));
     FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), PROCESS("*/scheduler/a/:loop"));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("*/scheduler/a/:delay"));

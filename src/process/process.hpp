@@ -70,7 +70,7 @@ namespace fhatos {
     void feed_watchdog_via_counter() {
       if(++this->wdt_timer_counter >= FOS_PROCESS_WDT_COUNTER) {
         // LOG(INFO, "reset watchdog timer: %i >= %i\n", this->wdt_timer_counter.load(), FOS_PROCESS_WDT_COUNTER);
-        FEED_WATCDOG();
+        FEED_WATCHDOG();
         this->wdt_timer_counter = 0;
       }
     }
@@ -174,11 +174,11 @@ namespace fhatos {
     };
 
     virtual void delay(const uint64_t) {
-      FEED_WATCDOG();
+      FEED_WATCHDOG();
     }; // milliseconds
 
     virtual void yield() {
-      FEED_WATCDOG();
+      FEED_WATCHDOG();
     };
   };
 } // namespace fhatos

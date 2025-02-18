@@ -43,7 +43,7 @@ namespace fhatos {
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool setup_ = false;
       static ptr<Scheduler> scheduler = ptr<Scheduler>(new Scheduler(id));
-      if (!setup_) {
+      if(!setup_) {
         // scheduler_thread = make_shared<thread::id>(this_thread::get_id());
         setup_ = true;
       }
@@ -63,28 +63,37 @@ namespace fhatos {
       int stack_size;
       if(process->is_rec()) {
         stack_size = process->rec_get("stack_size") // check provided obj
-        ->or_else(process->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
-        ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
-        ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE))) // use default environmental variable
-        ->int_value();
+            ->or_else(process->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
+            ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
+              ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE))) // use default environmental variable
+            ->int_value();
       } else {
         stack_size = this->rec_get("config/def_stack_size") // check default setting in scheduler
-        ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
-        ->int_value();
+            ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
+            ->int_value();
       }
       const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
-                                               process->vid->toString().c_str(), // Name of the task (for debugging)
-                                               stack_size, // Stack size (bytes)
-                                               process.get(), // Parameter to pass
-                                               CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                               static_cast<Thread *>(process.get())->xthread, // Task handle
-                                               tskNO_AFFINITY); // Processor core
+                                                              process->vid->toString().c_str(),
+                                                              // Name of the task (for debugging)
+                                                              stack_size, // Stack size (bytes)
+                                                              process.get(), // Parameter to pass
+                                                              CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+                                                              static_cast<Thread *>(process.get())->xthread,
+                                                              // Task handle
+                                                              tskNO_AFFINITY); // Processor core
       return (pdPASS == threadResult) ? process : nullptr;
     }
 
-
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : BaseScheduler(id) {
+      const char *state;
+      switch(xTaskGetSchedulerState()) {
+        case taskSCHEDULER_RUNNING: state = "!grunning!!"; break;
+        case taskSCHEDULER_NOT_STARTED: state = "!ynot started!!"; break;
+        case taskSCHEDULER_SUSPENDED: state = "!rsuspended!!"; break;
+        default: throw fError("unknown scheduler state");
+      }
+      LOG_KERNEL_OBJ(INFO,this,"scheduler status: %s", state);
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
     }
 
@@ -95,11 +104,11 @@ namespace fhatos {
       auto *thread = static_cast<Thread *>(vptr_thread);
       // ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
       try {
-        while (thread->running) {
+        while(thread->running) {
           thread->loop();
-          FEED_WATCDOG(); // feeds the watchdog for the task
+          FEED_WATCHDOG(); // feeds the watchdog for the task
         }
-      } catch (fError error) {
+      } catch(fError error) {
         thread->stop();
         LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
       }
@@ -108,8 +117,8 @@ namespace fhatos {
 
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid->equals(*thread->vid);
-        if (remove) {
-          Router::singleton()->unsubscribe(*singleton()->vid,*proc->vid);
+        if(remove) {
+          Router::singleton()->unsubscribe(*singleton()->vid, *proc->vid);
           LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid->toString().c_str());
         }
         return remove;
@@ -117,6 +126,7 @@ namespace fhatos {
       vTaskDelete(nullptr);
     }
   };
+
   inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
 } // namespace fhatos
 

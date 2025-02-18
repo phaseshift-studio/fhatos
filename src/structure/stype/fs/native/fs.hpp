@@ -95,8 +95,7 @@ namespace fhatos {
         return;
       }
       if(id.is_node()) {
-        const fs::path parent_path = file_path.parent_path();
-        if(!fs::exists(parent_path))
+        if(const fs::path parent_path = file_path.parent_path(); !fs::exists(parent_path))
           fs::create_directories(parent_path);
         //LOG(INFO, "writing to %s -> %s\n", id->toString().c_str(), file_path.c_str());
         const BObj_p bobj = obj->serialize();

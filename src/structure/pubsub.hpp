@@ -172,10 +172,11 @@ namespace fhatos {
     }
 
     Obj_p apply(const Message_p &message) const {
+      const bool is_no = message->payload()->is_noobj();
       return this->on_recv()->apply(message->payload(), to_rec({
-                                        {"target", vri(message->target())},
-                                        {"payload", message->payload()},
-                                        {"retain", dool(message->retain())}}));
+                                        {"target", is_no ? vri(message->target()) : block(vri(message->target()))},
+                                        {"payload", is_no ? message->payload() : block(message->payload())},
+                                        {"retain", is_no ? dool(message->retain()) : block(dool(message->retain()))}}));
     }
   };
 } // namespace fhatos

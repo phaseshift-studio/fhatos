@@ -44,7 +44,7 @@ namespace fhatos {
               {"barrier", noobj()},
               {"process", lst()}}),
           OType::REC, REC_FURI, id_p(id)) {
-      FEED_WATCDOG = [this] {
+      FEED_WATCHDOG = [this] {
         this->feed_local_watchdog();
       };
       SCHEDULER_ID = this->vid;
@@ -61,7 +61,7 @@ namespace fhatos {
 
     ~BaseScheduler() override {
       delete processes_;
-      FEED_WATCDOG = []() {
+      FEED_WATCHDOG = []() {
       };
     }
 

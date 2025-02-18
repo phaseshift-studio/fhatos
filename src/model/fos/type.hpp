@@ -30,7 +30,8 @@
 #include "sys/thread/fthread.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
 #ifdef ARDUINO
-#include "io/wifi/wifi.hpp"
+#include "net/wifi.hpp"
+#include "net/ota.hpp"
 #include "io/pwm/pwm.hpp"
 #include "sensor/aht10/aht10.hpp"
 #include "sensor/mlx90614/mlx90614.hpp"
@@ -45,6 +46,7 @@ namespace fhatos {
   class fOS {
   public:
     static void *import_types() {
+      load_processor();
       Typer::singleton()->start_progress_bar(10);
       Typer::singleton()->save_type(
                   *MESSAGE_FURI, Obj::to_rec({
@@ -93,6 +95,7 @@ namespace fhatos {
 #ifdef ARDUINO
       PWM::import();
       WIFIx::import();
+      OTA::import();
 #endif
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));

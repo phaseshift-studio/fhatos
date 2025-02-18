@@ -20,8 +20,6 @@
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
 #include "../util/print_helper.hpp"
-#include "stype/heap.hpp"
-#include STR(stype/mqtt/HARDWARE/mqtt.hpp)
 
 namespace fhatos {
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
@@ -349,11 +347,9 @@ namespace fhatos {
   [[nodiscard]] fURI Router::resolve(const fURI &furi) const {
     if(!this->active)
       return furi;
-    if(furi.empty())
+    if(furi.empty() || (!furi.headless() && !furi.has_components()))
       return furi;
     if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
-      return furi;
-    if(!furi.headless() && !furi.has_components())
       return furi;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
     if(furi.has_components()) {

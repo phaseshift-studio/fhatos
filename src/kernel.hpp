@@ -29,9 +29,7 @@
 #include "boot_config_loader.hpp"
 
 namespace fhatos {
-
   class Kernel {
-
   public:
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
@@ -88,9 +86,9 @@ namespace fhatos {
 
     static ptr<Kernel> display_reset_reason() {
 #ifdef ESP_ARCH
-      esp_reset_reason_t reason = esp_reset_reason();
+      const esp_reset_reason_t reason = esp_reset_reason();
       string r;
-      switch (reason) {
+      switch(reason) {
         case ESP_RST_UNKNOWN:
           r = "unknown";
           break;
@@ -119,7 +117,7 @@ namespace fhatos {
           to_string(reason) + " code";
           break;
       }
-      printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n",r.c_str());
+      printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n", r.c_str());
 #endif
       return Kernel::build();
     }
@@ -149,13 +147,13 @@ namespace fhatos {
     }*/
 
     static ptr<Kernel> mount(const Structure_p &structure) {
-      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->attach(structure);
       return Kernel::build();
     }
 
     static ptr<Kernel> install(const Obj_p &obj) {
-      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       if(obj->vid) {
         Router::singleton()->write(*obj->vid, obj,RETAIN);
         LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid->toString().c_str());

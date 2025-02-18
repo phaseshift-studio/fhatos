@@ -32,7 +32,7 @@
 #include "model/terminal.hpp"
 #include "model/log.hpp"
 #include "model/fos/sys/thread/fthread.hpp"
-#include STR(structure/stype/mqtt/HARDWARE/mqtt.hpp)
+#include "structure/stype/mqtt/mqtt.hpp"
 #include "structure/stype/heap.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/type.hpp"
@@ -54,8 +54,8 @@
 #include "model/fos/io/pwm/pwm.hpp"
 #include "model/fos/ui/oled/oled.hpp"
 #include "model/fos/ui/rgbled/rgbled.hpp"
-#include "model/soc/esp/ota.hpp"
-#include "model/fos/io/wifi/wifi.hpp"
+#include "model/fos/net/ota.hpp"
+#include "model/fos/net/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #ifdef CONFIG_SPIRAM_USE
 #include "util/esp32/psram_allocator.hpp"
@@ -75,11 +75,9 @@ namespace fhatos {
 #ifdef CONFIG_SPIRAM_USE
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
-
 #endif
         if(args_parser->option_string("--boot:config", "NONE") == "NONE")
           args_parser->set_option("--boot:config", "boot/boot_config.obj");
-        load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
             ->using_printer(Ansi<>::singleton())
             ->with_ansi_color(args_parser->option_bool("--ansi", true))
@@ -107,8 +105,10 @@ namespace fhatos {
             ->mount(Heap<>::create("/mnt/#"))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
-            ->import(Router::import())->drop_config("router")
-            ->import(Scheduler::import())->drop_config("scheduler");
+            ->import(Router::import())
+            ->drop_config("router")
+            ->import(Scheduler::import())
+            ->drop_config("scheduler");
         ////////////////////////////////////////////////////////////
         ////////////////// USER IMPORT(S) //////////////////////////
         ////////////////////////////////////////////////////////////
@@ -123,7 +123,6 @@ namespace fhatos {
             ->import(mmADT::import())
             ////////
             ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
-
             ->import(fOS::import_io())
             ->import(fOS::import_sys())
             ->import(fOS::import_sensor())
@@ -149,33 +148,35 @@ namespace fhatos {
                                 Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
             ->drop_config("fs")
 #if defined(ESP_ARCH)
-            ->mount(Heap<>::create("/sensor/#",id_p("/mnt/sensor")))
-            ->install(*__(WIFIx::obj({
-              {"halt", dool(false)},
-              {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin())}},"/io/wifi"))
+            ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
+            ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
+            ->install(*__(WIFIx::obj({{"halt", dool(false)},
+                                       {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin())}},
+                                     "/io/wifi"))
               ->inst("connect")->begin())
             ->drop_config("wifi")
-             ->mount(Structure::create<Memory>("/soc/memory/#"))
-             ->mount(Heap<>::create("/soc/ota/#",id_p("/sys/structure/ota")))
-           //  ->process(OTA::singleton("/soc/ota",Router::singleton()->read(id_p(FOS_BOOT_CONFIG_VALUE_ID "/ota"))))
-             ->drop_config("ota")
-             //->mount(HeapPSRAM::create("/psram/#"))
+            ->mount(Structure::create<Memory>("/soc/memory/#"))
+             /*->install(*__(OTA::obj({{"halt", dool(false)},
+                                      {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->begin())}},
+                                    "/io/ota"))
+               ->inst("start")->begin())*/
+            ->drop_config("ota")
+            //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(Structure::create<Mqtt>("//io/#", id_p("/sys/structure/mqtt"),
-                                            Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
-                                                Obj::to_rec({
-                                                    {"broker",
-                                                     vri(args_parser->option_string(
-                                                         "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                                    {"client",
-                                                     vri(args_parser->option_string(
-                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+            ->mount(Mqtt::create("//io/#", id_p("/mnt/mqtt"),
+                                 Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
+                                     Obj::to_rec({
+                                         {"broker",
+                                          vri(args_parser->option_string(
+                                              "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                         {"client",
+                                          vri(args_parser->option_string(
+                                              "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
             ->process(Console::create("/io/console",
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")
             ->eval([args_parser] {
-
               Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
               Router::singleton()->loop();
               delete args_parser;

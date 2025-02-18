@@ -26,7 +26,7 @@
 #include "pubsub.hpp"
 #include "../util/enums.hpp"
 #include "../util/mutex_deque.hpp"
-#include STR(../model/fos/sys/thread/HARDWARE/fmutex.hpp)
+#include "../model/fos/sys/thread/fmutex.hpp"
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
@@ -90,7 +90,7 @@ namespace fhatos {
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
       while(mail.has_value()) {
-        FEED_WATCDOG();
+        FEED_WATCHDOG();
         LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
@@ -104,7 +104,7 @@ namespace fhatos {
       if(!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already stopped\n");
       this->subscriptions_->clear();
-      this->outbox_->clear(false);
+      this->outbox_->get_base().clear();
       this->available_ = false;
     }
 
@@ -148,7 +148,7 @@ namespace fhatos {
       for(const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
           if(id.matches(*subscription->pattern())) {
-            FEED_WATCDOG();
+            FEED_WATCHDOG();
             subscription->apply(make_shared<Message>(id_p(id), obj,RETAIN));
           }
         }
@@ -228,7 +228,7 @@ namespace fhatos {
           }
         }
       } catch(const std::exception &e) {
-        throw fError("unable to read from %s", furi.toString().c_str());
+        throw fError("unable to read from %s: %s", furi.toString().c_str(), e.what());
       }
     }
 

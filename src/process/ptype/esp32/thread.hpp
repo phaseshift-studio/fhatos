@@ -25,7 +25,7 @@
 namespace fhatos {
   class Thread : public Process {
   protected:
-    int find_stack_size() {
+    int find_stack_size() const {
       return ROUTER_READ(this->vid->extend("stack_size")) // check provided obj
           ->or_else(ROUTER_READ(this->vid->extend("+/stack_size"))->none_one())
           // check one depth more (e.g. config/stack_size)

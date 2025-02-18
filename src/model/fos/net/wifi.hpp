@@ -20,9 +20,10 @@
 #ifndef fhatos_wifix_hpp
 #define fhatos_wifix_hpp
 #ifndef NATIVE
-#include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
-#include "../../../model.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../lang/type.hpp"
+#include "../../model.hpp"
+#include "../../../util/print_helper.hpp"
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
@@ -49,9 +50,9 @@
 
 namespace fhatos {
 
-  const ID_p WIFI_FURI = id_p(FOS_URI "/io/wifi");
-  const ID_p MAC_FURI = id_p(FOS_URI "/io/mac");
-  const ID_p IP_FURI = id_p(FOS_URI "/io/ip");
+  const ID_p WIFI_FURI = id_p(FOS_URI "/net/wifi");
+  const ID_p MAC_FURI = id_p(FOS_URI "/net/mac");
+  const ID_p IP_FURI = id_p(FOS_URI "/net/ip");
 
   class WIFIx : public Model<WIFIx> {
 
@@ -85,7 +86,7 @@ namespace fhatos {
           })->save();
       ///////////////////////////////////////////////////////
       if(wifi_config && !wifi_config->is_noobj()) {
-        const Obj_p& wifi_obj = Obj::to_rec({{"halt",dool(false)},{"config",wifi_config->clone()}},id_p(WIFI_FURI));
+        const Obj_p& wifi_obj = WIFIx::obj({{"halt",dool(false)},{"config",wifi_config->clone()}},"/io/wifi");
         LOG_OBJ(INFO,wifi_obj,"!ywifi connection!! attempt: !b%s!!\n",wifi_config->rec_get("ssid")->uri_value().toString().c_str());
         WIFIx::connect_inst(wifi_obj,Obj::to_inst_args());
       }
@@ -129,8 +130,7 @@ namespace fhatos {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           const string mdns_name = config->rec_get("mdns")->uri_value().toString();
-          const bool mdnsStatus = MDNS.begin(mdns_name.c_str());
-          if (!mdnsStatus) {
+          if (const bool mdns_status = MDNS.begin(mdns_name.c_str()); !mdns_status) {
             LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", mdns_name.c_str());
           }
           LOG_OBJ(DEBUG, wifi_obj, "connection attempts: %i\n", attempts);
@@ -149,6 +149,7 @@ namespace fhatos {
       wifi_obj->rec_set("dns",vri(WiFi.dnsIP().toString().c_str(),IP_FURI));
       string wifi_str = PrintHelper::pretty_print_obj(wifi_obj, 3);
       StringHelper::prefix_each_line(FOS_TAB_1, &wifi_str);
+      WiFi.begin();
       LOG_OBJ(INFO, wifi_obj, "\n%s\n", wifi_str.c_str());
       return true;
     }

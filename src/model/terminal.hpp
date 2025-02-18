@@ -29,7 +29,7 @@ namespace fhatos {
     explicit Terminal(const ID &id) : Rec(rmap({{":stdout", InstBuilder::build(":stdout")
                                               ->type_args(x(0, Obj::to_bcode()))
                                               ->inst_f([](const Str_p &obj, const InstArgs &args) {
-                                                FEED_WATCDOG();
+                                                FEED_WATCHDOG();
                                                 STD_OUT_DIRECT(obj);
                                                 return noobj();
                                               })->create()},

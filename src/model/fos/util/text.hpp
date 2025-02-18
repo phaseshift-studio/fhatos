@@ -35,7 +35,7 @@ namespace fhatos {
         Ansi<>::singleton()->printf("%s", text_state->body.c_str());
       auto temp = string(text_state->body);
       while(true) {
-        FEED_WATCDOG();
+        FEED_WATCHDOG();
         temp += static_cast<char>(Terminal::STD_IN_DIRECT()->int_value());
         ///////////////// SAVE /////////////////
         if(Text::postfix_match(temp, ":s")) {

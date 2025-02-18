@@ -11,6 +11,7 @@
   broker=><mqtt://chibi.local:1883>,
   client=>fhatos_client],
  wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
+ ota=>[host=>mdns://fhatos_client:3232],
  console=>[
   terminal=>[
    stdout=>/io/terminal/:stdout,
@@ -22,5 +23,5 @@
   log=>INFO,
   stack_size=>24288
  ],
- fs=>[root=></>]
+ fs=>[root=><.>]
 ]@/boot/config
