@@ -26,22 +26,18 @@ namespace fhatos {
 #define RETAIN true
 #define TRANSIENT false
 
-#define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>%s\n",            \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      (subscription)->source()->toString().c_str(),(subscription)->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),   \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),  \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
   LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      ((message).payload()->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                       \
+      ((message).payload()->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                     \
       ((message).target().toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
   LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
-      (((subscription).pattern().equals((message).target()))                                                               \
+      (((subscription).pattern().equals((message).target()))                                                           \
            ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!!\n"                                         \
            : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!!\n"),                                       \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \

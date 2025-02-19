@@ -131,8 +131,7 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
         using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
-        Log::LOGGER(DEBUG, Typer::singleton().get(), " !yresolving!! !yinst!! %s [!gSTART!!]\n",
-                    inst->toString().c_str());
+        LOG_WRITE(DEBUG, Typer::singleton().get(), L(" !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString()));
         const auto compiler = Compiler(true, false);
         if(inst->is_noobj())
           return inst;
@@ -146,8 +145,8 @@ namespace fhatos {
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid) {
-              Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
-                          inst_type_id.toString().c_str());
+              LOG_WRITE(DEBUG, Typer::singleton().get(), L("!m==>!!searching for !yinst!! !b%s!!\n",
+                                                           inst_type_id.toString()));
               const ID next_inst_type_id =
                   current_obj->vid->add_component(inst_type_id);
               maybe = Router::singleton()->read(next_inst_type_id);
@@ -158,8 +157,8 @@ namespace fhatos {
             }
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
-            Log::LOGGER(DEBUG, Typer::singleton().get(), "!m==>!!searching for !yinst!! !b%s!!\n",
-                        inst_type_id.toString().c_str());
+            LOG_WRITE(DEBUG, Typer::singleton().get(),
+                      L("!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id.toString()));
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
                                            ? ID(inst_type_id) // drop back to flat namespace
                                            : current_obj->tid->no_query().add_component(inst_type_id);

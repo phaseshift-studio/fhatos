@@ -71,7 +71,7 @@ namespace fhatos {
       }
       /////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////
-      LOG_OBJ(DEBUG, this, "line to parse: %s\n", line.c_str());
+      LOG_WRITE(DEBUG, this, L("line to parse: {}\n", line));
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
       try {

@@ -70,8 +70,7 @@ namespace fhatos {
   Mqtt::Mqtt(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
     Structure(pattern, id_p(MQTT_FURI), value_id, config) {
     if(this->exists()) {
-      LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n",
-                    this->Obj::rec_get("config/broker")->toString().c_str());
+      LOG_WRITE(INFO, this, L("reusing existing connection to %s\n", this->Obj::rec_get("config/broker")->toString()));
       // MQTT_VIRTUAL_CLIENTS.push_back(this);
     } else {
       MQTT_VIRTUAL_CLIENTS.push_back(this);

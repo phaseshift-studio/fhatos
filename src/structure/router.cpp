@@ -17,12 +17,18 @@
  ******************************************************************************/
 
 #include "router.hpp"
+
+#include <format>
+
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
 #include "../util/print_helper.hpp"
+#include "../util/string_helper.hpp"
 
 namespace fhatos {
+
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
+
 
   ptr<Router> Router::singleton(const ID &value_id) {
     static auto router_p = std::make_shared<Router>(value_id);
@@ -34,8 +40,7 @@ namespace fhatos {
       int counter = 0;
       ptr<Frame<>> frame = THREAD_FRAME_STACK;
       while(nullptr != frame) {
-        LOG_OBJ(log_type, frame, "!m%s!g>!! %s\n", StringHelper::repeat(++counter,"-").c_str(),
-                frame->toString().c_str());
+        LOG_WRITE(log_type, frame.get(), L("!m{}!g>!! {}\n", StringHelper::repeat(++counter,"-"), frame->toString()));
         frame = frame->previous;
       }
     }
@@ -46,6 +51,7 @@ namespace fhatos {
         //stop and attach
         OType::REC, REC_FURI, id_p(id)),
     structures_(make_unique<MutexDeque<Structure_p>>()) {
+    load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_ID = id_p(this->vid);
     ////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +74,7 @@ namespace fhatos {
       this->write(furi, obj, retain);
     };
     ////////////////////////////////////////////////////////////////////////////////////
-    LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
+    LOG_WRITE(INFO, this, L("!yrouter!! started\n"));
   }
 
   void Router::push_frame(const Pattern &pattern, const Rec_p &frame_data) {
@@ -86,7 +92,7 @@ namespace fhatos {
   void Router::load_config(const ID &config_id) {
     const Obj_p config = this->read(config_id);
     if(config->is_noobj())
-      LOG_KERNEL_OBJ(WARN, this, "!b%s!! does not reference a config obj\n", config_id.toString().c_str());
+      LOG_WRITE(WARN, this, L("!b%s!! does not reference a config obj\n", config_id.toString().c_str()));
     if(!config->is_noobj()) {
       const Rec_p router_config = config->rec_get(vri("router"));
       this->rec_set("config", router_config);
@@ -105,8 +111,7 @@ namespace fhatos {
     if(remove) {
       this->structures_->remove_if([this](const Structure_p &structure) {
         if(!structure->available()) {
-          LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!! detached\n", structure->pattern->toString().c_str(),
-                         structure->tid->name().c_str());
+          LOG_WRITE(INFO, this, L("!b%s !y%s!! detached\n",structure->pattern->toString(),structure->tid->name()));
           return true;
         }
         return false;
@@ -127,11 +132,11 @@ namespace fhatos {
       map->insert({name, count});
     });
     for(const auto &[name, count]: *map) {
-      LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
+      LOG_WRITE(INFO, this, L("!b%s !y%s!!(s) closing\n", to_string(count), name));
     }
     this->active = false;
     this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
-    LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid->toString().c_str());
+    LOG_WRITE(INFO, this, L("!yrouter !b%s!! stopped\n", this->vid->toString()));
   }
 
   void Router::attach(const Structure_p &structure) const {
@@ -191,9 +196,9 @@ namespace fhatos {
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
       const Objs_p objs = structure->read(resolved_furi);
-      LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
-                     this->vid->toString().c_str(), resolved_furi.toString().c_str(), // make this the current process
-                     objs->toString().c_str(), structure->pattern->toString().c_str());
+      LOG_WRITE(DEBUG, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
+                               this->vid->toString(), resolved_furi.toString(), // make this the current process
+                               objs->toString(), structure->pattern->toString())          );
       return objs->none_one_all();
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);

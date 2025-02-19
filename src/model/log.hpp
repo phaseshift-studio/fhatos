@@ -19,6 +19,8 @@
 #ifndef fhatos_log_hpp
 #define fhatos_log_hpp
 
+#include <format>
+
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/obj_helper.hpp"
@@ -30,10 +32,47 @@
 namespace fhatos {
   class Log final : public Rec {
   protected:
-    explicit Log(const ID &value_id, const Rec_p &config) : Rec(rmap({{"config", config}}),
-                                                                OType::REC,
-                                                                REC_FURI,
-                                                                id_p(value_id)) {
+    explicit Log(const ID &value_id, const Rec_p &config) :
+      Rec(rmap({{"config", config}}),
+          OType::REC,
+          REC_FURI,
+          id_p(value_id)) {
+      LOG_OBJ(INFO, this, "switching from !yboot logger!! to !gsystem logger!!\n");
+      LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
+        PRIMARY_LOGGING(log_type, source, message);
+      };
+    }
+
+    static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
+      bool match = false;
+      const Lst_p furis = Log::singleton()->rec_get(vri(fURI("config").extend(LOG_TYPES.to_chars(type))));
+      for(const auto &a: *furis->lst_value()) {
+        if(source->vid_or_tid()->matches(a->uri_value())) {
+          match = true;
+          break;
+        }
+      }
+      if(match) {
+        std::lock_guard lock(stdout_mutex);
+        if(type == NONE)
+          printer<>()->print("");
+        else if(type == ERROR)
+          printer<>()->print("!r[ERROR]!! ");
+        else if(type == WARN)
+          printer<>()->print("!y[WARN] !! ");
+        else if(type == INFO)
+          printer<>()->print("!g[INFO] !! ");
+        else if(type == DEBUG)
+          printer<>()->print("!y[DEBUG]!! ");
+        else if(type == TRACE)
+          printer<>()->print("!r[TRACE]!! ");
+        printer<>()->print((StringHelper::format((source->vid->equals(*Router::singleton()->vid)
+                                                   /*|| source->vid->equals(*SCHEDULER_ID)*/)
+                                                   ? SYS_ID_WRAP
+                                                   : OBJ_ID_WRAP, // TODO: once scheduler.hpp and .cpp are split
+                                                 source->vid_or_tid()->toString().c_str()) + " ").c_str());
+        printer<>()->print(message().c_str());
+      }
     }
 
     template<typename... Args>
@@ -60,28 +99,13 @@ namespace fhatos {
     }
 
   public:
-    template<typename... Args>
-    static void LOGGER(const LOG_TYPE type, const Obj *source, const char *format, const Args... args) {
-      bool match = false;
-      const fURI furi = fURI("config").extend(LOG_TYPES.to_chars(type));
-      for(const auto &a: *Log::singleton()->this_get(furi)->lst_value()) {
-        if(source->vid_or_tid()->matches(a->uri_value())) {
-          match = true;
-          break;
-        }
-      }
-      if(match) { // make it type based once fully integrated
-        PRINT_LOG(INFO, source, format, args...);
-      }
-    }
-
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
       const static auto log = ptr<Log>(new Log(id, config->is_noobj()
                                                      ? rec({
-                                                       {"INFO", lst({vri("#")})},
-                                                       {"ERROR", lst({vri("#")})},
-                                                       {"DEBUG", lst()},
-                                                       {"TRACE", lst()}})
+                                                         {"INFO", lst({vri("#")})},
+                                                         {"ERROR", lst({vri("#")})},
+                                                         {"DEBUG", lst()},
+                                                         {"TRACE", lst()}})
                                                      : config));
       return log;
     }

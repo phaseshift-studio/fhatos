@@ -128,16 +128,18 @@ namespace fhatos {
 
     virtual void recv_subscription(const Subscription_p &subscription) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to receive!! %s\n", subscription->toString().c_str());
+        LOG_WRITE(ERROR, this, L("!yunable to receive!! {}\n", subscription->toString()));
         return;
       }
-      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
+      LOG_WRITE(DEBUG, this, L("!yreceived!! {}\n", subscription->toString()));
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
       this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
       if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
         this->subscriptions_->push_back(subscription);
-        LOG_SUBSCRIBE(OK, subscription);
+        LOG_WRITE(DEBUG, subscription.get(),
+                  L("!m[!!{}!m][!b{}!m]=!gsubscribe!m=>{}\n", subscription->source()->toString(),
+                    subscription->toString(), subscription->pattern()->toString()));
         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
         this->publish_retained(subscription);
       }
@@ -165,7 +167,7 @@ namespace fhatos {
 
     virtual Obj_p read(const fURI &furi) {
       if(!this->available_.load()) {
-        LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi.toString().c_str());
+        LOG_WRITE(ERROR, this, L("!yunable to read!! {}\n", furi.toString()));
         return noobj();
       }
       const fURI furi_no_query = furi.no_query();
@@ -205,11 +207,11 @@ namespace fhatos {
           /////////////////////////////////////// READ NODE PATTERN/ID /////////////////////////////////////////////
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           if(matches.empty()) {
-            LOG(TRACE, "searching for base poly of: %s\n", furi.toString().c_str());
+            LOG_WRITE(TRACE, this, L("searching for base poly of: {}\n", furi.toString()));
             if(const auto pair = this->locate_base_poly(furi.retract()); pair.has_value()) {
-              LOG(TRACE, "base poly found at %s: %s\n",
-                  pair->first.toString().c_str(),
-                  pair->second->toString().c_str());
+              LOG_WRITE(TRACE, this, L("base poly found at {}: {}\n",
+                                       pair->first.toString(),
+                                       pair->second->toString())                  );
               const fURI_p furi_subpath = id_p(furi.remove_subpath(pair->first.as_branch().toString(), true));
               const Poly_p poly_read = pair->second; //->clone();
               Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
@@ -343,19 +345,17 @@ namespace fhatos {
           /////////////////////////////////////// WRITE NODE ID ////////////////////////////////////////////////////
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           else {
-            LOG(TRACE, "searching for base poly of: %s\n", new_furi.toString().c_str());
+            LOG_WRITE(TRACE, this,L("searching for base poly of: {}\n", new_furi.toString()));
             if(const auto pair = this->locate_base_poly(new_furi.retract()); pair.has_value()) {
-              LOG(TRACE, "base poly found at %s: %s\n",
-                  pair->first.toString().c_str(),
-                  pair->second->toString().c_str());
+              LOG_WRITE(TRACE, this,L("base poly found at {}: {}\n",
+                                      pair->first.toString(), pair->second->toString()));
               const ID_p id_insert =
                   id_p(new_furi.remove_subpath(pair->first.as_branch().toString(), true).to_node());
               const Poly_p poly_insert = pair->second; //->clone();
               poly_insert->poly_set(vri(id_insert), obj);
               distribute_to_subscribers(Message::create(id_p(new_furi), obj, retain));
-              LOG(TRACE, "base poly reinserted into structure at %s: %s\n",
-                  pair->first.toString().c_str(),
-                  poly_insert->toString().c_str());
+              LOG_WRITE(TRACE, this, L("base poly reinserted into structure at {}: {}\n",
+                                       pair->first.toString(), poly_insert->toString()));
               this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
             } else {
               this->write_raw_pairs(new_furi, obj, retain);

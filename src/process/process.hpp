@@ -26,8 +26,8 @@
 #include "../lang/obj.hpp"
 #include "../util/obj_helper.hpp"
 
-#define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
-#define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
+#define FOS_ALREADY_STOPPED "!g[!b{}!g] !yprocess!! already stopped\n"
+#define FOS_ALREADY_SETUP "!g[!b{}!g] !yprocess!! already setup\n"
 #ifndef FOS_PROCESS_WDT_COUNTER
 #define FOS_PROCESS_WDT_COUNTER 25
 #endif
@@ -159,7 +159,7 @@ namespace fhatos {
     virtual void stop() {
       this_process = this;
       if(!this->running) {
-        LOG(WARN, FOS_ALREADY_STOPPED, this->vid->toString().c_str());
+        LOG_WRITE(WARN, this, L(FOS_ALREADY_STOPPED, this->vid->toString()));
         return;
       }
       if(const BCode_p stop_bcode = ROUTER_READ(this->vid->extend(":stop")); stop_bcode->is_noobj())
