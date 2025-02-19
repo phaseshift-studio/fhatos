@@ -91,7 +91,7 @@ namespace fhatos {
         list->push_back(process);
       });
       for(const auto &[name,count]: *map) {
-        LOG_KERNEL_OBJ(INFO, this, "!b%s !y%s!!(s) closing\n", to_string(count).c_str(), name.c_str());
+        LOG_WRITE(INFO, this, L("!b%s !y{}!!(s) closing\n", to_string(count), name));
       }
       while(!list->empty()) {
         const Process_p p = list->back();

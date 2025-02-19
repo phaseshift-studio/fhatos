@@ -162,7 +162,7 @@ OPTION(CHECK_INTERNET "check internet" ON)
 OPTION(BUILD_TESTS "build fhatos tests" OFF)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
-OPTION(USE_CCACHE "use ccache" OFF)
+OPTION(USE_CCACHE "use ccache" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################

@@ -70,8 +70,8 @@ namespace fhatos {
                       type_id.toString().c_str(),
                       type_id.toString().c_str());
             } else {
-              LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
-                      type_id.toString().c_str(), current->toString().c_str());
+              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n",
+                                      type_id.toString(), current->toString()));
             }
           }
         } catch(const fError &e) {
@@ -262,7 +262,7 @@ namespace fhatos {
               inst->inst_seed_supplier(),
               inst->tid, inst->vid);
         }
-        LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
+        LOG_WRITE(DEBUG, lhs.get(), L(" !gresolved!! !yinst!! {} [!gEND!!]\n", final_inst->toString()));
         return final_inst;
       };
     }
@@ -299,12 +299,9 @@ namespace fhatos {
         } else {
           Router::singleton()->write(type_id, type_def,RETAIN);
           if(current->is_noobj()) {
-            LOG_OBJ(INFO, this, "!b%s !ytype!! defined\n",
-                    type_id.toString().c_str(),
-                    type_id.toString().c_str());
+            LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString(), type_id.toString()));
           } else {
-            LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
-                    type_id.toString().c_str(), current->toString().c_str());
+            LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
           }
         }
       } catch(const fError &e) {

@@ -93,7 +93,7 @@ namespace fhatos {
         case taskSCHEDULER_SUSPENDED: state = "!rsuspended!!"; break;
         default: throw fError("unknown scheduler state");
       }
-      LOG_KERNEL_OBJ(INFO,this,"scheduler status: %s", state);
+      LOG_WRITE(INFO,this,L("scheduler status: {}", state));
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
     }
 

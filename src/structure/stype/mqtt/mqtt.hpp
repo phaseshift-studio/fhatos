@@ -68,9 +68,8 @@ namespace fhatos {
     void native_mqtt_disconnect();
 
     void connection_logging() const {
-      LOG_STRUCTURE(INFO, this, "!b%s !ymqtt!! %s connected\n",
-                    this->vid->toString().c_str(),
-                    this->rec_get("config")->toString().c_str());
+      LOG_WRITE(INFO, this, L("!b{} !ymqtt!! %s connected\n", this->vid->toString(),
+                              this->rec_get("config")->toString()));
     }
 
     void loop() override;
@@ -79,7 +78,7 @@ namespace fhatos {
 
     void stop() override {
       LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n",
-                    this->rec_get("config")->rec_get("broker")->toString()));
+                              this->rec_get("config")->rec_get("broker")->toString()));
       native_mqtt_disconnect();
       Structure::stop();
     }
@@ -89,8 +88,8 @@ namespace fhatos {
       const bool mqtt_sub = !this->has_equal_subscription_pattern(*subscription->pattern());
       Structure::recv_subscription(subscription);
       if(mqtt_sub) {
-        LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
-                      subscription->toString().c_str());
+        LOG_WRITE(TRACE, this, L("subscribing as no existing subscription found: {}\n",
+                                 subscription->toString()));
         native_mqtt_subscribe(subscription);
       }
     }
@@ -100,8 +99,8 @@ namespace fhatos {
       const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
       if(mqtt_sub && !this->has_equal_subscription_pattern(target)) {
-        LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
-                      target.toString().c_str());
+        LOG_WRITE(TRACE, this, L("unsubscribing from mqtt broker as no existing subscription pattern found: {}\n",
+                                 target.toString()));
         native_mqtt_unsubscribe(target);
       }
     }
@@ -151,8 +150,8 @@ namespace fhatos {
     }
 
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
-      LOG_STRUCTURE(DEBUG, this, "!g!_writing!! %s => !b%s!! !g[!y%s!g]!!\n", obj->toString().c_str(),
-                    id.toString().c_str(), retain ? "retain" : "transient");
+      LOG_WRITE(DEBUG, this, L("!g!_writing!! {} => !b{}!! !g[!y{}!g]!!\n", obj->toString().c_str(),
+                               id.toString().c_str(), retain ? "retain" : "transient"));
       native_mqtt_publish(Message::create(id_p(id), obj->clone(), retain));
     }
 

@@ -203,17 +203,17 @@ namespace fhatos {
       void loop() const {
         if(this->halted()) {
           if(!this->dead()) {
-            LOG_OBJ(TRACE, this->processor_, "monad {} halting\n", this->toString().c_str());
+            LOG_WRITE(TRACE, this->processor_, L("monad {} halting\n", this->toString()));
             this->halt();
           }
         } else {
           //const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj, this->inst);
           const Inst_p current_inst_resolved = this->processor_->compiler_->resolve_inst(this->obj, this->inst);
-          LOG_OBJ(TRACE, this->processor_, "monad {} applying to resolved inst {} !m=>!! {} [!m{}!!]\n",
-                  this->toString().c_str(),
-                  this->inst->toString().c_str(),
-                  current_inst_resolved->toString().c_str(),
-                  "SIGNATURE HERE");
+          LOG_WRITE(TRACE, this->processor_, L("monad {} applying to resolved inst {} !m=>!! {} [!m{}!!]\n",
+                  this->toString(),
+                  this->inst->toString(),
+                  current_inst_resolved->toString(),
+                  "SIGNATURE HERE"));
           this->domain_loop(current_inst_resolved);
         }
       }
@@ -248,10 +248,10 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////////////
 
       void range_loop(const Obj_p &next_obj, const Inst_p &current_inst_resolved) const {
-        LOG_OBJ(TRACE, this->processor_, FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
-                this->processor_->M(next_obj,this->inst)->toString().c_str(),
-                current_inst_resolved->toString().c_str(),
-                "SIGNATURE HERE");
+        LOG_WRITE(TRACE, this->processor_, L(FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
+                this->processor_->M(next_obj,this->inst)->toString(),
+                current_inst_resolved->toString(),
+                "SIGNATURE HERE"));
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst);
         if(next_inst->is_generative()) {

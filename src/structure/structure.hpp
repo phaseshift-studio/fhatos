@@ -79,7 +79,7 @@ namespace fhatos {
 
     virtual void setup() {
       if(this->available_.load()) {
-        LOG_STRUCTURE(WARN, this, "!ystructure!! already available\n");
+        LOG_WRITE(WARN, this, L("!ystructure!! already available\n"));
         return;
       }
       this->available_.store(true);

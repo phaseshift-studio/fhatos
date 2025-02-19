@@ -53,7 +53,7 @@ namespace fhatos {
             scheduler()->feed_local_watchdog();
             func(id, obj);
             scheduler()->feed_local_watchdog();
-            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id.toString().c_str(), obj->toString().c_str());
+            LOG_WRITE(DEBUG, this, L("!g{}!y=>!g{}!! written\n", id.toString(), obj->toString()));
           }
         }
       }

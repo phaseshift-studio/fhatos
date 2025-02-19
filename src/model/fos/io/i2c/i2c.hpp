@@ -70,7 +70,7 @@ namespace fhatos {
     static Obj_p stop_inst(const Obj_p &i2c, const InstArgs &) {
       const ptr<I2C> i2c_state = I2C::get_state(i2c);
     Wire.end();
-      LOG_OBJ(INFO, i2c, "!ywire communication!! stopped\n");
+      LOG_WRITE(INFO, i2c.get(), L("!ywire communication!! stopped\n"));
       return Obj::to_noobj();
     }
 

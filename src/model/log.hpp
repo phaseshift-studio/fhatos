@@ -37,7 +37,7 @@ namespace fhatos {
           OType::REC,
           REC_FURI,
           id_p(value_id)) {
-      LOG_OBJ(INFO, this, "switching from !yboot logger!! to !gsystem logger!!\n");
+      LOG_WRITE(INFO, this, L("switching from !yboot logger!! to !gsystem logger!!\n"));
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
         PRIMARY_LOGGING(log_type, source, message);
       };

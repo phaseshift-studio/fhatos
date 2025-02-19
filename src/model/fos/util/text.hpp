@@ -42,7 +42,7 @@ namespace fhatos {
           temp = temp.substr(0, temp.length() - 2);
           text_state->body = temp;
           MODEL_STATES::singleton()->store(text_state_id, text_state);
-          LOG_OBJ(INFO, text_obj, "!b%s !ysource code!! saved\n", text_obj->vid->toString().c_str());
+          LOG_WRITE(INFO, text_obj.get(), L("!b{} !ysource code!! saved\n", text_obj->vid->toString()));
           Ansi<>::singleton()->print(text_state->body.c_str());
           Ansi<>::singleton()->flush();
         }
@@ -52,9 +52,9 @@ namespace fhatos {
           StringHelper::trim(temp);
           const Obj_p obj = mmadt::Parser::singleton()->parse(temp.c_str());
           Router::singleton()->write(text_state_id, obj);
-          LOG_OBJ(INFO, text_obj, "!b%s !ysource %s!! parsed\n",
-                  text_state_id.toString().c_str(),
-                  obj->toString().c_str());
+          LOG_WRITE(INFO, text_obj.get(), L("!b{} !ysource {}!! parsed\n",
+                                            text_state_id.toString(),
+                                            obj->toString())              );
           Ansi<>::singleton()->print(temp.c_str());
           Ansi<>::singleton()->flush();
         }

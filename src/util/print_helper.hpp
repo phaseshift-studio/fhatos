@@ -37,7 +37,7 @@ namespace fhatos {
 
     static void pretty_print_obj(const Obj_p &obj, const FOS_INT_TYPE depth,
                                  const FOS_INT_TYPE max_depth, const bool parent_rec, std::streambuf *sb,
-                                 bool char_indent = true,
+                                 const bool char_indent = true,
                                  ObjPrinter *obj_printer = nullptr) {
       auto ss = std::ostream(sb);
       if(obj->is_objs()) {
@@ -71,18 +71,17 @@ namespace fhatos {
         ss << "!m[!!\n";
         for(const auto &[key, value]: *obj->rec_value()) {
           if(!value->is_poly()) {
-            ss << StringHelper::format(
-              "%s!c%s!m=>!!%s!!\n",
-              (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (char_indent ? "==>!!" : "   !!")).
-              c_str(),
-              key->toString().c_str(),
-              value->toString().c_str());
+            ss << std::format(
+              "{}!c{}!m=>!!{}!!\n",
+              (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (char_indent ? "==>!!" : "   !!")),
+              key->toString(),
+              value->toString());
           } else {
-            ss << StringHelper::format(
-              "%s!c%s!m=>!!", (string("!g") +
+            ss << std::format(
+              "{}!c{}!m=>!!", (string("!g") +
                                StringHelper::repeat(depth, char_indent ? "=" : " ") +
-                               (char_indent ? "==>!!" : "   !!")).c_str(),
-              key->toString().c_str());
+                               (char_indent ? "==>!!" : "   !!")),
+              key->toString());
             pretty_print_obj(value, depth + 1, max_depth, true, sb, char_indent);
           }
         }

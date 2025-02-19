@@ -358,7 +358,7 @@ namespace fhatos {
   };
 
   inline TriConsumer<LOG_TYPE, const Obj *, std::function<std::string()>> LOG_WRITE =
-      [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()>& message) {
+      [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
     LOG(log_type, "%s", message().c_str());
   };
   inline Runnable ROUTER_POP_FRAME = []() {
@@ -742,9 +742,9 @@ namespace fhatos {
           Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->lst_set(index, undo);
-          LOG_OBJ(WARN, this, "!blst!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
-                  index->toString().c_str(),
-                  undo->toString().c_str());
+          LOG_WRITE(WARN, this, L("!blst!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n",
+                                  index->toString(),
+                                  undo->toString())              );
           throw;
         }
       }
@@ -873,9 +873,8 @@ namespace fhatos {
           Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->rec_set(key, undo);
-          LOG_OBJ(WARN, this, "!brec!! entry write reverted: !g[!!%s !m=>!! %s!g]!!\n",
-                  key->toString().c_str(),
-                  undo->toString().c_str());
+          LOG_WRITE(WARN, this, L("!brec!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n", key->toString(),
+                                  undo->toString())              );
           throw;
         }
       }
@@ -1997,8 +1996,8 @@ namespace fhatos {
                                  : string(this->vid->query()).append("&lock=").append(user.toString());
       const ID new_vid = this->vid->query(new_query.c_str());
       const Obj_p new_obj = this->at(id_p(new_vid));
-      LOG_OBJ(INFO, this, "!g[!r.!y.!c.!g]!m@!b%s !yobj!! locked by !b%s!!\n",
-              this->vid->no_query().toString().c_str(), user.toString().c_str());
+      LOG_WRITE(INFO, this, L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! locked by !b{}!!\n",
+                              this->vid->no_query().toString(), user.toString()));
       return new_obj;
     }
 
@@ -2010,8 +2009,8 @@ namespace fhatos {
       if(this->lock().value() == user) {
         const ID new_vid = this->vid->query(""); // TODO: selectively remove lock
         const Obj_p new_obj = this->at(id_p(new_vid));
-        LOG_OBJ(INFO, this, "!g[!r.!y.!c.!g]!m@!b%s !yobj!! unlocked by !b%s!!\n",
-                this->vid->no_query().toString().c_str(), user.toString().c_str());
+        LOG_WRITE(INFO, this, L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! unlocked by !b{}!!\n",
+                this->vid->no_query().toString(), user.toString()));
         return new_obj;
       } else {
         throw fError("only the owner %s can unlock %s\n", this->vid->query_value("lock").value().c_str(),
@@ -2367,7 +2366,7 @@ namespace fhatos {
   };
 
   static void load_logger() {
-    LOG_WRITE = [](const fhatos::LOG_TYPE log_type, const fhatos::Obj *source, const std::function<string()>& message) {
+    LOG_WRITE = [](const fhatos::LOG_TYPE log_type, const fhatos::Obj *source, const std::function<string()> &message) {
       LOG_OBJ(log_type, source, message());
     };
   }
