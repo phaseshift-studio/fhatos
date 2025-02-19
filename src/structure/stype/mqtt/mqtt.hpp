@@ -120,13 +120,15 @@ namespace fhatos {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi.is_pattern() || furi.is_branch();
-      const Pattern temp = furi.is_branch() ? furi.extend("+") : furi;
+      Pattern temp = furi.is_branch() ? furi.extend("+") : furi;
+      if(temp.is_pattern() && string::npos != temp.toString().find("#"))
+        temp = temp.retract_pattern().extend("#");
       auto thing = std::make_unique<std::vector<std::pair<ID, Obj_p>>>();
       std::vector<std::pair<ID, Obj_p>> *thing_p = thing.get();
       const auto source_id = id_p(this->rec_get("config/client")
           ->or_else(vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
-          Subscription::create(source_id, p_p(furi),
+          Subscription::create(source_id, p_p(temp),
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
                                ->inst_f([thing_p](const Obj_p &lhs, const InstArgs &) {
                                  //LOG(INFO,"TARGET/PAYLOAD/RETAIN: %s %s %s\n",ROUTER_READ("target")->toString().c_str(),ROUTER_READ("payload")->toString().c_str(),ROUTER_READ("retain")->toString().c_str());

@@ -34,6 +34,7 @@
 #include "model/fos/sys/thread/fthread.hpp"
 #include "structure/stype/mqtt/mqtt.hpp"
 #include "structure/stype/heap.hpp"
+#include "model/fos/sys/router/bus.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/type.hpp"
 /////////////////////////////////////////
@@ -115,6 +116,7 @@ namespace fhatos {
         return kp
             ->import(Heap<>::import("/mnt/lib/heap"))
             ->import(Mqtt::import("/mnt/lib/mqtt"))
+            ->import(Bus::import("/mnt/lib/bus"))
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
             ->import(fOS::import_types())
@@ -173,6 +175,7 @@ namespace fhatos {
                                           vri(args_parser->option_string(
                                               "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
+            ->mount(Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
             ->process(Console::create("/io/console",
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")
