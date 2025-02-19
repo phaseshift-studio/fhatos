@@ -74,7 +74,7 @@ namespace fhatos {
         const auto bobj = make_shared<BObj>(length, const_cast<fbyte *>(data));
         const auto [payload, retained] = make_payload(bobj);
         const Message_p message = Message::create(id_p(topic), payload, retained);
-        LOG_STRUCTURE(DEBUG, this, "received message %s\n", message->toString().c_str());
+        LOG_WRITE(DEBUG, this, L("received message {}\n", message->toString()));
         for(const auto *client: MQTT_VIRTUAL_CLIENTS) {
          //const auto matches = client->subscriptions_;// client->get_matching_subscriptions(*message->target());
           for(const Subscription_p &sub: *client->subscriptions_) {
@@ -90,15 +90,13 @@ namespace fhatos {
     Structure::loop();
     const ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(!h->connected()) {
-      LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
-                    MQTT_STATE_CODES.at(h->state()).c_str());
+      LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
       if(!h->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str())) {
         Process::current_process()->delay(FOS_MQTT_RETRY_WAIT);
       }
     }
     if(!h->loop()) {
-      LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r%s!!\n",
-                    MQTT_STATE_CODES.at(h->state()).c_str());
+      LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
     }
   }
 
@@ -148,7 +146,7 @@ namespace fhatos {
         if(!h->connect(this->rec_get("config/client")->uri_value().toString().c_str())) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw fError("__wrapped below__");
-          LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n",
+          LOG_STRUCTURE(WARN, this, "!b{} !yconnection!! retry\n",
                         this->rec_get("config/broker")->uri_value().toString().c_str());
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT);
         }
@@ -157,7 +155,7 @@ namespace fhatos {
       }
       this->connection_logging();
     } catch(const fError &e) {
-      LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n",
+      LOG_STRUCTURE(ERROR, this, "unable to connect to !b{}!!: {}\n",
                     this->rec_get("config/broker")->uri_value().toString().c_str(), e.what());
     }
   }

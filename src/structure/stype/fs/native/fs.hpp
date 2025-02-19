@@ -43,7 +43,7 @@ namespace fhatos {
               vri("root"),
               vri(ID(fs::canonical(fs::path(config->rec_get("root")->uri_value().toString()))))
           }})->rec_value())) {
-      LOG_OBJ(INFO, this, "!b%s !yfile system location!! mounted\n", this->root.toString().c_str());
+      LOG_WRITE(INFO, this, L("!b{} !yfile system location!! mounted\n", this->root.toString()));
     }
 
     static void *import(const Pattern &pattern) {

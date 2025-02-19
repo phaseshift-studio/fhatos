@@ -91,8 +91,8 @@ namespace fhatos {
       Option<Mail_p> mail = this->outbox_->pop_front();
       while(mail.has_value()) {
         FEED_WATCHDOG();
-        LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
-                      mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
+        LOG_WRITE(TRACE, this, L("processing message {} for subscription {}\n",
+                                 mail.value()->second->toString(), mail.value()->first->toString()));
         const Message_p message = mail.value()->second;
         const Subscription_p subscription = mail.value()->first;
         subscription->apply(message);
@@ -102,7 +102,7 @@ namespace fhatos {
 
     virtual void stop() {
       if(!this->available_.load())
-        LOG_STRUCTURE(WARN, this, "!ystructure!! already stopped\n");
+        LOG_WRITE(WARN, this, L("!ystructure!! already stopped\n"));
       this->subscriptions_->clear();
       this->outbox_->get_base().clear();
       this->available_ = false;
@@ -112,8 +112,7 @@ namespace fhatos {
 
     virtual void recv_unsubscribe(const ID &source, const fURI &target) {
       if(!this->available_.load())
-        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source.toString().c_str(),
-                    target.toString().c_str());
+        LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
       else {
         this->subscriptions_->remove_if(
             [source, target](const Subscription_p &sub) {

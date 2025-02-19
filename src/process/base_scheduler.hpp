@@ -48,7 +48,7 @@ namespace fhatos {
         this->feed_local_watchdog();
       };
       SCHEDULER_ID = this->vid;
-      LOG_KERNEL_OBJ(INFO, this, "!yscheduler!! started\n");
+      LOG_WRITE(INFO, this, L("!yscheduler!! started\n"));
       // TODO: broadcast when online to trigger bootstrap of other models
       /*Router::singleton()->write(Router::singleton()->vid, vri(this->vid), false);
       Router::singleton()->route_subscription(Subscription::create(
@@ -101,16 +101,16 @@ namespace fhatos {
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       this->running_ = false;
-      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid->toString().c_str());
+      LOG_WRITE(INFO, this, L("!yscheduler !b{}!! stopped\n", this->vid->toString()));
     }
 
     virtual void feed_local_watchdog() = 0;
 
     void barrier(const string &, const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", "main");
+      LOG_WRITE(INFO, this, L("!mbarrier start: <!y{}!m>!!\n", "main"));
       if(message)
-        LOG_KERNEL_OBJ(INFO, this, message);
+        LOG_WRITE(INFO, this, L("{}\n", message));
       if(!this->router_)
         this->router_ = Router::singleton();
 
@@ -119,19 +119,19 @@ namespace fhatos {
         this->router_->loop();
         this->feed_local_watchdog();
       }
-      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", "main");
+      LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }
 
     virtual bool spawn(const Process_p &process) {
       if(!process->vid)
         throw fError("value id required to spawn %s", process->toString().c_str());
       if(this->count(*process->vid)) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! already running\n", process->vid->toString().c_str());
+        LOG_WRITE(ERROR, this, L("!b{} !yprocess!! already running\n", process->vid->toString()));
         return false;
       }
       process->setup();
       if(!process->running) {
-        LOG_KERNEL_OBJ(ERROR, this, "!b%s !yprocess!! failed to spawn\n", process->vid->toString().c_str());
+        LOG_WRITE(ERROR, this, L("!b{} !yprocess!! failed to spawn\n", process->vid->toString()));
         return false;
       }
       ////////////////////////////////
@@ -148,7 +148,7 @@ namespace fhatos {
                                    }
                                    return Obj::to_noobj();
                                  }));
-        LOG_KERNEL_OBJ(INFO, this, "!b%s !yprocess!! spawned\n", spawned_process->vid->toString().c_str());
+        LOG_WRITE(INFO, this, L("!b{} !yprocess!! spawned\n", spawned_process->vid->toString()));
         this->save();
       } else {
         throw fError("!b%s!! !yprocess!! failed to spawn", process->vid->toString().c_str());

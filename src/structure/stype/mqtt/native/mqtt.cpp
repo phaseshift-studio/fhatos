@@ -87,7 +87,7 @@ namespace fhatos {
             const auto [payload, retained] = make_payload(bobj);
             //assert(mqtt_message->is_retained() == retained); // TODO: why does this sometimes not match?
             const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
-            LOG_STRUCTURE(DEBUG, this, "received message %s\n", message->toString().c_str());
+            LOG_WRITE(DEBUG, this, L("received message {}\n", message->toString()));
             for(const auto *client: MQTT_VIRTUAL_CLIENTS) {
               //const auto matches =  //get_matching_subscriptions(*message->target());
               for(const Subscription_p &sub: *client->subscriptions_) {
@@ -144,16 +144,16 @@ namespace fhatos {
         if(!std::any_cast<ptr<async_client>>(this->handler_)->connect(connect_options_)->wait_for(1000)) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
-          LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n",
-                        this->rec_get("config/broker")->uri_value().toString().c_str());
+          LOG_WRITE(WARN, this, L("!b%s !yconnection!! retry\n",
+                        this->rec_get("config/broker")->uri_value().toString()));
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
           break;
       }
     } catch(const mqtt::exception &e) {
-      LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n",
-                    this->rec_get("config/broker")->uri_value().toString().c_str(), e.what());
+      LOG_WRITE(ERROR, this, L("unable to connect to !b%s!!: %s\n",
+                    this->rec_get("config/broker")->uri_value().toString(), e.what()));
     }
   }
 }

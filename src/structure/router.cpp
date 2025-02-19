@@ -111,7 +111,7 @@ namespace fhatos {
     if(remove) {
       this->structures_->remove_if([this](const Structure_p &structure) {
         if(!structure->available()) {
-          LOG_WRITE(INFO, this, L("!b%s !y%s!! detached\n",structure->pattern->toString(),structure->tid->name()));
+          LOG_WRITE(INFO, this, L("!b{} !y{}!! detached\n", structure->pattern->toString(), structure->tid->name()));
           return true;
         }
         return false;
@@ -132,17 +132,17 @@ namespace fhatos {
       map->insert({name, count});
     });
     for(const auto &[name, count]: *map) {
-      LOG_WRITE(INFO, this, L("!b%s !y%s!!(s) closing\n", to_string(count), name));
+      LOG_WRITE(INFO, this, L("!b{} !y{}!!(s) closing\n", to_string(count), name));
     }
     this->active = false;
     this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
-    LOG_WRITE(INFO, this, L("!yrouter !b%s!! stopped\n", this->vid->toString()));
+    LOG_WRITE(INFO, this, L("!yrouter !b{}!! stopped\n", this->vid->toString()));
   }
 
   void Router::attach(const Structure_p &structure) const {
     if(structure->pattern->equals(Pattern(""))) {
-      LOG_KERNEL_OBJ(INFO, this, "!b%s !yempty structure!! ignored\n", structure->pattern->toString().c_str(),
-                     structure->tid->name().c_str());
+      LOG_WRITE(INFO, this, L("!b{} !yempty structure!! ignored\n", structure->pattern->toString(),
+                              structure->tid->name())          );
     } else {
       this->structures_->forEach([structure, this](const Structure_p &s) {
         if(structure->pattern->bimatches(*s->pattern)) {
@@ -156,14 +156,14 @@ namespace fhatos {
       this->structures_->push_back(structure);
       structure->setup();
       if(structure->available()) {
-        LOG_KERNEL_OBJ(INFO, this, "!y%s !b%s !yspanning !b%s!! attached\n",
-                       structure->tid->name().c_str(),
-                       structure->vid ? structure->vid->toString().c_str() : "<none>",
-                       structure->pattern->toString().c_str());
+        LOG_WRITE(INFO, this, L("!y{} !b{} !yspanning !b{}!! attached\n",
+                                structure->tid->name(),
+                                structure->vid ? structure->vid->toString() : "<none>",
+                                structure->pattern->toString())            );
       } else {
-        LOG_KERNEL_OBJ(ERROR, this, "!runable to attach!! %s: %s at %s!!\n", structure->pattern->toString().c_str(),
-                       structure->tid->name().c_str(),
-                       structure->vid ? structure->vid->toString().c_str() : "<none>");
+        LOG_WRITE(ERROR, this, L("!runable to attach!! {}: {} at {}!!\n", structure->pattern->toString(),
+                                 structure->tid->name(),
+                                 structure->vid ? structure->vid->toString(): "<none>"));
         this->structures_->pop_back();
       }
     }
@@ -229,10 +229,9 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                     Process::current_process()->vid->toString().c_str(), retain ? "retained" : "transient",
-                     furi.toString().c_str(), obj->tid->toString().c_str(),
-                     structure->pattern->toString().c_str());
+      LOG_WRITE(DEBUG, this, L(FURI_WRAP " !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to " FURI_WRAP "\n",
+                               Process::current_process()->vid->toString(), retain ? "retained" : "transient",
+                               furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
@@ -249,8 +248,8 @@ namespace fhatos {
     try {
       this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
         if(structure->pattern->matches(pattern) || pattern.matches(*structure->pattern)) {
-          LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern.toString().c_str(),
-                         subscriber.toString().c_str());
+          LOG_WRITE(DEBUG, this, L("!y!_routing unsubscribe!! !b{}!! for {}\n", pattern.toString(),
+                                   subscriber.toString())              );
           structure->recv_unsubscribe(subscriber, pattern);
         }
       });
@@ -264,7 +263,7 @@ namespace fhatos {
       return;
     try {
       const Structure_p struc = this->get_structure(*subscription->pattern());
-      LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
+      LOG_WRITE(DEBUG, this, L("!y!_routing subscribe!! {}\n", subscription->toString()));
       struc->recv_subscription(subscription);
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
@@ -312,7 +311,7 @@ namespace fhatos {
     InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-          LOG(ERROR, "sub query processor to be implemented\n");
+          LOG_WRITE(ERROR, Router::singleton().get(), L("sub query processor to be implemented\n"));
           return obj;
         })->save();
     //  Router::singleton()->load();
@@ -367,23 +366,20 @@ namespace fhatos {
     for(const auto &c: components) {
       List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->or_else(lst())->lst_value();
       if(prefixes->empty())
-        LOG_KERNEL_OBJ(WARN, this, "router has no auto-prefix configuration: %s\n",
-                     this->rec_get("config")->toString().c_str());
+        LOG_WRITE(WARN, this, L("router has no auto-prefix configuration: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {
         const fURI x = prefix->uri_value().extend(c);
         if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
-          LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
-                         furi.toString().c_str(),
-                         structure->toString().c_str(),
-                         x.toString().c_str());
+          LOG_WRITE(TRACE, this, L("located !b%s!! in %s and resolved to !b{}!!\n",
+                                   furi.toString(), structure->toString(), x.toString()));
           found = furi_p(x);
           break;
         }
       }
       if(!found) {
-        LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b%s!!\n", c.toString().c_str());
+        LOG_WRITE(TRACE, this, L("unable to locate !b{}!!\n", c.toString()));
       }
       if(first) {
         first = false;

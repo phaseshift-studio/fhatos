@@ -36,13 +36,6 @@ namespace fhatos {
       return kernel_p;
     }
 
-    static ptr<Kernel> with_bcode(const BCode_p &bcode) {
-      LOG(INFO, "with_bcode: %s\n", bcode->toString().c_str());
-      const Objs_p objs = BCODE_PROCESSOR(bcode)->to_objs();
-      LOG(INFO, "after_bcode: %s\n", objs->toString().c_str());
-      return Kernel::build();
-    }
-
     static ptr<Kernel> with_log_level(const LOG_TYPE level) {
       LOG_LEVEL = level;
       return Kernel::build();
@@ -124,7 +117,7 @@ namespace fhatos {
 
     static ptr<Kernel> display_memory(const string &label, const Rec_p &info) {
       if(!info->is_noobj())
-        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! %s\n", label.c_str(), info->toString().c_str());
+        LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! {}\n", label, info->toString()));
       return Kernel::build();
     }
 
@@ -156,7 +149,7 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       if(obj->vid) {
         Router::singleton()->write(*obj->vid, obj,RETAIN);
-        LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !yobj!! loaded\n", obj->vid->toString().c_str());
+        LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !yobj!! loaded\n", obj->vid->toString()));
       }
       return Kernel::build();
     }
@@ -183,9 +176,9 @@ namespace fhatos {
       if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
         fhatos::FSx::load_boot_config(boot_config_loader);
         if(boot_config_obj_copy_len > 0) {
-          LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                         "!b%s !yboot config file!! loaded (size: %i bytes)\n",
-                         boot_config_loader.toString().c_str(), boot_config_obj_copy_len);
+          LOG_WRITE(INFO, Router::singleton().get(),
+                         L("!b{} !yboot config file!! loaded (size: {} bytes)\n",
+                         boot_config_loader.toString(), boot_config_obj_copy_len));
           to_free_boot = true;
         }
       }
@@ -193,9 +186,9 @@ namespace fhatos {
         if(boot_config_obj_len > 0) {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
-          LOG_KERNEL_OBJ(INFO, Router::singleton(),
-                         "!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: %i bytes)\n",
-                         boot_config_obj_copy_len);
+          LOG_WRITE(INFO, Router::singleton().get(),
+                         L("!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: {} bytes)\n",
+                         boot_config_obj_copy_len));
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
@@ -211,14 +204,14 @@ namespace fhatos {
       /////
       string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
       StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "\n%s\n", boot_str.c_str());
+      LOG_WRITE(INFO, Router::singleton().get(), L("\n{}\n", boot_str));
       return Kernel::build();
     }
 
     static ptr<Kernel> drop_config(const string &id) {
       Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id, noobj());
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s !yboot config!! dropped\n", id.c_str());
+      LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot config!! dropped\n", id));
       return Kernel::build();
     }
 

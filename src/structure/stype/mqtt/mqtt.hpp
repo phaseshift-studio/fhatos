@@ -78,8 +78,8 @@ namespace fhatos {
     void setup() override;
 
     void stop() override {
-      LOG_STRUCTURE(INFO, this, "!ydisconnecting!! from !g[!y%s!g]!!\n",
-                    this->rec_get("config")->rec_get("broker")->toString().c_str());
+      LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n",
+                    this->rec_get("config")->rec_get("broker")->toString()));
       native_mqtt_disconnect();
       Structure::stop();
     }

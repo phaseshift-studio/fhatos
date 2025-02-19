@@ -185,9 +185,9 @@ namespace fhatos {
               delete args_parser;
             });
       } catch(const std::exception &e) {
-        LOG(ERROR, "[%s] !rcritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
-            e.what());
-        throw;
+        LOG_WRITE(ERROR, Obj::to_noobj().get(),
+                  L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));
+        Ansi<>::singleton()->println("");
       }
     }
   };

@@ -35,6 +35,9 @@ namespace fhatos {
     explicit Bus(const Pattern &pattern, const ID_p &value_id = nullptr,
                  const Rec_p &config = Obj::to_rec()) : Structure(pattern, id_p(BUS_FURI), value_id, config) {
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
+      LOG_WRITE(INFO, this, L("!ymapping !c{}!m==>!g{}!!\n",
+                              config->get<fURI>("source").toString(),
+                              config->get<fURI>("target").toString()));
     }
 
     static ptr<Bus> create(const Pattern &pattern, const ID_p &value_id = nullptr,

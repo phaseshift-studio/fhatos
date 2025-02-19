@@ -93,7 +93,7 @@ namespace fhatos {
             Router::singleton()->attach(structure);
             return structure;
           })->save();
-      LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", type_id.toString().c_str());
+      LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !ytype!! imported\n", type_id.toString()));
       return nullptr;
     }
 

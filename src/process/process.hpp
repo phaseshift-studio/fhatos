@@ -54,8 +54,6 @@ namespace fhatos {
     bool yield_ = false;
     bool stop_ = false;
     BCode_p loop_code_ = nullptr;
-    //Obj_p last_result_ = Obj::to_noobj();
-
 
     explicit Process() : Rec({}, OType::REC, REC_FURI) { // hack for scheduler "process"
       this->vid = id_p("/sys/scheduler");
@@ -121,7 +119,7 @@ namespace fhatos {
       this->load();
 
       if(const BCode_p setup_bcode = ROUTER_READ(this->vid->extend(":setup")); setup_bcode->is_noobj())
-        LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
+        LOG_WRITE(DEBUG, this, L("setup !ybcode!! undefined\n"));
       else
         BCODE_PROCESSOR(setup_bcode);
       ////
@@ -163,7 +161,7 @@ namespace fhatos {
         return;
       }
       if(const BCode_p stop_bcode = ROUTER_READ(this->vid->extend(":stop")); stop_bcode->is_noobj())
-        LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
+        LOG_WRITE(DEBUG, this, L("stop !ybcode!! undefined\n"));
       else
         BCODE_PROCESSOR(stop_bcode);
       this->running = false;

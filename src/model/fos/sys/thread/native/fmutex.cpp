@@ -17,9 +17,7 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 #ifdef NATIVE
 #include "../fmutex.hpp"
-#include <exception>
 #include <shared_mutex>
-#include <string>
 namespace fhatos {
   using namespace std;
     // calling lock twice from the same thread will deadlock
@@ -27,7 +25,7 @@ namespace fhatos {
     }
 
     fMutex::~fMutex() {
-	    std::shared_mutex* m = std::any_cast<std::shared_mutex*>(this->handler_);
+	    const auto m = std::any_cast<std::shared_mutex*>(this->handler_);
       m->unlock();
       delete m;
 	  }
