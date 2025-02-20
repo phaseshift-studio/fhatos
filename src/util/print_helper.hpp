@@ -71,13 +71,13 @@ namespace fhatos {
         ss << "!m[!!\n";
         for(const auto &[key, value]: *obj->rec_value()) {
           if(!value->is_poly()) {
-            ss << std::format(
+            ss << fmt::format(
               "{}!c{}!m=>!!{}!!\n",
               (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (char_indent ? "==>!!" : "   !!")),
               key->toString(),
               value->toString());
           } else {
-            ss << std::format(
+            ss << fmt::format(
               "{}!c{}!m=>!!", (string("!g") +
                                StringHelper::repeat(depth, char_indent ? "=" : " ") +
                                (char_indent ? "==>!!" : "   !!")),

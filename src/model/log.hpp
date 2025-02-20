@@ -19,8 +19,6 @@
 #ifndef fhatos_log_hpp
 #define fhatos_log_hpp
 
-#include <format>
-
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/obj_helper.hpp"
@@ -46,6 +44,11 @@ namespace fhatos {
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
       bool match = false;
       const Lst_p furis = Log::singleton()->rec_get(vri(fURI("config").extend(LOG_TYPES.to_chars(type))));
+      if(!furis->is_lst()) {
+        Log::PRIMARY_LOGGING(ERROR, Log::singleton().get(),
+                             L("log listing not within schema specification: {}", Log::singleton()->toString()));
+        return;
+      }
       for(const auto &a: *furis->lst_value()) {
         if(source->vid_or_tid()->matches(a->uri_value())) {
           match = true;
@@ -66,7 +69,7 @@ namespace fhatos {
           printer<>()->print("!y[DEBUG]!! ");
         else if(type == TRACE)
           printer<>()->print("!r[TRACE]!! ");
-        printer<>()->print((StringHelper::format((source->vid->equals(*Router::singleton()->vid)
+        printer<>()->print((StringHelper::format((source->vid_or_tid()->equals(*Router::singleton()->vid)
                                                    /*|| source->vid->equals(*SCHEDULER_ID)*/)
                                                    ? SYS_ID_WRAP
                                                    : OBJ_ID_WRAP, // TODO: once scheduler.hpp and .cpp are split
@@ -104,6 +107,7 @@ namespace fhatos {
                                                      ? rec({
                                                          {"INFO", lst({vri("#")})},
                                                          {"ERROR", lst({vri("#")})},
+                                                         //{"WARN", lst()},
                                                          {"DEBUG", lst()},
                                                          {"TRACE", lst()}})
                                                      : config));

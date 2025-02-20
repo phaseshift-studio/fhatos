@@ -51,11 +51,11 @@ namespace fhatos {
     Structure(pattern, id_p(MQTT_FURI), value_id, config) {
 
     if(this->exists()) {
-      LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n",
-                    this->Obj::rec_get("config/broker")->toString().c_str());
+      LOG_WRITE(INFO, this, L("reusing existing connection to {}\n",
+                    this->Obj::rec_get("config/broker")->toString()));
       //MQTT_VIRTUAL_CLIENTS.push_back(this);
     } else if(this->Obj::rec_get("config/broker")->is_noobj()) {
-      LOG_STRUCTURE(WARN, this, "mqtt disabled as no broker address provided\n");
+      LOG_WRITE(WARN, this, L("mqtt disabled as no broker address provided\n"));
     } else {
       MQTT_VIRTUAL_CLIENTS.push_back(this);
       //IPAddress host = IPAddress();
@@ -146,8 +146,8 @@ namespace fhatos {
         if(!h->connect(this->rec_get("config/client")->uri_value().toString().c_str())) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw fError("__wrapped below__");
-          LOG_STRUCTURE(WARN, this, "!b{} !yconnection!! retry\n",
-                        this->rec_get("config/broker")->uri_value().toString().c_str());
+          LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
+                        this->rec_get("config/broker")->uri_value().toString()));
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT);
         }
         if(h->connected())
@@ -155,8 +155,8 @@ namespace fhatos {
       }
       this->connection_logging();
     } catch(const fError &e) {
-      LOG_STRUCTURE(ERROR, this, "unable to connect to !b{}!!: {}\n",
-                    this->rec_get("config/broker")->uri_value().toString().c_str(), e.what());
+      LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n",
+                    this->rec_get("config/broker")->uri_value().toString(), e.what()));
     }
   }
 }

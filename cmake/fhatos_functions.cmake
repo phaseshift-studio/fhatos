@@ -55,7 +55,7 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/fs) # file system root for executable
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/boot) # file system boot for executable
     FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/conf/boot_config.obj"
-                   "${CMAKE_BINARY_DIR}/boot/boot_config.obj")
+            "${CMAKE_BINARY_DIR}/boot/boot_config.obj")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -67,7 +67,12 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     ####################################
     ######## EXTERNAL LIBRARIES ########
     ####################################
-
+    ####################################
+    ####################################
+    ### FMT: STRING AND PRINT FORMATTING
+    MESSAGE(CHECK_START "${.y}making fmt library${..}")
+    MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}fmt${..} distributed w/ ${.FHATOS} via ${.b}include/fmt${..}.")
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ####################################
     ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION

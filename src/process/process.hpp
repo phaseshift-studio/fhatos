@@ -101,7 +101,7 @@ namespace fhatos {
           ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
             this->stop_ = true;
             return lhs;
-          })->create(stop_id);
+          })->save();
       InstBuilder::build(delay_id)
           ->type_args(x(0, Obj::to_bcode()))
           ->domain_range(
@@ -109,13 +109,13 @@ namespace fhatos {
           ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
             this->sleep_ = args->arg(0)->int_value();
             return lhs;
-          })->create(delay_id);
+          })->save();
       InstBuilder::build(yield_id)
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([this](const Obj_p &lhs, const InstArgs &) {
             this->yield_ = true;
             return lhs;
-          })->create(yield_id);
+          })->save();
       this->load();
 
       if(const BCode_p setup_bcode = ROUTER_READ(this->vid->extend(":setup")); setup_bcode->is_noobj())

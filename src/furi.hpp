@@ -365,7 +365,7 @@ namespace fhatos {
     [[nodiscard]] bool has_query(const char *key = nullptr) const {
       if(!this->query_ || 0 == strlen(this->query_))
         return false;
-      if(!key)
+      if(nullptr == key)
         return true;
       return this->query_value(key).has_value();
     }
@@ -563,6 +563,15 @@ namespace fhatos {
                                 : old_path);
 
       return this->path(new_path);
+    }
+
+    [[nodiscard]] bool has_wildcard(const char wildcard = '#') const {
+      for(uint8_t i = 0; i < this->path_length_; i++) {
+        if(strstr(this->path_[i], &wildcard)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     [[nodiscard]] fURI retract_pattern() const {
@@ -1155,10 +1164,6 @@ namespace fhatos {
       return uri;
     }
 
-    /*[[nodiscard]] const char *c_str() const {
-      return this->toString().c_str();
-    }*/
-
   private:
     void check_path_length(const char *self) const {
       if(this->path_length_ >= FOS_MAX_PATH_SEGMENTS)
@@ -1168,10 +1173,6 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) :
-      fURI(id.toString()) {
-    }
-
     ID(const fURI &id) :
       fURI(id.toString()) {
     }

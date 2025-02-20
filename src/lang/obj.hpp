@@ -2374,11 +2374,11 @@ namespace fhatos {
   [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
 
   [[maybe_unused]] static Uri_p vri(const ID_p &xuri, const ID_p &type_id = URI_FURI) {
-    return Obj::to_uri(*xuri, type_id);
+    return Obj::to_uri(ID(*xuri), type_id);
   }
 
   [[maybe_unused]] static Uri_p vri(const fURI_p &xuri, const ID_p &type_id = URI_FURI) {
-    return Obj::to_uri(*xuri, type_id);
+    return Obj::to_uri(fURI(*xuri), type_id);
   }
 
   [[maybe_unused]] static Uri_p vri(const char *xuri, const ID_p &type_id = URI_FURI) {

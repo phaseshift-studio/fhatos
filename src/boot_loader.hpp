@@ -141,6 +141,7 @@ namespace fhatos {
                                   ->or_else(Obj::to_rec({
                                       {"INFO", lst({vri("#")})},
                                       {"ERROR", lst({vri("#")})},
+                                      {"WARN", lst()},
                                       {"DEBUG", lst()},
                                       {"TRACE", lst()}}))))
             ->drop_config("log")
@@ -180,8 +181,8 @@ namespace fhatos {
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")
             ->eval([args_parser] {
-              Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
-              Router::singleton()->loop();
+              // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
+              //Router::singleton()->loop();
               delete args_parser;
             });
       } catch(const std::exception &e) {

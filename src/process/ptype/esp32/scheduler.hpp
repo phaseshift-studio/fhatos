@@ -110,7 +110,7 @@ namespace fhatos {
         }
       } catch(fError error) {
         thread->stop();
-        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
+        LOG_WRITE(ERROR, thread, L("pre-processor error: {}\n", error.what()));
       }
       // ESP_ERROR_CHECK(heap_trace_stop());
       // heap_trace_dump();

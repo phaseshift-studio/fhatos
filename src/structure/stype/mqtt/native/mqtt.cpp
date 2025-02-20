@@ -70,7 +70,7 @@ namespace fhatos {
   Mqtt::Mqtt(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
     Structure(pattern, id_p(MQTT_FURI), value_id, config) {
     if(this->exists()) {
-      LOG_WRITE(INFO, this, L("reusing existing connection to %s\n", this->Obj::rec_get("config/broker")->toString()));
+      LOG_WRITE(INFO, this, L("reusing existing connection to {}\n", this->Obj::rec_get("config/broker")->toString()));
       // MQTT_VIRTUAL_CLIENTS.push_back(this);
     } else {
       MQTT_VIRTUAL_CLIENTS.push_back(this);
@@ -144,7 +144,7 @@ namespace fhatos {
         if(!std::any_cast<ptr<async_client>>(this->handler_)->connect(connect_options_)->wait_for(1000)) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
-          LOG_WRITE(WARN, this, L("!b%s !yconnection!! retry\n",
+          LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
                         this->rec_get("config/broker")->uri_value().toString()));
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
         }
@@ -152,7 +152,7 @@ namespace fhatos {
           break;
       }
     } catch(const mqtt::exception &e) {
-      LOG_WRITE(ERROR, this, L("unable to connect to !b%s!!: %s\n",
+      LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n",
                     this->rec_get("config/broker")->uri_value().toString(), e.what()));
     }
   }

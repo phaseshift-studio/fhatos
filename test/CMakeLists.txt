@@ -41,7 +41,7 @@
                 INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
                 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
                 ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
-                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3 ordered_map)
+                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3)
                 ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
             ELSE()
                 MESSAGE("${.r}unable to locate boost unit_test_framework${..}. proceeding without respective depending tests.")
@@ -72,8 +72,10 @@
                 GIT_TAG v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
+        include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include/)
+
         ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)
-        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a)
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a )
         ADD_TEST(${CATCH_TESTS} ${CMAKE_BINARY_DIR}/test/tests)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
@@ -101,7 +103,8 @@
                         MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a)
+                    include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include)
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a fmt:fmt)
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
@@ -118,6 +121,8 @@
                     ELSE()
                         MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT using address sanitizer${.y} =${.g}-${.m}.${..}\n")
                     ENDIF()
+                      include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include/)
+
                     ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
                     SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY TIMEOUT 20)
                     SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY FAIL_REGULAR_EXPRESSION "${PACKAGE_TEST}(.cpp|.hpp):[0-9]+:[_a-z]+:FAIL") # test_process.cpp:73:test_thread:FAIL

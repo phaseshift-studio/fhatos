@@ -138,7 +138,7 @@ ENDIF()
 FIND_PROGRAM(CCACHE_FOUND ccache)
 IF(CCACHE_FOUND)
     MESSAGE(NOTICE "${.y}ccache${..} found at ${CCACHE_FOUND}")
-    OPTION(USE_CCACHE "use ccache" ON)
+    OPTION(USE_CCACHE "use ccache" OFF)
 ELSE()
     MESSAGE(WARNING "${.y}ccache${..} not found")
     SET(USE_CCACHE OFF)
@@ -284,11 +284,19 @@ ENDIF()
 OPTION(BUILD_NATIVE "build native" ON) # ON/OFF
 IF(BUILD_NATIVE)
     #####################################################################################
+    #####################################################################################
     ######################### FHATOS TARGET (EXECUTABLE) ################################
     #####################################################################################
+    #####################################################################################
     INCLUDE("${PROJECT_SOURCE_DIR}/cmake/fhatos_functions.cmake")
+    ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/extern/fmt)
+    INCLUDE_DIRECTORIES(BEFORE :${CMAKE_SOURCE_DIR}/extern/fmt/include)
     ADD_EXECUTABLE(${PROJECT_NAME} "src/main.cpp" ${HEADERS})
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
     CREATE_TARGET(${PROJECT_NAME})
+    #####################################################################################
+    #####################################################################################
+    #####################################################################################
     #####################################################################################
 ENDIF()
 

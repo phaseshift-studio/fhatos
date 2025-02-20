@@ -36,7 +36,7 @@ FhatOS: A Distributed Operating System
 #ifdef NATIVE
 #define FOS_MQTT_WAIT_TIME 250
 #else
-#define FOS_MQTT_WAIT_TIME 1000
+#define FOS_MQTT_WAIT_TIME 1250
 #endif
 
 namespace fhatos {
@@ -68,7 +68,7 @@ namespace fhatos {
     void native_mqtt_disconnect();
 
     void connection_logging() const {
-      LOG_WRITE(INFO, this, L("!b{} !ymqtt!! %s connected\n", this->vid->toString(),
+      LOG_WRITE(INFO, this, L("!b{} !ymqtt!! {} connected\n", this->vid->toString(),
                               this->rec_get("config")->toString()));
     }
 
@@ -119,20 +119,23 @@ namespace fhatos {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi.is_pattern() || furi.is_branch();
-      Pattern temp = furi.is_branch() ? furi.extend("+") : furi;
-      if(temp.is_pattern() && string::npos != temp.toString().find("#"))
-        temp = temp.retract_pattern().extend("#");
+      const fURI temp = furi.is_branch() ? furi.extend("+") : furi;
+      const fURI temp_2 = temp.has_wildcard() ? temp.retract_pattern().extend("#") : temp;
       auto thing = std::make_unique<std::vector<std::pair<ID, Obj_p>>>();
       std::vector<std::pair<ID, Obj_p>> *thing_p = thing.get();
       const auto source_id = id_p(this->rec_get("config/client")
           ->or_else(vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
-          Subscription::create(source_id, p_p(temp),
+          Subscription::create(source_id, p_p(temp_2),
                                InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
                                ->inst_f([thing_p](const Obj_p &lhs, const InstArgs &) {
                                  //LOG(INFO,"TARGET/PAYLOAD/RETAIN: %s %s %s\n",ROUTER_READ("target")->toString().c_str(),ROUTER_READ("payload")->toString().c_str(),ROUTER_READ("retain")->toString().c_str());
                                  //LOG(INFO,"LHS/ARGS:              %s %s\n",lhs->toString().c_str(),args->toString().c_str());
-                                 thing_p->emplace_back(ROUTER_READ("target")->uri_value(), lhs);
+                                 const Obj_p o = ROUTER_READ("target");
+                                 if(nullptr == o || !o->value_.has_value())
+                                   LOG_WRITE(ERROR, o.get(), L("!ytarget uri !rcorrupted!! at mqtt broker"));
+                                 else
+                                   thing_p->emplace_back(ID(o->uri_value()), lhs);
                                  return lhs;
                                })->create()));
       ///////////////////////////////////////////////
@@ -150,8 +153,8 @@ namespace fhatos {
     }
 
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
-      LOG_WRITE(DEBUG, this, L("!g!_writing!! {} => !b{}!! !g[!y{}!g]!!\n", obj->toString().c_str(),
-                               id.toString().c_str(), retain ? "retain" : "transient"));
+      LOG_WRITE(DEBUG, this, L("!g!_writing!! {} => !b{}!! !g[!y{}!g]!!\n", obj->toString(),
+                               id.toString(), retain ? "retain" : "transient"));
       native_mqtt_publish(Message::create(id_p(id), obj->clone(), retain));
     }
 

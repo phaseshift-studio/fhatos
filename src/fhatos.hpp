@@ -29,6 +29,7 @@
  *                                    A Dogturd Stynx Production
  */
 
+
 #ifndef ESP32
 #ifndef ESP8266
 #ifndef NATIVE
@@ -72,11 +73,14 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <format>
+#ifdef NATIVE
+#include "../extern/fmt/include/fmt/format.h"
+#else
+#include <fmt.h>
+#endif
 #include "util/logger.hpp"
 #include <random>
 #include "util/tsl/ordered_map.h"
-
 
 namespace fhatos {
   using std::string;
@@ -96,7 +100,6 @@ namespace fhatos {
   using std::fstream;
   using std::ios;
   using std::enable_shared_from_this;
-  using std::format;
 
 
   [[maybe_unused]] static auto ANSI_ART =
@@ -246,7 +249,7 @@ namespace fhatos {
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 #define FSTR(a) STR(a)
-#define L(a, ...) [&](){ return std::format(((a)), ##__VA_ARGS__); }
+#define L(a, ...) [&](){ return fmt::format(((a)), ##__VA_ARGS__); }
 #define FURI_WRAP "!g[!b%s!g]!!"
 #define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
 #define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"

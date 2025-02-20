@@ -28,6 +28,7 @@
 #include "../util/mutex_deque.hpp"
 #include "../model/fos/sys/thread/fmutex.hpp"
 
+
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
   if (meta.has_value())                                                                                                \

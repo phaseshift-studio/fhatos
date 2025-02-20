@@ -169,10 +169,13 @@ namespace fhatos {
 
     Obj_p apply(const Message_p &message) const {
       const bool is_no = message->payload()->is_noobj();
-      return this->on_recv()->apply(message->payload(), to_rec({
-                                        {"target", is_no ? vri(message->target()) : block(vri(message->target()))},
-                                        {"payload", is_no ? message->payload() : block(message->payload())},
-                                        {"retain", is_no ? dool(message->retain()) : block(dool(message->retain()))}}));
+      const Uri_p target_obj = vri(message->target());
+      const Obj_p payload_obj = message->payload();
+      const Bool_p retain_obj = dool(message->retain());
+      return this->on_recv()->apply(payload_obj, to_rec({
+                                        {"target", is_no ? target_obj : block(target_obj)},
+                                        {"payload", is_no ? payload_obj : block(payload_obj)},
+                                        {"retain", is_no ? retain_obj : block(retain_obj)}}));
     }
   };
 } // namespace fhatos
