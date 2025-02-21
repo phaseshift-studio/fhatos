@@ -192,11 +192,11 @@ namespace fhatos {
     IntCoefficient rng_coeff;
 
     explicit DomainRange(const fURI &domain, const IntCoefficient &dom_coeff, const fURI &range,
-                         const IntCoefficient &rng_coeff) :
+                         IntCoefficient rng_coeff) :
       domain{domain},
       dom_coeff{dom_coeff},
       range{range},
-      rng_coeff{rng_coeff} {
+      rng_coeff{std::move(rng_coeff)} {
     }
 
     [[nodiscard]] bool equals(const DomainRange &other) const {
@@ -265,8 +265,8 @@ namespace fhatos {
                                              {*BCODE_FURI, OType::BCODE},
                                              {*ERROR_FURI, OType::ERROR}}};
 
-  static ID_p SCHEDULER_ID = nullptr;
-  static ID_p ROUTER_ID = nullptr;
+ static ID_p SCHEDULER_ID = nullptr;
+ static ID_p ROUTER_ID = nullptr;
 
 
   struct ObjPrinter {
@@ -825,8 +825,8 @@ namespace fhatos {
       return result->is_noobj() && or_else ? or_else : result;
     }
 
-    [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Obj_p &or_else = nullptr) const {
-      return rec_get(to_uri(*key), or_else);
+    [[nodiscard]] Obj_p rec_get(const fURI &key, const Obj_p &or_else = nullptr) const {
+      return rec_get(to_uri(key), or_else);
     }
 
     [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
@@ -1608,7 +1608,7 @@ namespace fhatos {
       return this->equals(other);
     }
 
-    [[nodiscard]] Obj_p operator[](const char *id) const { return this->rec_get(id_p(id)); }
+    [[nodiscard]] Obj_p operator[](const char *key) const { return this->rec_get(key); }
 
     [[nodiscard]] bool is_type() const { return this->otype == OType::TYPE; }
 

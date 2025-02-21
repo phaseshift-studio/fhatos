@@ -21,7 +21,7 @@
 
 #include "../fhatos.hpp"
 #include "obj.hpp"
-#include "../model/log.hpp"
+#include "../model/fos/util/log.hpp"
 #include "../process/process.hpp"
 #include "mmadt/compiler.hpp"
 
@@ -66,12 +66,9 @@ namespace fhatos {
           } else {
             ROUTER_WRITE(type_id, type_def,RETAIN);
             if(current->is_noobj()) {
-              LOG_OBJ(INFO, this, FURI_WRAP " !ytype!! defined\n",
-                      type_id.toString().c_str(),
-                      type_id.toString().c_str());
+              LOG_WRITE(INFO, this, L("{} !ytype!! defined\n", type_id.toString().c_str()));
             } else {
-              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n",
-                                      type_id.toString(), current->toString()));
+              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
             }
           }
         } catch(const fError &e) {

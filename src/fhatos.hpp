@@ -262,7 +262,7 @@ LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), Scheduler::singleto
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!c%s!g]!! ") + (format)).c_str(), (process)->vid->toString().c_str(), ##__VA_ARGS__)
 #define LOG_OBJ(logtype, obj, format, ...)                                                                     \
-LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
 #define FOS_DOMAIN "dom"
 #define FOS_DOM_COEF "dc"
 #define FOS_RANGE "rng"

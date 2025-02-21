@@ -116,11 +116,11 @@ namespace fhatos {
         LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
       else {
         this->subscriptions_->remove_if(
-            [source, target](const Subscription_p &sub) {
+            [this,source, target](const Subscription_p &sub) {
               const bool removing =
                   sub->source()->equals(source) && (sub->pattern()->matches(target));
               if(removing)
-                LOG_UNSUBSCRIBE(OK, &source, &target);
+                LOG_WRITE(INFO,this,L( "!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(),target.toString()));
               return removing;
             });
       }
@@ -137,9 +137,7 @@ namespace fhatos {
       if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
         this->subscriptions_->push_back(subscription);
-        LOG_WRITE(DEBUG, subscription.get(),
-                  L("!m[!!{}!m][!b{}!m]=!gsubscribe!m=>{}\n", subscription->source()->toString(),
-                    subscription->toString(), subscription->pattern()->toString()));
+        LOG_WRITE(INFO,this,L( "!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),pattern->toString()));
         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
         this->publish_retained(subscription);
       }

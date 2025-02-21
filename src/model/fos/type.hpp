@@ -134,8 +134,10 @@ namespace fhatos {
 
     static void *import_util() {
       Typer::singleton()->start_progress_bar(6);
+      Log::import();
       Poll::import();
       Text::import();
+
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
       return nullptr;

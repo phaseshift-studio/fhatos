@@ -47,8 +47,8 @@ namespace fhatos {
       FEED_WATCHDOG = [this] {
         this->feed_local_watchdog();
       };
-      SCHEDULER_ID = this->vid;
-      LOG_WRITE(INFO, this, L("!yscheduler!! started\n"));
+      SCHEDULER_ID = id_p(id);
+      LOG_WRITE(INFO, this, L("!g[!y/sys/scheduler!g] !yscheduler!! started\n"));
       // TODO: broadcast when online to trigger bootstrap of other models
       /*Router::singleton()->write(Router::singleton()->vid, vri(this->vid), false);
       Router::singleton()->route_subscription(Subscription::create(

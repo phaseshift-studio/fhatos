@@ -51,7 +51,7 @@ namespace fhatos {
     structures_(make_unique<MutexDeque<Structure_p>>()) {
     load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_ID = id_p(this->vid);
+    ROUTER_ID = id_p(id);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       this->push_frame(pattern, frame_data);
