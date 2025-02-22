@@ -33,12 +33,17 @@ namespace fhatos {
     return router_p;
   }
 
+  ptr<Frame<>> Router::get_frame() {
+    return THREAD_FRAME_STACK;
+  }
+
   void Router::log_frame_stack(const LOG_TYPE log_type) const {
     if(nullptr != THREAD_FRAME_STACK) {
       int counter = 0;
       ptr<Frame<>> frame = THREAD_FRAME_STACK;
       while(nullptr != frame) {
-        LOG_WRITE(log_type, frame.get(), L("!m{}!g>!! {}\n", StringHelper::repeat(++counter,"-"), frame->toString()));
+        LOG_WRITE(log_type, frame.get(),
+                  L("!m{}!g>!! {}\n", StringHelper::repeat(++counter,"-"), frame->full_frame()->toString()));
         frame = frame->previous;
       }
     }

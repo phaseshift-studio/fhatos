@@ -23,6 +23,7 @@
 #include "../fhatos.hpp"
 #include "structure.hpp"
 #include "../lang/obj.hpp"
+#include "stype/frame.hpp"
 
 #define FOS_ROUTER_STRUCTURE "structure"
 #define FOS_ROUTER_QUERY "query"
@@ -72,6 +73,8 @@ namespace fhatos {
     static void push_frame(const Pattern &pattern, const Rec_p &frame_data);
 
     static void pop_frame();
+
+    static ptr<Frame<>> get_frame();
 
     static void *import();
 

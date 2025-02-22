@@ -34,7 +34,7 @@ FhatOS: A Distributed Operating System
 #include "../../src/lang/mmadt/parser.hpp"
 #include "../../src/model/console.hpp"
 #include "../../src/model/terminal.hpp"
-#include "../../src/model/log.hpp"
+#include "../../src/model/fos/util/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include "../../src/structure/stype/mqtt/mqtt.hpp"
 #include "../../src/structure/stype/heap.hpp"
@@ -86,13 +86,21 @@ namespace fhatos {
         ////////////////// USER STRUCTURE(S)
         ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
+        ->mount(Heap<>::create(FOS_URI "/#"))
         ->import(mmadt::mmADT::import())
         ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
-        ->import(Log::import("/io/lib/log"))
+        ->import(Log::import())
         //->import(Console::import("/io/lib/console"))
         ->install(Terminal::singleton("/io/terminal"))
-        ->install(Log::create("/io/log"))
+        ->install(Log::create("/io/log",
+                  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
+                          ->or_else(Obj::to_rec({
+                           {"INFO", lst({vri("#")})},
+                           {"ERROR", lst({vri("#")})},
+                           {"WARN", lst()},
+                           {"DEBUG", lst()},
+                           {"TRACE", lst()}}))))
         ->install(mmadt::Parser::singleton("/io/parser"));
     //->import(mmadt::Parser::import("/io/lib/parser"))
     //->mount(Heap<>::create("+/#"))

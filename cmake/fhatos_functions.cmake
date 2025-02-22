@@ -1,22 +1,26 @@
 FUNCTION(CREATE_TARGET TARGET_NAME)
-    #FIND_PROGRAM(IWYU_PATH NAMES include-what-you-use include-what-you-use REQUIRED)
-    #IF(NOT IWYU_PATH)
-    #    MESSAGE(FATAL_ERROR "Could not find the program include-what-you-use")
-    #ENDIF()
+    FIND_PROGRAM(IWYU_PATH NAMES include-what-you-use include-what-you-use REQUIRED)
+    IF(NOT IWYU_PATH)
+        MESSAGE(FATAL_ERROR "Could not find the program include-what-you-use")
+    ENDIF()
+    ########################################################
     IF(APPLE)
         SET(CMAKE_MACOSX_RPATH 1)
     ENDIF()
+    ########################################################
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}making ${TARGET_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
     MESSAGE(STATUS "${.y}build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
+
     ############# IGNORED SOURCE/HEADER FILES ##############
-    FILE(GLOB_RECURSE TO_REMOVE RELATIVE "${CMAKE_SOURCE_DIR}" "src/model/ui/*.*")
+    FILE(GLOB_RECURSE TO_REMOVE RELATIVE "${CMAKE_SOURCE_DIR}" src/model/ui/*.* extern/fmt-arduino-10.1.1/*.*)
     MESSAGE(STATUS "${.y}ignoring files${..}: ${.g}${TO_REMOVE}${..}")
     ########################################################
-    FILE(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+    FILE(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} src/*.cpp)
+    MESSAGE(NOTICE ${SOURCES})
     LIST(REMOVE_ITEM SOURCES ${TO_REMOVE})
     MESSAGE(STATUS "${.y}adding source files${..}: ${.g}${SOURCES}${..}")
-    FILE(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_SOURCE_DIR} "src/*.hpp")
+    FILE(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_SOURCE_DIR} src/*.hpp)
     LIST(REMOVE_ITEM HEADERS ${TO_REMOVE})
     MESSAGE(STATUS "${.y}adding header files${..}: ${.g}${HEADERS}${..}")
     IF(USE_CCACHE)
@@ -54,8 +58,7 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
             -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/fs) # file system root for executable
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/boot) # file system boot for executable
-    FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/conf/boot_config.obj"
-            "${CMAKE_BINARY_DIR}/boot/boot_config.obj")
+    FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/conf/boot_config.obj" "${CMAKE_BINARY_DIR}/boot/boot_config.obj")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -72,6 +75,10 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     ### FMT: STRING AND PRINT FORMATTING
     MESSAGE(CHECK_START "${.y}making fmt library${..}")
     MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}fmt${..} distributed w/ ${.FHATOS} via ${.b}include/fmt${..}.")
+    INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/extern/fmt/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/extern/fmt/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
+    TARGET_INCLUDE_DIRECTORIES(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR}/include/fmt)
+    TARGET_LINK_LIBRARIES(${TARGET_NAME} PRIVATE fmt::fmt)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ####################################
@@ -91,23 +98,10 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
         TARGET_LINK_LIBRARIES(${TARGET_NAME} PRIVATE ordered_map)
     ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
     ####################################
     ####################################
     ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
     ####################################
-    MESSAGE(CHECK_START "${.y}making paho mqtt C library${..}")
-    SET(PAHO_ENABLE_TESTING OFF)
-    SET(PAHO_BUILD_TESTS OFF)
-    SET(PAHO_BUILD_DOCUMENTATION OFF)
-    FETCHCONTENT_DECLARE(
-            paho-mqtt3c
-            GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
-            GIT_TAG v1.3.13
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-    FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    #################################### C++
     MESSAGE(CHECK_START "${.y}making paho mqtt C++ library${..}")
     FETCHCONTENT_DECLARE(
             paho-mqttpp3
@@ -145,6 +139,7 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
+
     ####################################
     ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
     IF(RASPBERRYPI)

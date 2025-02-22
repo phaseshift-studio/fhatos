@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 #define fhatos_ota_hpp
 
 #include "../../../fhatos.hpp"
-#include "../../log.hpp"
 #include <ArduinoOTA.h>
 #include  "../sys/thread/fthread.hpp"
 

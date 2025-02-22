@@ -290,9 +290,7 @@ IF(BUILD_NATIVE)
     #####################################################################################
     INCLUDE("${PROJECT_SOURCE_DIR}/cmake/fhatos_functions.cmake")
     ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/extern/fmt)
-    INCLUDE_DIRECTORIES(BEFORE :${CMAKE_SOURCE_DIR}/extern/fmt/include)
     ADD_EXECUTABLE(${PROJECT_NAME} "src/main.cpp" ${HEADERS})
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
     CREATE_TARGET(${PROJECT_NAME})
     #####################################################################################
     #####################################################################################

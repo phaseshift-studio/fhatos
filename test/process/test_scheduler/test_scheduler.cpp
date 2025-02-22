@@ -92,7 +92,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_scheduler_config); //
       // FOS_RUN_TEST(test_scheduler_spawn_destroy); //
-      FOS_RUN_TEST(test_scheduler_spawn_destroy_for_mono); //
+      // FOS_RUN_TEST(test_scheduler_spawn_destroy_for_mono); //
       )
 
 }

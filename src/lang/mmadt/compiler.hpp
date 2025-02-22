@@ -34,6 +34,7 @@ namespace fhatos {
   using IntCoefficient = std::pair<int, int>;
   using InstArgs = std::shared_ptr<const Obj>;
   using Obj_p = std::shared_ptr<const Obj>;
+  using Obj_wp = std::weak_ptr<Obj>;
   using Inst_p = std::shared_ptr<const Obj>;
   using ID_p = std::shared_ptr<ID>;
 

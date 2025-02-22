@@ -72,10 +72,8 @@
                 GIT_TAG v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
-        include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include/)
-
         ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)
-        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a )
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a fmt::fmt)
         ADD_TEST(${CATCH_TESTS} ${CMAKE_BINARY_DIR}/test/tests)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
@@ -103,8 +101,7 @@
                         MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
-                    include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include)
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a fmt:fmt)
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a fmt::fmt)
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
@@ -121,8 +118,6 @@
                     ELSE()
                         MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT using address sanitizer${.y} =${.g}-${.m}.${..}\n")
                     ENDIF()
-                      include_directories(${CMAKE_SOURCE_DIR}/extern/fmt/include/)
-
                     ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
                     SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY TIMEOUT 20)
                     SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY FAIL_REGULAR_EXPRESSION "${PACKAGE_TEST}(.cpp|.hpp):[0-9]+:[_a-z]+:FAIL") # test_process.cpp:73:test_thread:FAIL
