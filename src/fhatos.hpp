@@ -79,7 +79,6 @@
 #include <fmt.h>
 #endif
 #include "util/logger.hpp"
-#include <random>
 #include "util/tsl/ordered_map.h"
 
 namespace fhatos {
@@ -100,6 +99,7 @@ namespace fhatos {
   using std::fstream;
   using std::ios;
   using std::enable_shared_from_this;
+  using fmt::format;
 
 
   [[maybe_unused]] static auto ANSI_ART =

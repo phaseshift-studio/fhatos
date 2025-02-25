@@ -29,6 +29,7 @@
 #include "util/text.hpp"
 #include "sys/thread/fthread.hpp"
 #include "../../lang/mmadt/mmadt.hpp"
+#include "ui/console/console.hpp"
 #ifdef ARDUINO
 #include "net/wifi.hpp"
 #include "net/ota.hpp"
@@ -123,6 +124,7 @@ namespace fhatos {
 
     static void *import_ui() {
       Typer::singleton()->start_progress_bar(6);
+      ConsoleX::import();
 #ifdef ARDUINO
       RGBLED::import();
       OLED::import();

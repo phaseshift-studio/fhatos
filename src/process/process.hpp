@@ -46,7 +46,6 @@ namespace fhatos {
 
 
   class Process : public Obj {
-
   public:
     bool running = false;
     int16_t wdt_timer_counter = 0;
@@ -78,7 +77,7 @@ namespace fhatos {
         return this_process.load();
       else {
         static auto proc = new Process();
-        proc->vid = id_p("/sys/scheduler");
+        proc->vid = SCHEDULER_ID;
         return proc;
       }
     }

@@ -17,8 +17,6 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 #ifdef ARDUINO
 #include "../fmutex.hpp"
-#include <exception>
-#include <string>
 #include <cstdio>
 #include <FreeRTOS.h>
 #include <semphr.h>

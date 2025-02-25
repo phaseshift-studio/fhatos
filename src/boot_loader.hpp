@@ -48,6 +48,7 @@
 //// FOS MODELS
 #include "model/fos/io/gpio/gpio.hpp"
 #include "model/fos/io/i2c/i2c.hpp"
+#include "model/fos/ui/console/console.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
 #include "model/fos/ui/rgbled/rgbled.hpp"
@@ -138,11 +139,11 @@ namespace fhatos {
             ->install(Log::create("/io/log",
                                   Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
                                   ->or_else(Obj::to_rec({
-                                      {"INFO", lst({vri("#")})},
-                                      {"ERROR", lst({vri("#")})},
-                                      {"WARN", lst()},
-                                      {"DEBUG", lst()},
-                                      {"TRACE", lst()}}))))
+                                    {"INFO", lst({vri("#")})},
+                                    {"ERROR", lst({vri("#")})},
+                                    {"WARN", lst()},
+                                    {"DEBUG", lst()},
+                                    {"TRACE", lst()}}))))
             ->drop_config("log")
             ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
             ->import(FSx::import("/sys/structure/lib/fs"))
@@ -158,26 +159,28 @@ namespace fhatos {
               ->inst("connect")->begin())
             ->drop_config("wifi")
             ->mount(Structure::create<Memory>("/soc/memory/#"))
-             /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                      {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->begin())}},
-                                    "/io/ota"))
-               ->inst("start")->begin())*/
+            /*->install(*__(OTA::obj({{"halt", dool(false)},
+                                     {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->begin())}},
+                                   "/io/ota"))
+              ->inst("start")->begin())*/
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
             ->mount(Mqtt::create("//io/#", id_p("/mnt/mqtt"),
                                  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
-                                     Obj::to_rec({
-                                         {"broker",
-                                          vri(args_parser->option_string(
-                                              "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                         {"client",
-                                          vri(args_parser->option_string(
-                                              "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+                                   Obj::to_rec({
+                                     {"broker",
+                                       vri(args_parser->option_string(
+                                         "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                     {"client",
+                                       vri(args_parser->option_string(
+                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
             ->mount(Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
-            ->process(Console::create("/io/console",
-                                      Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+            ->install(ConsoleX::create("/io/console",
+                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+            // ->process(Console::create("/io/console",
+            //                         Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")
             ->eval([args_parser] {
               // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition

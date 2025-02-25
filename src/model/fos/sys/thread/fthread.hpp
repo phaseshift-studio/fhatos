@@ -26,6 +26,9 @@ FhatOS: A Distributed Operating System
 #include "fmutex.hpp"
 
 namespace fhatos {
+  class fThread;
+  using fThread_p = ptr<fThread>;
+
   static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
   static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");
 
@@ -46,12 +49,11 @@ namespace fhatos {
 
     void halt();
 
-    explicit fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function =
-                         [](const Obj_p &thread_obj) {
+    explicit fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                        try {
-                         const ptr<fThread> thread_state = fThread::get_state(thread_obj);
                          const Obj_p loop_code = thread_obj->rec_get("loop");
                          LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
+                         const ptr<fThread> thread_state = get_state<fThread>(thread_obj);
                          while(!thread_obj->get<bool>("halt")) {
                            const BCode_p &code = thread_obj->rec_get("loop");
                            code->apply(thread_obj);
@@ -85,14 +87,14 @@ namespace fhatos {
 
     static void *import() {
       Typer::singleton()->save_type(*THREADX_FURI, Obj::to_rec({
-                                        {"loop", Obj::to_bcode()},
-                                        {"delay", Obj::to_type(NAT_FURI)},
-                                        {"halt", Obj::to_type(BOOL_FURI)}
+                                      {"loop", Obj::to_bcode()},
+                                      {"delay", Obj::to_type(NAT_FURI)},
+                                      {"halt", Obj::to_type(BOOL_FURI)}
                                     }));
       Typer::singleton()->save_type(*THREADX_FURI_DEFAULT, Obj::to_rec({
-                                        {"loop", Obj::to_bcode()},
-                                        {"delay", jnt(0, NAT_FURI)},
-                                        {"halt", dool(false)}
+                                      {"loop", Obj::to_bcode()},
+                                      {"delay", jnt(0, NAT_FURI)},
+                                      {"halt", dool(false)}
                                     }));
 
       InstBuilder::build(THREADX_FURI->add_component("spawn"))

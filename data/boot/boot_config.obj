@@ -9,7 +9,8 @@
   def_stack_size=>8096],
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
-  client=>fhatos_client],
+  client=>fhatos_client,
+  cache=>true],
  wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
  ota=>[host=>mdns://fhatos_client:3232],
  console=>[

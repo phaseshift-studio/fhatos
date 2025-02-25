@@ -20,7 +20,6 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_fmutex_hpp
 #define fhatos_fmutex_hpp
 #include "../../../../fhatos.hpp"
-#include <exception>
 #include <any>
 
 namespace fhatos {

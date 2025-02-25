@@ -280,7 +280,7 @@ test_native() {
     local extra_args=${@:1}
     cd build/test
     status_check $? "cd build/test"
-    ctest ${extra_args}
+    ctest ${extra_args} --output-on-failure
     status_check $? "ctest"
     ./tests --colour-mode ansi --success --durations yes --benchmark-samples 10 --verbosity high "${extra_args}"
     status_check $? "catch2 tests"

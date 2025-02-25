@@ -35,6 +35,7 @@
 #include "../src/lang/obj.hpp"
 #include "../src/furi.hpp"
 #include "../src/util/fhat_error.hpp"
+#include "../src/util/print_helper.hpp"
 #include "../src/structure/stype/heap.hpp"
 #include "../src/structure/router.hpp"
 #include "../src/util/logger.hpp"

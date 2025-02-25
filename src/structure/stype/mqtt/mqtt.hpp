@@ -50,12 +50,47 @@ namespace fhatos {
   public:
     static std::vector<Mqtt *> MQTT_VIRTUAL_CLIENTS;
     std::any handler_;
+    uptr<Map<ID, Obj_p>> cache_ = nullptr;
+    fMutex cache_mutex_;
 
     // +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr,
                   const Rec_p &config = Obj::to_rec());
 
     ~Mqtt() override = default;
+
+    void disable_cache() {
+      Router::singleton()->unsubscribe(this->vid->extend("cache"), *this->pattern);
+      auto lock = std::lock_guard<fMutex>(this->cache_mutex_);
+      this->cache_->clear();
+      this->cache_ = nullptr;
+      LOG_WRITE(INFO, this,L("!ycache!! disabled\n"));
+    }
+
+    void enable_cache() {
+      this->cache_ = make_unique<Map<ID, Obj_p>>();
+      Router::singleton()->subscribe(
+        Subscription::create(
+          id_p(this->vid->extend("cache")),
+          this->pattern,
+          [this](const Obj_p &, const InstArgs &args) {
+            if(this->cache_) {
+              if(args->arg("retain")->bool_value()) {
+                auto lock = std::shared_lock<fMutex>(this->cache_mutex_);
+                this->cache_->insert_or_assign(ID(args->arg("target")->uri_value()), args->arg("payload"));
+                LOG_WRITE(DEBUG, this,
+                          L("cache updated with {} -> {}\n",
+                            args->arg("target")->toString(),
+                            args->arg("payload")->toString()));
+              }
+            } else {
+              LOG_WRITE(WARN, this,L("cache is disabled, but subscription still exists: {}",
+                                     this->pattern->toString()));
+            }
+            return Obj::to_noobj();
+          }));
+      LOG_WRITE(INFO, this,L("!ycache!! enabled\n"));
+    }
 
     bool exists() const;
 
@@ -116,6 +151,15 @@ namespace fhatos {
     }
 
     IdObjPairs read_raw_pairs(const fURI &furi) override {
+      if(this->cache_) {
+        auto lock = std::shared_lock<fMutex>(this->cache_mutex_);
+        std::vector<std::pair<ID, Obj_p>> pairs;
+        for(const auto [k,v]: *this->cache_) {
+          if(k.matches(furi))
+            pairs.push_back({k, v});
+        }
+        return pairs;
+      }
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi.is_pattern() || furi.is_branch();
@@ -124,20 +168,20 @@ namespace fhatos {
       auto thing = std::make_unique<std::vector<std::pair<ID, Obj_p>>>();
       std::vector<std::pair<ID, Obj_p>> *thing_p = thing.get();
       const auto source_id = id_p(this->rec_get("config/client")
-          ->or_else(vri("fhatos_client"))->uri_value().toString().c_str());
+        ->or_else(vri("fhatos_client"))->uri_value().toString().c_str());
       this->recv_subscription(
-          Subscription::create(source_id, p_p(temp_2),
-                               InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-                               ->inst_f([thing_p](const Obj_p &lhs, const InstArgs &) {
-                                 //LOG(INFO,"TARGET/PAYLOAD/RETAIN: %s %s %s\n",ROUTER_READ("target")->toString().c_str(),ROUTER_READ("payload")->toString().c_str(),ROUTER_READ("retain")->toString().c_str());
-                                 //LOG(INFO,"LHS/ARGS:              %s %s\n",lhs->toString().c_str(),args->toString().c_str());
-                                 const Obj_p o = ROUTER_READ("target");
-                                 if(nullptr == o || !o->value_.has_value())
-                                   LOG_WRITE(ERROR, o.get(), L("!ytarget uri !rcorrupted!! at mqtt broker"));
-                                 else
-                                   thing_p->emplace_back(ID(o->uri_value()), lhs);
-                                 return lhs;
-                               })->create()));
+        Subscription::create(source_id, p_p(temp_2),
+                             InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
+                             ->inst_f([thing_p](const Obj_p &lhs, const InstArgs &) {
+                               //LOG(INFO,"TARGET/PAYLOAD/RETAIN: %s %s %s\n",ROUTER_READ("target")->toString().c_str(),ROUTER_READ("payload")->toString().c_str(),ROUTER_READ("retain")->toString().c_str());
+                               //LOG(INFO,"LHS/ARGS:              %s %s\n",lhs->toString().c_str(),args->toString().c_str());
+                               const Obj_p o = ROUTER_READ("target");
+                               if(nullptr == o || !o->value_.has_value())
+                                 LOG_WRITE(ERROR, o.get(), L("!ytarget uri !rcorrupted!! at mqtt broker"));
+                               else
+                                 thing_p->emplace_back(ID(o->uri_value()), lhs);
+                               return lhs;
+                             })->create()));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
@@ -155,6 +199,10 @@ namespace fhatos {
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       LOG_WRITE(DEBUG, this, L("!g!_writing!! {} => !b{}!! !g[!y{}!g]!!\n", obj->toString(),
                                id.toString(), retain ? "retain" : "transient"));
+      if(this->cache_ && retain) {
+        auto lock = std::lock_guard<fMutex>(this->cache_mutex_);
+        this->cache_->insert_or_assign(id, obj);
+      }
       native_mqtt_publish(Message::create(id_p(id), obj->clone(), retain));
     }
 

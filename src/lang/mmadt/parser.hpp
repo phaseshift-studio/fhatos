@@ -94,7 +94,7 @@ namespace mmadt {
         if(last[0] == '>')
           angles++;
       } else if(c == '-' && last[0] != '-') {
-        if(last[0] == '>') // >-
+        if(last[0] == '>' && last[1] != '=') // >-
           angles++;
       } else if(c == '{')
         braces++;

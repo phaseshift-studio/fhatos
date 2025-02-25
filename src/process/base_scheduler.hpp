@@ -114,7 +114,7 @@ namespace fhatos {
       if(!this->router_)
         this->router_ = Router::singleton();
 
-      while(((passPredicate && !passPredicate()) ||
+      while(true || ((passPredicate && !passPredicate()) ||
              (!passPredicate && this->running_ && !this->processes_->empty()))) {
         this->router_->loop();
         this->feed_local_watchdog();

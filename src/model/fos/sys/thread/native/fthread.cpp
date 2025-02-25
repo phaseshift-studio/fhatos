@@ -25,7 +25,8 @@
 namespace fhatos {
 
   fThread::fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
-    thread_obj_(thread_obj), thread_function_(thread_function),
+    thread_obj_(thread_obj),
+    thread_function_(thread_function),
     handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {
   }
 

@@ -56,13 +56,22 @@ namespace fhatos {
   public:
     const Pattern_p pattern;
 
-    explicit Structure(const Pattern &pattern, const ID_p &type_id, const ID_p &value_id = nullptr,
-                       const Rec_p &config = Obj::to_rec()) :
-      Rec(config->rec_value()->empty()
-            ? Obj::to_rec({{"pattern", vri(pattern)}})->rec_value()
-            : Obj::to_rec({{"pattern", vri(pattern)}, {"config", config->clone()}})->rec_value(), OType::REC, type_id,
-          value_id),
-      pattern(p_p(pattern)) {
+    explicit Structure(const Pattern &pattern,
+                       const ID_p &type_id,
+                       const ID_p &value_id = nullptr,
+                       const Rec_p &config = Obj::to_rec()) : Rec(config->rec_value()->empty()
+                                                                    ? Obj::to_rec({
+                                                                      {"pattern", vri(pattern)},
+                                                                      {"sub", lst()}
+                                                                    })->
+                                                                    rec_value()
+                                                                    : Obj::to_rec({
+                                                                      {"pattern", vri(pattern)},
+                                                                      {"sub", lst()},
+                                                                      {"config", config->clone()}})->rec_value(),
+                                                                  OType::REC, type_id,
+                                                                  value_id),
+                                                              pattern(p_p(pattern)) {
       /*if(!value_id && !pattern.equals("/sys/#")) {
         ROUTER_WRITE(furi_p(ID("/sys/router/struct").extend(pattern.retract_pattern())),this->clone(),true);
       }*/
@@ -116,13 +125,21 @@ namespace fhatos {
         LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
       else {
         this->subscriptions_->remove_if(
-            [this,source, target](const Subscription_p &sub) {
-              const bool removing =
-                  sub->source()->equals(source) && (sub->pattern()->matches(target));
-              if(removing)
-                LOG_WRITE(INFO,this,L( "!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(),target.toString()));
-              return removing;
-            });
+          [this,source, target](const Subscription_p &sub) {
+            const bool removing =
+                sub->source()->equals(source) && (sub->pattern()->matches(target));
+            if(removing)
+              LOG_WRITE(INFO, this,L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
+            return removing;
+          });
+        const ptr<std::vector<Obj_p>> s = this->rec_get("sub")->lst_value();
+        s->erase(std::remove_if(s->begin(), s->end(),
+                                [source,target](const Obj_p &obj) {
+                                  return obj->get<fURI>("source").equals(source) &&
+                                         obj->get<fURI>("target").matches(target);
+                                }),
+                 s->end());
+        this->save();
       }
     }
 
@@ -136,8 +153,11 @@ namespace fhatos {
       this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
       if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
+        this->rec_get("sub")->lst_add(subscription);
+        this->save();
         this->subscriptions_->push_back(subscription);
-        LOG_WRITE(INFO,this,L( "!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),pattern->toString()));
+        LOG_WRITE(INFO, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
+                               pattern->toString())        );
         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
         this->publish_retained(subscription);
       }
@@ -209,7 +229,7 @@ namespace fhatos {
             if(const auto pair = this->locate_base_poly(furi.retract()); pair.has_value()) {
               LOG_WRITE(TRACE, this, L("base poly found at {}: {}\n",
                                        pair->first.toString(),
-                                       pair->second->toString())                  );
+                                       pair->second->toString())              );
               const fURI_p furi_subpath = id_p(furi.remove_subpath(pair->first.as_branch().toString(), true));
               const Poly_p poly_read = pair->second; //->clone();
               Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
@@ -281,12 +301,12 @@ namespace fhatos {
             if(obj->is_noobj()) {
               // unsubscribe
               this->recv_unsubscribe(
-                  *(Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), furi.no_query());
+                *(Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), furi.no_query());
             } else if(obj->is_code()) {
               // bcode for on_recv
               this->recv_subscription(Subscription::create(
-                  Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi.no_query()),
-                  obj));
+                Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi.no_query()),
+                obj));
             } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), ID("/fos/q/sub"))) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));

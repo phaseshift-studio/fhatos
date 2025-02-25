@@ -151,6 +151,8 @@ namespace fhatos {
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
           break;
       }
+      if(this->get<bool>("config/cache"))
+        this->enable_cache();
     } catch(const mqtt::exception &e) {
       LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n",
                     this->rec_get("config/broker")->uri_value().toString(), e.what()));

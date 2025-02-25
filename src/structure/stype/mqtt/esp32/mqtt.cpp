@@ -154,6 +154,8 @@ namespace fhatos {
           break;
       }
       this->connection_logging();
+      if(this->get<bool>("config/cache"))
+        this->enable_cache();
     } catch(const fError &e) {
       LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n",
                     this->rec_get("config/broker")->uri_value().toString(), e.what()));
