@@ -71,7 +71,6 @@ int main(int arg, char **argsv) {
   LOG(INFO, "Processing %i expressions\n", arg);
   printer()->printer_switch(true);
   printer()->println("++++\n[source,mmadt]\n----");
-  Processor::compute("*/io/console.eval('')");
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
     try {
