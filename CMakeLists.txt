@@ -26,7 +26,7 @@ IF(BUILD_DOCS)
                         paho-mqttpp3)
                 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ELSE()
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a)
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a fmt::fmt)
             ENDIF()
             TARGET_PRECOMPILE_HEADERS(${PACKAGE_RUNNER} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES

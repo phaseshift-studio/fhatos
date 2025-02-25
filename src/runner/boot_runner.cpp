@@ -22,15 +22,7 @@
 #include <chrono>
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
-#include "../../../src/lang/mmadt/type.hpp"
-#include "../../../src/lang/mmadt/parser.hpp"
-#include "../../../src/lang/type.hpp"
-#include "../../../src/model/console.hpp"
-#include "../../../src/model/terminal.hpp"
-#include "../../../src/process/ptype/native/scheduler.hpp"
-#include <thread>
 #include "../../../src/util/ansi.hpp"
-#include "../../../src/util/options.hpp"
 #include "../../../src/boot_loader.hpp"
 
 using namespace fhatos;
@@ -39,17 +31,18 @@ using namespace std;
 int main(int, char **) {
   try {
     char** args = new char*();
-    args[0] = (char*) "boot_runner";
-    args[1] = (char*) "--headers=true";
-    args[2] = (char*) "--log=INFO";
-    args[3] = (char*) "--ansi=false";
+    args[0] = static_cast<char *>("boot_runner");
+    args[1] = static_cast<char *>("--headers=true");
+    args[2] = static_cast<char *>("--log=INFO");
+    args[3] = static_cast<char *>("--ansi=false");
+    args[4] = static_cast<char *>("--boot:config=../../../conf/boot_config.obj");
     ArgvParser* argv_parser = new ArgvParser();
-    argv_parser->init(4,args);
+    argv_parser->init(5,args);
+    printer()->ansi_switch(false);
     cout << "++++\n[source,mmadt,subs=\"verbatim\"]\n----\n";
     BootLoader::primary_boot(argv_parser)
         ->display_splash("----\n")
         ->display_splash("++++");
-    Options::singleton()->printer<Ansi<>>()->on(false);
     cout << "\n----\n++++";
     return 0;
   } catch (const std::exception &e) {

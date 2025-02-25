@@ -24,8 +24,9 @@
 #include "../../../src/kernel.hpp"
 #include "../../../src/lang/mmadt/type.hpp"
 #include "../../../src/lang/mmadt/parser.hpp"
+#include "../../../src/lang/processor/processor.hpp"
 #include "../../../src/lang/type.hpp"
-#include "../../../src/model/console.hpp"
+#include "../../../src/model/fos/ui/console/console.hpp"
 #include "../../../src/model/terminal.hpp"
 #include "../../../src/process/ptype/native/scheduler.hpp"
 #include <thread>
@@ -35,12 +36,13 @@
 #include "../../../src/boot_loader.hpp"
 
 using namespace fhatos;
+using namespace mmadt;
 
 void printResult(const Obj_p &obj, const uint8_t depth = 0) {
-  if (obj->is_noobj())
+  if(obj->is_noobj())
     return;
-  if (obj->is_objs()) {
-    for (Obj_p &o: *obj->objs_value()) {
+  if(obj->is_objs()) {
+    for(Obj_p &o: *obj->objs_value()) {
       printResult(o, depth + 1);
     }
   } else {
@@ -50,48 +52,49 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 
 int main(int arg, char **argsv) {
   Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());
-  try{
-    char **args = new char *();
-      args[0] = (char *) "main_runner";
-      args[1] = (char *) "--headers=false";
-      args[2] = (char *) "--log=INFO";
-      args[3] = (char *) "--ansi=false";
-      args[4] = (char *) "--boot:config=../../../conf/boot_config.obj";
-      ArgvParser * argv_parser = new ArgvParser();
-      argv_parser->init(5, args);
-      Options::singleton()->printer<Ansi<>>()->on(true);
-      BootLoader::primary_boot(argv_parser);
-  }
-  catch(const std::exception & e) {
-    fhatos::LOG(ERROR,"error occurred processing docs: %s",e.what());
+  try {
+    const auto args = new char *();
+    args[0] = static_cast<char *>("main_runner");
+    args[1] = static_cast<char *>("--headers=false");
+    args[2] = static_cast<char *>("--log=INFO");
+    args[3] = static_cast<char *>("--ansi=false");
+    args[4] = static_cast<char *>("--boot:config=../../../conf/boot_config.obj");
+    ArgvParser *argv_parser = new ArgvParser();
+    argv_parser->init(5, args);
+    printer()->printer_switch(false);
+    printer()->ansi_switch(false);
+    BootLoader::primary_boot(argv_parser);
+  } catch(const std::exception &e) {
+    fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
     throw;
   }
-  LOG(INFO, "Processing %s\n", argsv[1]);
-  printer<>()->println("++++\n[source,mmadt]\n----");
-  //router()->write(id_p("/console/:prompt"), str(""), false);
-  //router()->loop();
-  for (int i = 1; i < 2; i++) {
-    try{
-      std::string x = string(argsv[i]);
-        StringHelper::trim(x);
-        /* if(x.find("!NO!") != std::string::npos) {
-               printer<Ansi<>>()->on(false);
-               router()->write(id_p("/console/:prompt"), str(x.substr(5)), false);
-               printer<Ansi<>>()->on(true);
-           }
-   if (x.find("/io/console/config/nest ->") != string::npos) {
-            Router::singleton()->write(id_p("/io/console/config/nest"), jnt(stoi(x.substr(x.find("->")+2))));
-        }else {
-            Router::singleton()->write(id_p("/io/console/:prompt"), str(x), false);
-        }*/
-        printer<>()->print(BCODE_PROCESSOR(OBJ_PARSER(x))->to_objs()->toString().c_str());
-        //Router::singleton()->loop();
+  LOG(INFO, "Processing %i expressions\n", arg);
+  printer()->printer_switch(true);
+  printer()->println("++++\n[source,mmadt]\n----");
+  Processor::compute("*/io/console.eval('')");
+  Router::singleton()->loop();
+  for(int i = 1; i < arg; i++) {
+    try {
+      auto x = string(argsv[i]);
+      StringHelper::trim(x);
+      if(x.find("!NO!") != std::string::npos) {
+        printer()->ansi_switch(false);
+        Processor::compute(fmt::format("*/io/console.eval({})", x.substr(5)));
+        printer()->ansi_switch(true);
+      }
+      printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
+      // printer()->print(" ");
+      printer()->println(argsv[i]);
+      Processor::compute(fmt::format("*/io/console.eval('{}')", x));
+      //printer<>()->print(Processor::compute(mmadt::Parser::singleton()->parse(argsv[i]))->toString().c_str());
+     // Router::singleton()->loop();
+    } catch(std::exception &e) {
+      LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    catch(std::exception & e) {
-      LOG_EXCEPTION(Scheduler::singleton(),e);
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   }
-  printer<>()->print("----\n++++");
+  printer()->print("\n----\n++++");
+  delete[] argsv;
+  return 0;
 }
 #endif
