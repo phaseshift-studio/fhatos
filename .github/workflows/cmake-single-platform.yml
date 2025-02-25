@@ -25,6 +25,9 @@ jobs:
     - name: install python
       uses: actions/setup-python@v1
 
+    - name: install include-what-you-use
+      run: sudo apt-get install iwyu
+
     - name: install markdown-code-runner
       run: pip install markdown-code-runner
 
