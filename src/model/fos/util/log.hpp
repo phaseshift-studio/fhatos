@@ -48,7 +48,7 @@ namespace fhatos {
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
       const Lst_p furis = Log::singleton()->rec_get(fURI("config").extend(LOG_TYPES.to_chars(type)));
       if(!furis->is_lst()) {
-        printer<>()->printf("!g[ERROR] !! " OBJ_ID_WRAP" log listing not within schema specification: %s\n",
+        printer()->printf("!g[ERROR] !! " OBJ_ID_WRAP" log listing not within schema specification: %s\n",
                             Log::singleton()->vid_or_tid()->toString().c_str(), Log::singleton()->toString());
         return;
       }
@@ -63,22 +63,23 @@ namespace fhatos {
         return;
       std::lock_guard lock(stdout_mutex);
       if(type == NONE)
-        printer<>()->print("");
+        printer()->print("");
       else if(type == INFO)
-        printer<>()->print("!g[INFO] !! ");
+        printer()->print("!g[INFO] !! ");
       else if(type == ERROR)
-        printer<>()->print("!r[ERROR]!! ");
+        printer()->print("!r[ERROR]!! ");
       else if(type == WARN)
-        printer<>()->print("!y[WARN] !! ");
+        printer()->print("!y[WARN] !! ");
       else if(type == DEBUG)
-        printer<>()->print("!y[DEBUG]!! ");
+        printer()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
-        printer<>()->print("!r[TRACE]!! ");
+        printer()->print("!r[TRACE]!! ");
       if((Router::singleton()->vid->equals(*source->vid_or_tid())) || SCHEDULER_ID->equals(*source->vid_or_tid()))
-        printer<>()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
+        printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
       else
-        printer<>()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
-      printer<>()->print(message().c_str());
+        printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
+      const string m = message().c_str();
+      printer()->print(m.c_str());
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {

@@ -32,7 +32,6 @@
 #include "string_printer.hpp"
 
 namespace fhatos {
-
   class PPrinter {
   public:
     virtual ~PPrinter() = default;
@@ -117,9 +116,7 @@ namespace fhatos {
   class Ansi {
   public:
     static shared_ptr<Ansi<PRINTER>> singleton() {
-      static Ansi<PRINTER> ansi = Ansi<PRINTER>();
-      static shared_ptr<Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {
-      });
+      static shared_ptr<Ansi<PRINTER>> ansi_p = std::make_shared<Ansi<PRINTER>>();
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {
@@ -136,12 +133,13 @@ namespace fhatos {
     std::string buffer_ = std::string();
     StringPrinter printer_ = StringPrinter(&buffer_);
     uint16_t *slots[10] = {};
-    bool on_ = true;
+    bool ansi_on_ = true;
+    bool printer_on_ = true;
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
     void color(const uint8_t fgcolor, const uint8_t) {
-      if(this->on_)
+      if(this->ansi_on_)
         this->printf("\033[0;%dm", fg_normal + fgcolor);
     }
 
@@ -253,34 +251,42 @@ namespace fhatos {
     }
 
   public:
-    Ansi() :
-      Ansi(*CPrinter::singleton()) {
+    Ansi() : Ansi(*CPrinter::singleton()) {
     }
 
-    explicit Ansi(string *str) :
-      Ansi(StringPrinter(str)) {
+    explicit Ansi(string *str) : Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(const PRINTER printer) :
-      printer(printer) {
+    explicit Ansi(const PRINTER printer) : printer(printer) {
       for(int i = 0; i < 10; i++) {
         uint16_t t[2] = {0, 0};
         this->slots[i] = t;
       }
     }
 
-    void on(bool turn_on = true) { this->on_ = turn_on; }
+    void ansi_switch(bool turn_on = true) { this->ansi_on_ = turn_on; }
 
-    bool is_on() const { return this->on_; }
+    void printer_switch(bool turn_on = true) { this->printer_on_ = turn_on; }
 
-    void print(const char c) { this->parse(&c, 1); }
+    bool is_ansi_on() const { return this->ansi_on_; }
+    bool is_printer_on() const { return this->printer_on_; }
 
-    void print(const char *c) { this->parse(c, strlen(c)); }
+    void print(const char c) {
+      if(this->printer_on_)
+        this->parse(&c, 1);
+    }
+
+    void print(const char *c) {
+      if(this->printer_on_)
+        this->parse(c, strlen(c));
+    }
 
     void println(const char *c = "") {
-      if(strlen(c) > 0)
-        this->print(c);
-      this->print('\n');
+      if(this->printer_on_) {
+        if(strlen(c) > 0)
+          this->print(c);
+        this->print('\n');
+      }
     }
 
     PRINTER get_printer() { return this->printer; }
@@ -298,7 +304,7 @@ namespace fhatos {
       auto a = std::string();
       const auto b = StringPrinter(&a);
       auto ansi = Ansi<StringPrinter>(b);
-      ansi.on(false);
+      ansi.ansi_switch(false);
       ansi.print(s.c_str());
       ansi.flush();
       auto ret = string(ansi.get_printer().get());
@@ -314,54 +320,55 @@ namespace fhatos {
       if(format[strlen(format) - 1] == '\n')
         message[length - 1] = '\n';
       message[length] = '\0';
-      this->parse(message, length);
+      if(this->printer_on_)
+        this->parse(message, length);
       free(message);
     }
 
     //////////////////////////
 
     void normal() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[0m");
     }
 
     void clear() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[2J");
     }
 
     void italic() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[3m");
     }
 
     void underline() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[4m");
     }
 
     void strike_through() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[9m");
     }
 
     void reverse() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[7m");
     }
 
     void bold() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[1m");
     }
 
     void blink() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[5m");
     }
 
     void clear_line() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[2K");
     }
 
@@ -373,12 +380,12 @@ namespace fhatos {
     ////////// POSITIONING
 
     void top_left() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[H");
     }
 
     void bottom_left() {
-      if(this->on_)
+      if(this->ansi_on_)
         this->print("\033[F");
     }
 
@@ -429,7 +436,7 @@ namespace fhatos {
     }
 
     void teleport(const uint16_t row, const uint16_t column) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         this->print("\033[");
         this->print(std::to_string(row).c_str());
         this->print(';');
@@ -439,7 +446,7 @@ namespace fhatos {
     }
 
     void home() {
-      if(this->on_) {
+      if(this->ansi_on_) {
         this->print("\033[H");
       }
     }
@@ -449,7 +456,7 @@ namespace fhatos {
     }
 
     void move(const char direction, const uint16_t columns_or_rows) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         this->print("\033[");
         this->print(std::to_string(columns_or_rows).c_str());
         this->print(direction);
@@ -457,13 +464,13 @@ namespace fhatos {
     }
 
     void cursor(const bool visible) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         this->print(visible ? "\x1b[?25h" : "\x1b[?25l");
       }
     }
 
     void save_cursor(const uint8_t slot = 0) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         if(0 == slot) {
           this->print("\033[s");
         } else {
@@ -473,7 +480,7 @@ namespace fhatos {
     }
 
     void load_cursor(const uint8_t slot = 0) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         if(0 == slot) {
           this->print("\033[u");
         } else {
@@ -483,7 +490,7 @@ namespace fhatos {
     }
 
     void location(uint16_t *pos) {
-      if(this->on_) {
+      if(this->ansi_on_) {
         this->print("\033[6n");
         this->read(); // esc
         this->read(); // [
@@ -543,8 +550,7 @@ namespace fhatos {
     uint8_t current_counts_;
     const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
-      ansi_(ansi),
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
       total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 
@@ -572,7 +578,7 @@ namespace fhatos {
         percentage = 100;
         this->ansi_->clear_line();
       }
-      if(this->ansi_->is_on()) {
+      if(this->ansi_->is_ansi_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
         this->ansi_->print("!g[INFO]  [!b");
         for(int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {

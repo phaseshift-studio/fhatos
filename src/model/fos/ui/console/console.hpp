@@ -171,12 +171,15 @@ namespace fhatos {
           {"loop", Obj::to_bcode()},
           {"halt", Obj::to_type(BOOL_FURI)}
         }));
-      /*InstBuilder::build(CONSOLE_FURI->add_component("start"))
-          ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-            Model<ConsoleX>::get_state(console_obj);
-            return console_obj;
+      InstBuilder::build(CONSOLE_FURI->add_component("eval"))
+          ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(rec({{"code", Obj::to_noobj()}}))
+          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
+            const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
+            ((ConsoleX *) console_state.get())->process_line(console_obj, args->arg("code")->str_value());
+            return Obj::to_noobj();
           })
-          ->save();*/
+          ->save();
       return nullptr;
     }
   };

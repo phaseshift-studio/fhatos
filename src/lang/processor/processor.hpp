@@ -164,6 +164,12 @@ namespace fhatos {
       return objs;
     }
 
+    static Objs_p compute(const string &bcode) {
+      //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
+      const Obj_p objs = Processor(OBJ_PARSER(bcode)).to_objs();
+      return std::move(objs);
+    }
+
     static ptr<Processor> create(const BCode_p &bcode) {
       const auto proc = ptr<Processor>(new Processor(bcode));
       return proc;
