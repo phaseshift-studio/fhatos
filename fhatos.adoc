@@ -1,5 +1,6 @@
 :imagesdir: ./images
 :favicon: {imagesdir}/fhatos-logo-small.png
+:copyright: PhaseShift Studio
 :author: Dogturd Stynx
 :email: dogturd.stynx@fhatos.org
 :revnumber: 0.1
@@ -15,7 +16,14 @@
 :toclevels: 4
 :license-url: https://www.gnu.org/licenses/agpl-3.0.html
 :license-title: AGPLv3
+:lang: en
 :docinfo: shared
+:max-width: 75%
+:app-name: FhatOS
+:version-label: 0.1-alpha
+:docname: FhatOS Documentation
+:doctitle: FhatOS: A Distributed Operating System for Embedded Systems
+
 
 = FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
 
@@ -64,7 +72,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 728 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 736 bytes)
 [WARN]  [/sys/router] router has no auto-prefix configuration: noobj
 [INFO]  [/sys/router] 
   [
@@ -74,7 +82,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
     ota=>[host=>mdns://fhatos_client:3232]
     console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288]
-    fs=>[root=>.]
+    fs=>[root=>./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
 [INFO]  [/sys/router] scheduler boot config dropped
@@ -94,18 +102,16 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router] heap /mnt/cache spanning +/# attached
 [INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
 [INFO]  [/sys/router] /io/lib/fs type imported
-[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build file system location mounted
+[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# attached
 [INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/mqtt] /mnt/mqtt mqtt [broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true] connected
-[INFO]  [/mnt/mqtt] [/mnt/mqtt/cache]=subscribe=>[//io/#]
-[INFO]  [/mnt/mqtt] cache enabled
+[ERROR] [/mnt/mqtt] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
 [INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# attached
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# attached
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
+[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] console boot config dropped
 ----
 ++++
@@ -179,6 +185,10 @@ fhatos> */sys/router
 
 Likewise, the mmADT language is encoded within the fURI address space. mmADT's encoding is large as it includes all the mmADT types and instructions. By derefencing the `/mmadt` root with the wildcard extension `#`, a reflective representation of the mmADT language is accessed.
 
++++ <details><summary> +++
+fURI encoding of the mmADT language
++++ </summary><div> +++
+
 ++++
 <!-- CODE:BASH:START -->
 <!-- ./main_runner.out "*/mmadt/#/" -->
@@ -200,6 +210,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/uri/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
 ==>/mmadt/uri/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/uri/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/uri/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/uri=>[uri][_]
 ==>/mmadt/type=>type?uri<=obj{?}(from(0?obj,_)[cpp])[cpp]
 ==>/mmadt/to=>to(from(0?uri,noobj)[cpp],from(1?retain,true)[cpp])[cpp]
@@ -214,6 +225,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/str/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
 ==>/mmadt/str/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/str/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/str/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/str=>[str][_]
 ==>/mmadt/start=>start?objs{*}<=noobj{.}(from(0?starts,noobj)[cpp])[cpp]
 ==>/mmadt/split=>split(from(0?poly,noobj)[cpp])[cpp]
@@ -236,6 +248,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/real/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
 ==>/mmadt/real/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/real/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/real/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/real=>[real][_]
 ==>/mmadt/print=>print?obj{?}<=obj{?}(from(0?to_print,_)[cpp])[cpp]
 ==>/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])
@@ -270,6 +283,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/int/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
 ==>/mmadt/int/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/int/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/int/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/int=>[int][_]
 ==>/mmadt/inst/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
 ==>/mmadt/inst=>[inst][_]
@@ -293,6 +307,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/bool/::/mmadt/neg=>neg(from(0?self,_)[cpp])[cpp]
 ==>/mmadt/bool/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/bool/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
+==>/mmadt/bool/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/bool=>[bool][_]
 ==>/mmadt/block=>block?obj<=obj{?}(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/bcode/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
@@ -306,6 +321,8 @@ fhatos> */mmadt/#/
 ++++
 <!-- OUTPUT:END -->
 ++++
+
++++ </div></details> +++
 
 All resources off the specified kernel fURIs can be interacted with, but can not be shutdown.
 That is, `/sys/# -> noobj` yields an error.
