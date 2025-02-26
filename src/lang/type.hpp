@@ -44,6 +44,7 @@ namespace fhatos {
   static const ID_p PERCENT_FURI = id_p(FOS_URI "/prnt");
   static const ID_p MILLISECOND_FURI = id_p(FOS_URI "/ms");
   static const ID_p SECOND_FURI = id_p(FOS_URI "/sec");
+  static const ID_p SECRET_FURI = id_p(FOS_URI "/secret");
 
 
   class Typer final : public Obj {

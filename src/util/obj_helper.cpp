@@ -39,8 +39,6 @@ namespace fhatos {
       return coef.empty() || stoi(coef.front()) == 0;
     }
 
-
-
      InstBuilder::InstBuilder(TypeO_p type) : type_(std::move(type)), args_(Obj::to_rec()), seed_(nullptr) {
     }
 

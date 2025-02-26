@@ -24,5 +24,5 @@
   log=>INFO,
   stack_size=>24288
  ],
- fs=>[root=><.>]
+ fs=>[root=><./data/fs>]
 ]@/boot/config

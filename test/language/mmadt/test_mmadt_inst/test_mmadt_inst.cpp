@@ -46,6 +46,26 @@ namespace fhatos {
     FOS_TEST_ERROR("-5555.map(as([/abc/nat][]))");
     FOS_TEST_ERROR("-5555.as(str)");
     // TODO: FOS_TEST_ERROR("-5.as([int][is(gt(0))])");
+    //////////////////////////////
+    FOS_TEST_OBJ_EQUAL(Obj::to_bool(true), PROCESS("'true'.as(bool)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_bool(false), PROCESS("0.as(bool)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_bool(true), PROCESS("1.as(bool)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_bool(true), PROCESS("true.as(bool)"));
+    /////
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(46), PROCESS("'46'.as(int)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(46), PROCESS("real[46.1].as(int)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(46), PROCESS("46.as(int)"));
+    /////
+    TEST_ASSERT_TRUE(PROCESS("'47.3'.as(real)")->real_value() > 47.2 &&
+                     PROCESS("'47.3'.as(real)")->real_value() < 47.4);
+    FOS_TEST_OBJ_EQUAL(Obj::to_real(47.3), PROCESS("real[47.3].as(real)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_real(47.0), PROCESS("47.as(real)"));
+    /////
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("true"), PROCESS("true.as(str)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("13"), PROCESS("13.as(str)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("-13"), PROCESS("-13.as(str)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("hello"), PROCESS("'hello'.as(str)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("46.230000"), PROCESS("real[46.23].as(str)"));
   }
 
   void test_inst_args() {

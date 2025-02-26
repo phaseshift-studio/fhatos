@@ -1212,6 +1212,10 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
+    /*[[nodiscard]] Inst_p this_inst(const ID &inst_id) const {
+      return Compiler().resolve_inst(this->shared_from_this(), inst_id);
+    }*/
+
     // TODO: make obj.cpp/hpp and then reference PrinterHelper for printing
     [[nodiscard]] string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)
@@ -1727,7 +1731,7 @@ namespace fhatos {
         const Obj_p result = this->apply(lhs);
         ROUTER_POP_FRAME();
         return result;
-      } catch(const std::exception &e) {
+      } catch(const std::exception &) {
         //  LOG_EXCEPTION(this, e);
         ROUTER_POP_FRAME();
         throw;
@@ -2006,7 +2010,7 @@ namespace fhatos {
             objs_c->push_back(a->as(*b));
             ++b;
           }
-          return Obj::to_lst(objs_c,type_obj->tid,this->vid);
+          return Obj::to_lst(objs_c, type_obj->tid, this->vid);
         }
         case OType::REC: {
           const auto pairs_a = this->rec_value();
@@ -2025,7 +2029,7 @@ namespace fhatos {
             if(!found)
               throw fError("%s is not a %s", this->toString().c_str(), type_obj->toString().c_str());
           }
-          return Obj::to_rec(pairs_c,type_obj->tid,this->vid);
+          return Obj::to_rec(pairs_c, type_obj->tid, this->vid);
         }
         default: throw fError("%s is not a %s", this->toString().c_str(), type_obj->toString().c_str());
       }

@@ -5,9 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="application-name" content="FhatOS">
 <meta name="author" content="Dogturd Stynx">
+<meta name="copyright" content="PhaseShift Studio">
 <link rel="icon" type="image/png" href="./images/fhatos-logo-small.png">
-<title>FhatOS: A Distributed Operating System for Embedded Systems (v0.1)</title>
+<title>FhatOS: A Distributed Operating System for Embedded Systems</title>
 <style>
 /*
   FhatOS: A Distributed Operating System
@@ -39,31 +41,36 @@
     --tertiarycolor: #bdbdbd;
     --sidebarbackground: #9e9595;
     --linkcolor: #493053;
-    --linkcoloralternate: #B71C1C;
+    --linkcoloralternate: rgb(183, 28, 28);
     --white: #706565;
     --black: #000000;
 }
 
 /* Text styles */
+html {
+    font-family: Arial, sans-serif !important;
+    font-size: 1.25em;
+}
+
 body {
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
     background-color: var(--maincolor);
     color: var(--black);
 }
 
 h1 {
     color: var(--primarycolor) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
 }
 
 h2, h3, h4, h5, h6 {
     color: var(--secondarycolor) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
 }
 
 .title {
     color: var(--black) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
     font-style: normal;
     font-weight: normal;
 }
@@ -73,7 +80,7 @@ a {
 }
 
 p {
-    font-family: "Noto Sans", sans-serif ! important
+    font-family: Arial, sans-serif ! important;
 }
 
 #toc.toc2 a:link {
@@ -81,7 +88,7 @@ p {
 }
 
 blockquote {
-    color: var(--secondarycolor) !important
+    color: var(--secondarycolor) !important;
 }
 
 .quoteblock {
@@ -104,7 +111,7 @@ code {
 }
 
 mark {
-    background-color: var(--tertiarycolor)
+    background-color: var(--tertiarycolor);
 }
 
 /* Text highlighting color */
@@ -117,7 +124,8 @@ th {
 
 td {
     background-color: var(--maincolor);
-    color: var(--black) !important
+    color: var(--black) !important;
+    font-family: Arial, sans-serif !important;
 }
 
 
@@ -131,10 +139,12 @@ td {
 
 .ulist ul {
     line-height: 1.0em;
+    font-family: Arial, sans-serif !important;
 }
 
 .ulist li {
     line-height: 1.0em;
+    font-family: Arial, sans-serif !important;
 }
 
 /* Responsiveness fixes */
@@ -222,12 +232,12 @@ video {
 <link rel="stylesheet" href="./highlight/styles/github.min.css">
 </head>
 <body class="article toc2 toc-left">
-<div id="header">
-<h1>FhatOS: A Distributed Operating System for Embedded Systems (v0.1)</h1>
+<div id="header" style="max-width: 75%;">
+<h1>FhatOS: A Distributed Operating System for Embedded Systems</h1>
 <div class="details">
 <span id="author" class="author">Dogturd Stynx</span><br>
 <span id="email" class="email"><a href="mailto:dogturd.stynx@fhatos.org">dogturd.stynx@fhatos.org</a></span><br>
-<span id="revnumber">version 0.1</span>
+<span id="revnumber">0.1-alpha 0.1</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -351,7 +361,7 @@ video {
 </ul>
 </div>
 </div>
-<div id="content">
+<div id="content" style="max-width: 75%;">
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
@@ -424,7 +434,7 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 728 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 736 bytes)
 [WARN]  [/sys/router] router has no auto-prefix configuration: noobj
 [INFO]  [/sys/router]
   [
@@ -434,7 +444,7 @@ Processes communicate via a publish-subscribe message passing protocol that ride
     wifi=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;fhatos]
     ota=&gt;[host=&gt;mdns://fhatos_client:3232]
     console=&gt;[terminal=&gt;[stdout=&gt;/io/terminal/:stdout,stdin=&gt;/io/terminal/:stdin],nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288]
-    fs=&gt;[root=&gt;.]
+    fs=&gt;[root=&gt;./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
 [INFO]  [/sys/router] scheduler boot config dropped
@@ -454,18 +464,16 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/sys/router] heap /mnt/cache spanning +/# attached
 [INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
 [INFO]  [/sys/router] /io/lib/fs type imported
-[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build file system location mounted
+[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# attached
 [INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/mqtt] /mnt/mqtt mqtt [broker=&gt;mqtt://chibi.local:1883,client=&gt;fhatos_client,cache=&gt;true] connected
-[INFO]  [/mnt/mqtt] [/mnt/mqtt/cache]=subscribe=&gt;[//io/#]
-[INFO]  [/mnt/mqtt] cache enabled
+[ERROR] [/mnt/mqtt] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
 [INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# attached
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==&gt;//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# attached
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
+[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] console boot config dropped</code></pre>
 </div>
 </div>
@@ -555,6 +563,11 @@ fhatos&gt; */sys/router
 <div class="paragraph">
 <p>Likewise, the mmADT language is encoded within the fURI address space. mmADT&#8217;s encoding is large as it includes all the mmADT types and instructions. By derefencing the <code>/mmadt</code> root with the wildcard extension <code>#</code>, a reflective representation of the mmADT language is accessed.</p>
 </div>
+<div class="paragraph">
+<p> <details><summary> 
+fURI encoding of the mmADT language
+ </summary><div> </p>
+</div>
 <!-- CODE:BASH:START -->
 <!-- ./main_runner.out "*/mmadt/#/" -->
 <!-- CODE:END -->
@@ -574,6 +587,7 @@ fhatos&gt; */sys/router
 ==&gt;/mmadt/uri/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gte=&gt;gte(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gt=&gt;gt(from(0?rhs,noobj)[cpp])[cpp]
+==&gt;/mmadt/uri/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
 ==&gt;/mmadt/uri=&gt;[uri][_]
 ==&gt;/mmadt/type=&gt;type?uri&lt;=obj{?}(from(0?obj,_)[cpp])[cpp]
 ==&gt;/mmadt/to=&gt;to(from(0?uri,noobj)[cpp],from(1?retain,true)[cpp])[cpp]
@@ -588,6 +602,7 @@ fhatos&gt; */sys/router
 ==&gt;/mmadt/str/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
 ==&gt;/mmadt/str/::/mmadt/gte=&gt;gte(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/str/::/mmadt/gt=&gt;gt(from(0?rhs,noobj)[cpp])[cpp]
+==&gt;/mmadt/str/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
 ==&gt;/mmadt/str=&gt;[str][_]
 ==&gt;/mmadt/start=&gt;start?objs{*}&lt;=noobj{.}(from(0?starts,noobj)[cpp])[cpp]
 ==&gt;/mmadt/split=&gt;split(from(0?poly,noobj)[cpp])[cpp]
@@ -610,6 +625,7 @@ fhatos&gt; */sys/router
 ==&gt;/mmadt/real/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
 ==&gt;/mmadt/real/::/mmadt/gte=&gt;gte(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/real/::/mmadt/gt=&gt;gt(from(0?rhs,noobj)[cpp])[cpp]
+==&gt;/mmadt/real/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
 ==&gt;/mmadt/real=&gt;[real][_]
 ==&gt;/mmadt/print=&gt;print?obj{?}&lt;=obj{?}(from(0?to_print,_)[cpp])[cpp]
 ==&gt;/mmadt/plus=&gt;plus(from(0?rhs,noobj)[cpp])
@@ -644,6 +660,7 @@ fhatos&gt; */sys/router
 ==&gt;/mmadt/int/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
 ==&gt;/mmadt/int/::/mmadt/gte=&gt;gte(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/int/::/mmadt/gt=&gt;gt(from(0?rhs,noobj)[cpp])[cpp]
+==&gt;/mmadt/int/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
 ==&gt;/mmadt/int=&gt;[int][_]
 ==&gt;/mmadt/inst/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
 ==&gt;/mmadt/inst=&gt;[inst][_]
@@ -667,6 +684,7 @@ fhatos&gt; */sys/router
 ==&gt;/mmadt/bool/::/mmadt/neg=&gt;neg(from(0?self,_)[cpp])[cpp]
 ==&gt;/mmadt/bool/::/mmadt/mult=&gt;mult(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/bool/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
+==&gt;/mmadt/bool/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
 ==&gt;/mmadt/bool=&gt;[bool][_]
 ==&gt;/mmadt/block=&gt;block?obj&lt;=obj{?}(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/bcode/::/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])[cpp]
@@ -678,6 +696,9 @@ fhatos&gt; */sys/router
 </div>
 </div>
 <!-- OUTPUT:END -->
+<div class="paragraph">
+<p> </div></details> </p>
+</div>
 <div class="paragraph">
 <p>All resources off the specified kernel fURIs can be interacted with, but can not be shutdown.
 That is, <code>/sys/# &#8594; noobj</code> yields an error.
@@ -1598,10 +1619,10 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 </div>
 </div>
 </div>
-<div id="footer">
+<div id="footer" style="max-width: 75%;">
 <div id="footer-text">
-Version 0.1<br>
-Last updated 2025-02-25 16:13:49 -0700
+0.1-alpha 0.1<br>
+Last updated 2025-02-25 23:57:38 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

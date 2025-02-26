@@ -159,7 +159,8 @@ namespace fhatos {
       }
       if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->inst_f())) {
         string derivation_string;
-        if(dt) this->print_derivation_tree(&derivation_string);
+        if(dt)
+          this->print_derivation_tree(&derivation_string);
         else {
           const auto c = Compiler(false, true);
           c.resolve_inst(lhs, inst);
@@ -213,7 +214,8 @@ namespace fhatos {
         inst_provided->tid,
         inst_provided->vid);
     }
-    if(dt) this->dt->emplace_back(inst_resolved->tid, inst_c->tid, inst_c);
+    if(dt)
+      this->dt->emplace_back(inst_resolved->tid, inst_c->tid, inst_c);
     LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
     return inst_c;
   }
@@ -235,11 +237,8 @@ namespace fhatos {
       return IS_TYPE_OF(lhs->tid, rhs->tid, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
     if(rhs->is_code() && !lhs->is_code()) {
       Obj_p result = rhs->apply(lhs->clone());
-      if(result->is_noobj()) {
-        if(rhs->range_coefficient().first == 0)
-          return true;
-        else return false;
-      }
+      if(result->is_noobj())
+        return rhs->range_coefficient().first == 0;
       return !result->is_noobj();
     }
     /* if(!rhs->value_.has_value() &&
@@ -349,7 +348,7 @@ namespace fhatos {
        OType::BCODE)
       return true;
     if(type_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->
-                                        equals(*OBJ_FURI)))
+                                       equals(*OBJ_FURI)))
       return true;
     // get the type definition and match it to the obj
     Obj_p type_obj;

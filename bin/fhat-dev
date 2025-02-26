@@ -226,6 +226,8 @@ build_native() {
     mkdir -p build
     cd build || exit 1;
     status_check $? "mkdir and cd build"
+    cp -r ../data .
+    status_check $? "filesystem partitions"
     echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF --parallel ${j} ${extra_args}; make -j${j} -o${o}${RB}"
     cmake .. -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF ${extra_args};
     status_check $? "cmake"
@@ -278,9 +280,11 @@ test_native() {
     shift
     shift
     local extra_args=${@:1}
-    cd build/test
+    cd build/test || exit 1;
     status_check $? "cd build/test"
-    ctest ${extra_args} --output-on-failure
+    mkdir fs
+    status_check $? "mkdir fs"
+    ctest ${extra_args}
     status_check $? "ctest"
     ./tests --colour-mode ansi --success --durations yes --benchmark-samples 10 --verbosity high "${extra_args}"
     status_check $? "catch2 tests"

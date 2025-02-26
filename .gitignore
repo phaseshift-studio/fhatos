@@ -9,6 +9,7 @@ scripts/__pycache__
 .wifi.ini
 .idea
 **/.DS_Store
+docs/fhatos.html
 
 # ESP_IDF Files
 idf_component.yml

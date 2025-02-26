@@ -87,9 +87,101 @@ namespace mmadt {
           ->type_args(x(0, "type"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
-            return lhs->as(args->arg(0)->is_uri()
-                             ? id_p(Router::singleton()->resolve(args->arg(0)->uri_value()))
-                             : args->arg(0)->tid);
+            return args->arg(0)->is_uri()
+                     ? lhs->as(id_p(Router::singleton()->resolve(args->arg(0)->uri_value())))
+                     : lhs->as(args->arg(0)->tid);
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/as")
+          ->domain_range(BOOL_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "type"))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            // uri or obj (for type obj)
+            if(args->arg(0)->is_uri()) {
+              const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
+              if(resolution->equals(*BOOL_FURI)) return lhs->as(resolution);
+              if(resolution->equals(*INT_FURI)) return jnt(lhs->bool_value() ? 1 : 0);
+              if(resolution->equals(*REAL_FURI)) return real(lhs->bool_value() ? 1.0 : 0.0);
+              if(resolution->equals(*STR_FURI)) return str(lhs->toString(NO_ANSI_PRINTER));
+              if(resolution->equals(*URI_FURI)) return vri(lhs->toString(NO_ANSI_PRINTER));
+              return lhs->as(resolution);
+            }
+            return lhs->as(args->arg(0)->tid);
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/as")
+          ->domain_range(INT_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "type"))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            // uri or obj (for type obj)
+            if(args->arg(0)->is_uri()) {
+              const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
+              if(resolution->equals(*BOOL_FURI)) return dool(lhs->int_value() > 0);
+              if(resolution->equals(*INT_FURI)) return lhs->as(resolution);
+              if(resolution->equals(*REAL_FURI)) return real(static_cast<FOS_REAL_TYPE>(lhs->int_value()));
+              if(resolution->equals(*STR_FURI)) return str(lhs->toString(NO_ANSI_PRINTER));
+              if(resolution->equals(*URI_FURI)) return  vri(lhs->toString(NO_ANSI_PRINTER));
+              return lhs->as(resolution);
+            }
+            return lhs->as(args->arg(0)->tid);
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/as")
+          ->domain_range(REAL_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "type"))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            // uri or obj (for type obj)
+            if(args->arg(0)->is_uri()) {
+              const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
+              if(resolution->equals(*BOOL_FURI)) return dool(lhs->real_value() > 0.0);
+              if(resolution->equals(*INT_FURI)) return jnt(static_cast<FOS_INT_TYPE>(lhs->real_value()));
+              if(resolution->equals(*REAL_FURI)) return lhs->as(resolution);
+              if(resolution->equals(*STR_FURI)) return str(lhs->toString(NO_ANSI_PRINTER));
+              if(resolution->equals(*URI_FURI)) return vri(lhs->toString(NO_ANSI_PRINTER));
+              return lhs->as(resolution);
+            }
+            return lhs->as(args->arg(0)->tid);
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/as")
+          ->domain_range(STR_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "type"))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            // uri or obj (for type obj)
+            if(args->arg(0)->is_uri()) {
+              const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
+              if(resolution->equals(*BOOL_FURI)) return dool(lhs->str_value() == "true");
+              if(resolution->equals(*INT_FURI)) return jnt(static_cast<FOS_INT_TYPE>(atoi(lhs->str_value().c_str())));
+              if(resolution->equals(*REAL_FURI)) return real(static_cast<FOS_REAL_TYPE>(atof(lhs->str_value().c_str())));
+              if(resolution->equals(*STR_FURI)) return lhs->as(resolution);
+              if(resolution->equals(*URI_FURI)) return vri(lhs->toString(NO_ANSI_PRINTER));
+              return lhs->as(resolution);
+            }
+            return lhs->as(args->arg(0)->tid);
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/as")
+          ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {1, 1})
+          ->type_args(x(0, "type"))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            // uri or obj (for type obj)
+            if(args->arg(0)->is_uri()) {
+              const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
+              if(resolution->equals(*BOOL_FURI)) return dool(lhs->uri_value().toString() == "true");
+              if(resolution->equals(*INT_FURI))
+                return jnt(static_cast<FOS_INT_TYPE>(atoi(lhs->uri_value().toString().c_str())));
+              if(resolution->equals(*REAL_FURI))
+                return real(static_cast<FOS_REAL_TYPE>(atof(lhs->uri_value().toString().c_str())));
+              if(resolution->equals(*STR_FURI)) return vri(lhs->str_value());
+              if(resolution->equals(*URI_FURI)) return lhs->as(resolution);
+              return lhs->as(resolution);
+            }
+            return lhs->as(args->arg(0)->tid);
           })
           ->save();
 
@@ -697,6 +789,7 @@ namespace mmadt {
       //////////////////////////////// MODULO ////////////////////////////////////
       InstBuilder::build(MMADT_SCHEME "/mod")->type_args(x(0, "rhs"))->save();
       InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/mod")
+          ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
           ->type_args(x(0, "rhs"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return jnt(lhs->int_value() % args->arg(0)->int_value());
@@ -971,7 +1064,7 @@ namespace mmadt {
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
       const Obj_p type = Router::singleton()->read(*lhs->tid);
       const Rec_p rec = Obj::to_rec();
-     // rec->rec_set("parent", lhs->parent_ ? lhs->parent_->shared_from_this() : Obj::to_noobj());
+      // rec->rec_set("parent", lhs->parent_ ? lhs->parent_->shared_from_this() : Obj::to_noobj());
       rec->rec_set("type/id", vri(lhs->tid));
       rec->rec_set("type/obj", Obj::to_type(lhs->tid));
       rec->rec_set("type/dom/id", vri(lhs->domain()));

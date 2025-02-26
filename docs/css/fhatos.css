@@ -28,31 +28,36 @@
     --tertiarycolor: #bdbdbd;
     --sidebarbackground: #9e9595;
     --linkcolor: #493053;
-    --linkcoloralternate: #B71C1C;
+    --linkcoloralternate: rgb(183, 28, 28);
     --white: #706565;
     --black: #000000;
 }
 
 /* Text styles */
+html {
+    font-family: Arial, sans-serif !important;
+    font-size: 1.25em;
+}
+
 body {
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
     background-color: var(--maincolor);
     color: var(--black);
 }
 
 h1 {
     color: var(--primarycolor) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
 }
 
 h2, h3, h4, h5, h6 {
     color: var(--secondarycolor) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
 }
 
 .title {
     color: var(--black) !important;
-    font-family: "Noto Sans", sans-serif;
+    font-family: Arial, sans-serif !important;
     font-style: normal;
     font-weight: normal;
 }
@@ -62,7 +67,7 @@ a {
 }
 
 p {
-    font-family: "Noto Sans", sans-serif ! important
+    font-family: Arial, sans-serif ! important;
 }
 
 #toc.toc2 a:link {
@@ -70,7 +75,7 @@ p {
 }
 
 blockquote {
-    color: var(--secondarycolor) !important
+    color: var(--secondarycolor) !important;
 }
 
 .quoteblock {
@@ -93,7 +98,7 @@ code {
 }
 
 mark {
-    background-color: var(--tertiarycolor)
+    background-color: var(--tertiarycolor);
 }
 
 /* Text highlighting color */
@@ -106,7 +111,8 @@ th {
 
 td {
     background-color: var(--maincolor);
-    color: var(--black) !important
+    color: var(--black) !important;
+    font-family: Arial, sans-serif !important;
 }
 
 
@@ -120,10 +126,12 @@ td {
 
 .ulist ul {
     line-height: 1.0em;
+    font-family: Arial, sans-serif !important;
 }
 
 .ulist li {
     line-height: 1.0em;
+    font-family: Arial, sans-serif !important;
 }
 
 /* Responsiveness fixes */
