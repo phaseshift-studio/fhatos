@@ -432,15 +432,15 @@ Processes communicate via a publish-subscribe message passing protocol that ride
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6784]
+[INFO]  [/sys/router] main memory [total=&gt;6912]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 736 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 746 bytes)
 [WARN]  [/sys/router] router has no auto-prefix configuration: noobj
 [INFO]  [/sys/router]
   [
-    router=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
+    router=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
     scheduler=&gt;[def_stack_size=&gt;8096]
     mqtt=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;fhatos_client,cache=&gt;true]
     wifi=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;fhatos]
@@ -476,8 +476,8 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==&gt;//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# attached
-[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/io/console] thread spawned: inst()[cpp]
+[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped</code></pre>
 </div>
 </div>
@@ -575,7 +575,7 @@ fhatos&gt; */sys/router
 =&gt;]
 ==&gt;frame=&gt;[rec][_]
 ==&gt;config=&gt;[
-===&gt;resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]
+===&gt;resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]
 =&gt;]
 ==&gt;query=&gt;[
 ===&gt;write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]
@@ -1096,11 +1096,21 @@ The program is a specialization of the poly-type <code>rec</code> called <code>t
         :loop  =&gt; __]]</code></pre>
 </div>
 </div>
-<!-- 🐓 ./main_runner.out "/fos/sys/threadx[[halt=>false,delay=>nat[0],loop=>from(|a,0).plus(1).to(a).print(_).[is(gt(10)) => |true.to(abc/halt)]>-]]@abc" "@abc.spawn()" -->
-<!-- 🐖 -->
+<!-- 🐓 ./main_runner.out
+threadx[[ /
+  halt=>false, /
+  delay=>nat[0], /
+  loop=>from(|a,0).plus(1).to(a).print(_). /
+         [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
+@abc.spawn()
+-->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /fos/sys/threadx[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;from(|a,0).plus(1).to(a).print(_).[is(gt(10)) =&gt; |true.to(abc/halt)]&gt;-]]@abc
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; threadx[[
+          halt=&gt;false,
+          delay=&gt;nat[0],
+          loop=&gt;from(|a,0).plus(1).to(a).print(_).
+                 [is(gt(10)) =&gt; |true.to(abc/halt)]&gt;-]]@abc
 &gt;threadx[
 ==&gt;halt=&gt;false
 ==&gt;delay=&gt;nat[0]
@@ -1127,6 +1137,8 @@ fhatos&gt; @abc.spawn()
 [INFO]  [abc] thread stopped</code></pre>
 </div>
 </div>
+<!-- 🐖 -->
+
 <!-- 🦆 -->
 <!-- 🐓 ./main_runner.out "person -> |[name=>str[_],age=>nat[_]]" "person[[name=>'fhatty',age=>0]]" "person[[name=>'fhatty',age=>1]]" -->
 <!-- 🐖 -->
@@ -1631,7 +1643,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-02-26 23:23:32 -0700
+Last updated 2025-02-26 23:37:23 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

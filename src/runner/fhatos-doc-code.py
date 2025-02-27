@@ -97,7 +97,7 @@ def execute_code(
             new_code.append(c)
         else:
             if cat:
-                new_code.append(new_code.pop().removesuffix("/\"") + "\n        " + c + "\"")
+                new_code.append(new_code.pop().rstrip().removesuffix(" /\"") + "\n        " + c + "\"")
             else:
                 new_code.append("\"" + c + "\"")
         cat = c.endswith("/")
