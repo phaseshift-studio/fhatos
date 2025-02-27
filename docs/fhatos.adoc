@@ -49,6 +49,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 ++++
 <!-- 🐖 ./boot_runner.out -->
 ++++
+
 [source,mmadt,subs="verbatim"]
 ----
             PhaseShift Studio Presents 
@@ -64,7 +65,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6656]
+[INFO]  [/sys/router] main memory [total=>7040]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -112,9 +113,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 [INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 === Booting on Linux/Unix/Mac
 
@@ -142,22 +141,21 @@ The FhatOS scheduler and router are accessible to the user when their respective
   [d => e]]]
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> [a => b,
          b => [c =>
           [d => e]]]
->[
+=>[
 ==>a=>b
 ==>b=>[
 ===>c=>[d=>e]
 =>]
->]
+=>]
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -165,19 +163,20 @@ fhatos> [a => b,
 */sys/router
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> */sys/scheduler
->[
+=>[
 ==>barrier=>noobj
 ==>process=>[
 =>]
 ==>config=>[
 ===>def_stack_size=>8096
 =>]
->]@/sys/scheduler
+=>]@/sys/scheduler
 fhatos> */sys/router
->[
+=>[
 ==>structure=>[
 ===>/sys/#
 ===>/mnt/#
@@ -197,12 +196,10 @@ fhatos> */sys/router
 ==>query=>[
 ===>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
 =>]
->]@/sys/router
+=>]@/sys/router
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 Likewise, the mmADT language is encoded within the fURI address space. mmADT's encoding is large as it includes all the mmADT types and instructions.
 By derefencing the `/mmadt` root with the wildcard extension `#`, a reflective representation of the mmADT language is accessed.
@@ -214,6 +211,7 @@ fURI encoding of the mmADT language
 ++++
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> */mmadt/#/
@@ -336,9 +334,7 @@ fhatos> */mmadt/#/
 =>]
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 +++ </div></details> +++
 
@@ -361,10 +357,11 @@ The following subsections will provide a short overview of the aforementioned re
 */io/console
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> */io/console
->console[
+=>console[
 ==>halt=>false
 ==>delay=>nat[0]
 ==>loop=>inst()[cpp]
@@ -376,12 +373,10 @@ fhatos> */io/console
 ===>log=>INFO
 ===>stack_size=>24288
 =>]
->]@/io/console
+=>]@/io/console
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 === The mm-ADT Language
 
@@ -416,10 +411,11 @@ int[6].inspect()
 real[6.0].inspect()
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> int[6].inspect()
->[
+=>[
 ==>type=>[
 ===>id=>/mmadt/int
 ===>obj=>[int][_]
@@ -430,9 +426,9 @@ fhatos> int[6].inspect()
 ===>obj=>6
 ===>encoding=>int32_t
 =>]
->]
+=>]
 fhatos> real[6.0].inspect()
->[
+=>[
 ==>type=>[
 ===>id=>/mmadt/real
 ===>obj=>[real][_]
@@ -443,12 +439,10 @@ fhatos> real[6.0].inspect()
 ===>obj=>6.000000
 ===>encoding=>float_t
 =>]
->]
+=>]
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 . The `inst` `*` dereferences the `/fos/nat` fURI which points to the respective type definition.
 . The `/fos/nat` type is applied to a value by wrapping the value in `[]`.
@@ -457,10 +451,13 @@ fhatos> real[6.0].inspect()
 
 .Base Type Sugar
 ****
+
 TIP: Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
+
 ++++
 <!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> /mmadt/int[6]
@@ -471,15 +468,14 @@ fhatos> 6
 ==>6
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 Examples of the aforementioned types are provided below.
 
 ++++
 <!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> true
@@ -495,9 +491,7 @@ fhatos> [-1,'fhat',[0,1]]
 fhatos> [a=>1,b=>'2',c=>3.0]
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 ==== Values
 
@@ -517,9 +511,11 @@ age[45]@x => plus(10) => age[55]@x
 age[45]  =>  plus(10) => age[55]
 ----
 a|
+
 ++++
 <!-- 🐖 ./main_runner.out "/type/int/age -> \|(is(gt(0)).is(lt(120)))" "x -> age[45]" "*x.inspect()" "@x.inspect()" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> /type/int/age -> \|(is(gt(0)).is(lt(120)))
@@ -546,14 +542,14 @@ fhatos> @x.inspect()
 [ERROR] [/sys/router/frame] -> [code=>'@x.inspect()']
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
+
 |===
 
 ++++
 <!-- 🐖 ./main_runner.out "x?sub -> |print(_)" "x -> 12" "@x.inspect()" "@x.plus(1)" "@x.plus(1).plus(1)" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> x?sub -> |print(_)
@@ -598,9 +594,7 @@ fhatos> @x.plus(1).plus(1)
 [ERROR] [/sys/router/frame] -> [code=>'@x.plus(1).plus(1)']
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 ==== Expression Structure
 
@@ -620,6 +614,7 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 ++++
 <!-- 🐖 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
@@ -638,23 +633,15 @@ fhatos> nat[3].mult(-2)
 [ERROR] [/sys/router/frame] -> [code=>'nat[3].mult(-2)']
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 ===== Process Types
 
 A simple mm-ADT program is defined below.
 The program is a specialization of the poly-type `rec` called `thread`, where `thread` is abstractly defined as
 
-[source,mmadt]
-----
-thread[[:setup => __]
-        :loop  => __]]
-----
-
 ++++
-<!-- 🐖 ./main_runner.out
+<!-- ./main_runner.out
 threadx[[ /
   halt=>false, /
   delay=>nat[0], /
@@ -662,53 +649,6 @@ threadx[[ /
          [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
 @abc.spawn()
 -->
-++++
-[source,mmadt]
-----
-fhatos> threadx[[
-          halt=>false,
-          delay=>nat[0],
-          loop=>from(|a,0).plus(1).to(a).print(_).
-                 [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
->threadx[
-==>halt=>false
-==>delay=>nat[0]
-==>loop=>from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=>block(true).to(abc/halt)]).merge()
->]@abc
-fhatos> @abc.spawn()
-[INFO]  [abc] thread spawned: from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=>block(true).to(abc/halt)]).merge()
->threadx[
-==>halt=>false
-==>delay=>nat[0]
-==>loop=>from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=>block(true).to(abc/halt)]).merge()
->]@abc
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-[INFO]  [abc] thread stopped
-
-----
-++++
-<!-- 🐓 -->
-++++
-
-
-++++
-<!-- 🐖 ./main_runner.out
-person -> |[name=>str[_],age=>nat[_]]
-person[[name=>'fhatty',age=>0]]
-person[[name=>'fhatty',age=>1]]"
--->
-
-<!-- 🐓 -->
 ++++
 
 The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`.
@@ -737,6 +677,7 @@ a -> b
 **a
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> *a
@@ -751,9 +692,7 @@ fhatos> **a
 ==>12
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 a|
 [source,mmadt]
 ----
@@ -777,6 +716,7 @@ a -> 12
 *a
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> a -> 12
@@ -793,9 +733,7 @@ fhatos> *a
 ==>22@a
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 a|
 [source,mmadt]
 ----
@@ -812,6 +750,7 @@ a|
 ++++
 <!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> a?sub -> \|to(b)
@@ -827,9 +766,7 @@ fhatos> *b
 ==>12
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 a|
 [source,mmadt]
 ----
@@ -846,6 +783,161 @@ subscribes to `a` with bcode of the form \$f(a) -> b\$. `12` is written to `a` w
 
 ==== Embedding
 
+mm-ADT was designed to support the creation and manipulation of _abstract data types_ -- the "ADT" in mm-ADT.
+When expressing abstract data types is natural, then it's possible to leverage _multiple models_ such as key/value,
+document, relational, vector, graph, and the various nooks and crannies between -- the "mm" in mm-ADT.
+
+mm-ADT's URI addressing scheme makes it possible to _embed_ an array data types into the underlying fHaTOs structure.
+This section will explore the following considerations when designing a _multi-model abstract data type_.
+
+. **spatial encodings**
+. **schema encodings**
+. **language encodings**
+
+===== Spatial Consideration when Embedding
+
+++++
+<!-- 🐖 ./main_runner.out
+1.plus(2)
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> 1.plus(2)
+==>3
+
+----
+
+
+A _matrix_ is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
+A relational database _table_ is an example of a matrix, where the entries typically span numeric and non-numeric data
+types. There are two general approaches to embedding a matrix or table into an `fstruct`. Each at opposite ends of the
+space/time-tradeoff landscape.
+
+[cols="10,10"]
+|===
+a|
+[source,mmadt]
+----
+[■]-[■]-[■]-[■]
+ \|
+[■]-[■]-[■]-[■]
+ \|
+[■]-[■]-[■]-[■]
+----
+a|
+[source,mmadt]
+----
+[■] [■]-[■]-[■]
+ \| \
+[■]-[■]-[■]-[■]
+ \| \
+[■]-[■]-[■]-[■]
+----
+a|
+++++
+<!-- 🐖 ./main_runner.out
+a -> [b,[0,1,2,3]]
+b -> [c,[4,5,6,7]]
+c -> [noobj,[8,9,10,11]]
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a -> [b,[0,1,2,3]]
+>[
+==>b
+=>[
+===>0
+===>1
+===>2
+===>3
+=>]
+>]
+fhatos> b -> [c,[4,5,6,7]]
+>[
+==>c
+=>[
+===>4
+===>5
+===>6
+===>7
+=>]
+>]
+fhatos> c -> [noobj,[8,9,10,11]]
+>[
+==>noobj
+=>[
+===>8
+===>9
+===>10
+===>11
+=>]
+>]
+
+----
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+a   -> b
+a/0 -> 0
+a/1 -> 1
+a/2 -> 2
+a/3 -> 3
+b   -> c
+b/0 -> 4
+b/1 -> 5
+b/2 -> 6
+b/3 -> 7
+c   -> noobj
+c/0 -> 8
+c/1 -> 9
+c/2 -> 10
+c/3 -> 11
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a   -> b
+==>b
+fhatos> a/0 -> 0
+==>0
+fhatos> a/1 -> 1
+==>1
+fhatos> a/2 -> 2
+==>2
+fhatos> a/3 -> 3
+==>3
+fhatos> b   -> c
+==>c
+fhatos> b/0 -> 4
+==>4
+fhatos> b/1 -> 5
+==>5
+fhatos> b/2 -> 6
+==>6
+fhatos> b/3 -> 7
+==>7
+fhatos> c   -> noobj
+fhatos> c/0 -> 8
+==>8
+fhatos> c/1 -> 9
+==>9
+fhatos> c/2 -> 10
+==>10
+fhatos> c/3 -> 11
+==>11
+
+----
+
+
+|===
+
+
 [source,mmadt]
 ----
                                     [a=>[b,c]]
@@ -857,10 +949,6 @@ subscribes to `a` with bcode of the form \$f(a) -> b\$. `12` is written to `a` w
            ^                            ^
            |                            |
            x                            x/
-
-
-
-
 
 ----
 
@@ -916,6 +1004,7 @@ M = aM
 {1,2,3}.plus(plus(_))
 -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> {1,2,3}
@@ -936,9 +1025,7 @@ fhatos> {1,2,3}.plus(plus(_))
 ==>9
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 == FhatOS Modules
 
@@ -985,6 +1072,7 @@ fhatos> {1,2,3}.plus(plus(_))
 ++++
 <!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> true.plus(false)
@@ -994,9 +1082,8 @@ fhatos> 1.plus(2)
 fhatos> 'a'.plus('b')
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
+
 
 ==== mult
 
@@ -1027,6 +1114,7 @@ fhatos> 'a'.plus('b')
 ++++
 <!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
 ++++
+
 [source,mmadt]
 ----
 fhatos> [a=>2].match([a=>3])
@@ -1045,9 +1133,7 @@ fhatos> [a=>2].match([a=>_])
 [ERROR] [/sys/router/frame] -> [code=>'[a=>2].match([a=>_])']
 
 ----
-++++
-<!-- 🐓 -->
-++++
+
 
 ==== eq
 
