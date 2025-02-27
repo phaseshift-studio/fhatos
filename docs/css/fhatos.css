@@ -22,31 +22,41 @@
 @import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
 
 :root {
-    --maincolor: #8F9779;
-    --primarycolor: #000000;
-    --secondarycolor: #701313;
+    --maincolor: #2b2d30;
+    --primarycolor: #bfbfbf;
+    --secondarycolor: #d70000;
     --tertiarycolor: #bdbdbd;
-    --sidebarbackground: #9e9595;
-    --linkcolor: #493053;
+    --sidebarbackground: #43454a;
+    --linkcolor: #b560d6;
     --linkcoloralternate: rgb(183, 28, 28);
-    --white: #706565;
-    --black: #000000;
+    --white: black;
+    --black: #bfbfbf;
 }
 
 /* Text styles */
 html {
     font-family: Arial, sans-serif !important;
     font-size: 1.25em;
+    background-color: var(--maincolor);
 }
 
-body {
-    font-family: Arial, sans-serif !important;
+
+body, #header .details {
+    font-family: Arial, sans-serif ! important;
+    font-size: 1.1em !important;
+    color: var(--black) !important;
     background-color: var(--maincolor);
-    color: var(--black);
 }
+
+p {
+    font-family: Arial, sans-serif ! important;
+    font-size: 1.1em !important;
+    color: var(--black) !important;
+}
+
 
 h1 {
-    color: var(--primarycolor) !important;
+    color: var(--secondarycolor) !important;
     font-family: Arial, sans-serif !important;
 }
 
@@ -56,22 +66,16 @@ h2, h3, h4, h5, h6 {
 }
 
 .title {
-    color: var(--black) !important;
+    /*color: var(--black) !important;*/
     font-family: Arial, sans-serif !important;
     font-style: normal;
-    font-weight: normal;
+    font-weight: bold !important;
+    font-size: 110%;
 }
 
-a {
+#header .details span.email a, a {
     text-decoration: none;
-}
-
-p {
-    font-family: Arial, sans-serif ! important;
-}
-
-#toc.toc2 a:link {
-    color: var(--linkcolor);
+    color: #2156a5;
 }
 
 blockquote {
@@ -86,16 +90,38 @@ blockquote {
     color: var(--black)
 }
 
+:not(pre):not([class^=L])>code {
+    font-size: 0.75em !important;
+}
+
+.sidebarblock {
+    background-color: #43454a !important;
+}
+
+.sidebarblock>.content>.title {
+    color: #ba3925;
+}
+
+.admonitionblock>table td.content {
+    border-color: #0b1c2c;
+    border-width: medium;
+    border-radius: 0.2em;
+    border-style: groove;
+}
+
+.admonitionblock>table td.icon {
+    background-color: transparent;
+}
+
 code {
-    color: #a4b7b9 !important;
-    background-color: #023F4EFF;
+    color: #d1dcdd !important;
+    background-color: #023F4EFF !important;
     border-color: #0b1c2c;
     border-width: medium;
     border-radius: 1em;
     border-style: groove;
-    font-size: 1.2em;
-    font-family: monospace, fixed;
-!important
+    font-size: 0.9em !important;
+    font-family: monospace, fixed !important;
 }
 
 mark {
@@ -116,6 +142,9 @@ td {
     font-family: Arial, sans-serif !important;
 }
 
+#toc.toc2 a:link {
+    color: var(--linkcolor);
+}
 
 #toc.toc2 {
     background-color: var(--sidebarbackground);
@@ -123,6 +152,7 @@ td {
 
 #toctitle {
     color: var(--secondarycolor);
+    font-weight: bold;
 }
 
 .ulist ul {
@@ -171,15 +201,19 @@ video {
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int {
-    color: darkgoldenrod;
+    color: #d9a118;
 }
 
 .hljs-string {
-    color: darkgoldenrod;
+    color: #d9a118;
     /*font-style: italic;*/
 }
 
 .hljs-mmadt-reference {
+    color: #d4de68;
+}
+
+.hljs-sys-furi {
     color: #d4de68;
 }
 
@@ -188,6 +222,10 @@ video {
 }
 
 .hljs-mmadt-rec {
+    color: darkmagenta;
+}
+
+.hljs-square-bracket {
     color: darkmagenta;
 }
 
@@ -208,11 +246,11 @@ video {
 }
 
 .hljs-log-error {
-    color: red;
+    color: #9a0505;
 }
 
 .hljs-log-warn {
-    color: #ffd000;
+    color: #c2aa2f;
 }
 
 .hljs-mmadt-uri,

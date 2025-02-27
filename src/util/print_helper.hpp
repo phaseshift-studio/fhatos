@@ -65,28 +65,33 @@ namespace fhatos {
         ss << (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid->name().length(), " ").c_str()) << "!m]!!\n";
       } else if(obj->is_rec() && max_depth > depth) {
         if(!parent_rec) {
-          ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b" <<
+          string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+          if(char_indent && 0 == depth)
+            indentation += '=';
+          ss << "!g" << indentation << (char_indent ? ">" : " ") << "!b" <<
               (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
         for(const auto &[key, value]: *obj->rec_value()) {
           if(!value->is_poly()) {
+            const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
             ss << fmt::format(
               "{}!c{}!m=>!!{}!!\n",
-              (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (char_indent ? "==>!!" : "   !!")),
+              (string("!g") + indentation + (char_indent ? "==>!!" : "   !!")),
               key->toString(),
               value->toString());
           } else {
+            const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
             ss << fmt::format(
-              "{}!c{}!m=>!!", (string("!g") +
-                               StringHelper::repeat(depth, char_indent ? "=" : " ") +
-                               (char_indent ? "==>!!" : "   !!")),
+              "{}!c{}!m=>!!", (string("!g") + indentation + (char_indent ? "==>!!" : "   !!")),
               key->toString());
             pretty_print_obj(value, depth + 1, max_depth, true, sb, char_indent);
           }
         }
-        ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ")
-            << (char_indent ? ">" : " ") << "!b" << "!m]";
+        string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+        if(char_indent && 0 == depth)
+          indentation += '=';
+        ss << "!g" << indentation << (char_indent ? ">" : " ") << "!b" << "!m]";
         if(obj->vid) {
           ss << "!m@!b";
           ss << obj->vid->toString();

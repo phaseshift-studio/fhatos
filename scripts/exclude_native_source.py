@@ -34,18 +34,18 @@ import colors
 Import("env")
 
 print("{G}[{R}platformio{G}] {B}pre:exclude_native_source.py{N}".format(R=colors.RED,
-                                                                             B=colors.BLUE,
-                                                                             G=colors.GREEN,
-                                                                             N=colors.END))
+                                                                        B=colors.BLUE,
+                                                                        G=colors.GREEN,
+                                                                        N=colors.NC))
 src_filter = []
 for filename in glob.iglob('src' + '**/**', recursive=True):
     if "native" not in filename:
         src_filter.append(filename)
     else:
         print("   {M}excluding{N} from {B}build_src_filter{N}: {G}{FILE}{N}".format(R=colors.RED, M=colors.PURPLE,
-                                                                              B=colors.BLUE,
-                                                                              G=colors.GREEN, LM=colors.LIGHT_PURPLE,
-                                                                              N=colors.END,
-                                                                              FILE=filename))
+                                                                                    B=colors.BLUE,
+                                                                                    G=colors.GREEN, LM=colors.LIGHT_PURPLE,
+                                                                                    N=colors.NC,
+                                                                                    FILE=filename))
 print("\n")
 env["build_src_filter"] = src_filter
