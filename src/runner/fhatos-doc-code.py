@@ -7,8 +7,6 @@ mm-ADT code runner for FhatOS documentation
 from __future__ import annotations
 
 import argparse
-import contextlib
-import io
 import os
 import subprocess
 import sys
@@ -72,6 +70,7 @@ def execute_code(
                 new_code.append("\"" + c + "\"")
         cat = c.endswith("/")
     full_code = " ".join(new_code)
+    full_code = full_code.replace("\\|", "|")
 
     if verbose:
         print(f"\n🐖 {BOLD}{GREEN}executing code {language} block:{NC}")
@@ -82,10 +81,6 @@ def execute_code(
         with output_file.open("w") as f:
             f.write(full_code)
         output = []
-    elif language == "python":
-        with io.StringIO() as string, contextlib.redirect_stdout(string):
-            exec(full_code, context)  # noqa: S102
-            output = string.getvalue().split("\n")
     elif language == "bash":
         result = subprocess.run(
             full_code,
@@ -122,7 +117,6 @@ class ProcessingState:
         "🐓"
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
-    original_output: list[str] = field(default_factory=list)
     context: dict[str, Any] = field(default_factory=dict)
     skip_code_block: bool = False
     output: list[str] | None = None
@@ -137,50 +131,37 @@ class ProcessingState:
         ################################################################################
         if (self.section == "👨‍🌾" and
                 line.lstrip().startswith("<!--") and
-                line.find("🐖") != -1 and
-                line.rstrip().endswith("-->")):
+                line.find("🐖") != -1):
             self.section = "🐖"
-            self.code = [remove_md_comment(line.strip()).replace("🐖", "")]
-            self._process_chicken_code(verbose=verbose)
-            self._process_output_start(line)
-        elif line.find("🐓") != -1:
-            self._process_output_end()
-        elif self.section == "🐖" or line.find("🐖") != -1:
-            self.section = "🐖"
-            self.code.append(remove_md_comment(line.replace("🐖", "")))
-        elif self.section == "🐓":
-            self.original_output.append(line)
+            self.code.append(remove_md_comment(line.strip()).replace("🐖", ""))
+            if line.rstrip().endswith("-->"):
+                self._process_chicken_code(verbose=verbose)
+                self._process_output_start(line)
+        elif self.section == "🐖":
+            if line.lstrip() == "-->":
+                self._process_chicken_code(verbose=verbose)
+                self._process_output_start("-->")
+            else:
+                self.code.append(line)
         if self.section != "🐓":
             self.new_lines.append(line)
+        elif self.section == "🐓" and line == "++++":
+            self.section = "👨‍🌾"
 
     def _process_output_start(self, line: str) -> None:
         self.section = "🐓"
-        if not self.skip_code_block:
-            assert isinstance(
-                self.output,
-                list,
-            ), f"Output must be a list, not {type(self.output)}, line: {line}"
-            if not self.in_table:
-                new_output = []
-                for c in self.output:
-                    new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
-                new_line = line.replace("\\|", "|").replace("|", "\\|")
-                self.new_lines.extend([new_line, *new_output])
-            else:
-                self.new_lines.extend([line, *self.output])
+        assert isinstance(
+            self.output,
+            list,
+        ), f"Output must be a list, not {type(self.output)}, line: {line}"
+        if not self.in_table:
+            new_output = []
+            for c in self.output:
+                new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
+            new_line = line.replace("\\|", "|").replace("|", "\\|")
+            self.new_lines = [*self.new_lines, new_line, *new_output]
         else:
-            if not self.in_table:
-                new_line = line.replace("\\|", "|").replace("|", "\\|")
-                self.original_output.append(new_line)
-            else:
-                self.original_output.append(line)
-
-    def _process_output_end(self) -> None:
-        self.section = "👨‍🌾"
-        if self.skip_code_block:
-            self.new_lines.extend(self.original_output)
-            self.skip_code_block = False
-        self.original_output = []
+            self.new_lines = [*self.new_lines, line, *self.output]
         self.output = None  # Reset output after processing end of the output section
 
     def _process_chicken_code(self, *, verbose: bool) -> None:

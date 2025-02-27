@@ -39,11 +39,9 @@ int main(int, char **) {
     ArgvParser* argv_parser = new ArgvParser();
     argv_parser->init(5,args);
     printer()->ansi_switch(false);
-    cout << "++++\n[source,mmadt,subs=\"verbatim\"]\n----\n";
+    cout << "++++\n\n[source,mmadt,subs=\"verbatim\"]\n----\n";
     BootLoader::primary_boot(argv_parser)
-        ->display_splash("----\n")
-        ->display_splash("++++");
-    cout << "\n----\n++++";
+        ->display_splash("----\n");
     return 0;
   } catch (const std::exception &e) {
     throw;

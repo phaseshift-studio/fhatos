@@ -315,7 +315,11 @@ video {
 </li>
 <li><a href="#_the_router_structure">The Router Structure</a>
 <ul class="sectlevel3">
-<li><a href="#_embedding">Embedding</a></li>
+<li><a href="#_embedding">Embedding</a>
+<ul class="sectlevel4">
+<li><a href="#_spatial_consideration_when_embedding">Spatial Consideration when Embedding</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_the_scheduler_process">The Scheduler Process</a></li>
@@ -469,7 +473,7 @@ Processes communicate via a publish-subscribe message passing protocol that ride
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6656]
+[INFO]  [/sys/router] main memory [total=&gt;7040]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -518,7 +522,6 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/sys/router] console boot config dropped</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="sect2">
 <h3 id="_booting_on_linuxunixmac">Booting on Linux/Unix/Mac</h3>
 
@@ -570,15 +573,14 @@ The core FhatOS kernel provides the following resources.</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a =&gt; b,
          b =&gt; [c =&gt;
           [d =&gt; e]]]
-&gt;[
+=&gt;[
 ==&gt;a=&gt;b
 ==&gt;b=&gt;[
 ===&gt;c=&gt;[d=&gt;e]
 =&gt;]
-&gt;]</code></pre>
+=&gt;]</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <!-- 🐖 ./main_runner.out
 */sys/scheduler
 */sys/router
@@ -586,16 +588,16 @@ The core FhatOS kernel provides the following resources.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
-&gt;[
+=&gt;[
 ==&gt;barrier=&gt;noobj
 ==&gt;process=&gt;[
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;def_stack_size=&gt;8096
 =&gt;]
-&gt;]@/sys/scheduler
+=&gt;]@/sys/scheduler
 fhatos&gt; */sys/router
-&gt;[
+=&gt;[
 ==&gt;structure=&gt;[
 ===&gt;/sys/#
 ===&gt;/mnt/#
@@ -615,10 +617,9 @@ fhatos&gt; */sys/router
 ==&gt;query=&gt;[
 ===&gt;write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]
 =&gt;]
-&gt;]@/sys/router</code></pre>
+=&gt;]@/sys/router</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="paragraph">
 <p>Likewise, the mmADT language is encoded within the fURI address space. mmADT&#8217;s encoding is large as it includes all the mmADT types and instructions.
 By derefencing the <code>/mmadt</code> root with the wildcard extension <code>#</code>, a reflective representation of the mmADT language is accessed.</p>
@@ -751,7 +752,6 @@ fURI encoding of the mmADT language
 =&gt;]</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="paragraph">
 <p> </div></details> </p>
 </div>
@@ -791,7 +791,7 @@ Without these resources, FhatOS will not function propertly.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */io/console
-&gt;console[
+=&gt;console[
 ==&gt;halt=&gt;false
 ==&gt;delay=&gt;nat[0]
 ==&gt;loop=&gt;inst()[cpp]
@@ -803,10 +803,9 @@ Without these resources, FhatOS will not function propertly.</p>
 ===&gt;log=&gt;INFO
 ===&gt;stack_size=&gt;24288
 =&gt;]
-&gt;]@/io/console</code></pre>
+=&gt;]@/io/console</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="sect2">
 <h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
@@ -882,7 +881,7 @@ real[6.0].inspect()
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; int[6].inspect()
-&gt;[
+=&gt;[
 ==&gt;type=&gt;[
 ===&gt;id=&gt;/mmadt/int
 ===&gt;obj=&gt;[int][_]
@@ -893,9 +892,9 @@ real[6.0].inspect()
 ===&gt;obj=&gt;6
 ===&gt;encoding=&gt;int32_t
 =&gt;]
-&gt;]
+=&gt;]
 fhatos&gt; real[6.0].inspect()
-&gt;[
+=&gt;[
 ==&gt;type=&gt;[
 ===&gt;id=&gt;/mmadt/real
 ===&gt;obj=&gt;[real][_]
@@ -906,10 +905,9 @@ fhatos&gt; real[6.0].inspect()
 ===&gt;obj=&gt;6.000000
 ===&gt;encoding=&gt;float_t
 =&gt;]
-&gt;]</code></pre>
+=&gt;]</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -951,7 +949,6 @@ fhatos&gt; 6
 ==&gt;6</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 <div class="paragraph">
 <p>Examples of the aforementioned types are provided below.</p>
 </div>
@@ -971,7 +968,6 @@ fhatos&gt; [-1,'fhat',[0,1]]
 fhatos&gt; [a=&gt;1,b=&gt;'2',c=&gt;3.0]</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 <div class="sect3">
 <h4 id="_values">Values</h4>
@@ -1022,8 +1018,7 @@ fhatos&gt; @x.inspect()
   ----&gt;[/mmadt/mult] /mmadt/mult =&gt; mult(from(0?rhs,noobj)[cpp])
 [ERROR] [/sys/router/frame] -&gt; [code=&gt;'@x.inspect()']</code></pre>
 </div>
-</div>
-<!-- 🐓 --></div></td>
+</div></div></td>
 </tr>
 </tbody>
 </table>
@@ -1072,7 +1067,6 @@ fhatos&gt; @x.plus(1).plus(1)
 [ERROR] [/sys/router/frame] -&gt; [code=&gt;'@x.plus(1).plus(1)']</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 </div>
 <div class="sect3">
@@ -1112,7 +1106,6 @@ fhatos&gt; nat[3].mult(-2)
 [ERROR] [/sys/router/frame] -&gt; [code=&gt;'nat[3].mult(-2)']</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 <div class="sect4">
 <h5 id="_process_types">Process Types</h5>
@@ -1120,13 +1113,7 @@ fhatos&gt; nat[3].mult(-2)
 <p>A simple mm-ADT program is defined below.
 The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">thread[[:setup =&gt; __]
-        :loop  =&gt; __]]</code></pre>
-</div>
-</div>
-<!-- 🐖 ./main_runner.out
+<!-- ./main_runner.out
 threadx[[ /
   halt=>false, /
   delay=>nat[0], /
@@ -1134,47 +1121,6 @@ threadx[[ /
          [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
 @abc.spawn()
 -->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; threadx[[
-          halt=&gt;false,
-          delay=&gt;nat[0],
-          loop=&gt;from(|a,0).plus(1).to(a).print(_).
-                 [is(gt(10)) =&gt; |true.to(abc/halt)]&gt;-]]@abc
-&gt;threadx[
-==&gt;halt=&gt;false
-==&gt;delay=&gt;nat[0]
-==&gt;loop=&gt;from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=&gt;block(true).to(abc/halt)]).merge()
-&gt;]@abc
-fhatos&gt; @abc.spawn()
-[INFO]  [abc] thread spawned: from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=&gt;block(true).to(abc/halt)]).merge()
-&gt;threadx[
-==&gt;halt=&gt;false
-==&gt;delay=&gt;nat[0]
-==&gt;loop=&gt;from(block(a),0).plus(1).to(a).print(_).map([is(gt(10))=&gt;block(true).to(abc/halt)]).merge()
-&gt;]@abc
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-[INFO]  [abc] thread stopped</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-<!-- 🐖 ./main_runner.out
-person -> |[name=>str[_],age=>nat[_]]
-person[[name=>'fhatty',age=>0]]
-person[[name=>'fhatty',age=>1]]"
--->
-
-<!-- 🐓 -->
 <div class="paragraph">
 <p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>.
 The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI.
@@ -1221,8 +1167,7 @@ fhatos&gt; *a
 fhatos&gt; **a
 ==&gt;12</code></pre>
 </div>
-</div>
-<!-- 🐓 --></div></td>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                         [■]
@@ -1262,8 +1207,7 @@ fhatos&gt; @a.plus(10)
 fhatos&gt; *a
 ==&gt;22@a</code></pre>
 </div>
-</div>
-<!-- 🐓 --></div></td>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
@@ -1295,8 +1239,7 @@ fhatos&gt; *a
 fhatos&gt; *b
 ==&gt;12</code></pre>
 </div>
-</div>
-<!-- 🐓 --></div></td>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
@@ -1316,6 +1259,164 @@ fhatos&gt; *b
 </table>
 <div class="sect3">
 <h4 id="_embedding">Embedding</h4>
+<div class="paragraph">
+<p>mm-ADT was designed to support the creation and manipulation of <em>abstract data types</em>&#8201;&#8212;&#8201;the "ADT" in mm-ADT.
+When expressing abstract data types is natural, then it&#8217;s possible to leverage <em>multiple models</em> such as key/value,
+document, relational, vector, graph, and the various nooks and crannies between&#8201;&#8212;&#8201;the "mm" in mm-ADT.</p>
+</div>
+<div class="paragraph">
+<p>mm-ADT&#8217;s URI addressing scheme makes it possible to <em>embed</em> an array data types into the underlying fHaTOs structure.
+This section will explore the following considerations when designing a <em>multi-model abstract data type</em>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>spatial encodings</strong></p>
+</li>
+<li>
+<p><strong>schema encodings</strong></p>
+</li>
+<li>
+<p><strong>language encodings</strong></p>
+</li>
+</ol>
+</div>
+<div class="sect4">
+<h5 id="_spatial_consideration_when_embedding">Spatial Consideration when Embedding</h5>
+<!-- 🐖 ./main_runner.out
+1.plus(2)
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 1.plus(2)
+==&gt;3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <em>matrix</em> is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
+A relational database <em>table</em> is an example of a matrix, where the entries typically span numeric and non-numeric data
+types. There are two general approaches to embedding a matrix or table into an <code>fstruct</code>. Each at opposite ends of the
+space/time-tradeoff landscape.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[■]-[■]-[■]-[■]
+ |
+[■]-[■]-[■]-[■]
+ |
+[■]-[■]-[■]-[■]</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[■] [■]-[■]-[■]
+ | \
+[■]-[■]-[■]-[■]
+ | \
+[■]-[■]-[■]-[■]</code></pre>
+</div>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+a -> [b,[0,1,2,3]]
+b -> [c,[4,5,6,7]]
+c -> [noobj,[8,9,10,11]]
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; [b,[0,1,2,3]]
+&gt;[
+==&gt;b
+=&gt;[
+===&gt;0
+===&gt;1
+===&gt;2
+===&gt;3
+=&gt;]
+&gt;]
+fhatos&gt; b -&gt; [c,[4,5,6,7]]
+&gt;[
+==&gt;c
+=&gt;[
+===&gt;4
+===&gt;5
+===&gt;6
+===&gt;7
+=&gt;]
+&gt;]
+fhatos&gt; c -&gt; [noobj,[8,9,10,11]]
+&gt;[
+==&gt;noobj
+=&gt;[
+===&gt;8
+===&gt;9
+===&gt;10
+===&gt;11
+=&gt;]
+&gt;]</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+a   -> b
+a/0 -> 0
+a/1 -> 1
+a/2 -> 2
+a/3 -> 3
+b   -> c
+b/0 -> 4
+b/1 -> 5
+b/2 -> 6
+b/3 -> 7
+c   -> noobj
+c/0 -> 8
+c/1 -> 9
+c/2 -> 10
+c/3 -> 11
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a   -&gt; b
+==&gt;b
+fhatos&gt; a/0 -&gt; 0
+==&gt;0
+fhatos&gt; a/1 -&gt; 1
+==&gt;1
+fhatos&gt; a/2 -&gt; 2
+==&gt;2
+fhatos&gt; a/3 -&gt; 3
+==&gt;3
+fhatos&gt; b   -&gt; c
+==&gt;c
+fhatos&gt; b/0 -&gt; 4
+==&gt;4
+fhatos&gt; b/1 -&gt; 5
+==&gt;5
+fhatos&gt; b/2 -&gt; 6
+==&gt;6
+fhatos&gt; b/3 -&gt; 7
+==&gt;7
+fhatos&gt; c   -&gt; noobj
+fhatos&gt; c/0 -&gt; 8
+==&gt;8
+fhatos&gt; c/1 -&gt; 9
+==&gt;9
+fhatos&gt; c/2 -&gt; 10
+==&gt;10
+fhatos&gt; c/3 -&gt; 11
+==&gt;11</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">                                    [a=&gt;[b,c]]
@@ -1327,6 +1428,7 @@ fhatos&gt; *b
            ^                            ^
            |                            |
            x                            x/</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1444,7 +1546,6 @@ fhatos&gt; {1,2,3}.plus(plus(_))
 ==&gt;9</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 </div>
 </div>
@@ -1534,7 +1635,6 @@ fhatos&gt; 1.plus(2)
 fhatos&gt; 'a'.plus('b')</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 <div class="sect3">
 <h4 id="_mult">mult</h4>
@@ -1605,7 +1705,6 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 [ERROR] [/sys/router/frame] -&gt; [code=&gt;'[a=&gt;2].match([a=&gt;_])']</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
 </div>
 <div class="sect3">
 <h4 id="_eq">eq</h4>
@@ -1677,7 +1776,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-02-27 05:46:00 -0700
+Last updated 2025-02-27 11:25:36 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

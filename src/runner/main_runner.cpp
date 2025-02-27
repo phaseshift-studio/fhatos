@@ -70,13 +70,12 @@ int main(int arg, char **argsv) {
   }
   LOG(INFO, "Processing %i expressions\n", arg);
   printer()->printer_switch(true);
-  printer()->println("++++\n[source,mmadt]\n----");
+  printer()->print("++++\n\n[source,mmadt]\n----\n");
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
     try {
       auto x = string(argsv[i]);
       StringHelper::trim(x);
-      StringHelper::replace(&x,"\\|", "|");
       if(x.find("!NO!") != std::string::npos) {
         printer()->ansi_switch(false);
         Processor::compute(fmt::format("*/io/console.eval({})", x.substr(5)));
@@ -87,14 +86,14 @@ int main(int arg, char **argsv) {
       printer()->println(x.c_str());
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
       Router::singleton()->loop();
-      if(StringHelper::count_substring(x,"spawn") > 0)
-        std::this_thread::sleep_for(milliseconds(1000));
+      if(x.find("spawn") != string::npos)
+        std::this_thread::sleep_for(milliseconds(5000));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    //std::this_thread::sleep_for(milliseconds(10));
+    //std::this_thread::sleep_for(milliseconds(50));
   }
-  printer()->print("\n----\n++++");
+  printer()->print("\n----\n");
   delete[] argsv;
   return 0;
 }
