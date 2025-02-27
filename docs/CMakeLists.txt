@@ -46,14 +46,14 @@ IF(BUILD_DOCS)
     MESSAGE(STATUS "Total runners produced: ${.g}${TOTAL}${..}")
     #####################################################################
     MESSAGE(CHECK_START "${.y}CMaking AsciiDoc Documentation${..}")
-    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/src/runner/markdown-code-runner.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/src/runner/fhatos-doc-code.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
     ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner boot_runner)
     SET(FILES ${CMAKE_SOURCE_DIR}/docs/fhatos.adoc)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/build
-            COMMAND python markdown-code-runner.py --verbose ${FILES}
-            COMMENT "Evaluating markdown-code-runner: ${FILES}")
+            COMMAND python fhatos-doc-code.py --verbose ${FILES}
+            COMMENT "Evaluating fhatos-doc-code.py: ${FILES}")
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/docs

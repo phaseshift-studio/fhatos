@@ -65,15 +65,15 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6784]
+[INFO]  [/sys/router] main memory [total=>6912]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 736 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 746 bytes)
 [WARN]  [/sys/router] router has no auto-prefix configuration: noobj
 [INFO]  [/sys/router] 
   [
-    router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
+    router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
     scheduler=>[def_stack_size=>8096]
     mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true]
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
@@ -109,8 +109,8 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# attached
-[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/io/console] thread spawned: inst()[cpp]
+[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped
 ----
 ++++
@@ -145,8 +145,8 @@ The FhatOS scheduler and router are accessible to the user when their respective
 ++++
 [source,mmadt]
 ----
-fhatos> [a => b, 
-         b => [c => 
+fhatos> [a => b,
+         b => [c =>
           [d => e]]]
 >[
 ==>a=>b
@@ -195,7 +195,7 @@ fhatos> */sys/router
 =>]
 ==>frame=>[rec][_]
 ==>config=>[
-===>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
+===>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
 =>]
 ==>query=>[
 ===>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
@@ -662,12 +662,22 @@ thread[[:setup => __]
 ----
 
 ++++
-<!-- 🐓 ./main_runner.out "/fos/sys/threadx[[halt=>false,delay=>nat[0],loop=>from(|a,0).plus(1).to(a).print(_).[is(gt(10)) => |true.to(abc/halt)]>-]]@abc" "@abc.spawn()" -->
-<!-- 🐖 -->
+<!-- 🐓 ./main_runner.out
+threadx[[ /
+  halt=>false, /
+  delay=>nat[0], /
+  loop=>from(|a,0).plus(1).to(a).print(_). /
+         [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
+@abc.spawn()
+-->
 ++++
 [source,mmadt]
 ----
-fhatos> /fos/sys/threadx[[halt=>false,delay=>nat[0],loop=>from(|a,0).plus(1).to(a).print(_).[is(gt(10)) => |true.to(abc/halt)]>-]]@abc
+fhatos> threadx[[
+          halt=>false,
+          delay=>nat[0],
+          loop=>from(|a,0).plus(1).to(a).print(_).
+                 [is(gt(10)) => |true.to(abc/halt)]>-]]@abc
 >threadx[
 ==>halt=>false
 ==>delay=>nat[0]
@@ -695,6 +705,8 @@ fhatos> @abc.spawn()
 
 ----
 ++++
+<!-- 🐖 -->
+
 <!-- 🦆 -->
 ++++
 
