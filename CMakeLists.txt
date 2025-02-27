@@ -1,4 +1,4 @@
-FIND_PACKAGE(Python3 COMPONENTS Interpreter)
+FIND_PACKAGE(Python3)
 OPTION(BUILD_DOCS "Build documentation" ON) # ON/OFF
 SET(CMAKE_MACOSX_RPATH 1)
 IF(TASKSCH_BUILD_WITH_DOCS)
@@ -23,7 +23,8 @@ IF(BUILD_DOCS)
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                        paho-mqttpp3)
+                        paho-mqttpp3
+                        fmt::fmt)
                 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ELSE()
                 TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a fmt::fmt)

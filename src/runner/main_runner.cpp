@@ -76,6 +76,7 @@ int main(int arg, char **argsv) {
     try {
       auto x = string(argsv[i]);
       StringHelper::trim(x);
+      StringHelper::replace(&x,"\\|", "|");
       if(x.find("!NO!") != std::string::npos) {
         printer()->ansi_switch(false);
         Processor::compute(fmt::format("*/io/console.eval({})", x.substr(5)));
@@ -83,14 +84,15 @@ int main(int arg, char **argsv) {
       }
       printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
       // printer()->print(" ");
-      printer()->println(argsv[i]);
+      printer()->println(x.c_str());
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
-      //printer<>()->print(Processor::compute(mmadt::Parser::singleton()->parse(argsv[i]))->toString().c_str());
-     // Router::singleton()->loop();
+      Router::singleton()->loop();
+      if(StringHelper::count_substring(x,"spawn") > 0)
+        std::this_thread::sleep_for(milliseconds(1000));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    std::this_thread::sleep_for(milliseconds(100));
+    //std::this_thread::sleep_for(milliseconds(10));
   }
   printer()->print("\n----\n++++");
   delete[] argsv;

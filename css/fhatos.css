@@ -87,13 +87,14 @@ blockquote {
 }
 
 code {
-    color: var(--white);
-    background-color: #e3e3e3;
+    color: #a4b7b9 !important;
+    background-color: #023F4EFF;
     border-color: #0b1c2c;
-    border-width: thin;
+    border-width: medium;
     border-radius: 1em;
     border-style: groove;
-    font-size: small;
+    font-size: 1.2em;
+    font-family: monospace, fixed;
 !important
 }
 
@@ -160,7 +161,7 @@ video {
 }
 
 .hljs-keyword {
-    color: darkgreen;
+    color: #e178d6;
 }
 
 .hljs-mmadt-noobj {
@@ -179,11 +180,11 @@ video {
 }
 
 .hljs-mmadt-reference {
-    color: darkmagenta;
+    color: #d4de68;
 }
 
 .hljs-mmadt-rec-key {
-    color: #1e54a0;
+    color: cyan;
 }
 
 .hljs-mmadt-rec {
@@ -191,11 +192,11 @@ video {
 }
 
 .hljs-prompt-begin {
-    color: #430043;
+    color: #ff42e9;
 }
 
 .hljs-prompt-end {
-    color: darkgreen;
+    color: green;
 }
 
 .hljs-result-prefix {
@@ -203,14 +204,18 @@ video {
 }
 
 .hljs-log-info {
-    color: green;
+    color: limegreen;
 }
 
 .hljs-log-error {
-    color: darkred;
+    color: red;
+}
+
+.hljs-log-warn {
+    color: #ffd000;
 }
 
 .hljs-mmadt-uri,
 .hljs-mmadt-type {
-    color: #1e54a0;
+    color: #1c72ff;
 }
