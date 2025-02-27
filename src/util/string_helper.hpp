@@ -131,6 +131,40 @@ namespace fhatos {
       }
     }
 
+
+    static string replace_groups(std::string *s, const std::string &left_delim, const std::string &right_delim,
+                                 const std::function<string(string)> &replace_function) {
+      size_t left_pos = 0;
+      size_t right_pos = 0;
+      size_t temp_pos = 0;
+      string new_string;
+      while(left_pos != std::string::npos) {
+        left_pos = s->find(left_delim, left_pos);
+        if(left_pos != std::string::npos) {
+          new_string += s->substr(right_pos, left_pos);
+          temp_pos = left_pos+ left_delim.length();
+          if(right_pos = s->find(right_delim, left_pos + left_delim.length());
+            right_pos != std::string::npos) {
+            temp_pos = right_pos+ right_delim.length();
+            // Calculate the length of the substring to be replaced
+            const size_t length_to_replace = right_pos - left_pos - left_delim.length();
+            // Replace the content between delimiters
+            const string to_replace = s->substr(left_pos + 1, length_to_replace);
+            const string new_replace = replace_function(to_replace);
+            new_string += new_replace;
+            left_pos += new_replace.length();
+          } else {
+            new_string += s->substr(temp_pos, s->length() - temp_pos);
+            break;
+          }
+        } else {
+          new_string += s->substr(temp_pos, s->length() - temp_pos);
+          break;
+        }
+      }
+      return new_string;
+    }
+
     static void ltrim(std::string &s) {
       s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) {
         return !std::isspace(c) && c < 127 && c != '\0';

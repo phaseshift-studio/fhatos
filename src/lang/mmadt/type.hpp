@@ -78,8 +78,17 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->type_args(x(0, "to_print", Obj::to_bcode()))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            printer()->printf("%s\n", args->arg(0)->toString().c_str());
-            return args->arg(0);
+            auto line = args->arg(0)->str_value();
+            const string new_line = StringHelper::replace_groups(&line, "{", "}", [lhs](const string &match) {
+              const Obj_p result = OBJ_PARSER(match)->apply(lhs);
+              const string clean =  Ansi<>::singleton()->strip(result->none_one_all()->toString());
+              return clean;
+            });
+            if(new_line.ends_with("\\n"))
+              printer()->println(new_line.substr(0,new_line.length()-2).c_str());
+            else
+              printer()->print(new_line.c_str());
+            return lhs;
           })
           ->save();
 
@@ -122,7 +131,7 @@ namespace mmadt {
               if(resolution->equals(*INT_FURI)) return lhs->as(resolution);
               if(resolution->equals(*REAL_FURI)) return real(static_cast<FOS_REAL_TYPE>(lhs->int_value()));
               if(resolution->equals(*STR_FURI)) return str(lhs->toString(NO_ANSI_PRINTER));
-              if(resolution->equals(*URI_FURI)) return  vri(lhs->toString(NO_ANSI_PRINTER));
+              if(resolution->equals(*URI_FURI)) return vri(lhs->toString(NO_ANSI_PRINTER));
               return lhs->as(resolution);
             }
             return lhs->as(args->arg(0)->tid);
@@ -156,7 +165,8 @@ namespace mmadt {
               const ID_p resolution = id_p(Router::singleton()->resolve(args->arg(0)->uri_value()));
               if(resolution->equals(*BOOL_FURI)) return dool(lhs->str_value() == "true");
               if(resolution->equals(*INT_FURI)) return jnt(static_cast<FOS_INT_TYPE>(atoi(lhs->str_value().c_str())));
-              if(resolution->equals(*REAL_FURI)) return real(static_cast<FOS_REAL_TYPE>(atof(lhs->str_value().c_str())));
+              if(resolution->equals(*REAL_FURI)) return
+                  real(static_cast<FOS_REAL_TYPE>(atof(lhs->str_value().c_str())));
               if(resolution->equals(*STR_FURI)) return lhs->as(resolution);
               if(resolution->equals(*URI_FURI)) return vri(lhs->toString(NO_ANSI_PRINTER));
               return lhs->as(resolution);
