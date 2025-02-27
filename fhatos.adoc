@@ -1,7 +1,7 @@
 :imagesdir: ./images
 :favicon: {imagesdir}/fhatos-logo-small.png
 :copyright: PhaseShift Studio
-:author: Dogturd Stynx
+:author: 💩 Dogturd Stynx
 :email: dogturd.stynx@fhatos.org
 :revnumber: 0.1
 :tabsize: 2
@@ -31,7 +31,7 @@ image:fhatos-logo.png[width=140,float=left] **FhatOS** (pronounced _fat-ahs_) is
 All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address repeat called **furi** (pronounced "fury" or "fhat URI").
 Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
 
-image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-studio/fhatos] **source code** +
+https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 
 == FhatOS Features
 
@@ -47,8 +47,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 == FhatOS Boot Loader
 
 ++++
-<!-- 🐓 ./boot_runner.out -->
-<!-- 🐖 -->
+<!-- 🐖 ./boot_runner.out -->
 ++++
 [source,mmadt,subs="verbatim"]
 ----
@@ -65,7 +64,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6912]
+[INFO]  [/sys/router] main memory [total=>6784]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -114,7 +113,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router] console boot config dropped
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 === Booting on Linux/Unix/Mac
@@ -137,7 +136,7 @@ The core FhatOS kernel provides the following resources.
 The FhatOS scheduler and router are accessible to the user when their respective fURIs are dereferenced (`*` or `from`).
 
 ++++
-<!-- 🐓 ./main_runner.out
+<!-- 🐖 ./main_runner.out
 [a => b, /
  b => [c => /
   [d => e]]]
@@ -157,13 +156,11 @@ fhatos> [a => b,
 
 ----
 ++++
-<!-- 🐖 -->
-
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ++++
-<!-- 🐓 ./main_runner.out
+<!-- 🐖 ./main_runner.out
 */sys/scheduler
 */sys/router
 -->
@@ -204,9 +201,7 @@ fhatos> */sys/router
 
 ----
 ++++
-<!-- 🐖 -->
-
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 Likewise, the mmADT language is encoded within the fURI address space. mmADT's encoding is large as it includes all the mmADT types and instructions.
@@ -217,13 +212,12 @@ fURI encoding of the mmADT language
 +++ </summary><div> +++
 
 ++++
-<!-- 🐓 ./main_runner.out "*/mmadt/#/" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
 [source,mmadt]
 ----
 fhatos> */mmadt/#/
->[
+=>[
 ==>/mmadt/within=>within(from(0?code,noobj)[cpp])
 ==>/mmadt/uri/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/uri/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
@@ -339,11 +333,11 @@ fhatos> */mmadt/#/
 ==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(from(0?barrier_op,_)[cpp])[cpp]
 ==>/mmadt/at=>at?obj{?}<=obj{?}(from(0?var,noobj)[cpp])[cpp]
 ==>/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
->]
+=>]
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 +++ </div></details> +++
@@ -363,8 +357,9 @@ User resources are typicaly structured as below:
 The following subsections will provide a short overview of the aforementioned resources in reverse order: mm-ADT, router, and then scheduler.
 
 ++++
-<!-- 🐓 ./main_runner.out "*/io/console" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out
+*/io/console
+-->
 ++++
 [source,mmadt]
 ----
@@ -385,7 +380,7 @@ fhatos> */io/console
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 === The mm-ADT Language
@@ -416,8 +411,10 @@ The 7 structural types (5 mono-types and 2 poly-types) are described below.
 ****
 TIP: The size of `int` and `real` in bits can be specified in the boot loader.
 ++++
-<!-- 🐓 ./main_runner.out "int[6].inspect()" "real[6.0].inspect()" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out
+int[6].inspect()
+real[6.0].inspect()
+-->
 ++++
 [source,mmadt]
 ----
@@ -450,7 +447,7 @@ fhatos> real[6.0].inspect()
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 . The `inst` `*` dereferences the `/fos/nat` fURI which points to the respective type definition.
@@ -462,8 +459,7 @@ fhatos> real[6.0].inspect()
 ****
 TIP: Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
 ++++
-<!-- 🐓 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 ++++
 [source,mmadt]
 ----
@@ -476,14 +472,13 @@ fhatos> 6
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 Examples of the aforementioned types are provided below.
 
 ++++
-<!-- 🐓 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
 ++++
 [source,mmadt]
 ----
@@ -501,7 +496,7 @@ fhatos> [a=>1,b=>'2',c=>3.0]
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ==== Values
@@ -523,8 +518,7 @@ age[45]  =>  plus(10) => age[55]
 ----
 a|
 ++++
-<!-- 🐓 ./main_runner.out "/type/int/age -> \|(is(gt(0)).is(lt(120)))" "x -> age[45]" "*x.inspect()" "@x.inspect()" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "/type/int/age -> \|(is(gt(0)).is(lt(120)))" "x -> age[45]" "*x.inspect()" "@x.inspect()" -->
 ++++
 [source,mmadt]
 ----
@@ -553,13 +547,12 @@ fhatos> @x.inspect()
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 |===
 
 ++++
-<!-- 🐓 ./main_runner.out "x?sub -> |print(_)" "x -> 12" "@x.inspect()" "@x.plus(1)" "@x.plus(1).plus(1)" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "x?sub -> |print(_)" "x -> 12" "@x.inspect()" "@x.plus(1)" "@x.plus(1).plus(1)" -->
 ++++
 [source,mmadt]
 ----
@@ -606,7 +599,7 @@ fhatos> @x.plus(1).plus(1)
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ==== Expression Structure
@@ -625,8 +618,7 @@ An `obj` type is a simply an mm-ADT program that verifies instances of the type.
 For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, then natural numbers are a subset (or refinement) of `int`.
 
 ++++
-<!-- 🐓 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
 ++++
 [source,mmadt]
 ----
@@ -647,7 +639,7 @@ fhatos> nat[3].mult(-2)
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ===== Process Types
@@ -662,7 +654,7 @@ thread[[:setup => __]
 ----
 
 ++++
-<!-- 🐓 ./main_runner.out
+<!-- 🐖 ./main_runner.out
 threadx[[ /
   halt=>false, /
   delay=>nat[0], /
@@ -705,29 +697,18 @@ fhatos> @abc.spawn()
 
 ----
 ++++
-<!-- 🐖 -->
-
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 
 ++++
-<!-- 🐓 ./main_runner.out "person -> |[name=>str[_],age=>nat[_]]" "person[[name=>'fhatty',age=>0]]" "person[[name=>'fhatty',age=>1]]" -->
-<!-- 🐖 -->
-++++
-[source,mmadt]
-----
-fhatos> person -> |[name=>str[_],age=>nat[_]]
->[
-==>name=>_
-==>age=>_
->]
-fhatos> person[[name=>'fhatty',age=>0]]
-fhatos> person[[name=>'fhatty',age=>1]]
+<!-- 🐖 ./main_runner.out
+person -> |[name=>str[_],age=>nat[_]]
+person[[name=>'fhatty',age=>0]]
+person[[name=>'fhatty',age=>1]]"
+-->
 
-----
-++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`.
@@ -747,8 +728,14 @@ image:cooties-2.png[width=140,float=right] The FhatOS router is the mediator of 
 |===
 a|
 ++++
-<!-- 🐓 ./main_runner.out "*a" "*b" "b -> 12" "a -> b" "*a" "**a" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out
+*a
+*b
+b -> 12
+a -> b
+*a
+**a
+-->
 ++++
 [source,mmadt]
 ----
@@ -765,7 +752,7 @@ fhatos> **a
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 a|
 [source,mmadt]
@@ -781,8 +768,14 @@ a|
 `b` references `12`. `a` references `b`. a double dereferences jumps the monad from `a` to `b` to `12`.
 a|
 ++++
-<!-- 🐓 ./main_runner.out "a -> 12" "*a.plus(10)" "*a" "@a" "@a.plus(10)" "*a"  -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out
+a -> 12
+*a.plus(10)
+*a
+@a
+@a.plus(10)
+*a
+-->
 ++++
 [source,mmadt]
 ----
@@ -801,7 +794,7 @@ fhatos> *a
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 a|
 [source,mmadt]
@@ -817,8 +810,7 @@ a|
 `12` is written to `a`. `10` is added to `a` (*pass by value* `*`). `a` still stores `12`. `10` is added to `a` (**pass by reference** `@`). `a` now stores `22`.
 a|
 ++++
-<!-- 🐓 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
 [source,mmadt]
 ----
@@ -836,7 +828,7 @@ fhatos> *b
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 a|
 [source,mmadt]
@@ -917,8 +909,12 @@ M = aM
 ++++
 
 ++++
-<!-- 🐓 ./main_runner.out "{1,2,3}" "{1,2,3}.plus(10)" "{1,2,3}.plus(_)" "{1,2,3}.plus(plus(_))" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out
+{1,2,3}
+{1,2,3}.plus(10)
+{1,2,3}.plus(_)
+{1,2,3}.plus(plus(_))
+-->
 ++++
 [source,mmadt]
 ----
@@ -941,7 +937,7 @@ fhatos> {1,2,3}.plus(plus(_))
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 == FhatOS Modules
@@ -987,8 +983,7 @@ fhatos> {1,2,3}.plus(plus(_))
 ==== plus
 
 ++++
-<!-- 🐓 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
 ++++
 [source,mmadt]
 ----
@@ -1000,7 +995,7 @@ fhatos> 'a'.plus('b')
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ==== mult
@@ -1030,8 +1025,7 @@ fhatos> 'a'.plus('b')
 ==== match `~`
 
 ++++
-<!-- 🐓 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
-<!-- 🐖 -->
+<!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
 ++++
 [source,mmadt]
 ----
@@ -1052,7 +1046,7 @@ fhatos> [a=>2].match([a=>_])
 
 ----
 ++++
-<!-- 🦆 -->
+<!-- 🐓 -->
 ++++
 
 ==== eq

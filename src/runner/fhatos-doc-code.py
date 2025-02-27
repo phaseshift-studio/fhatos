@@ -1,40 +1,8 @@
 # Copyright (c) 2023, Bas Nijholt
+# edited by Dogturd Stynx
 # All rights reserved.
-"""Markdown Code Runner.
-
-Automatically update Markdown files with code block output.
-
-This script is part of the 'markdown-code-runner' package available on GitHub:
-https://github.com/basnijholt/markdown-code-runner
-
-Add code blocks between <!-- CODE:START --> and <!-- CODE:END --> in your Markdown file.
-The output will be inserted between <!-- OUTPUT:START --> and <!-- OUTPUT:END -->.
-
-Example:
--------
-<!-- CODE:START -->
-<!-- print('Hello, world!') -->
-<!-- CODE:END -->
-<!-- OUTPUT:START -->
-This will be replaced by the output of the code block above.
-<!-- OUTPUT:END -->
-
-Alternatively, you can add a <!-- CODE:SKIP --> comment above a code block to skip execution.
-
-Another way is to run code blocks in triple backticks:
-```python markdown-code-runner
-print('Hello, world!')
-```
-Which will print the output of the code block between the output markers:
-<!-- OUTPUT:START -->
-This will be replaced by the output of the code block above.
-<!-- OUTPUT:END -->
-
-You can also run bash code blocks:
-```bash markdown-code-runner
-echo "Hello, world!"
-```
-Which will similarly print the output of the code block between next to the output markers.
+"""
+mm-ADT code runner for FhatOS documentation
 """
 from __future__ import annotations
 
@@ -42,12 +10,13 @@ import argparse
 import contextlib
 import io
 import os
-import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
+from colors import *
 
 if TYPE_CHECKING:
     try:
@@ -67,6 +36,7 @@ else:  # pragma: no cover
     __version__ = pkg_resources.get_distribution("markdown-code-runner").version
 
 DEBUG: bool = os.environ.get("DEBUG", "0") == "1"
+
 
 def remove_md_comment(commented_text: str) -> str:
     """Remove Markdown comment tags from a string."""
@@ -104,8 +74,8 @@ def execute_code(
     full_code = " ".join(new_code)
 
     if verbose:
-        print(_bold(f"\nExecuting code {language} block:"))
-        print(f"\n{full_code}\n")
+        print(f"\n🐖 {BOLD}{GREEN}executing code {language} block:{NC}")
+        print(f"\n{CYAN}{full_code}{NC}\n")
 
     if output_file is not None:
         output_file = Path(output_file)
@@ -129,8 +99,8 @@ def execute_code(
         raise ValueError(msg)
 
     if verbose:
-        print(_bold("Output:"))
-        print(f"\n{output}\n")
+        print(f"\n🐓 {BOLD}{GREEN}output:{NC}")
+        print(f"\n{CYAN}{output}\n{NC}")
 
     return output
 
@@ -141,14 +111,15 @@ def _bold(text: str) -> str:
     reset = "\033[0m"
     return f"{bold}{text}{reset}"
 
+
 @dataclass
 class ProcessingState:
     """State of the processing of a Markdown file."""
 
     section: Literal[
-        "🐓",
+        "🐖",
         "👨‍🌾",
-        "🦆"
+        "🐓"
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
     original_output: list[str] = field(default_factory=list)
@@ -164,24 +135,26 @@ class ProcessingState:
         if line.strip().startswith("|==="):
             self.in_table = not self.in_table
         ################################################################################
-        if line.find("🐖") is not -1 or (self.section is "🐓" and line.strip() == "-->"):
-            self._process_chicken_code(line, verbose=verbose)
-            self.section = "👨‍🌾"
-            self.code = []
-            self.backtick_options = {}
+        if (self.section == "👨‍🌾" and
+                line.lstrip().startswith("<!--") and
+                line.find("🐖") != -1 and
+                line.rstrip().endswith("-->")):
+            self.section = "🐖"
+            self.code = [remove_md_comment(line.strip()).replace("🐖", "")]
+            self._process_chicken_code(verbose=verbose)
             self._process_output_start(line)
-        elif line.find("🦆") is not -1:
+        elif line.find("🐓") != -1:
             self._process_output_end()
-        elif self.section is "🐓" or line.find("🐓") is not -1:
-            self.section = "🐓"
-            self.code.append(remove_md_comment(line.replace("🐓", "")))
-        elif self.section == "🦆":
+        elif self.section == "🐖" or line.find("🐖") != -1:
+            self.section = "🐖"
+            self.code.append(remove_md_comment(line.replace("🐖", "")))
+        elif self.section == "🐓":
             self.original_output.append(line)
-        if self.section != "🦆":
+        if self.section != "🐓":
             self.new_lines.append(line)
 
     def _process_output_start(self, line: str) -> None:
-        self.section = "🦆"
+        self.section = "🐓"
         if not self.skip_code_block:
             assert isinstance(
                 self.output,
@@ -190,14 +163,14 @@ class ProcessingState:
             if not self.in_table:
                 new_output = []
                 for c in self.output:
-                    new_output.append(c.replace("|", "\\|"))
-                new_line = line.replace("|", "\\|")
+                    new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
+                new_line = line.replace("\\|", "|").replace("|", "\\|")
                 self.new_lines.extend([new_line, *new_output])
             else:
                 self.new_lines.extend([line, *self.output])
         else:
             if not self.in_table:
-                new_line = line.replace("|", "\\|")
+                new_line = line.replace("\\|", "|").replace("|", "\\|")
                 self.original_output.append(new_line)
             else:
                 self.original_output.append(line)
@@ -210,8 +183,8 @@ class ProcessingState:
         self.original_output = []
         self.output = None  # Reset output after processing end of the output section
 
-    def _process_chicken_code(self, line: str, *, verbose: bool) -> None:
-        print(self.code)
+    def _process_chicken_code(self, *, verbose: bool) -> None:
+        print(f"code: {self.code}")
         self.output = execute_code(
             self.code,
             self.context,
