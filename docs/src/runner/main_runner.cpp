@@ -70,7 +70,7 @@ int main(int arg, char **argsv) {
   }
   LOG(INFO, "Processing %i expressions\n", arg);
   printer()->printer_switch(true);
-  printer()->print("++++\n\n[source,mmadt]\n----\n");
+  printer()->print("\n[source,mmadt]\n----\n");
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
     try {

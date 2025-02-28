@@ -46,14 +46,20 @@ namespace fhatos {
         }
       } else if(obj->is_lst() && max_depth > depth) {
         if(!parent_rec) {
-          ss << "!g" << StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b"
+          string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+          if(char_indent && 0 == depth)
+            indentation += '=';
+          ss << "!g" << indentation << (char_indent ? ">" : " ") << "!b"
               << (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
         for(const auto &e: *obj->lst_value()) {
           if(!e->is_poly()) {
+            string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+            if(char_indent && 0 == depth)
+              indentation += '=';
             ss << StringHelper::format("%s%s!!\n",
-                                       (string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") + (
+                                       (string("!g") + indentation + (
                                           char_indent ? "==>!!" : "   !!")).c_str(),
                                        e->toString().c_str());
           } else {
@@ -61,7 +67,10 @@ namespace fhatos {
             pretty_print_obj(e, depth + 1, max_depth, false, sb, char_indent);
           }
         }
-        ss << string("!g") + StringHelper::repeat(depth, char_indent ? "=" : " ") << (char_indent ? ">" : " ") << "!b";
+        string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+        if(char_indent && 0 == depth)
+          indentation += '=';
+        ss << "!g" << indentation << (char_indent ? ">" : " ") << "!b";
         ss << (obj->is_base_type() ? "" : StringHelper::repeat(obj->tid->name().length(), " ").c_str()) << "!m]!!\n";
       } else if(obj->is_rec() && max_depth > depth) {
         if(!parent_rec) {

@@ -282,6 +282,8 @@ test_native() {
     local extra_args=${@:1}
     cd build/test || exit 1;
     status_check $? "cd build/test"
+    rm -rf fs
+    status_check $? "rm -rf fs"
     mkdir fs
     status_check $? "mkdir fs"
     ctest ${extra_args}

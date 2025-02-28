@@ -114,7 +114,9 @@ class ProcessingState:
     section: Literal[
         "🐖",
         "👨‍🌾",
-        "🐓"
+        "🐓",
+        "🦆",
+        "🦆🦆"
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
     context: dict[str, Any] = field(default_factory=dict)
@@ -137,19 +139,32 @@ class ProcessingState:
             if line.rstrip().endswith("-->"):
                 self._process_chicken_code(verbose=verbose)
                 self._process_output_start(line)
+                self.section = "🐓"
         elif self.section == "🐖":
             if line.lstrip() == "-->":
+                self.new_lines.append(line)
                 self._process_chicken_code(verbose=verbose)
-                self._process_output_start("-->")
+                self._process_output_start("")
+                self.section = "🐓"
             else:
                 self.code.append(line)
-        if self.section != "🐓":
+        ############################################
+        if self.section == "👨‍🌾" or self.section == "🐖":
             self.new_lines.append(line)
-        elif self.section == "🐓" and line == "++++":
-            self.section = "👨‍🌾"
+        elif self.section == "🐓":
+            if line == "++++":
+                self.section = "👨‍🌾"
+            else:
+                self.action = "👨‍🌾"
+        elif self.section == "🦆":
+            if line.strip() != "" and not line.lstrip().startswith("[source"):
+                self.action = "👨‍🌾"
+            else:
+                self.action = "👨‍🌾"
+        elif self.section == "🦆🦆": # and line.strip() == "----":
+            self.action = "👨‍🌾"
 
     def _process_output_start(self, line: str) -> None:
-        self.section = "🐓"
         assert isinstance(
             self.output,
             list,
@@ -159,9 +174,9 @@ class ProcessingState:
             for c in self.output:
                 new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
             new_line = line.replace("\\|", "|").replace("|", "\\|")
-            self.new_lines = [*self.new_lines, new_line, *new_output]
+            self.new_lines = [*self.new_lines, new_line, "++++", *new_output]
         else:
-            self.new_lines = [*self.new_lines, line, *self.output]
+            self.new_lines = [*self.new_lines, line, "++++", *self.output]
         self.output = None  # Reset output after processing end of the output section
 
     def _process_chicken_code(self, *, verbose: bool) -> None:
@@ -173,7 +188,6 @@ class ProcessingState:
             output_file=self.backtick_options.get("filename"),
             verbose=verbose,
         )
-        self.section = "👨‍🌾"
         self.code = []
         self.backtick_options = {}
 

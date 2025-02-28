@@ -21,6 +21,9 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_SHARED_MEMORY /io/#
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 #include STR(../../../../src/structure/stype/fs/HARDWARE/fs.hpp)

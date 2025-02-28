@@ -98,6 +98,29 @@ namespace fhatos {
      // FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(7+109+18+566)}), PROCESS_ALL("{7,109,18,566}.barrier({sum()})"));
   }
 
+  void test_sum_inst() {
+    FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("{true,false,false}.sum()"));
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{2,5,3}.sum()"));
+    FOS_TEST_OBJ_EQUAL(str("fhat"),PROCESS("{'f','ha','t'}.sum()"));
+    FOS_TEST_OBJ_EQUAL(vri("a/b/c"),PROCESS("{a,b,c}.sum()"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),str("a"),dool(false),str("b")}),PROCESS("{[1],['a',false],['b']}.sum()"));
+  }
+
+  void test_prod_inst() {
+  	FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("{true,false,false}.prod()"))
+    FOS_TEST_OBJ_EQUAL(jnt(30),PROCESS("{2,5,3}.prod()"));
+    FOS_TEST_OBJ_EQUAL(jnt(30),PROCESS("{2,5,3}.prod()"));
+  }
+
+  /*void test_reduce_inst() {
+  	FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("{true,false,false}.reduce(|plus())"));
+    FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("false.reduce(plus())"));
+  	FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{2,5,3}.reduce(*plus)"));
+    FOS_TEST_OBJ_EQUAL(jnt(2),PROCESS("2.reduce(*plus)"));
+    FOS_TEST_OBJ_EQUAL(str("fhat"),PROCESS("{'f','ha','t'}.reduce(|plus())"));
+    FOS_TEST_OBJ_EQUAL(str("f"),PROCESS("'f'.reduce(|plus())"));
+  }*/
+
   void test_uri_lshift_inst() {
     FOS_TEST_OBJ_EQUAL(PROCESS("a/b/c"), PROCESS("a/b/c<<0"));
     FOS_TEST_OBJ_EQUAL(PROCESS("b/c"), PROCESS("a/b/c<<1"));
@@ -255,6 +278,9 @@ namespace fhatos {
   FOS_RUN_TEST(test_rec_lshift_inst); //
   FOS_RUN_TEST(test_rshift_inst); //
   FOS_RUN_TEST(test_barrier_inst); //
+  FOS_RUN_TEST(test_sum_inst); //
+  FOS_RUN_TEST(test_prod_inst); //
+  //FOS_RUN_TEST(test_reduce_inst); //
   //FOS_RUN_TEST(test_neg_inst); //
   FOS_RUN_TEST(test_plus_inst); //
   FOS_RUN_TEST(test_mult_inst); //

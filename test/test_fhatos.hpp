@@ -165,8 +165,8 @@ using namespace fhatos;
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
-	  FOS_DEPLOY_ROUTER_2        																					   \
-	  FOS_DEPLOY_SCHEDULER_2                                                                                           \
+	    FOS_DEPLOY_ROUTER_2        																					   \
+	    FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_PARSER_2                                                                                              \
       FOS_DEPLOY_TYPE_2                                                                                                \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
