@@ -150,7 +150,7 @@ namespace fhatos {
               maybe = Router::singleton()->read(next_inst_type_id);
               if(dt)
                 dt->emplace_back(current_obj->vid, id_p(next_inst_type_id), maybe);
-              if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
+              if(!maybe->is_noobj() && maybe->is_inst() && maybe->has_inst_f())
                 return maybe;
             }
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
@@ -163,7 +163,7 @@ namespace fhatos {
             maybe = Router::singleton()->read(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid->no_query()), id_p(next_inst_type_id), maybe);
-            if(!maybe->is_noobj() && maybe->is_inst() && maybe->inst_f())
+            if(!maybe->is_noobj() && maybe->is_inst() && maybe->has_inst_f())
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
             if(current_obj->tid->no_query().equals(
@@ -183,24 +183,24 @@ namespace fhatos {
         Inst_p final_inst = Router::singleton()->read(inst_type_id);
         if(dt)
           dt->emplace_back(id_p(""), id_p(inst_type_id), final_inst);
-        if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+        if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
           if(dt)
             dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
           final_inst = TEMP(lhs, inst, dt);
-          if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+          if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
             const Obj_p next_lhs = Router::singleton()->read(*lhs->tid);
             const ID next_id = next_lhs->range()->no_query();
             const Obj_p next_obj = Router::singleton()->read(next_id);
             if(dt)
               dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
             final_inst = TEMP(next_obj, inst, dt);
-            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
-              if(inst->inst_f())
+            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
+              if(inst->has_inst_f())
                 final_inst = inst;
             }
             //////////////////// generated printable derivation tree ////////////////////
             string derivation_string;
-            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->inst_f()) {
+            if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
               if(dt) {
                 int counter = 0;
                 for(const auto &oir: *dt) {
@@ -253,7 +253,7 @@ namespace fhatos {
           final_inst = Obj::to_inst(
               inst->inst_op(),
               inst->inst_args(),
-              make_shared<InstF>(make_shared<Cpp>(
+              InstF(make_shared<Cpp>(
                   [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                     return x->apply(lhs, args);
                   })),

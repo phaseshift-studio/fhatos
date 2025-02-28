@@ -41,7 +41,7 @@ namespace fhatos {
   protected:
     ID_p type_;
     InstArgs args_;
-    InstF_p function_supplier_ = nullptr;
+    InstF function_supplier_ = InstF(Obj::to_noobj());
     Obj_p seed_;
     string doc_{};
 

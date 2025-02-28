@@ -161,9 +161,7 @@ namespace fhatos {
   using Cpp = BiFunction<const Obj_p, const InstArgs, Obj_p>;
   using Cpp_p = ptr<Cpp>;
   using InstF = std::variant<Obj_p, Cpp_p>;
-  using InstF_p = ptr<InstF>;
-  using InstValue = Trip<InstArgs, InstF_p, Obj_p>;
-  using InstValue_p = ptr<InstValue>;
+  using InstValue = Trip<InstArgs, InstF, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
   static const auto MMADT_ID = make_shared<ID>(MMADT_SCHEME);
@@ -464,10 +462,10 @@ namespace fhatos {
       Valued(value_id),
       otype(otype),
       value_(value) {
-      if(otype == OType::INST && nullptr == std::get<2>(*std::any_cast<InstValue_p>(value))) {
-        this->value_ = make_shared<InstValue>(make_tuple(std::get<0>(*std::any_cast<InstValue_p>(value)),
-                                                         std::get<1>(*std::any_cast<InstValue_p>(value)),
-                                                         this->is_gather() ? Obj::to_objs() : Obj::to_noobj()));
+      if(otype == OType::INST && nullptr == std::get<2>(std::any_cast<InstValue>(value))) {
+        this->value_ = make_tuple(std::get<0>(std::any_cast<InstValue>(value)),
+                                  std::get<1>(std::any_cast<InstValue>(value)),
+                                  this->is_gather() ? Obj::to_objs() : Obj::to_noobj());
       }
       if(otype == OType::INST && type_id->has_query(FOS_RANGE) && type_id->no_query().equals(
              ID(type_id->query_value(FOS_RANGE).value()))) {
@@ -925,10 +923,10 @@ namespace fhatos {
       throw fError("unknown poly base type (logic error): %s", this->tid->toString().c_str());
     }
 
-    [[nodiscard]] InstValue_p inst_value() const {
+    [[nodiscard]] InstValue inst_value() const {
       if(!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<InstValue_p>();
+      return this->value<InstValue>();
     }
 
     [[nodiscard]] string inst_op() const {
@@ -939,7 +937,7 @@ namespace fhatos {
 
     [[nodiscard]] InstArgs inst_args() const {
       if(this->is_inst())
-        return std::get<0>(*this->inst_value());
+        return std::get<0>(this->inst_value());
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->shared_from_this();
@@ -949,16 +947,16 @@ namespace fhatos {
       return (this->is_inst() ? this->inst_args().get() : this)->rec_value()->count(key) != 0;
     }
 
-    [[nodiscard]] InstF_p inst_f() const {
+    [[nodiscard]] InstF inst_f() const {
       if(!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return std::get<1>(*this->inst_value());
+      return std::get<1>(this->inst_value());
     }
 
     [[nodiscard]] Obj_p inst_seed_supplier() const {
       if(!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return std::get<2>(*this->inst_value());
+      return std::get<2>(this->inst_value());
     }
 
     [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()->apply(arg); }
@@ -982,8 +980,8 @@ namespace fhatos {
       }
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->front()->domain();
-      if(this->is_inst() && this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f()))
-        return std::get<Obj_p>(*this->inst_f())->domain();
+      if(this->is_inst() && std::holds_alternative<Obj_p>(this->inst_f()))
+        return std::get<Obj_p>(this->inst_f())->domain();
       return OBJ_FURI;
     }
 
@@ -1008,8 +1006,8 @@ namespace fhatos {
       if(this->is_bcode() && !this->bcode_value()->empty())
         return this->bcode_value()->back()->range();
       if(this->is_inst())
-        return this->inst_f() && std::holds_alternative<Obj_p>(*this->inst_f())
-                 ? std::get<Obj_p>(*this->inst_f())->range()
+        return std::holds_alternative<Obj_p>(this->inst_f())
+                 ? std::get<Obj_p>(this->inst_f())->range()
                  : OBJ_FURI;
       return id_p(this->tid->no_query());
     }
@@ -1222,7 +1220,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p inst_apply(const ID &inst_id, const List<Obj_p> &args = {}) const {
-      return this->inst_apply(Obj::to_inst(make_shared<InstValue>(Obj::to_inst_args(args), nullptr, Obj::to_noobj()),
+      return this->inst_apply(Obj::to_inst(InstValue(Obj::to_inst_args(args), InstF(Obj::to_noobj()), Obj::to_noobj()),
                                            id_p(inst_id)), args);
     }
 
@@ -1417,11 +1415,11 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
-        if(this->is_inst() && this->inst_f()) {
+        if(this->is_inst() && this->has_inst_f()) {
           obj_string = obj_string
               .append("!g[!!")
-              .append(std::holds_alternative<Obj_p>(*this->inst_f())
-                        ? std::get<Obj_p>(*this->inst_f())->toString()
+              .append(std::holds_alternative<Obj_p>(this->inst_f())
+                        ? std::get<Obj_p>(this->inst_f())->toString()
                         : "!ycpp!!")
               .append("!g]!!");
         }
@@ -1600,9 +1598,10 @@ namespace fhatos {
         case OType::INST:
           return
               *this->inst_args() == *other.inst_args() &&
-              this->inst_f()->index() == other.inst_f()->index() &&
-              (this->inst_f()->index() == 1 ||
-               (*std::get<Obj_p>(*this->inst_f()) == *std::get<Obj_p>(*other.inst_f()))) &&
+              this->has_inst_f() == other.has_inst_f() &&
+              this->inst_f().index() == other.inst_f().index() &&
+              (this->inst_f().index() == 1 ||
+               (*std::get<Obj_p>(this->inst_f()) == *std::get<Obj_p>(other.inst_f()))) &&
               this->domain_coefficient() == other.domain_coefficient() &&
               this->range_coefficient() == other.range_coefficient() &&
               *this->inst_seed_supplier() == *other.inst_seed_supplier();
@@ -1645,7 +1644,14 @@ namespace fhatos {
 
     [[nodiscard]] bool is_inst() const { return this->otype == OType::INST; }
 
-    [[nodiscard]] bool is_applicable_inst() const { return this->is_inst() && this->inst_f(); }
+    [[nodiscard]] bool has_inst_f() const {
+      return std::holds_alternative<Cpp_p>(this->inst_f())
+               ? std::get<Cpp_p>(this->inst_f()) != nullptr
+               : std::get<Obj_p>(this->inst_f()) != nullptr &&
+                 !std::get<Obj_p>(this->inst_f())->is_noobj();
+    }
+
+    [[nodiscard]] bool is_applicable_inst() const { return this->is_inst() && this->has_inst_f(); }
 
     [[nodiscard]] bool is_objs() const { return this->otype == OType::OBJS; }
 
@@ -1843,14 +1849,14 @@ namespace fhatos {
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           try {
-            if(nullptr == inst->inst_f()) {
+            if(!inst->has_inst_f()) {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
                            lhs->tid->name().c_str(),
                            lhs->toString().c_str());
             }
-            const Obj_p result = std::holds_alternative<Obj_p>(*inst->inst_f())
-                                   ? (*const_cast<Obj *>(std::get<Obj_p>(*inst->inst_f()).get()))(lhs, remake)
-                                   : (*std::get<Cpp_p>(*inst->inst_f()))(lhs, remake);
+            const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
+                                   ? (*const_cast<Obj *>(std::get<Obj_p>(inst->inst_f()).get()))(lhs, remake)
+                                   : (*std::get<Cpp_p>(inst->inst_f()))(lhs, remake);
             if(!result->is_code())
               compiler.reset(true, true)->type_check(result, *inst->range());
             ROUTER_POP_FRAME();
@@ -2214,14 +2220,14 @@ namespace fhatos {
       return to_rec(map, type_id, value_id);
     }
 
-    static Inst_p to_inst(const InstValue_p &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
-      if(!std::get<0>(*value)->is_rec())
-        TYPE_ERROR(std::get<0>(*value).get(),__FILE__,__LINE__);
+    static Inst_p to_inst(const InstValue &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
+      if(!std::get<0>(value)->is_rec())
+        TYPE_ERROR(std::get<0>(value).get(),__FILE__,__LINE__);
       return Obj::create(value, OType::INST, type_id, value_id);
     }
 
-    static Inst_p to_inst(const InstF_p &instf, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
-      return Obj::create(make_shared<InstValue>(Obj::to_inst_args(), instf, Obj::to_noobj()), OType::INST, type_id,
+    static Inst_p to_inst(const InstF &instf, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(InstValue(Obj::to_inst_args(), instf, Obj::to_noobj()), OType::INST, type_id,
                          value_id);
     }
 
@@ -2239,24 +2245,24 @@ namespace fhatos {
 
     static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
                           const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, to_noobj(), type_id,
+      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id,
                      value_id);
     }
 
     static Inst_p to_inst(const List<Obj_p> &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, to_noobj(), type_id,
+      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id,
                      value_id);
     }
 
     static Inst_p to_inst(const InstArgs &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), args, nullptr, to_noobj(), type_id, value_id);
+      return to_inst(type_id->name(), args, InstF(Obj::to_noobj()), to_noobj(), type_id, value_id);
     }
 
-    static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF_p &function,
+    static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF &function,
                           const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(ROUTER_RESOLVE(fURI(opcode)));
-      return to_inst(make_shared<InstValue>(make_tuple(args, function, seed)), fix, value_id);
+      return to_inst(make_tuple(args, function, seed), fix, value_id);
     }
 
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &type_id = BCODE_FURI, const ID_p &value_id = nullptr) {
@@ -2338,11 +2344,11 @@ namespace fhatos {
           return r;
         }
         case OType::INST: {
-          auto r = Inst::create(make_shared<InstValue>(make_tuple(this->inst_args(),
-                                                                  this->inst_f(),
-                                                                  this->inst_seed_supplier()
-                                                                    ? this->inst_seed_supplier()->clone()
-                                                                    : Obj::to_noobj())), OType::INST, this->tid);
+          auto r = Inst::create(make_tuple(this->inst_args(),
+                                           this->inst_f(),
+                                           this->inst_seed_supplier()
+                                             ? this->inst_seed_supplier()->clone()
+                                             : Obj::to_noobj()), OType::INST, this->tid);
           r->vid = this->vid;
           return r;
         }
@@ -2544,7 +2550,7 @@ namespace fhatos {
   static Obj_p from(const Uri_p &uri, const Obj_p &default_arg = noobj()) {
     return Obj::to_inst(
         "from", Obj::to_inst_args({uri, default_arg}),
-        make_shared<InstF>(make_shared<BiFunction<const Obj_p, const InstArgs, Obj_p>>(
+        InstF(make_shared<BiFunction<const Obj_p, const InstArgs, Obj_p>>(
             [](const Uri_p &, const InstArgs &args) {
               const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
               return result->is_noobj() ? args->arg(1) : result;

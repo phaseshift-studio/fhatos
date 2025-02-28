@@ -49,7 +49,7 @@ namespace fhatos {
       const Obj_p console_obj =
           Obj::to_rec({{"halt", dool(false)},
                         {"delay", jnt(0, NAT_FURI)},
-                        {"loop", Obj::to_inst(make_shared<InstF>(make_shared<Cpp>(
+                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                           [](const Obj_p &console_obj, const InstArgs &) {
                             const auto console_state = static_cast<ConsoleX *>(get_state<fThread>(console_obj).get());
                             try {

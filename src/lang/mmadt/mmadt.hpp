@@ -60,8 +60,8 @@ namespace mmadt {
     }
 
     [[nodiscard]] static BCode_p inst_to_bcode(const Inst_p &inst) {
-      return inst->is_inst() && std::holds_alternative<Obj_p>(*inst->inst_f())
-               ? std::get<Obj_p>(*inst->inst_f())
+      return inst->is_inst() && inst->has_inst_f() && std::holds_alternative<Obj_p>(inst->inst_f())
+               ? std::get<Obj_p>(inst->inst_f())
                : inst;
     }
 

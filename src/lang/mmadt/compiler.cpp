@@ -105,49 +105,49 @@ namespace fhatos {
     if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
-    if(!inst_obj->inst_f()) {
+    if(!inst_obj->has_inst_f()) {
       // inst_vid
       if(inst->vid /*&& !inst->vid->is_relative()*/) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
         if(dt) dt->emplace_back(id_p(""), inst->vid, inst_obj);
       }
       // /obj_vid/::/inst_tid
-      if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid) {
+      if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
           lhs, inst, Router::singleton()->read(lhs->vid->add_component(*inst->tid)));
         if(dt) dt->emplace_back(lhs->vid, id_p(inst->tid), inst_obj);
       }
       // /obj_vid/::/resolved/inst_tid
       const ID inst_type_id_resolved = Router::singleton()->resolve(*inst->tid);
-      if((inst_obj->is_noobj() || !inst_obj->inst_f()) && lhs->vid) {
+      if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
           lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
         if(dt) dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /obj_tid/::inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
           lhs, inst, Router::singleton()->read(lhs->tid->add_component(*inst->tid)));
         if(dt) dt->emplace_back(lhs->tid, inst->tid, inst_obj);
       }
       // /obj_tid/::/resolved/inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
           lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
         if(dt) dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /resolved/inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
         if(dt) dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
       }
       // obj_tid/obj_tid (recurse)
-      if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
           inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
         }
       }
-      if(inst_obj->is_noobj() || !inst_obj->inst_f()) {
+      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
           inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
                                        Router::singleton()->read(
@@ -157,7 +157,7 @@ namespace fhatos {
                                        inst_obj));
         }
       }
-      if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->inst_f())) {
+      if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->has_inst_f())) {
         string derivation_string;
         if(dt)
           this->print_derivation_tree(&derivation_string);
@@ -206,7 +206,7 @@ namespace fhatos {
       inst_c = Obj::to_inst(
         inst_provided->inst_op(),
         inst_provided->inst_args(),
-        make_shared<InstF>(make_shared<Cpp>(
+        InstF(make_shared<Cpp>(
           [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
             return x->apply(lhs, args);
           })),

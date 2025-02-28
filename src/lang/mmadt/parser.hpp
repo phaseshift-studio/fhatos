@@ -341,7 +341,7 @@ namespace mmadt {
             const Obj_p body = Obj::create(v, o, type_id);
             const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
             return Obj::to_inst(
-                make_shared<InstValue>(make_tuple(args, make_shared<InstF>(std::variant<Obj_p, Cpp_p>(body)), nullptr)),
+                make_tuple(args, InstF(body), nullptr),
                 type_id, value_id);
           }
           case 2: { // a(b)@xyz
@@ -442,7 +442,8 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI <= WRAP("<", tok(seq(npd(chr('-')),oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+-"))),npd(chr('-')))), ">"), furi_action;
+      FURI <= WRAP("<", tok(seq(npd(chr('-')),oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+-"))),npd(chr('-')))),
+                   ">"), furi_action;
       FURI_INLINE <= WRAP("<", tok(seq(
                             oom(cls("a-zA-Z:/%?_#+")),
                             zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))), ">"), furi_action;

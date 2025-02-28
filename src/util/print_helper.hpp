@@ -264,9 +264,9 @@ namespace fhatos {
               print_obj(v, sb);
             }
             ss << "!g)";
-            if(obj->inst_f()) {
-              ss << "[" << (std::holds_alternative<Obj_p>(*obj->inst_f())
-                              ? std::get<Obj_p>(*obj->inst_f())->toString()
+            if(obj->has_inst_f()) {
+              ss << "[" << (std::holds_alternative<Obj_p>(obj->inst_f())
+                              ? std::get<Obj_p>(obj->inst_f())->toString()
                               : "!ycpp!!") << "!g]!!";
             } else
               ss << "[!rnoobj!g]!!";

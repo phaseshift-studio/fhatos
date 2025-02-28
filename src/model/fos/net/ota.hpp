@@ -36,13 +36,13 @@ namespace fhatos {
     }
 
     static ptr<OTA> create_state(const Obj_p &ota_obj) {
-      ota_obj->rec_set("loop", Obj::to_inst(make_shared<InstValue>(make_tuple<InstArgs, InstF_p, Obj_p>(
-                                              Obj::to_inst_args(), make_shared<InstF>(make_shared<Cpp>(
+      ota_obj->rec_set("loop", Obj::to_inst(make_tuple<InstArgs, InstF_p, Obj_p>(
+                                              Obj::to_inst_args(), InstF(make_shared<Cpp>(
                                                 [](const Obj_p &, const InstArgs &) {
                                                   ArduinoOTA.handle();
                                                   return Obj::to_noobj();
                                                 })),
-                                              Obj::to_noobj())), INST_FURI));
+                                              Obj::to_noobj()), INST_FURI));
       ArduinoOTA.setHostname(ota_obj->get<fURI>("config/host").host());
       ArduinoOTA.setPort(ota_obj->get<fURI>("config/host").port());
       ArduinoOTA.setMdnsEnabled(ota_obj->get<fURI>("config/host").scheme() == "mdns");
