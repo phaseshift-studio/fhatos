@@ -66,7 +66,7 @@ h2, h3, h4, h5, h6 {
 }
 
 .title {
-    /*color: var(--black) !important;*/
+/*color: var(--black) !important;*/
     font-family: Arial, sans-serif !important;
     font-style: normal;
     font-weight: bold !important;
@@ -198,22 +198,12 @@ video {
     color: red;
 }
 
+.hljs-mmadt-reference,
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
-.hljs-mmadt-int {
-    color: #d9a118;
-}
-
-.hljs-string {
-    color: #d9a118;
-    /*font-style: italic;*/
-}
-
-.hljs-mmadt-reference {
-    color: #d4de68;
-}
-
-.hljs-sys-furi {
+.hljs-mmadt-int,
+.hljs-string,
+.hlhs-sys-furi {
     color: #d4de68;
 }
 
