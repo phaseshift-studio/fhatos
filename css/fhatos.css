@@ -26,8 +26,8 @@
     --primarycolor: #bfbfbf;
     --secondarycolor: #d70000;
     --tertiarycolor: #bdbdbd;
-    --sidebarbackground: #43454a;
-    --linkcolor: #b560d6;
+    --sidebarbackground: #303235;
+    --linkcolor: #b066cd;
     --linkcoloralternate: rgb(183, 28, 28);
     --white: black;
     --black: #bfbfbf;
@@ -44,7 +44,6 @@ html {
 body, #header .details {
     font-family: Arial, sans-serif ! important;
     font-size: 1.1em !important;
-    color: var(--black) !important;
     background-color: var(--maincolor);
 }
 
@@ -73,9 +72,26 @@ h2, h3, h4, h5, h6 {
     font-size: 110%;
 }
 
+
+details {
+    background-color: #43454a;
+    border-radius: 1px;
+    padding: 5px;
+    border-width: medium;
+    border-radius: 0.25em;
+    border-style: groove;
+}
+
+details>summary {
+    color: #ba3925;
+    text-align: center;
+    font-weight: bold !important;
+    font-size: 110%;
+}
+
 #header .details span.email a, a {
     text-decoration: none;
-    color: #2156a5;
+    color: #2d78e3;
 }
 
 blockquote {
@@ -153,6 +169,7 @@ td {
 #toctitle {
     color: var(--secondarycolor);
     font-weight: bold;
+    text-decoration: underline;
 }
 
 .ulist ul {
@@ -191,11 +208,11 @@ video {
 }
 
 .hljs-keyword {
-    color: #e178d6;
+    color: #b066cd;
 }
 
 .hljs-mmadt-noobj {
-    color: red;
+    color: #ba3925;
 }
 
 .hljs-mmadt-reference,
@@ -216,11 +233,11 @@ video {
 }
 
 .hljs-square-bracket {
-    color: darkmagenta;
+    color: #b066cd;
 }
 
 .hljs-prompt-begin {
-    color: #ff42e9;
+    color: #b066cd;
 }
 
 .hljs-prompt-end {
@@ -236,7 +253,7 @@ video {
 }
 
 .hljs-log-error {
-    color: #9a0505;
+    color: #ba3925;
 }
 
 .hljs-log-warn {

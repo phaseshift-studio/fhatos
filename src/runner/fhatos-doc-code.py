@@ -116,7 +116,6 @@ class ProcessingState:
         "👨‍🌾",
         "🐓",
         "🦆",
-        "🦆🦆"
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
     context: dict[str, Any] = field(default_factory=dict)
@@ -152,17 +151,13 @@ class ProcessingState:
         if self.section == "👨‍🌾" or self.section == "🐖":
             self.new_lines.append(line)
         elif self.section == "🐓":
-            if line == "++++":
-                self.section = "👨‍🌾"
-            else:
-                self.action = "👨‍🌾"
+            if line == "<!-- 🐓 -->":
+                self.section = "🦆"
         elif self.section == "🦆":
-            if line.strip() != "" and not line.lstrip().startswith("[source"):
-                self.action = "👨‍🌾"
-            else:
-                self.action = "👨‍🌾"
-        elif self.section == "🦆🦆": # and line.strip() == "----":
-            self.action = "👨‍🌾"
+            self.new_lines.append("++++")
+            self.new_lines.append("<!-- 🐓 -->")
+            self.new_lines.append("++++")
+            self.section = "👨‍🌾"
 
     def _process_output_start(self, line: str) -> None:
         assert isinstance(
@@ -174,9 +169,15 @@ class ProcessingState:
             for c in self.output:
                 new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
             new_line = line.replace("\\|", "|").replace("|", "\\|")
-            self.new_lines = [*self.new_lines, new_line, "++++", *new_output]
+            if new_line:
+                self.new_lines.append(new_line)
+            self.new_lines.append("++++")
+            self.new_lines.extend(new_output)
         else:
-            self.new_lines = [*self.new_lines, line, "++++", *self.output]
+            if line:
+                self.new_lines.append(line)
+            self.new_lines.append("++++")
+            self.new_lines.extend(self.output)
         self.output = None  # Reset output after processing end of the output section
 
     def _process_chicken_code(self, *, verbose: bool) -> None:
