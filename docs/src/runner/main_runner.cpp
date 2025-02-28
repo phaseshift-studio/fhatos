@@ -93,7 +93,7 @@ int main(int arg, char **argsv) {
     }
     //std::this_thread::sleep_for(milliseconds(50));
   }
-  printer()->print("\n----\n");
+  printer()->print("----\n");
   delete[] argsv;
   return 0;
 }
