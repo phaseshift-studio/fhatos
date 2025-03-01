@@ -64,7 +64,9 @@ namespace fhatos {
       Typer::singleton()->save_type(
         *CHAR_FURI,
         *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
-      Typer::singleton()->save_type(*INT8_FURI, Obj::to_type(INT8_FURI));
+      Typer::singleton()->save_type(*INT8_FURI,*__(*UINT8_FURI, *INT_FURI, *INT_FURI)
+        ->is(*__()->gte(jnt(-127)))
+        ->is(*__()->lte(jnt(128))));
       Typer::singleton()->save_type(
         *UINT8_FURI,
         *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));

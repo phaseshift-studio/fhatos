@@ -76,11 +76,13 @@ namespace mmadt {
     [[nodiscard]] string toString() const { return this->_bcode->toString(); }
 
     operator Obj_p() const {
-      // Conversion logic here
-      return InstBuilder::build(this->tid)
-          ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
-          ->inst_f(this->_bcode)
-          ->create();
+      if(this->tid.equals(*BCODE_FURI))
+        return this->_bcode;
+        // Conversion logic here
+        return InstBuilder::build(this->tid)
+            ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
+            ->inst_f(this->_bcode)
+            ->create();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -220,7 +222,7 @@ namespace mmadt {
   };
 
   static ptr<_mmADT> __() {
-    return make_shared<_mmADT>(*INST_FURI, *OBJ_FURI, *OBJ_FURI, Obj::to_bcode());
+    return make_shared<_mmADT>(*BCODE_FURI, *OBJ_FURI, *OBJ_FURI, Obj::to_bcode());
   }
 
   static ptr<_mmADT> __(const fURI &tid, const fURI &range, const fURI &domain) {
