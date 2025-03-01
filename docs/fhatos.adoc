@@ -12,7 +12,7 @@
 :highlightjs-languages: mmadt,bash,cpp
 :stylesheet: ./css/fhatos.css
 :data-uri:
-:toc-title: 🐖 FhatOS
+:toc-title: 🐷 FhatOS
 :toc: left
 :toclevels: 4
 :license-url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -71,7 +71,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6912]
+[INFO]  [/sys/router] main memory [total=>6784]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
