@@ -442,14 +442,14 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI <= WRAP("<", tok(seq(npd(chr('-')),oom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%?_=&@.#+-"))),npd(chr('-')))),
+      FURI <= WRAP("<", tok(seq(npd(chr('-')),
+                     zom(cls("a-zA-Z0-9:/%_@.#+-")),
+                     opt(seq(chr('?'),zom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%_=&@.#+-,"))))),npd(chr('-')))),
                    ">"), furi_action;
-      FURI_INLINE <= WRAP("<", tok(seq(
-                            oom(cls("a-zA-Z:/%?_#+")),
-                            zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%?_=&#+"))))), ">"), furi_action;
-      FURI_NO_Q <= WRAP("<", tok(seq(
-                          oom(cls("a-zA-Z:/%_.#+")),
-                          zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+"))))), ">"), furi_action;
+      FURI_INLINE <= WRAP("<", tok(seq(zom(cls("a-zA-Z:/%_#+")),zom(cls("a-zA-Z0-9:/%_#+")),
+                            opt(seq(chr('?'),zom(seq(npd(lit("=>")),cls("a-zA-Z0-9:/%_=&@.#+,"))))))),
+                          ">"), furi_action;
+      FURI_NO_Q <= WRAP("<", tok(seq(oom(cls("a-zA-Z:/%_.#+")),zom(cls("a-zA-Z0-9:/%_@.#+")))), ">"), furi_action;
       DOM_RNG <= cho(seq(lit("<"), lit(">")),
                      WRAP("<", seq(FURI_NO_Q,chr('?'),lit("{"),COEFFICIENT,lit("}")), ">"),
                      WRAP("<", seq(opt(FURI_NO_Q), chr('?'), SIGNATURE, lit("<="), SIGNATURE), ">")), dom_rng_action;

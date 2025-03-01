@@ -837,6 +837,10 @@ namespace fhatos {
       return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
     }
 
+    [[nodiscard]] bool has(const fURI &key) const {
+      return !this->poly_get(Obj::to_uri(key))->is_noobj();
+    }
+
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
       for(const auto &[key, value]: *rmap) {
         this->rec_value()->insert_or_assign(key, value);

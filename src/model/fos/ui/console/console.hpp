@@ -42,58 +42,62 @@ namespace fhatos {
     mmadt::Tracker tracker_;
 
   public:
-    explicit ConsoleX(const Obj_p &console_obj) : fThread(console_obj) {
+    explicit ConsoleX(const Obj_p &console_obj) :
+      fThread(console_obj) {
     }
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
       const Obj_p console_obj =
           Obj::to_rec({{"halt", dool(false)},
-                        {"delay", jnt(0, NAT_FURI)},
-                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
-                          [](const Obj_p &console_obj, const InstArgs &) {
-                            const auto console_state = static_cast<ConsoleX *>(get_state<fThread>(console_obj).get());
-                            try {
-                              static bool first = true;
-                              if(first) {
-                                first = false;
-                                console_state->delay(500);
-                              }
-                              if(FOS_IS_DOC_BUILD)
-                                return noobj();
-                              if(console_state->new_input_)
-                                console_state->print_prompt(console_obj, !console_state->line_.empty());
-                              console_state->new_input_ = false;
-                              //// READ CHAR INPUT ONE-BY-ONE
-                              const string x = console_state->read_stdin(console_obj, '\n')->str_value();
-                              console_state->tracker_.track(x);
-                              if(console_state->tracker_.closed()) {
+                       {"delay", jnt(0, NAT_FURI)},
+                       {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
+                            [](const Obj_p &console_obj, const InstArgs &) {
+                              const auto console_state = static_cast<ConsoleX *>(get_state<fThread>(console_obj).get());
+                              try {
+                                static bool first = true;
+                                if(first) {
+                                  first = false;
+                                  console_state->delay(500);
+                                }
+                                /// WRITE TO PROMPT
+                                if(console_obj->has("config/terminal/stdout")) {
+                                  if(console_state->new_input_)
+                                    console_state->print_prompt(console_obj, !console_state->line_.empty());
+                                  console_state->new_input_ = false;
+                                }
+                                if(console_obj->has("config/terminal/stdin")) {
+                                  //// READ FROM PROMPT
+                                  const string x = console_state->read_stdin(console_obj, '\n')->str_value();
+                                  console_state->tracker_.track(x);
+                                  if(console_state->tracker_.closed()) {
+                                    console_state->new_input_ = true;
+                                    console_state->line_ += x;
+                                  } else {
+                                    console_state->line_ += x;
+                                    return Obj::to_noobj();
+                                  }
+                                  StringHelper::trim(console_state->line_);
+                                  if(console_state->line_.empty() ||
+                                     console_state->line_[console_state->line_.length() - 1] == ';' ||
+                                     // specific to end-step and imperative simulation
+                                     !console_state->tracker_.closed()) {
+                                    ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                    return noobj();
+                                  }
+                                  // prepare the user input for processing
+                                  console_state->tracker_.clear();
+                                  StringHelper::trim(console_state->line_);
+                                  console_state->process_line(console_obj, console_state->line_);
+                                  console_state->line_.clear();
+                                }
+                              } catch(std::exception &e) {
+                                console_state->print_exception(console_obj, e);
+                                console_state->line_.clear();
                                 console_state->new_input_ = true;
-                                console_state->line_ += x;
-                              } else {
-                                console_state->line_ += x;
-                                return Obj::to_noobj();
                               }
-                              StringHelper::trim(console_state->line_);
-                              if(console_state->line_.empty() ||
-                                 console_state->line_[console_state->line_.length() - 1] == ';' ||
-                                 // specific to end-step and imperative simulation
-                                 !console_state->tracker_.closed()) {
-                                ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                                return noobj();
-                              }
-                              // prepare the user input for processing
-                              console_state->tracker_.clear();
-                              StringHelper::trim(console_state->line_);
-                              console_state->process_line(console_obj, console_state->line_);
-                              console_state->line_.clear();
-                            } catch(std::exception &e) {
-                              console_state->print_exception(console_obj, e);
-                              console_state->line_.clear();
-                              console_state->new_input_ = true;
-                            }
-                            return Obj::to_noobj();
-                          })))},
-                        {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
+                              return Obj::to_noobj();
+                            })))},
+                       {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       // const auto console_state = make_shared<ConsoleX>(console_obj);
       MODEL_STATES::singleton()->store(*console_obj->vid, ConsoleX::create_state(console_obj));
       return console_obj;
@@ -166,17 +170,19 @@ namespace fhatos {
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
-        *CONSOLE_FURI, Obj::to_rec({
-          {"delay", Obj::to_type(NAT_FURI)},
-          {"loop", Obj::to_bcode()},
-          {"halt", Obj::to_type(BOOL_FURI)}
-        }));
+          *CONSOLE_FURI, Obj::to_rec({
+              {"delay", Obj::to_type(NAT_FURI)},
+              {"loop", Obj::to_bcode()},
+              {"halt", Obj::to_type(BOOL_FURI)}
+          }));
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(rec({{"code", Obj::to_noobj()}}))
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
-            ((ConsoleX *) console_state.get())->process_line(console_obj, args->arg("code")->str_value());
+            string code = args->arg("code")->str_value();
+            StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
+            ((ConsoleX *) console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

@@ -12,6 +12,7 @@
 :highlightjs-languages: mmadt,bash,cpp
 :stylesheet: ./css/fhatos.css
 :data-uri:
+:toc-title: 🐖 FhatOS
 :toc: left
 :toclevels: 4
 :license-url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -49,8 +50,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 ++++
 <!-- 🐖 ./boot_runner.out -->
 ++++
-
-[source,mmadt,subs="verbatim"]
+[source,mmadt,subs=-replacements]
 ----
             PhaseShift Studio Presents 
  <`--'>____  ______ __  __  ______  ______  ______  ______ 
@@ -102,7 +102,8 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 [INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# attached
 [INFO]  [/sys/router] fs boot config dropped
-[ERROR] [/mnt/mqtt] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
+[INFO]  [/mnt/mqtt] /mnt/mqtt mqtt [broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true] connected
+[INFO]  [/mnt/mqtt] cache enabled
 [INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# attached
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
@@ -110,8 +111,8 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 [INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -142,8 +143,7 @@ The FhatOS scheduler and router are accessible to the user when their respective
   [d => e]]]
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> [a => b,
          b => [c =>
@@ -154,8 +154,8 @@ fhatos> [a => b,
 ===>c=>[d=>e]
 =>]
 =>]
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -166,8 +166,7 @@ fhatos> [a => b,
 */sys/router
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> */sys/scheduler
 =>[
@@ -200,8 +199,8 @@ fhatos> */sys/router
 ===>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
 =>]
 =>]@/sys/router
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -216,8 +215,7 @@ By dereferencing the `/mmadt` root with the wildcard extension `#`, a reflective
 ++++
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> */mmadt/#/
 =>[
@@ -335,8 +333,8 @@ fhatos> */mmadt/#/
 ==>/mmadt/uri/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/within=>within(from(0?code,noobj)[cpp])
 =>]
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -362,8 +360,7 @@ The following subsections will provide a short overview of the aforementioned re
 */io/console
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> */io/console
 =>console[
@@ -371,7 +368,6 @@ fhatos> */io/console
 ==>delay=>nat[0]
 ==>loop=>inst()[cpp]
 ==>config=>[
-===>terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin]
 ===>nest=>2
 ===>prompt=>'fhatos> '
 ===>strict=>false
@@ -379,8 +375,8 @@ fhatos> */io/console
 ===>stack_size=>24288
 =>]
 =>]@/io/console
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -419,8 +415,7 @@ int[6].inspect()
 real[6.0].inspect()
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> int[6].inspect()
 =>[
@@ -448,8 +443,8 @@ fhatos> real[6.0].inspect()
 ===>encoding=>float_t
 =>]
 =>]
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -468,8 +463,7 @@ TIP: Given the frequency of use of base types, specifying the type is not necess
 ++++
 <!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> /mmadt/int[6]
 ==>6
@@ -477,8 +471,8 @@ fhatos> int[6]
 ==>6
 fhatos> 6
 ==>6
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -488,8 +482,7 @@ Examples of the aforementioned types are provided below.
 ++++
 <!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> true
 ==>true
@@ -498,12 +491,26 @@ fhatos> 42
 fhatos> -64.02567
 ==>-64.0257
 fhatos> 'the fhatty'
+==>'the fhatty'
 fhatos> mmadt://a/furi
 ==>mmadt://a/furi
 fhatos> [-1,'fhat',[0,1]]
+=>[
+===>-1
+===>'fhat'
+=>[
+===>0
+===>1
+=>]
+=>]
 fhatos> [a=>1,b=>'2',c=>3.0]
-----
+=>[
+==>a=>1
+==>b=>'2'
+==>c=>3.000000
+=>]
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -528,35 +535,29 @@ age[45]  =>  plus(10) => age[55]
 a|
 
 ++++
-<!-- 🐖 ./main_runner.out "/type/int/age -> \|(is(gt(0)).is(lt(120)))" "x -> age[45]" "*x.inspect()" "@x.inspect()" -->
+<!-- 🐖 ./main_runner.out
+age -> \|(is(gt(0)).is(lt(120)))
+a -> age[45]
+*a.inspect()
+@a.inspect()
+-->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
-fhatos> /type/int/age -> \|(is(gt(0)).is(lt(120)))
-[ERROR] [/sys/router] no attached structure for /type/int/age  
-==>is?obj<=obj(gt?obj<=obj(0)[noobj])[noobj].is?obj<=obj(lt?obj<=obj(120)[noobj])[noobj]
-fhatos> x -> age[45]
-[ERROR] [/sys/type] age is an undefined type
-[ERROR] [/sys/router/frame] -> [code=>'x -> age[45]']
-fhatos> *x.inspect()
-[ERROR] [/mmadt/obj] /mmadt/mult inst unresolved 
-	         lhs id       inst id        resolve obj                                                                 
-	  ->[/mmadt/obj ] /mmadt/mult => noobj                                                                   
-	 -->[/mmadt/obj ] /mmadt/mult => noobj                                                                   
-	--->[           ] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
-	---->[/mmadt/mult] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
-[ERROR] [/sys/router/frame] -> [code=>'*x.inspect()']
-fhatos> @x.inspect()
-[ERROR] [/mmadt/obj] /mmadt/mult inst unresolved 
-	         lhs id       inst id        resolve obj                                                                 
-	  ->[/mmadt/obj ] /mmadt/mult => noobj                                                                   
-	 -->[/mmadt/obj ] /mmadt/mult => noobj                                                                   
-	--->[           ] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
-	---->[/mmadt/mult] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
-[ERROR] [/sys/router/frame] -> [code=>'@x.inspect()']
-----
+fhatos> age -> \|(is(gt(0)).is(lt(120)))
+==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
+fhatos> a -> age[45]
+==>age[45]
+fhatos> *a.inspect()
+[ERROR] [/sys/router/frame] -> [code=>'*a.inspect()']
+[ERROR] [/mmadt/bcode] 45 is not a /mmadt/bcode as defined by [bcode][_]
+[ERROR] [/sys/router/frame] -> [code=>'*a.inspect()']
+fhatos> @a.inspect()
+[ERROR] [/sys/router/frame] -> [code=>'@a.inspect()']
+[ERROR] [/mmadt/bcode] 45@a is not a /mmadt/bcode as defined by [bcode][_]
+[ERROR] [/sys/router/frame] -> [code=>'@a.inspect()']
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -566,8 +567,7 @@ fhatos> @x.inspect()
 ++++
 <!-- 🐖 ./main_runner.out "x?sub -> |print(_)" "x -> 12" "@x.inspect()" "@x.plus(1)" "@x.plus(1).plus(1)" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> x?sub -> |print(_)
 [ERROR] [/mmadt/obj] /mmadt/mult inst unresolved 
@@ -609,8 +609,8 @@ fhatos> @x.plus(1).plus(1)
 	--->[           ] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
 	---->[/mmadt/mult] /mmadt/mult => mult(from(0?rhs,noobj)[cpp])
 [ERROR] [/sys/router/frame] -> [code=>'@x.plus(1).plus(1)']
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -633,12 +633,11 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 ++++
 <!-- 🐖 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
 [ERROR] [/sys/router] no attached structure for /type/int/nat  
-==>is?obj<=obj(gt?obj<=obj(0)[noobj])[noobj]
+==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
@@ -650,8 +649,8 @@ fhatos> nat[3].mult(-2)
 [ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(inst()[gte(0)])]
 		thrown at inst  nat[3] => mult(-2)[cpp]
 [ERROR] [/sys/router/frame] -> [code=>'nat[3].mult(-2)']
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -678,7 +677,192 @@ Once spawned, the `setup` function prints the thread's id and halts.
 
 === The Router Structure
 
-image:cooties-2.png[width=140,float=right] The FhatOS router is the mediator of all structures: ensuring no two structures have overlapping patterns, migrating reads/writes between processes.
+image:cooties-2.png[width=140,float=right] Every fhatOS machine has a single _router_.
+The function of the router is to:
+
+. Route read/write requests to respective structures.
+. Coordinate with remote routers on remote read/write requests.
+. Manage pattern conflicts between structures.
+. Manage fURI query extensions (`?` modulators).
+
+++++
+<!-- 🐖 ./main_runner.out
+a -> 'snowbutt'            --- <1>
+*a                         --- <2>
+a?sub -> |(*payload.to(b)) --- <3>
+*a?sub                     --- <4>
+a -> 'meangirl'            --- <5>
+*b                         --- <6>
+-->
+++++
+[source,mmadt,subs=-replacements]
+----
+fhatos> a -> 'snowbutt'            --- <1>
+==>'snowbutt'
+fhatos> *a                         --- <2>
+==>'snowbutt'
+fhatos> a?sub -> |(*payload.to(b)) --- <3>
+==>from?noobj<=obj(payload)[noobj].to?noobj<=obj(b)[noobj]
+fhatos> *a?sub                     --- <4>
+=>sub[
+==>source=>/sys/scheduler
+==>pattern=>a
+==>on_recv=>from(payload).to(b)
+=>]
+fhatos> a -> 'meangirl'            --- <5>
+==>'meangirl'
+fhatos> *b                         --- <6>
+==>'meangirl'
+
+----
+++++
+<!-- 🐓 -->
+++++
+
+<1> A request to write `str['snowbutt']` to `uri[a]` is sent to the router.
+<2> A request to read the `obj` at `uri[a]` is sent to the router.
+<3> A subscription request to receive notifications about `uri[a]` is sent to the router.
+<4> A request to read the subscriptions of `uri[a]` is sent to the router.
+<5> A request to write `str['meangirl']` to `uri[a]` is sent to the router.
+<6> A request to read `uri[b]` is sent to the router.
+
+The above example makes salient the router's role is structure usage.
+Not only are read/write requests managed by the router, but also subscriptions and the evaluation of their associated `on_recv`-code.
+However, ultimately, the router serves as a simple singleton proxy to the structures it manages.
+It's in the structures where the heavily lifting of the memory operations takes place.
+
+==== Reading and Writing Structures
+
+Every structure supports 2 primary operations:
+
+. \$\text{read} : U \rightarrow O\$
+. \$\text{write}: (U \times O) \rightarrow \emptyset\$
+
+A read accepts a direct fURI (called an `id`) or a match fURI (called a `pattern`).
+Within the category of `id` and `pattern`, there are `node` fURIs and `branch` fURIs.
+An example itemization is provided below:
+
+* `id`: an unambiguous fURI that references a single address space in the structure.
+** `node`: the address of a specific `obj`.
+** `branch`: the root address of a collection of `objs`.
+* `pattern`: a fURI containing one or more wildcard characters (`+` or `#`) in it's path.
+** `node`: a pattern referencing zero or more `objs`.
+** `branch`: a pattern referencing zero or more collections of `objs`.
+
+[cols="3,5"]
+|===
+a|
+++++
+<!-- 🐖 ./main_runner.out
+a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+*a/b            --- <1>
+*a/b/           --- <2>
+*a/+            --- <3>
+*a/+/           --- <4>
+*a/#            --- <5>
+*a/#/           --- <6>
+-->
+++++
+[source,mmadt,subs=-replacements]
+----
+fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+fhatos> *a/b            --- <1>
+==>2
+fhatos> *a/b/           --- <2>
+=>[
+==>a/b/c=>3
+==>a/b/d=>4
+=>]
+fhatos> *a/+            --- <3>
+==>1
+==>2
+fhatos> *a/+/           --- <4>
+=>[
+==>a/b/c=>3
+==>a/b/d=>4
+=>]
+fhatos> *a/#            --- <5>
+==>1
+==>2
+==>3
+==>4
+fhatos> *a/#/           --- <6>
+=>[
+==>a/a=>1
+==>a/b=>2
+==>a/b/c=>3
+==>a/b/d=>4
+=>]
+
+----
+++++
+<!-- 🐓 -->
+++++
+
+a|
+====
+TIP: The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
+In fact, it is a single fluent expression. The signature of the `end` `inst` (sugar'd `;`) is `end?obj{0}\<=obj{*}`.
+This barrier step computes all monads up to it before emitting a `noobj` monad.
+With `end`, it's possible to write mm-ADT in the classic statement-oriented, imperative-style where semincolons (effectively) separate atomic operations.
+====
+
+<1> Dereferencing an `id`-node fURI to access a single `obj`.
+<2> Dereferencing an `id`-branch fURI to access a collection of `objs`.
+<3> Dereferencing a `pattern`-node fURI to access `objs` at respective nodes.
+<4> Dereferencing a `pattern`-branch fURI to access `objs` at respective branches.
+|===
+
+===== Structure Modules and fURI Queries
+
+Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the
+https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
+Modules can be added to structures enabling different behaviors on read/write given associated, relevant `?` parameters.
+Example modules that come preloaded with fHaTOS are:
+
+. `pubsub`: supports asynchronous, event-based access to structure `objs`.
+.. `a?sub -> _` (subscribe )
+.. `a?sub -> noobj` (unsubscribe)
+.. `sub[source=>uri, pattern=>uri, on_recv=>obj]`
+.. `msg[target=>uri, payload=>obj, retain=>bool]`
+. `lock`: provides resource locking semantics to reading and writing `objs` in a concurrent environment.
+.. `a?lock=w` (prevent writes to the `obj` at `a`)
+.. `a?lock=rw` (prevent reads and writes to the `obj` at `a`)
+.. `a?lock=false` (unlock the `obj` at `a`)
+. `type`: provides an `obj` type system encoded within an `obj's` type fURI.
+.. `nat?dom=int&dc=1,1&rng=int&rc=1,1` (the `inst` signature of `nat?int<=int()[...]`)
+
+Other modules can be created and deployed across a fHaTOS cluster.
+
+.Query Free fURIs
+****
+IMPORTANT: The address space of a structures does not include the query parameters.
+Query parameters are used by structures to modulate the semantics of a read/write operation and are never used as the address of an `obj`.
+However, nothing prevents the `obj` at an address to be a `uri[]` with a query.
+
+++++
+<!-- 🐖 ./main_runner.out
+abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>
+*abc
+abc?boop=beep -> 12
+-->
+++++
+[source,mmadt,subs=-replacements]
+----
+fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> *abc
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> abc?boop=beep -> 12
+[ERROR] router has no query processor for boop
+		thrown at inst  abc?boop=beep => ref?obj{?}<=obj{?}(12,true)[cpp]
+[ERROR] [/sys/router/frame] -> [code=>'abc?boop=beep -> 12']
+
+----
+++++
+<!-- 🐓 -->
+++++
+****
 
 [source,mmadt]
 ----
@@ -698,8 +882,7 @@ a -> b
 **a
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> *a
 fhatos> *b
@@ -711,8 +894,8 @@ fhatos> *a
 ==>b
 fhatos> **a
 ==>12
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -740,8 +923,7 @@ a -> 12
 *a
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> a -> 12
 ==>12
@@ -755,8 +937,8 @@ fhatos> @a.plus(10)
 ==>22@a
 fhatos> *a
 ==>22@a
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -777,13 +959,16 @@ a|
 ++++
 <!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> a?sub -> \|to(b)
-[INFO]  [/mnt/cache] [/sys/scheduler]=subscribe=>[+/#]
-==>to?obj<=obj(b)[noobj]
+==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
+=>sub[
+==>source=>/sys/scheduler
+==>pattern=>a
+==>on_recv=>to(b)
+=>]
 fhatos> *b
 fhatos> a->12
 ==>12
@@ -791,8 +976,8 @@ fhatos> *a
 ==>12
 fhatos> *b
 ==>12
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -847,13 +1032,12 @@ This section will explore the following considerations when designing a _multi-m
 1.plus(2)
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> 1.plus(2)
 ==>3
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -918,8 +1102,7 @@ m/2/2 -> 10
 m/2/3 -> 11
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> m/0/0 -> 0
 ==>0
@@ -945,8 +1128,8 @@ fhatos> m/2/2 -> 10
 ==>10
 fhatos> m/2/3 -> 11
 ==>11
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -960,8 +1143,7 @@ m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> m/0 -> [0,1,2,3]
 =>[
@@ -984,8 +1166,8 @@ fhatos> m/2 -> [8,9,10,11]
 ===>10
 ===>11
 =>]
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -998,8 +1180,7 @@ m -> [<0>=>[0,1,2,3], /
       <2>=>[8,9,10,11]]
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> m -> [<0>=>[0,1,2,3],
               <1>=>[4,5,6,7],
@@ -1024,8 +1205,8 @@ fhatos> m -> [<0>=>[0,1,2,3],
 ===>11
 =>]
 =>]
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -1098,8 +1279,7 @@ M = aM
 {1,2,3}.plus(plus(_))
 -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> {1,2,3}
 ==>1
@@ -1117,8 +1297,8 @@ fhatos> {1,2,3}.plus(plus(_))
 ==>3
 ==>6
 ==>9
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -1168,16 +1348,16 @@ fhatos> {1,2,3}.plus(plus(_))
 ++++
 <!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> true.plus(false)
 ==>true
 fhatos> 1.plus(2)
 ==>3
 fhatos> 'a'.plus('b')
-----
+==>'ab'
 
+----
 ++++
 <!-- 🐓 -->
 ++++
@@ -1211,8 +1391,7 @@ fhatos> 'a'.plus('b')
 ++++
 <!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
 ++++
-
-[source,mmadt]
+[source,mmadt,subs=-replacements]
 ----
 fhatos> [a=>2].match([a=>3])
 [ERROR] [/mmadt/rec] match inst unresolved 
@@ -1228,8 +1407,8 @@ fhatos> [a=>2].match([a=>_])
 	 -->[/mmadt/rec] match => noobj
 	--->[          ] match => noobj
 [ERROR] [/sys/router/frame] -> [code=>'[a=>2].match([a=>_])']
-----
 
+----
 ++++
 <!-- 🐓 -->
 ++++

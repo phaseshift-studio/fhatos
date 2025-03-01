@@ -21,6 +21,10 @@
 @import url(//fonts.googleapis.com/css?family=Noto+Sans);
 @import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
 
+* {
+    font-variant-ligatures: none !important;
+}
+
 :root {
     --maincolor: #2b2d30;
     --primarycolor: #bfbfbf;
@@ -94,6 +98,10 @@ details>summary {
     color: #2d78e3;
 }
 
+.conum[data-value] {
+    background: #2d78e3 !important;
+}
+
 blockquote {
     color: var(--secondarycolor) !important;
 }
@@ -120,9 +128,9 @@ blockquote {
 
 .admonitionblock>table td.content {
     border-color: #0b1c2c;
-    border-width: medium;
-    border-radius: 0.2em;
-    border-style: groove;
+    border-width: thin;
+    border-radius: 1em;
+    border-style: solid;
 }
 
 .admonitionblock>table td.icon {
@@ -133,9 +141,9 @@ code {
     color: #d1dcdd !important;
     background-color: #023F4EFF !important;
     border-color: #0b1c2c;
-    border-width: medium;
+    border-width: thin;
     border-radius: 1em;
-    border-style: groove;
+    border-style: solid;
     font-size: 0.9em !important;
     font-family: monospace, fixed !important;
 }
@@ -144,7 +152,17 @@ mark {
     background-color: var(--tertiarycolor);
 }
 
-/* Text highlighting color */
+.exampleblock>.content {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0px;
+
+}
+
+.admonitionblock>table td.content {
+    background-color: #43454AFF !important;
+}
 
 /* Table styles */
 th {
@@ -203,6 +221,10 @@ video {
     padding: 0.5em;
 }
 
+.hljs-comment {
+    color: #525358;
+}
+
 .hljs-subst {
     color: black;
 }
@@ -219,9 +241,13 @@ video {
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int,
-.hljs-string,
 .hlhs-sys-furi {
     color: #d4de68;
+}
+
+.hljs-mmadt-str {
+    color: #d4de68;
+    font-style: italic;
 }
 
 .hljs-mmadt-rec-key {

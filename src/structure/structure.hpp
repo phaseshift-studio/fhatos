@@ -127,13 +127,13 @@ namespace fhatos {
       else {
         this->subscriptions_->remove_if(
             [this,source, target](const Subscription_p &sub) {
-              const bool removing =sub->source()->equals(source) && (sub->pattern()->matches(target));
+              const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(target));
               if(removing)
-                LOG_WRITE(INFO, this,
+                LOG_WRITE(DEBUG, this,
                           L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
               return removing;
             });
-        this->rec_set("sub",lst(LstList(this->subscriptions_->begin(),this->subscriptions_->end())));
+        this->rec_set("sub", lst(LstList(this->subscriptions_->begin(), this->subscriptions_->end())));
         this->save();
       }
     }
@@ -151,7 +151,7 @@ namespace fhatos {
         this->rec_get("sub")->lst_add(subscription);
         this->save();
         this->subscriptions_->push_back(subscription);
-        LOG_WRITE(INFO, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
+        LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
                                pattern->toString())            );
         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
         this->publish_retained(subscription);
@@ -190,7 +190,12 @@ namespace fhatos {
       try {
         if(furi.has_query()) {
           const Objs_p results = Obj::to_objs();
-          for(const auto &[key,values]: furi.query_values()) {
+          if(furi.has_query("sub")) {
+            const List<Subscription_p> &subs = this->get_matching_subscriptions(furi.no_query());
+            results->objs_value()->insert(results->objs_value()->begin(), subs.begin(), subs.end());
+          }
+          // TODO:
+          /*for(const auto &[key,values]: furi.query_values()) {
             if(this->on_read_qs_.count(ID(key))) {
               const Inst_p inst = this->on_read_qs_.at(key);
               const List<Str_p> vs = furi.query_values<Str_p>(key.c_str(), [](const string &v) {
@@ -199,7 +204,7 @@ namespace fhatos {
               const Obj_p result = inst->apply(vri(furi_no_query), lst(vs));
               results->add_obj(result);
             }
-          }
+          }*/
           return results;
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +280,8 @@ namespace fhatos {
       /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
-        if(furi.has_query()) {
+        // TODO
+      /*  if(furi.has_query()) {
           //const Objs_p results = Obj::to_objs();
           for(const auto &[key,values]: furi.query_values()) {
             if(this->on_write_qs_.count(ID(key))) {
@@ -287,12 +293,12 @@ namespace fhatos {
               //results->add_obj(result);
             }
           }
-        }
+        }*/
         if(furi.has_query()) {
           ////////////////////////////////////////////////////////////////////////////////////////////////////////
           /// SUBSCRIBE ?sub={code|subscription|noobj} // noobj for unsubscribe
           ////////////////////////////////////////////////////////////////////////////////////////////////////////
-          if(retain && furi.query_value("sub").has_value()) {
+          if(retain && furi.has_query("sub")) {
             if(obj->is_noobj()) {
               // unsubscribe
               this->recv_unsubscribe(
@@ -431,13 +437,13 @@ namespace fhatos {
       });
     }
 
-    List_p<Subscription_p> get_matching_subscriptions(const fURI &topic, const ID &source = "") const {
-      const List_p<Subscription_p> matches = make_shared<List<Subscription_p>>();
-      this->subscriptions_->forEach([topic,source,matches](const Subscription_p &subscription) {
-        if(!(source.empty() && !source.equals(*subscription->source())) && topic.bimatches(*subscription->pattern()))
-          matches->push_back(subscription);
+    List<Subscription_p> get_matching_subscriptions(const fURI &topic, const ID &source = "") const {
+      List<Subscription_p> matches;
+      this->subscriptions_->forEach([topic,source,&matches](const Subscription_p &subscription) {
+        if((source.empty() || source.matches(*subscription->source())) && topic.bimatches(*subscription->pattern()))
+          matches.push_back(subscription);
       });
-      return matches;
+      return std::move(matches);
     }
 
     Objs_p get_subscription_objs(const fURI &pattern = "#") const {

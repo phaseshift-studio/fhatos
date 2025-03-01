@@ -13,9 +13,7 @@ IF(BUILD_DOCS)
         FOREACH(PACKAGE_RUNNER ${PACKAGE_RUNNERS})
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_RUNNER}${..}")
-            ADD_DEFINITIONS(
-                    -DNATIVE
-                    -DBUILD_DOCS=ON)
+            ADD_DEFINITIONS(-DNATIVE)
             ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}.cpp)
             IF(USE_PAHO_MQTT_HACK)
                 MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
