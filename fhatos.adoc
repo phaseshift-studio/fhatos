@@ -12,7 +12,7 @@
 :highlightjs-languages: mmadt,bash,cpp
 :stylesheet: ./css/fhatos.css
 :data-uri:
-:toc-title: 🐷 FhatOS
+:toc-title: 🐖 FhatOS
 :toc: left
 :toclevels: 4
 :license-url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -71,7 +71,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6784]
+[INFO]  [/sys/router] main memory [total=>6656]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -419,6 +419,13 @@ The 7 structural types (5 mono-types and 2 poly-types) are described below.
 .Controlling Base Value Bit Encoding
 ====
 TIP: The size of `int` and `real` in bits can be specified in the boot loader.
+Other machines in the cluster with a different bit-length encoding can still be communicated with.
+However, overflow is possible, but can be automatically checked using types in `/mmadt/ext/` such as:
+`int8`, `int16`, `int32`.
+
+[cols="5,5"]
+|===
+a|
 ++++
 <!-- 🐖 ./main_runner.out
 int[6].inspect()
@@ -460,11 +467,57 @@ fhatos> real[6.0].inspect()
 <!-- 🐓 -->
 ++++
 
+a|
+++++
+<!-- 🐖 ./main_runner.out
+/sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
+a -> int8[126]
+@a + 1
+@a + 1
+@a + 1
+-->
+++++
+
+[source,mmadt,subs="-replacements"]
+----
+fhatos> /sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
+=>[
+===>
+===>/mmadt/
+===>/fos/
+===>/fos/sys/
+===>/fos/io/
+===>/fos/sensor/
+===>/fos/ui/
+===>/fos/util/
+===>/sys/
+===>/mmadt/ext/
+=>]
+fhatos> a -> int8[126]
+==>int8[126]
+fhatos> @a + 1
+==>int8[127]@a
+fhatos> @a + 1
+==>int8[128]@a
+fhatos> @a + 1
+[ERROR] [/sys/type] 129@a is not a /fos/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
+		thrown at inst  int8[128]@a => plus(1)[cpp]
+[ERROR] [/sys/router/frame] -> [code=>'@a + 1']
+----
+
+++++
+<!-- 🐓 -->
+++++
+|===
+====
+
+
+
 . The `inst` `*` dereferences the `/fos/nat` fURI which points to the respective type definition.
 . The `/fos/nat` type is applied to a value by wrapping the value in `[]`.
 . The router's default `auto-prefix` configuration contains `/fos/#` and thus, the shorthand `nat` can be used.
 . If a type wraps a value that doesn't satisfy the type definition, an `error` occurs.
-====
+
 
 .Base Type Sugar
 ====
@@ -644,12 +697,12 @@ fhatos> /type/int/nat -> |is(gt(0))
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
-[ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(inst()[gte(0)])]
+[ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
 [ERROR] [/sys/router/frame] -> [code=>'nat[-6]']
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(inst()[gte(0)])]
+[ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
 		thrown at inst  nat[3] => mult(-2)[cpp]
 [ERROR] [/sys/router/frame] -> [code=>'nat[3].mult(-2)']
 ----

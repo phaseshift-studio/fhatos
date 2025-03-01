@@ -305,6 +305,7 @@ video {
     color: #ba3925;
 }
 
+.hljs-mmadt-inst-f-cpp,
 .hljs-log-warn {
     color: #c2aa2f;
 }
