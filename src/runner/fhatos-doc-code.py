@@ -151,6 +151,7 @@ class ProcessingState:
             self.new_lines.append(line)
         elif self.section == "🐓":
             if line == "<!-- 🐓 -->":
+                self.new_lines.append("")
                 self.new_lines.append("++++")
                 self.new_lines.append("<!-- 🐓 -->")
                 self.section = "👨‍🌾"
@@ -160,7 +161,7 @@ class ProcessingState:
             self.output,
             list,
         ), f"Output must be a list, not {type(self.output)}, line: {line}"
-        preamble = ["++++", "[source,mmadt,subs=-replacements]", "----"]
+        preamble = ["++++", "", "[source,mmadt,subs=\"-replacements\"]", "----"]
         if not self.in_table:
             new_output = []
             for c in self.output:
@@ -175,6 +176,7 @@ class ProcessingState:
                 self.new_lines.append(line)
             self.new_lines.extend(preamble)
             self.new_lines.extend(self.output)
+        self.new_lines.pop()
         self.new_lines.extend(["----"])
         self.output = None  # Reset output after processing end of the output section
 

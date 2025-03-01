@@ -51,6 +51,10 @@ body, #header .details {
     background-color: var(--maincolor);
 }
 
+li p, ul dd, ol dd, .olist .olist, .ulist .ulist, .ulist .olist, .olist .ulist {
+    margin-bottom: 0 !important;
+}
+
 p {
     font-family: Arial, sans-serif ! important;
     font-size: 1.1em !important;
@@ -76,6 +80,14 @@ h2, h3, h4, h5, h6 {
     font-size: 110%;
 }
 
+.literalblock pre, .listingblock>.content>pre {
+    overflow:hidden;
+}
+
+.hljs-copy-button {
+    position: relative;
+    top: 20px;
+}
 
 details {
     background-color: #43454a;
@@ -98,8 +110,19 @@ details>summary {
     color: #2d78e3;
 }
 
+.colist {
+    background: transparent;
+    padding: 0.1em;
+}
+
 .conum[data-value] {
     background: #2d78e3 !important;
+}
+
+::marker {
+    color: #ba3925;
+    font-weight: bold;
+    font-size: 1.2em;
 }
 
 blockquote {
