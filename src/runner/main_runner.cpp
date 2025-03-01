@@ -64,26 +64,23 @@ int main(int arg, char **argsv) {
     printer()->printer_switch(false);
     printer()->ansi_switch(false);
     BootLoader::primary_boot(argv_parser);
+    Router::singleton()->write("/io/console/config/terminal",Obj::to_noobj(),true);
   } catch(const std::exception &e) {
     fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
     throw;
   }
   LOG(INFO, "Processing %i expressions\n", arg);
   printer()->printer_switch(true);
-  printer()->print("\n[source,mmadt]\n----\n");
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
     try {
       auto x = string(argsv[i]);
       StringHelper::trim(x);
-      if(x.find("!NO!") != std::string::npos) {
-        printer()->ansi_switch(false);
-        Processor::compute(fmt::format("*/io/console.eval({})", x.substr(5)));
-        printer()->ansi_switch(true);
-      }
       printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
       // printer()->print(" ");
       printer()->println(x.c_str());
+      Router::singleton()->loop();
+      StringHelper::replace(&x, "'", "\\'"); // escape quotes
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
       Router::singleton()->loop();
       if(x.find("spawn") != string::npos)
@@ -91,9 +88,8 @@ int main(int arg, char **argsv) {
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    //std::this_thread::sleep_for(milliseconds(50));
+    std::this_thread::sleep_for(milliseconds(10));
   }
-  printer()->print("----\n");
   delete[] argsv;
   return 0;
 }

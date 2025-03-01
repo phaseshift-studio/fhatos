@@ -115,7 +115,6 @@ class ProcessingState:
         "🐖",
         "👨‍🌾",
         "🐓",
-        "🦆",
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
     context: dict[str, Any] = field(default_factory=dict)
@@ -152,18 +151,16 @@ class ProcessingState:
             self.new_lines.append(line)
         elif self.section == "🐓":
             if line == "<!-- 🐓 -->":
-                self.section = "🦆"
-        elif self.section == "🦆":
-            self.new_lines.append("++++")
-            self.new_lines.append("<!-- 🐓 -->")
-            self.new_lines.append("++++")
-            self.section = "👨‍🌾"
+                self.new_lines.append("++++")
+                self.new_lines.append("<!-- 🐓 -->")
+                self.section = "👨‍🌾"
 
     def _process_output_start(self, line: str) -> None:
         assert isinstance(
             self.output,
             list,
         ), f"Output must be a list, not {type(self.output)}, line: {line}"
+        preamble = ["++++", "[source,mmadt,subs=-replacements]", "----"]
         if not self.in_table:
             new_output = []
             for c in self.output:
@@ -171,13 +168,14 @@ class ProcessingState:
             new_line = line.replace("\\|", "|").replace("|", "\\|")
             if new_line:
                 self.new_lines.append(new_line)
-            self.new_lines.append("++++")
+            self.new_lines.extend(preamble)
             self.new_lines.extend(new_output)
         else:
             if line:
                 self.new_lines.append(line)
-            self.new_lines.append("++++")
+            self.new_lines.extend(preamble)
             self.new_lines.extend(self.output)
+        self.new_lines.extend(["----"])
         self.output = None  # Reset output after processing end of the output section
 
     def _process_chicken_code(self, *, verbose: bool) -> None:
