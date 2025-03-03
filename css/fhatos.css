@@ -18,8 +18,7 @@
 
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
 
-@import url(//fonts.googleapis.com/css?family=Noto+Sans);
-@import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
+@import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css);
 
 * {
     font-variant-ligatures: none !important;
@@ -248,23 +247,14 @@ video {
     color: #525358;
 }
 
-.hljs-subst {
-    color: black;
-}
-
-.hljs-keyword {
-    color: #b066cd;
-}
-
 .hljs-mmadt-noobj {
     color: #ba3925;
 }
 
-.hljs-mmadt-reference,
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int,
-.hlhs-sys-furi {
+.hljs-fhatos-sys-furi {
     color: #d4de68;
 }
 
@@ -277,36 +267,32 @@ video {
     color: cyan;
 }
 
-.hljs-mmadt-rec {
-    color: darkmagenta;
-}
-
-.hljs-square-bracket {
+.hljs-mmadt-rec,
+.hljs-mmadt-keyword,
+.hljs-mmadt-form,
+.hljs-fhatos-prompt-begin {
     color: #b066cd;
 }
 
-.hljs-prompt-begin {
-    color: #b066cd;
-}
-
-.hljs-prompt-end {
+.hljs-fhatos-prompt-end {
     color: green;
 }
 
-.hljs-result-prefix {
+.hljs-fhatos-result-prefix {
     color: green;
 }
 
-.hljs-log-info {
+.hljs-fhatos-log-info {
     color: limegreen;
 }
 
-.hljs-log-error {
+.hljs-fhatos-log-error {
     color: #ba3925;
 }
 
+.hljs-mmadt-sugar-inst,
 .hljs-mmadt-inst-f-cpp,
-.hljs-log-warn {
+.hljs-fhatos-log-warn {
     color: #c2aa2f;
 }
 
