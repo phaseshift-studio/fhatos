@@ -52,6 +52,7 @@ namespace fhatos {
     Map<ID, Inst_p> on_read_qs_ = Map<ID, Inst_p>();
     Map<ID, Inst_p> on_write_qs_ = Map<ID, Inst_p>();
     std::atomic_bool available_ = std::atomic_bool(false);
+    Map<fURI, Obj_p> default_qs_ = Map<fURI, Obj_p>();
 
   public:
     const Pattern_p pattern;
@@ -152,7 +153,7 @@ namespace fhatos {
         this->save();
         this->subscriptions_->push_back(subscription);
         LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
-                               pattern->toString())            );
+                                pattern->toString())            );
         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
         this->publish_retained(subscription);
       }
@@ -210,12 +211,18 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const IdObjPairs matches = this->read_raw_pairs(furi_no_query.is_branch()
-                                                          ? furi_no_query.extend("+")
-                                                          : furi_no_query);
-        if(furi.is_branch()) {
+        IdObjPairs matches = this->read_raw_pairs(furi_no_query.is_branch()
+                                                    ? furi_no_query.extend("+")
+                                                    : furi_no_query);
+        if(furi_no_query.is_branch()) {
           const Rec_p rec = Obj::to_rec();
           // BRANCH ID AND PATTERN
+          if(matches.empty() && !furi_no_query.is_pattern()) {
+            for(const auto &[k,v]: this->default_qs_) {
+              if(k.bimatches(furi_no_query))
+                matches.emplace_back(furi_no_query, v);
+            }
+          }
           for(const auto &[key, value]: matches) {
             rec->rec_set(vri(key), value, false);
           }
@@ -225,19 +232,26 @@ namespace fhatos {
           /////////////////////////////////////// READ NODE PATTERN/ID /////////////////////////////////////////////
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           if(matches.empty()) {
-            LOG_WRITE(TRACE, this, L("searching for base poly of: {}\n", furi.toString()));
-            if(const auto pair = this->locate_base_poly(furi.retract()); pair.has_value()) {
+            LOG_WRITE(TRACE, this, L("searching for base poly of: {}\n", furi_no_query.toString()));
+            if(const auto pair = this->locate_base_poly(furi_no_query.retract()); pair.has_value()) {
               LOG_WRITE(TRACE, this, L("base poly found at {}: {}\n",
                                        pair->first.toString(),
                                        pair->second->toString())                  );
-              const fURI_p furi_subpath = id_p(furi.remove_subpath(pair->first.as_branch().toString(), true));
+              const fURI_p furi_subpath = id_p(furi_no_query.remove_subpath(pair->first.as_branch().toString(), true));
               const Poly_p poly_read = pair->second; //->clone();
               Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
               return read_obj;
             }
-            return Obj::to_noobj();
+            if(!furi_no_query.is_pattern()) {
+              for(const auto &[k,v]: this->default_qs_) {
+                if(k.bimatches(furi_no_query))
+                  matches.emplace_back(furi_no_query, v);
+              }
+            }
+            if(matches.empty())
+              return Obj::to_noobj();
           }
-          if(!furi.is_pattern())
+          if(!furi_no_query.is_pattern())
             return matches.front().second;
           else {
             const Objs_p objs = Obj::to_objs();
@@ -281,19 +295,19 @@ namespace fhatos {
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
         // TODO
-      /*  if(furi.has_query()) {
-          //const Objs_p results = Obj::to_objs();
-          for(const auto &[key,values]: furi.query_values()) {
-            if(this->on_write_qs_.count(ID(key))) {
-              const Inst_p inst = this->on_write_qs_.at(key);
-              const List<Str_p> vs = furi.query_values<Str_p>(key.c_str(), [](const string &v) {
-                return Obj::to_str(v);
-              });
-              const Obj_p result = inst->apply(vri(furi_no_query), lst(vs));
-              //results->add_obj(result);
+        /*  if(furi.has_query()) {
+            //const Objs_p results = Obj::to_objs();
+            for(const auto &[key,values]: furi.query_values()) {
+              if(this->on_write_qs_.count(ID(key))) {
+                const Inst_p inst = this->on_write_qs_.at(key);
+                const List<Str_p> vs = furi.query_values<Str_p>(key.c_str(), [](const string &v) {
+                  return Obj::to_str(v);
+                });
+                const Obj_p result = inst->apply(vri(furi_no_query), lst(vs));
+                //results->add_obj(result);
+              }
             }
-          }
-        }*/
+          }*/
         if(furi.has_query()) {
           ////////////////////////////////////////////////////////////////////////////////////////////////////////
           /// SUBSCRIBE ?sub={code|subscription|noobj} // noobj for unsubscribe
@@ -312,6 +326,13 @@ namespace fhatos {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
             }
+            return;
+          }
+          if(retain && furi.has_query("default")) {
+            if(obj->is_noobj())
+              this->default_qs_.erase(furi);
+            else
+              this->default_qs_.insert_or_assign(furi.no_query(), obj);
             return;
           }
         }

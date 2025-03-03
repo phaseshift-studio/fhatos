@@ -42,7 +42,7 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
     STRING(CONCAT HEADERS
             "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;"
-            "<queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>")
+            "<queue>;<map>;<set>;<string>;<ostream>;<shared_mutex>;<utility>;<variant>;<gpiod.h>")
     MESSAGE(STATUS "${.y}processing precompiled headers: ${.g}${HEADERS}${..}")
     TARGET_PRECOMPILE_HEADERS(${TARGET_NAME} PUBLIC ${HEADERS})
     ###############################
@@ -70,6 +70,18 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     ####################################
     ######## EXTERNAL LIBRARIES ########
     ####################################
+    ####################################
+    ####################################
+    ### GPIOD: GPIO READ/WRITE ACCESS
+    MESSAGE(CHECK_START "${.y}making libgpiod library${..}")
+    FIND_LIBRARY(GPIOD_LIBRARY NAMES libgpiod.so)
+    IF(NOT GPIOD_LIBRARY)
+        MESSAGE(CHECK_FAIL "[${.g}ERROR${..}]")
+        MESSAGE(FATAL_ERROR "gpiod library not found. Install apt install libgpiod-dev")
+    ELSE()
+        TARGET_LINK_LIBRARIES(${TARGET_NAME} PRIVATE ${GPIOD_LIBRARY})
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ENDIF()
     ####################################
     ####################################
     ### FMT: STRING AND PRINT FORMATTING

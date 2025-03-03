@@ -3,6 +3,7 @@
     ENDIF()
     IF(BUILD_TESTS)
         MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
+        UNSET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
         SET(CATCH_TESTS tests)
         ENABLE_TESTING()
         MESSAGE(CHECK_START "${.y}searching for MQTT broker${..}")

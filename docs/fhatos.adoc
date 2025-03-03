@@ -1450,6 +1450,20 @@ fhatos> {1,2,3}.plus(plus(_))
 
 === Core Modules
 
+==== Pin Modules
+
+===== GPIO (gpio)
+
+Hardware devices with digital general purpose input/output (GPIO) can be manipulated with `/fos/io/gpio`.
+
+===== PWM (pwm)
+
+Pins that support pulse-wave modulation can be manipulated with `/fos/io/pwm`.
+
+===== i2c (i2c)
+
+Two wire acess
+
 ==== FileSystem Module (fs)
 
 ==== Terminal Module (terminal)
