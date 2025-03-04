@@ -87,7 +87,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>7040]
+[INFO]  [/sys/router] main memory [total=>6656]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -968,23 +968,32 @@ Be sure to use the non-sugar'd `< >` fURI syntax when multiple values are associ
 `,` will be preferentially parsed as a `lst`, `rec`, or `inst` argument separator.
 ++++
 <!-- 🐖 ./main_runner.out
-abc -> abc?k1=v1&k2=v2&k3=v3              --- <1>
-abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <2>
+abc?k1=v1&k2=v2&k3=v3                     --- <1>
+abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            --- <2>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          --- <3>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    --- <4>
 *abc
-abc?boop=beep -> 12                       --- <3>
+abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
+*abc
 -->
 ++++
 
 [source,mmadt,subs="-replacements"]
 ----
-fhatos> abc -> abc?k1=v1&k2=v2&k3=v3              --- <1>
+fhatos> abc?k1=v1&k2=v2&k3=v3                     --- <1>
 ==>abc?k1=v1&k2=v2&k3=v3
-fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <2>
+fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            --- <2>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          --- <3>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    --- <4>
+==>12
+fhatos> *abc
+==>12
+fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> *abc
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> abc?boop=beep -> 12                       --- <3>
-==>12
 ----
 
 ++++
@@ -993,8 +1002,9 @@ fhatos> abc?boop=beep -> 12                       --- <3>
 
 <1> Sugar'd `uri` syntax can be used when no commas are present in the fURI.
 <2> Multiple values are deliminated using commas.
-To ensure proper parsing, multi-value query `uris[]` should be wrapped in `< >` brackets.
-<3> If no query module exists to process a key parameter, then an error is thrown.
+<3> To ensure proper parsing, multi-value query `uris[]` should be wrapped in `< >` brackets.
+<4> The query of a fURI is stripped when used as a structure address.
+<5> The query of a fURI is not stripped when used as a value at a struture address.
 
 ****
 
