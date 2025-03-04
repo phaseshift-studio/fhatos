@@ -376,7 +376,6 @@ namespace fhatos {
     if(this->throw_on_miss) {
       static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
       p->show_type = false;
-      Router::singleton()->log_frame_stack(ERROR);
       throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id.toString().c_str(),
                    value_obj->toString(p.get()).c_str(), type_id.toString().c_str(),
                    type_obj->toString().c_str());

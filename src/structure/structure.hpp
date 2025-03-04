@@ -464,7 +464,7 @@ namespace fhatos {
         if((source.empty() || source.matches(*subscription->source())) && topic.bimatches(*subscription->pattern()))
           matches.push_back(subscription);
       });
-      return std::move(matches);
+      return matches;
     }
 
     Objs_p get_subscription_objs(const fURI &pattern = "#") const {

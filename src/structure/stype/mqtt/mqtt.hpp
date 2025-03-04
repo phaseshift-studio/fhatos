@@ -154,7 +154,7 @@ namespace fhatos {
       if(this->cache_) {
         auto lock = std::shared_lock<fMutex>(this->cache_mutex_);
         std::vector<std::pair<ID, Obj_p>> pairs;
-        for(const auto [k,v]: *this->cache_) {
+        for(const auto& [k,v]: *this->cache_) {
           if(k.matches(furi))
             pairs.push_back({k, v});
         }

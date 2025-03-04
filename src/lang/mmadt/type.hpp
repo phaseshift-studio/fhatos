@@ -67,10 +67,22 @@ namespace mmadt {
           })
           ->save();
 
+      InstBuilder::build(MMADT_SCHEME "/apply")
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0,INT_MAX})
+          ->inst_args(rec({{"rhs", Obj::to_noobj()}, {"args", Obj::to_rec()}}))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            Obj_p rhs_temp = args->arg("rhs");
+            Obj_p args_temp = args->arg("args");
+           // if(rhs_temp->is_inst())
+            //  return rhs_temp->apply(lhs, args);
+            return lhs->apply(rhs_temp, args_temp->is_rec() ? args_temp : Obj::to_inst_args(*args_temp->lst_value()));
+          })
+          ->save();
+
       InstBuilder::build(MMADT_SCHEME "/frame")
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &) {
-            return Router::singleton()->get_frame()->full_frame();
+            return Router::singleton()->get_frame();
           })
           ->save();
 

@@ -37,18 +37,6 @@ namespace fhatos {
     return THREAD_FRAME_STACK;
   }
 
-  void Router::log_frame_stack(const LOG_TYPE log_type) const {
-    if(nullptr != THREAD_FRAME_STACK) {
-      int counter = 0;
-      ptr<Frame<>> frame = THREAD_FRAME_STACK;
-      while(nullptr != frame) {
-        LOG_WRITE(log_type, frame.get(),
-                  L("!m{}!g>!! {}\n", StringHelper::repeat(++counter,"-"), frame->full_frame()->toString()));
-        frame = frame->previous;
-      }
-    }
-  }
-
   Router::Router(const ID &id) :
     Rec(rmap({{"structure", to_lst()}}),
         //stop and attach
@@ -63,6 +51,9 @@ namespace fhatos {
     };
     ROUTER_POP_FRAME = [this] {
       this->pop_frame();
+    };
+    ROUTER_GET_FRAME_DATA = [this] {
+      return this->get_frame()->full_frame();
     };
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_RESOLVE = [this](const fURI &furi) -> fURI {

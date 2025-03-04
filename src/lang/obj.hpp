@@ -361,6 +361,10 @@ namespace fhatos {
       [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
     LOG(log_type, "%s", message().c_str());
   };
+  inline Supplier<Obj_p> ROUTER_GET_FRAME_DATA = []() {
+    LOG(TRACE, "!ROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
+    return nullptr;
+  };
   inline Runnable ROUTER_POP_FRAME = []() {
     LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
   };
@@ -491,10 +495,9 @@ namespace fhatos {
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
-      return fError(FURI_WRAP " %s !yaccessed!! as !b%s!! L%i", obj->vid_or_tid()->toString().c_str(),
+      return fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(),
                     obj->toString().c_str(),
-                    index == string::npos ? function : string(function).replace(index, 6, "").c_str(),
-                    line_number);
+                    index == string::npos ? function : string(function).replace(index, 6, "").c_str());
     }
 
     //////////////////////////////////////////////////////////////
@@ -1866,11 +1869,13 @@ namespace fhatos {
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
-            ROUTER_POP_FRAME();
             // TODO: does this clear all frames automatically through exception recurssion?
-            throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
-                         lhs->toString().c_str(),
-                         this->toString().c_str());
+            const string error_message = fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(),
+                                                     lhs->toString(),
+                                                     this->toString(),
+                                                     ROUTER_GET_FRAME_DATA()->toString());
+            ROUTER_POP_FRAME();
+            throw fError("%s", error_message.c_str());
           }
         }
         case OType::BCODE: {

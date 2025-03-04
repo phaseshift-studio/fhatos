@@ -111,9 +111,13 @@ namespace mmadt {
           multi_comment = -1;
       }
       //////////////////////////
-      last[2] = last[1];
-      last[1] = last[0];
-      last[0] = c;
+      if(this->closed())
+        this->clear();
+      else {
+        last[2] = last[1];
+        last[1] = last[0];
+        last[0] = c;
+      }
       return c;
     }
   };

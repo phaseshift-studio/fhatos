@@ -1,0 +1,28 @@
+boot?obj{0}<=rec(router=>/sys/router,scheduler=>/sys/scheduler,sys=>heap[[pattern=>/sys/#]])[
+  heap[[pattern=>/mnt/#]];
+  {/sys/-<[+router,+scheduler,+structure]>-,
+   /lib/heap,
+   /sys/structure/lib/bus,
+   /sys/structure/lib/mqtt}-<[import()];
+  heap[[pattern=>/fos/#]]@/mnt/fos;
+  /fos::import(/fos/types);
+  print('!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!\n');
+  heap[[pattern=>/mmadt/#]]@/mnt/mmadt;
+  /mmadt::import();
+  print('!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!');
+  /fos::import(/fos/io/#);
+  /fos::import(/fos/sys/#);
+  /fos::import(/fos/sensor/#);
+  /fos::import(/fos/ui/#);
+  /fos::import(/fos/util/#);
+  --- io
+  heap[[pattern=>/io/#]]@/mnt/io.mount();
+  /fos/ui/terminal::create(/io/terminal);
+  /fos/util/log::create(/io/log, [INFO=>[#],ERROR=>[#],WARN=>[],DEBUG=>[],TRACE=>[]]);
+  heap[[pattern=>+/#]]@/mnt/cache.mount();
+  fs[[pattern=/disk/#,config=>[root=>/fs]]]@/mnt/disk.mount();
+  mqtt[[pattern=>//io/#,config=>[broker=>*mqtt:broker,client=>*mqtt:client]]@/mnt/mqtt.mount();
+  bus[[pattern=>/bus/#,config=>[source=>/bus,target=>//io]]@/mnt/bus.mount();
+  console[[config=>[nest=>2,prompt=>'fhatos> ']]@/io/console.spawn();
+  */sys/scheduler.barrier(console);
+]

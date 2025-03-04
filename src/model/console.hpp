@@ -53,7 +53,6 @@ namespace fhatos {
 
     void print_exception(const std::exception &ex) const {
       this->write_stdout(str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())));
-      Router::singleton()->log_frame_stack(ERROR);
     }
 
     void print_prompt(const bool blank = false) const {

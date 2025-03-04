@@ -125,7 +125,6 @@ namespace fhatos {
 
     void print_exception(const Obj_p &console_obj, const std::exception &ex) const {
       this->write_stdout(console_obj, str(fmt::format("!r[ERROR]!! {}\n", ex.what())));
-      Router::singleton()->log_frame_stack(ERROR);
     }
 
     void print_prompt(const Obj_p &console_obj, const bool blank = false) const {

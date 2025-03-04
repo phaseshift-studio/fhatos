@@ -112,6 +112,12 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(30),PROCESS("{2,5,3}.prod()"));
   }
 
+  void test_merge_inst() {
+    FOS_TEST_OBJ_EQUAL(objs({jnt(1),jnt(2),jnt(3)}),PROCESS_ALL("[[[1,2,3]]]>->->-"))
+    FOS_TEST_OBJ_EQUAL(objs({vri("a/d"),vri("b/d"),vri("c/d")}),PROCESS_ALL("[a,b,c]>-+d"));
+    FOS_TEST_OBJ_EQUAL(objs({jnt(9),vri("b/c"),dool(true)}),PROCESS_ALL("[4=>+5,b=>+c,'fhat'=>true]>-"));
+  }
+
   /*void test_reduce_inst() {
   	FOS_TEST_OBJ_EQUAL(dool(true),PROCESS("{true,false,false}.reduce(|plus())"));
     FOS_TEST_OBJ_EQUAL(dool(false),PROCESS("false.reduce(plus())"));
@@ -280,6 +286,7 @@ namespace fhatos {
   FOS_RUN_TEST(test_barrier_inst); //
   FOS_RUN_TEST(test_sum_inst); //
   FOS_RUN_TEST(test_prod_inst); //
+  FOS_RUN_TEST(test_merge_inst); //
   //FOS_RUN_TEST(test_reduce_inst); //
   //FOS_RUN_TEST(test_neg_inst); //
   FOS_RUN_TEST(test_plus_inst); //

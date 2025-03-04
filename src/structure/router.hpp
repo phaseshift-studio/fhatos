@@ -44,8 +44,6 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    void log_frame_stack(LOG_TYPE log_type) const;
-
     void load_config(const ID &config_id);
 
     static ptr<Router> singleton(const ID &value_id = "/sys/router/");
