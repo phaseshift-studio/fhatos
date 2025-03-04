@@ -551,7 +551,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;7040]
+[INFO]  [/sys/router] main memory [total=&gt;6656]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -1648,21 +1648,30 @@ Be sure to use the non-sugar&#8217;d <code>&lt; &gt;</code> fURI syntax when mul
 </table>
 </div>
 <!-- 🐖 ./main_runner.out
-abc -> abc?k1=v1&k2=v2&k3=v3              --- <1>
-abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <2>
+abc?k1=v1&k2=v2&k3=v3                     --- <1>
+abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            --- <2>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          --- <3>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    --- <4>
 *abc
-abc?boop=beep -> 12                       --- <3>
+abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
+*abc
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; abc -&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3              -<i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3                     -<i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;abc?k1=v1&amp;k2=v2&amp;k3=v3
-fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            -<i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
+fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          -<i class="conum" data-value="3"></i><b>(3)</b>
+==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
+fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    -<i class="conum" data-value="4"></i><b>(4)</b>
+==&gt;12
+fhatos&gt; *abc
+==&gt;12
+fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   -<i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; *abc
-==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
-fhatos&gt; abc?boop=beep -&gt; 12                       -<i class="conum" data-value="3"></i><b>(3)</b>
-==&gt;12</code></pre>
+==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1674,12 +1683,19 @@ fhatos&gt; abc?boop=beep -&gt; 12                       -<i class="conum" data-v
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Multiple values are deliminated using commas.
-To ensure proper parsing, multi-value query <code>uris[]</code> should be wrapped in <code>&lt; &gt;</code> brackets.</td>
+<td>Multiple values are deliminated using commas.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>If no query module exists to process a key parameter, then an error is thrown.</td>
+<td>To ensure proper parsing, multi-value query <code>uris[]</code> should be wrapped in <code>&lt; &gt;</code> brackets.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The query of a fURI is stripped when used as a structure address.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The query of a fURI is not stripped when used as a value at a struture address.</td>
 </tr>
 </table>
 </div>
@@ -2408,7 +2424,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-04 15:37:15 -0700
+Last updated 2025-03-04 15:48:52 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
