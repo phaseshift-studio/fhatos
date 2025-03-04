@@ -87,7 +87,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6656]
+[INFO]  [/sys/router] main memory [total=>7040]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -249,6 +249,7 @@ By dereferencing the `/mmadt` root with the wildcard extension `#`, a reflective
 ----
 fhatos> */mmadt/#/
 =>[
+==>/mmadt/apply=>apply?obj{*}<=obj(rhs=>noobj,args=>[=>])[cpp]
 ==>/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/at=>at?obj{?}<=obj{?}(from(0?var,noobj)[cpp])[cpp]
 ==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(from(0?barrier_op,_)[cpp])[cpp]
@@ -522,8 +523,7 @@ fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1
 [ERROR] [/sys/type] 129@a is not a /fos/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-		thrown at inst  int8[128]@a => plus(1)[cpp]
-[ERROR] [/sys/router/frame] -> [code=>'@a + 1']
+	  thrown at inst int8[128]@a => plus(1)[cpp] [code=>'@a + 1',0=>1]
 ----
 
 ++++
@@ -634,13 +634,9 @@ fhatos> age -> \|(is(gt(0)).is(lt(120)))
 fhatos> a -> age[45]
 ==>age[45]
 fhatos> *a.inspect()
-[ERROR] [/sys/router/frame] -> [code=>'*a.inspect()']
 [ERROR] [/mmadt/bcode] 45 is not a /mmadt/bcode as defined by [bcode][_]
-[ERROR] [/sys/router/frame] -> [code=>'*a.inspect()']
 fhatos> @a.inspect()
-[ERROR] [/sys/router/frame] -> [code=>'@a.inspect()']
 [ERROR] [/mmadt/bcode] 45@a is not a /mmadt/bcode as defined by [bcode][_]
-[ERROR] [/sys/router/frame] -> [code=>'@a.inspect()']
 ----
 
 ++++
@@ -716,13 +712,11 @@ fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
 [ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
-[ERROR] [/sys/router/frame] -> [code=>'nat[-6]']
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
 [ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
-		thrown at inst  nat[3] => mult(-2)[cpp]
-[ERROR] [/sys/router/frame] -> [code=>'nat[3].mult(-2)']
+	  thrown at inst nat[3] => mult(-2)[cpp] [code=>'nat[3].mult(-2)',0=>-2]
 ----
 
 ++++
@@ -1563,14 +1557,12 @@ fhatos> [a=>2].match([a=>3])
 	  ->[/mmadt/rec] match => noobj
 	 -->[/mmadt/rec] match => noobj
 	--->[          ] match => noobj
-[ERROR] [/sys/router/frame] -> [code=>'[a=>2].match([a=>3])']
 fhatos> [a=>2].match([a=>_])
 [ERROR] [/mmadt/rec] match inst unresolved 
 	         lhs id      inst id    resolve obj
 	  ->[/mmadt/rec] match => noobj
 	 -->[/mmadt/rec] match => noobj
 	--->[          ] match => noobj
-[ERROR] [/sys/router/frame] -> [code=>'[a=>2].match([a=>_])']
 ----
 
 ++++
