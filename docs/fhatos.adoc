@@ -9,7 +9,7 @@
 :stem: latexmath
 :source-highlighter: highlight.js
 :highlightjsdir: ./highlight
-:highlightjs-languages: mmadt
+:highlightjs-languages: mmadt, bash
 :stylesheet: ./css/fhatos.css
 :data-uri:
 :toc-title: 🐖 FhatOS
@@ -32,25 +32,41 @@
 <link rel="stylesheet" href="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css"/>
 ++++
 
-
-image:fhatos-logo.png[width=140,float=left] **FhatOS** (pronounced _fat-ahs_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems.
-All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address repeat called **furi** (pronounced "fury" or "fhat URI").
-Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
+image:fhatos-logo.png[width=140,float=left] **FhatOS** (pronounced _fat-ahs_) is a
+https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for
+https://en.wikipedia.org/wiki/ESP8266[ESP8266], https://en.wikipedia.org/wiki/ESP32[ESP32],
+https://en.wikipedia.org/wiki/Raspberry_Pi[Raspberry PI], and similar fabrications.
+Moreover, sandboxed deployments on Linux and MacOSX systems offer the cluster large memory/storage space and processor speed.
+All FhatOS resources, from individual datum, complex data structures, files, and threads exist within a single
+https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi**
+(pronounced "fury" or "fhat URI") -- a subset of the common URI space.
+Programs are written in http://mmadt.org[mm-ADT] or https://en.wikipedia.org/wiki/C_(programming_language)[C] / https://en.wikipedia.org/wiki/C%2B%2B[C++]
+and communicate with one another via storage structures that maintain subsets of the fURI space.
+In general, FhatOS provides a convenient medium for coordinating a heterogeneous collection of hardware processors and their peripheries.
 
 https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 
 == FhatOS Features
 
-. A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
-. An https://en.wikipedia.org/wiki/Actor_model[actor-oriented] https://en.wikipedia.org/wiki/Message_passing[message passing] communication infrastructure.
-. A memory architecture founded on a layered https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI]-addressed https://en.wikipedia.org/wiki/Tuple_space[tuple repeat].
-. A hardware agnostic https://en.wikipedia.org/wiki/Clustered_file_system[distributed file] system embedded in the URI address repeat.
-. A programming language for defining monoids to control swarms of distributed https://en.wikipedia.org/wiki/Monad_(functional_programming)[monads].
+. A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for executing multi-threaded https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
+. A memory architecture enabling the integration of various storage mediums within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] https://en.wikipedia.org/wiki/Tuple_space[address space].
+. A https://en.wikipedia.org/wiki/Clustered_file_system[distributed file] system embedded in the URI address space.
+. A programming language for https://en.wikipedia.org/wiki/Fluent_interface[fluently] creating https://en.wikipedia.org/wiki/Monoid[monoids] to control a distributed swarm of https://en.wikipedia.org/wiki/Monad_(functional_programming)[monads].
 . A https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop[REPL] environment for writing and deploying monoids in real-time.
-. Runs in a https://en.wikipedia.org/wiki/Sandbox_(computer_security)[sandboxed] form on Linux and MacOS system.
-. A https://en.wikipedia.org/wiki/Bootloader[bootloader] driven by a single https://en.wikipedia.org//wiki/YAML[YAML] file.
+. A collection common embedded systems protocols https://en.wikipedia.org/wiki/General-purpose_input/output[GPIO], https://en.wikipedia.org/wiki/Pulse-width_modulation[PWM], https://en.wikipedia.org/wiki/I%C2%B2C[I2C], and https://en.wikipedia.org/wiki/Serial_Peripheral_Interface[SPI].
+. A suite of common sensor, actuator, and UI modules.
+. A https://en.wikipedia.org/wiki/Sandbox_(computer_security)[sandboxed] distribution enabling Linux and MacOS systems to participate in the cluster.
+. A monoidal https://en.wikipedia.org/wiki/Bootloader[bootloader] with support for https://en.wikipedia.org/wiki/Over-the-air_update[OTA] firmware updates.
 
 == FhatOS Boot Loader
+
+The following output is from a Linux boot of FhatOS.
+The purpose of this documentation is to explain the mechanics of the boot process and beyond.
+
+[source,bash]
+----
+$ fhatos --boot:config=../conf/boot-loader.obj
+----
 
 ++++
 <!-- 🐖 ./boot_runner.out -->
@@ -65,7 +81,7 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
  `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\ 
     )-)_/-(>  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/ 
                                    A Dogturd Stynx Production 
-    fhatos-0.1-alpha > linux-6.8.0-52-generic > x86_64
+    fhatos-0.1-alpha > linux-6.8.0-54-generic > x86_64
        [x86_64]
       Use noobj for noobj
       .oO loading system objs Oo.
@@ -133,7 +149,12 @@ https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 
 == FhatOS Architecture
 
-image:cooties.png[width=140,float=left] FhatOS is designed according to the undertsanding that computing is composed of 3 fundamental phenomena: **structure** (space), **process** (time), and **language** (perspective).
+====
+TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, and dogs that have or are currently living on the FhatFarm.
+Many of the code examples attempt to highlight their unique, individual personalities. To learn their names, hover on their image.
+====
+
+image:cooties.png[width=140,float=left,title=cooties] FhatOS is designed according to the undertsanding that computing is composed of 3 fundamental phenomena: **structure** (space), **process** (time), and **language** (perspective).
 The core FhatOS kernel provides the following resources.
 
 . `/sys/scheduler` (**process**): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.
@@ -511,13 +532,10 @@ fhatos> @a + 1
 |===
 ====
 
-
-
 . The `inst` `*` dereferences the `/fos/nat` fURI which points to the respective type definition.
 . The `/fos/nat` type is applied to a value by wrapping the value in `[]`.
 . The router's default `auto-prefix` configuration contains `/fos/#` and thus, the shorthand `nat` can be used.
 . If a type wraps a value that doesn't satisfy the type definition, an `error` occurs.
-
 
 .Base Type Sugar
 ====
@@ -779,7 +797,8 @@ fhatos> */sys/router/#/
 <!-- 🐓 -->
 ++++
 
-The router manages access to physical memory. Physical memory is partitioned by *structures*.
+The router manages access to physical memory.
+Physical memory is partitioned by *structures*.
 The address space of a structure is the (query-less) fURI.
 Structures have an associated *pattern* fURI defining the boundaries of their storage space.
 Structures can not have overlapping address spaces.
@@ -794,7 +813,6 @@ Every structure implements the `structure.hpp` and ultimately, is an `obj`.
 - There are structures that encode other structures (e.g. `mnt`).
 
 The aggregate of all structures accessible through the router defines the complete memory footprint of a fHaTOS instance.
-
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -972,9 +990,7 @@ fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <2>
 fhatos> *abc
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> abc?boop=beep -> 12                       --- <3>
-[ERROR] router has no query processor for boop
-		thrown at inst  abc?boop=beep => ref?obj{?}<=obj{?}(12,true)[cpp]
-[ERROR] [/sys/router/frame] -> [code=>'abc?boop=beep -> 12                       --- <3>']
+==>12
 ----
 
 ++++
@@ -982,7 +998,8 @@ fhatos> abc?boop=beep -> 12                       --- <3>
 ++++
 
 <1> Sugar'd `uri` syntax can be used when no commas are present in the fURI.
-<2> Multiple values are deliminated using commas. To ensure proper parsing, multi-value query `uris[]` should be wrapped in `< >` brackets.
+<2> Multiple values are deliminated using commas.
+To ensure proper parsing, multi-value query `uris[]` should be wrapped in `< >` brackets.
 <3> If no query module exists to process a key parameter, then an error is thrown.
 
 ****

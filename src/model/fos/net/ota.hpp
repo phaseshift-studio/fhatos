@@ -36,7 +36,7 @@ namespace fhatos {
     }
 
     static ptr<OTA> create_state(const Obj_p &ota_obj) {
-      ota_obj->rec_set("loop", Obj::to_inst(make_tuple<InstArgs, InstF_p, Obj_p>(
+      ota_obj->rec_set("loop", Obj::to_inst(make_tuple<InstArgs, InstF, Obj_p>(
                                               Obj::to_inst_args(), InstF(make_shared<Cpp>(
                                                 [](const Obj_p &, const InstArgs &) {
                                                   ArduinoOTA.handle();
@@ -108,7 +108,7 @@ namespace fhatos {
       return nullptr;
     }
   };
-} // namespace fatpig
+} // namespace fhatos
 
 #endif
 #endif

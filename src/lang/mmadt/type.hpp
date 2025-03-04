@@ -567,8 +567,12 @@ namespace mmadt {
       InstBuilder::build(MMADT_SCHEME "/repeat")
           ->type_args(x(0, "code"), x(1, "until", dool(true)), x(2, "emit", dool(false)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            Objs_p r = BCODE_PROCESSOR(args->arg(0)->bcode_starts({lhs}));
-            return r;
+            const Obj_p until = args->arg(1);
+            Obj_p result = lhs;
+            while(!until->apply(result)->bool_value()) {
+              result = std::move(args->arg(0)->apply(result));
+            }
+            return result;
           })
           ->save();
       InstBuilder::build(MMADT_SCHEME "/split")

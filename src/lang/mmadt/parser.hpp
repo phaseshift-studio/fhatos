@@ -168,12 +168,14 @@ namespace mmadt {
         throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
                      column - 1, message.c_str(), line, column, rule.c_str());
       };
+      if(0 == strlen(source))
+        return Obj::to_noobj();
       Obj_p result;
       Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER);
       if(ret.ret) {
         LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(source)->toString().c_str(),
                 result->toString().c_str());
-        if(result->is_empty_bcode())
+        if(result->is_empty_bcode() && strcmp(source, "_") != 0)
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
         return std::move(result->is_bcode() && result->bcode_value()->size() == 1
                            ? result->bcode_value()->front()
