@@ -286,6 +286,20 @@ namespace mmadt {
           })
           ->save();
 
+
+      InstBuilder::build(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/rshift")
+          ->inst_args(rec({{"level", jnt(1)}}))
+          ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            if(args->arg(0)->is_int() || args->arg(0)->is_noobj()) {
+              return Obj::to_uri(lhs->uri_value().retract(args->arg(0)->is_int() ? args->arg(0)->int_value() : 1),
+                                 URI_FURI, lhs->vid);
+            } else {
+              return Obj::to_uri(lhs->uri_value().retract(args->arg(0)->uri_value()), URI_FURI, lhs->vid);
+            }
+          })
+          ->save();
+
       InstBuilder::build(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/rshift")
           ->type_args(x(0, "prefix"))
           ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})

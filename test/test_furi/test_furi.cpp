@@ -424,6 +424,13 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING(":fhatty", fURI("fos/:fhatty").name().c_str());
   }
 
+void test_uri_segment() {
+  FOS_TEST_FURI_EQUAL(fURI("f/h/a/t"), fURI("").segment(0,"f/h/a/t"));
+  FOS_TEST_FURI_EQUAL(fURI("f/h/a/t"), fURI("f/bad/a/t").segment(1,"h"));
+  FOS_TEST_FURI_EQUAL(fURI("f/h/a/t"), fURI("f/super/bad/t").segment(1,"h").segment(2,"a"));
+  //FOS_TEST_FURI_EQUAL(fURI("f/h/a/t"), fURI("f/super/bad/t").segment(1,"/h/").segment(2,"a"));
+}
+
   void test_uri_scheme_path() {
     TEST_ASSERT_FALSE(fURI(":root").is_scheme_path());
     TEST_ASSERT_TRUE(fURI("fs:root").is_scheme_path());
@@ -938,6 +945,7 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_ends_with); //
       FOS_RUN_TEST(test_uri_empty); //
       FOS_RUN_TEST(test_uri_name); //
+      FOS_RUN_TEST(test_uri_segment); //
       //
       FOS_RUN_TEST(test_uri_extend); //
       FOS_RUN_TEST(test_uri_pretract); //

@@ -192,6 +192,20 @@ namespace fhatos {
       return (this->path_ && this->path_length_ > segment) ? this->path_[segment] : EMPTY_CHARS;
     }
 
+    [[nodiscard]] fURI segment(const uint8_t segment, const fURI &replacement) const {
+      string new_path = this->sprefix_ ? "/" : "";
+      if(segment == 0 && this->path_length_ == 0)
+        return this->path(replacement.toString());
+      for(int i = 0; i < this->path_length_; i++) {
+        new_path += ((i == segment) ? replacement.toString() : this->path_[i]);
+        if(i < this->path_length_ - 1)
+          new_path += "/";
+      }
+      if(this->spostfix_)
+        new_path += "/";
+      return this->path(new_path);
+    }
+
     [[nodiscard]] bool starts_with(const fURI &prefix_path) const {
       if(this->sprefix_ != prefix_path.sprefix_ ||
          this->path_length_ < prefix_path.path_length_)
@@ -214,6 +228,7 @@ namespace fhatos {
       }
       return true;
     }
+
 
     [[nodiscard]] fURI path(const string &path) const {
       auto new_uri = fURI(*this);

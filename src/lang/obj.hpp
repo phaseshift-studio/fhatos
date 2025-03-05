@@ -753,6 +753,11 @@ namespace fhatos {
       ////////////////////////////////////////
     }
 
+    [[nodiscard]] Uri_p uri_set(const Int_p &index, const Obj_p &val) {
+     fURI furi = this->uri_value();
+
+    }
+
     [[nodiscard]] RecMap_p<> rec_value() const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -1829,8 +1834,10 @@ namespace fhatos {
         case OType::NOOBJ:
         case OType::ERROR:
           return shared_from_this();
-        case OType::URI:
+        case OType::URI: {
+
           return lhs->deref(shared_from_this());
+        }
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
