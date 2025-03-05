@@ -321,6 +321,23 @@ video {
     color: #1c72ff;
 }
 
+.hljs-mmadt-doc-callout {
+    display: inline-block;
+    color: white;
+    background: #2d78e3 !important;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
+    -o-border-radius: 100px;
+    border-radius: 100px;
+    text-align: center;
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 28px;
+    font-family: Arial;
+}
+
 .hljs-mmadt-comment {
     color: #797979;
 }
@@ -855,6 +872,7 @@ By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>
 ==&gt;/mmadt/uri/::/mmadt/merge=&gt;merge?objs{*}&lt;=uri(from(0?count,2147483647)[cpp])[cpp]
 ==&gt;/mmadt/uri/::/mmadt/mult=&gt;mult(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/uri/::/mmadt/plus=&gt;plus(from(0?rhs,noobj)[cpp])[cpp]
+==&gt;/mmadt/uri/::/mmadt/rshift=&gt;rshift(level=&gt;1)[cpp]
 ==&gt;/mmadt/within=&gt;within(from(0?code,noobj)[cpp])
 =&gt;]</code></pre>
 </div>
@@ -1958,8 +1976,9 @@ m/2/1 -> 9
 m/2/2 -> 10
 m/2/3 -> 11
 --- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
 -->
 <div class="listingblock">
 <div class="content">
@@ -1990,22 +2009,30 @@ fhatos&gt; m/2/3 -&gt; 11
 ==&gt;11
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+--- write matrix
+m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
+--- read matrix
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
+-->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2032,22 +2059,30 @@ fhatos&gt; m/2 -&gt; [8,9,10,11]
 =&gt;]
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
-[4,5,6,7], /
-[8,9,10,11]]
---- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+--- write matrix
+m -> [[0,1,2,3], /
+      [4,5,6,7], /
+      [8,9,10,11]]
+--- read matrix
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
+-->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2076,12 +2111,14 @@ fhatos&gt; m -&gt; [[0,1,2,3],
 =&gt;]
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
@@ -2095,19 +2132,23 @@ fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Accessing the first row of matrix <code>m</code>.</td>
+<td>Retrieve the first element of matrix <code>m</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Accessing the first column of matrix <code>m</code>.</td>
+<td>Retrieve the first row of matrix <code>m</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Retrieve the first column of matrix <code>m</code>.</td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
 <p>The above example demonstrates the power of structural embeddings.
 The platonic matrix <code>m</code> was embedded in a structure using 3 different representations: <em>entry-wise</em>, <em>row-wise</em>, and <em>row-column wise</em>.
-Next, each embedding was read twice: a <em>row read</em> and a <em>column read</em>.
-All three read expressions are the same and the result of each expression is the same.
+Next, each embedding was read: an <em>element read</em>, a <em>row read</em> and a <em>column read</em>.
+The expression used to read from each of the three embeddings is the same and so is the result.
 This is possible because a structure resolves up the fURI path hierarchy until it finds a match.
 Once found, it then traverses within the match to resolve the remaining path segments.</p>
 </div>
@@ -2149,8 +2190,8 @@ Once found, it then traverses within the match to resolve the remaining path seg
 </tbody>
 </table>
 <div class="paragraph">
-<p>The different embeddings also have different space costs, where space is the amount of data accessed (i.e. pulled from the structure) in order to
-resolve the respective fURI.</p>
+<p>The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to
+satisfy the resolution of the respective fURI.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
 <caption class="title">Table 2. Amortized Costs in Terms of Space</caption>
@@ -2570,7 +2611,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 02:56:24 -0700
+Last updated 2025-03-05 10:00:21 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
