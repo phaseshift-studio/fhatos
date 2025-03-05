@@ -125,6 +125,7 @@ details>summary {
 .colist {
     background: transparent;
     padding: 0.1em;
+    color: var(--primarycolor) !important;
 }
 
 .conum[data-value] {
@@ -200,15 +201,19 @@ mark {
 }
 
 /* Table styles */
-th {
+table {
     background-color: var(--maincolor);
-    color: var(--black) !important;
 }
 
 td {
-    background-color: var(--maincolor);
     color: var(--black) !important;
     font-family: Arial, sans-serif !important;
+}
+
+th {
+    background-color: #797979 !important;
+    font-weight: bold;
+    font-size: 0.8em;
 }
 
 #toc.toc2 a:link {
@@ -254,10 +259,6 @@ video {
     display: block;
     overflow-x: auto;
     padding: 0.5em;
-}
-
-.hljs-comment {
-    color: #525358;
 }
 
 .hljs-mmadt-noobj {
@@ -313,6 +314,10 @@ video {
 .hljs-mmadt-uri,
 .hljs-mmadt-type {
     color: #1c72ff;
+}
+
+.hljs-mmadt-comment {
+    color: #797979;
 }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -551,7 +556,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6656]
+[INFO]  [/sys/router] main memory [total=&gt;6912]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -631,7 +636,8 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 </td>
 <td class="content">
 The "animal sticker" images used throughout the documentation are of the chickens, ducks, and dogs that have or are currently living on the FhatFarm.
-Many of the code examples attempt to highlight their unique, individual personalities. To learn their names, hover on their image.
+Many of the code examples attempt to highlight their unique, individual personalities.
+To learn their names, hover on their image.
 </td>
 </tr>
 </table>
@@ -1933,6 +1939,7 @@ m--1-[■]-[■]-[■]-[■]
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+--- write matrix
 m/0/0 -> 0
 m/0/1 -> 1
 m/0/2 -> 2
@@ -1945,10 +1952,14 @@ m/2/0 -> 8
 m/2/1 -> 9
 m/2/2 -> 10
 m/2/3 -> 11
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; m/0/0 -&gt; 0
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
+fhatos&gt; m/0/0 -&gt; 0
 ==&gt;0
 fhatos&gt; m/0/1 -&gt; 1
 ==&gt;1
@@ -1971,18 +1982,34 @@ fhatos&gt; m/2/1 -&gt; 9
 fhatos&gt; m/2/2 -&gt; 10
 ==&gt;10
 fhatos&gt; m/2/3 -&gt; 11
-==&gt;11</code></pre>
+==&gt;11
+fhatos&gt; --- read matrix
+==&gt;x
+fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+==&gt;1
+==&gt;2
+==&gt;3
+fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;0
+==&gt;4
+==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+--- write matrix
 m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; m/0 -&gt; [0,1,2,3]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
+fhatos&gt; m/0 -&gt; [0,1,2,3]
 =&gt;[
 ===&gt;0
 ===&gt;1
@@ -2002,18 +2029,34 @@ fhatos&gt; m/2 -&gt; [8,9,10,11]
 ===&gt;9
 ===&gt;10
 ===&gt;11
-=&gt;]</code></pre>
+=&gt;]
+fhatos&gt; --- read matrix
+==&gt;x
+fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+==&gt;1
+==&gt;2
+==&gt;3
+fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;0
+==&gt;4
+==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+--- write matrix
 m -> [<0>=>[0,1,2,3], /
       <1>=>[4,5,6,7], /
       <2>=>[8,9,10,11]]
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; m -&gt; [&lt;0&gt;=&gt;[0,1,2,3],
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
+fhatos&gt; m -&gt; [&lt;0&gt;=&gt;[0,1,2,3],
               &lt;1&gt;=&gt;[4,5,6,7],
               &lt;2&gt;=&gt;[8,9,10,11]]
 =&gt;[
@@ -2035,10 +2078,78 @@ m -> [<0>=>[0,1,2,3], /
 ===&gt;10
 ===&gt;11
 =&gt;]
-=&gt;]</code></pre>
+=&gt;]
+fhatos&gt; --- read matrix
+==&gt;x
+fhatos&gt; *m/0/+      -<i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+==&gt;1
+==&gt;2
+==&gt;3
+fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;0
+==&gt;4
+==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
+</tr>
+</tbody>
+</table>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Accessing the first row of matrix <code>m</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Accessing the first column of matrix <code>m</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The above example demonstrates the power of structural embeddings.
+The platonic matrix <code>m</code> was embedded in a structure using 3 different representations: <em>entry-wise</em>, <em>row-wise</em>, and <em>row-column wise</em>.
+Next, each embedding was read twice: a <em>row read</em> and a <em>column read</em>.
+All three read expressions are the same and the result of each expression is the same.
+This is possible because a structure resolves up the fURI path hiearchy until it finds a match.
+Once found, it then traverses within the match to resolve the remaining path segments.</p>
+</div>
+<table class="tableblock frame-all grid-all center" style="width: 50%;">
+<caption class="title">Table 1. Amortized Costs in Terms of Time</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">embedding</th>
+<th class="tableblock halign-left valign-top">single-element</th>
+<th class="tableblock halign-left valign-top">row-access</th>
+<th class="tableblock halign-left valign-top">column-access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">entry</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">row</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n+m)\$</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">row_column</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
 </tr>
 </tbody>
 </table>
@@ -2424,7 +2535,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-04 15:48:52 -0700
+Last updated 2025-03-04 21:09:23 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
