@@ -389,8 +389,7 @@ namespace fhatos {
             if(const auto pair = this->locate_base_poly(new_furi.retract()); pair.has_value()) {
               LOG_WRITE(TRACE, this,L("base poly found at {}: {}\n",
                                       pair->first.toString(), pair->second->toString()));
-              const ID_p id_insert =
-                  id_p(new_furi.remove_subpath(pair->first.as_branch().toString(), true).to_node());
+              const fURI id_insert = new_furi.remove_subpath(pair->first.as_branch().toString(), true).to_node();
               const Poly_p poly_insert = pair->second; //->clone();
               poly_insert->poly_set(vri(id_insert), obj);
               distribute_to_subscribers(Message::create(id_p(new_furi), obj, retain));

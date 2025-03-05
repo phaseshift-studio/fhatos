@@ -1129,7 +1129,7 @@ namespace mmadt {
                        jnt(lhs->range_coefficient().second)}));
       if(lhs->vid)
         rec->rec_set("value/id", vri(lhs->vid));
-      rec->rec_set("value/obj", lhs);
+      rec->rec_set("value/obj", Obj::create(lhs->value_,lhs->otype,OTYPE_FURI.at(lhs->otype)));
       if(lhs->vid)
         if(const Obj_p subs = Router::singleton()->read(lhs->vid->query("sub")); !subs->is_noobj())
           rec->rec_set("sub", subs);

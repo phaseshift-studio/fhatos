@@ -86,11 +86,10 @@ namespace fhatos {
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {
-
       auto list = IdObjPairs();
       if(!match.is_pattern()) {
        auto lock = std::shared_lock<fMutex>(this->map_mutex);
-        if(const ID id_match = ID(match); this->data_->count(id_match))
+        if(const auto id_match = ID(match); this->data_->count(id_match))
           list.push_back({id_match, this->data_->at(id_match)});
         lock.unlock();
       } else {

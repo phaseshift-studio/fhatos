@@ -67,22 +67,26 @@ namespace fhatos {
                                 }
                                 if(console_obj->has("config/terminal/stdin")) {
                                   //// READ FROM PROMPT
-                                  const string x = console_state->read_stdin(console_obj, '\n')->str_value();
-                                  console_state->tracker_.track(x);
-                                  if(console_state->tracker_.closed()) {
-                                    console_state->new_input_ = true;
-                                    console_state->line_ += x;
+                                  if(const string x = console_state->read_stdin(console_obj, '\n')->str_value();
+                                    x == ":clear") {
+                                    console_state->clear();
                                   } else {
-                                    console_state->line_ += x;
-                                    return Obj::to_noobj();
-                                  }
-                                  StringHelper::trim(console_state->line_);
-                                  if(console_state->line_.empty() ||
-                                     console_state->line_[console_state->line_.length() - 1] == ';' ||
-                                     // specific to end-step and imperative simulation
-                                     !console_state->tracker_.closed()) {
-                                    ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                                    return noobj();
+                                    console_state->tracker_.track(x);
+                                    if(console_state->tracker_.closed()) {
+                                      console_state->new_input_ = true;
+                                      console_state->line_ += x;
+                                    } else {
+                                      console_state->line_ += x;
+                                      return Obj::to_noobj();
+                                    }
+                                    StringHelper::trim(console_state->line_);
+                                    if(console_state->line_.empty() ||
+                                       console_state->line_[console_state->line_.length() - 1] == ';' ||
+                                       // specific to end-step and imperative simulation
+                                       !console_state->tracker_.closed()) {
+                                      ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                      return noobj();
+                                    }
                                   }
                                   // prepare the user input for processing
                                   console_state->tracker_.clear();
@@ -107,6 +111,12 @@ namespace fhatos {
       ptr<fThread> console_state = make_shared<ConsoleX>(console_obj);
       //ConsoleX::start_inst(console_obj, Obj::to_inst_args());
       return console_state;
+    }
+
+    void clear() {
+      this->tracker_.clear();
+      this->line_.clear();
+      this->new_input_ = true;
     }
 
     ///// printers
@@ -174,6 +184,13 @@ namespace fhatos {
               {"loop", Obj::to_bcode()},
               {"halt", Obj::to_type(BOOL_FURI)}
           }));
+      InstBuilder::build(CONSOLE_FURI->add_component("clear"))
+          ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
+          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
+            const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
+            static_cast<ConsoleX *>(console_state.get())->clear();
+            return console_obj;
+          })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(rec({{"code", Obj::to_noobj()}}))

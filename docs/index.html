@@ -49,6 +49,11 @@
     --black: #bfbfbf;
 }
 
+.red {
+    color: #ba3925;
+    font-weight: bold;
+}
+
 /* Text styles */
 html {
     font-family: Arial, sans-serif !important;
@@ -1203,7 +1208,7 @@ fhatos&gt; a -&gt; 12
 =&gt;]
 ==&gt;value=&gt;[
 ===&gt;id=&gt;a
-===&gt;obj=&gt;12@a
+===&gt;obj=&gt;12
 ===&gt;encoding=&gt;int32_t
 =&gt;]
 ==&gt;sub=&gt;[
@@ -1916,24 +1921,24 @@ Each at opposite ends of the space/time-tradeoff landscape.</p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">m/0-[■]-[■]-[■]-[■]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">​
+[■]-[■]-[■]-[■]
 
+[■]-[■]-[■]-[■]
 
-m/1-[■]-[■]-[■]-[■]
-
-
-m/2-[■]-[■]-[■]-[■]</code></pre>
+[■]-[■]-[■]-[■]
+​</code></pre>
 </div>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   0-[■]-[■]-[■]-[■]
-  /
- /
-m--1-[■]-[■]-[■]-[■]
- \
-  \
-   2-[■]-[■]-[■]-[■]</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">​
+[■]-[■]-[■]-[■]
+ |   |   |   |
+[■]-[■]-[■]-[■]
+ |   |   |   |
+[■]-[■]-[■]-[■]
+​</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -2046,9 +2051,9 @@ fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
 <!-- 🐓 --></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
 --- write matrix
-m -> [<0>=>[0,1,2,3], /
-      <1>=>[4,5,6,7], /
-      <2>=>[8,9,10,11]]
+m -> [[0,1,2,3],   /
+      [4,5,6,7],   /
+      [8,9,10,11]]
 --- read matrix
 *m/0/+      --- <1>
 *m/+/0      --- <2>
@@ -2056,23 +2061,23 @@ m -> [<0>=>[0,1,2,3], /
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
-fhatos&gt; m -&gt; [&lt;0&gt;=&gt;[0,1,2,3],
-              &lt;1&gt;=&gt;[4,5,6,7],
-              &lt;2&gt;=&gt;[8,9,10,11]]
+fhatos&gt; m -&gt; [[0,1,2,3],
+              [4,5,6,7],
+              [8,9,10,11]]
 =&gt;[
-==&gt;0=&gt;[
+=&gt;[
 ===&gt;0
 ===&gt;1
 ===&gt;2
 ===&gt;3
 =&gt;]
-==&gt;1=&gt;[
+=&gt;[
 ===&gt;4
 ===&gt;5
 ===&gt;6
 ===&gt;7
 =&gt;]
-==&gt;2=&gt;[
+=&gt;[
 ===&gt;8
 ===&gt;9
 ===&gt;10
@@ -2116,7 +2121,7 @@ All three read expressions are the same and the result of each expression is the
 This is possible because a structure resolves up the fURI path hiearchy until it finds a match.
 Once found, it then traverses within the match to resolve the remaining path segments.</p>
 </div>
-<table class="tableblock frame-all grid-all center" style="width: 50%;">
+<table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
 <caption class="title">Table 1. Amortized Costs in Terms of Time</caption>
 <colgroup>
 <col style="width: 25%;">
@@ -2134,22 +2139,22 @@ Once found, it then traverses within the match to resolve the remaining path seg
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">entry</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">entry</span></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n)\$</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">row</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">row</span></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n+m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">row_column</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">row_column</span></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
 </tr>
 </tbody>
 </table>
@@ -2330,7 +2335,7 @@ fhatos&gt; {1,2,3}.plus(plus(_))
 <div class="sect4">
 <h5 id="_i2c_i2c">i2c (i2c)</h5>
 <div class="paragraph">
-<p>Two wire acess</p>
+<p>Two wire access</p>
 </div>
 </div>
 </div>
@@ -2535,7 +2540,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-04 21:09:23 -0700
+Last updated 2025-03-05 02:28:12 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
