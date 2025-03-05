@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -157,27 +157,34 @@ class ProcessingState:
                 self.new_lines.append("<!-- 🐓 -->")
                 self.section = "👨‍🌾"
 
+    def _post_process_output(self, c: str, in_table: bool = True) -> str:
+        if(not in_table):
+            c = c.replace("\\|", "|").replace("|", "\\|")
+        # remove code=> frame reference as its an artifact of the console.eval() remote code evaluation
+        c = re.sub('code=>\'.*?\',', "", c)
+        # fix source code callouts
+        c = re.sub('--- <(?P<a>[0-9]+)>', r'// <\g<a>>', c)
+        return c
+
     def _process_output_start(self, line: str) -> None:
         assert isinstance(
             self.output,
             list,
         ), f"Output must be a list, not {type(self.output)}, line: {line}"
         preamble = ["++++", "", "[source,mmadt]", "----"]
+        new_output = []
+        for c in self.output:
+            new_output.append(self._post_process_output(c, self.in_table))
+        ###################################################################
         if not self.in_table:
-            new_output = []
-            for c in self.output:
-                new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
             new_line = line.replace("\\|", "|").replace("|", "\\|")
-            #new_line = re.sub('--- <([0-9])>', r'// \1@', new_line)
             if new_line:
                 self.new_lines.append(new_line)
-            self.new_lines.extend(preamble)
-            self.new_lines.extend(new_output)
         else:
             if line:
                 self.new_lines.append(line)
-            self.new_lines.extend(preamble)
-            self.new_lines.extend(self.output)
+        self.new_lines.extend(preamble)
+        self.new_lines.extend(new_output)
         self.new_lines.pop()
         self.new_lines.extend(["----"])
         self.output = None  # Reset output after processing end of the output section
