@@ -50,6 +50,10 @@ namespace mmadt {
       return this;
     }
 
+    static bool is_wrapper(const char c) {
+      return c == '<' || c == '>' || c == '(' || c == ')' || c == '{' || c == '}';
+    }
+
 
     [[nodiscard]] bool closed() const {
       return multi_comment == 0 && parens == 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
@@ -68,7 +72,7 @@ namespace mmadt {
 
 
     char track(const char c) {
-      if(c != '\'' && quotes) {
+      if((quotes && c != '\'') || (multi_comment != 0 && c != '=')) {
         // do nothing
       } else if(c == '\'')
         quotes = !quotes;
@@ -80,10 +84,9 @@ namespace mmadt {
         brackets++;
       else if(c == ']')
         brackets--;
-      else if(c == '=') {
-        if(last[0] == '<' && angles > 0) // <=
-          angles--;
-      } else if(c == '<') {
+      else if(c == '=' && last[0] == '<' && angles > 0) // <=
+        angles--;
+      else if(c == '<') {
         if(last[0] != '-' && last[0] != '=' && last[0] != '<') // -< =< <<
           angles++;
         if(last[0] == '<')
@@ -104,14 +107,14 @@ namespace mmadt {
         within++;
       else if(c == '_' && last[0] == '\\') // \_
         within--;
-      else if(c == '#' && last[0] == '#' && last[1] == '#' && last[2] != '#') {
+      else if(c == '=' && last[0] == '=' && last[1] == '=' && last[2] != '=') {
         if(multi_comment == -1)
           multi_comment++;
         else
           multi_comment = -1;
       }
       //////////////////////////
-      if(this->closed())
+      if(is_wrapper(c) && this->closed())
         this->clear();
       else {
         last[2] = last[1];

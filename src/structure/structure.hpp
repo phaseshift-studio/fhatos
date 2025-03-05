@@ -237,7 +237,7 @@ namespace fhatos {
               LOG_WRITE(TRACE, this, L("base poly found at {}: {}\n",
                                        pair->first.toString(),
                                        pair->second->toString())                  );
-              const fURI_p furi_subpath = id_p(furi_no_query.remove_subpath(pair->first.as_branch().toString(), true));
+              const fURI furi_subpath = furi_no_query.remove_subpath(pair->first.as_branch().toString(), true);
               const Poly_p poly_read = pair->second; //->clone();
               Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
               return read_obj;
@@ -272,13 +272,13 @@ namespace fhatos {
       Obj_p obj = Obj::to_noobj();
       while(pc_furi->path_length() > 0) {
         obj = this->read(*pc_furi);
-        if(obj->is_poly())
+        if(obj->is_poly() || obj->is_objs())
           break;
         const fURI new_furi = pc_furi->retract().as_node();
         auto pc_new_furi = make_unique<fURI>(new_furi);
         pc_furi.swap(pc_new_furi);
       }
-      return obj->is_poly()
+      return obj->is_poly() || obj->is_objs()
                ? Option<Pair<ID, Poly_p>>(Pair<ID, Poly_p>(ID(*pc_furi), obj))
                : Option<Pair<ID, Poly_p>>();
     }

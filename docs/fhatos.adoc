@@ -87,7 +87,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6656]
+[INFO]  [/sys/router] main memory [total=>6912]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -151,7 +151,8 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 
 ====
 TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, and dogs that have or are currently living on the FhatFarm.
-Many of the code examples attempt to highlight their unique, individual personalities. To learn their names, hover on their image.
+Many of the code examples attempt to highlight their unique, individual personalities.
+To learn their names, hover on their image.
 ====
 
 image:cooties.png[width=140,float=left,title=cooties] FhatOS is designed according to the undertsanding that computing is composed of 3 fundamental phenomena: **structure** (space), **process** (time), and **language** (perspective).
@@ -1236,6 +1237,7 @@ m--1-[■]-[■]-[■]-[■]
 a|
 ++++
 <!-- 🐖 ./main_runner.out
+--- write matrix
 m/0/0 -> 0
 m/0/1 -> 1
 m/0/2 -> 2
@@ -1248,11 +1250,15 @@ m/2/0 -> 8
 m/2/1 -> 9
 m/2/2 -> 10
 m/2/3 -> 11
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 ++++
 
 [source,mmadt,subs="-replacements"]
 ----
+fhatos> --- write matrix
 fhatos> m/0/0 -> 0
 ==>0
 fhatos> m/0/1 -> 1
@@ -1277,6 +1283,17 @@ fhatos> m/2/2 -> 10
 ==>10
 fhatos> m/2/3 -> 11
 ==>11
+fhatos> --- read matrix
+==>x
+fhatos> *m/0/+      --- <1>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      --- <2>
+==>0
+==>4
+==>8
 ----
 
 ++++
@@ -1287,14 +1304,19 @@ fhatos> m/2/3 -> 11
 a|
 ++++
 <!-- 🐖 ./main_runner.out
+--- write matrix
 m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 ++++
 
 [source,mmadt,subs="-replacements"]
 ----
+fhatos> --- write matrix
 fhatos> m/0 -> [0,1,2,3]
 =>[
 ===>0
@@ -1316,6 +1338,17 @@ fhatos> m/2 -> [8,9,10,11]
 ===>10
 ===>11
 =>]
+fhatos> --- read matrix
+==>x
+fhatos> *m/0/+      --- <1>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      --- <2>
+==>0
+==>4
+==>8
 ----
 
 ++++
@@ -1325,14 +1358,19 @@ fhatos> m/2 -> [8,9,10,11]
 a|
 ++++
 <!-- 🐖 ./main_runner.out
+--- write matrix
 m -> [<0>=>[0,1,2,3], /
       <1>=>[4,5,6,7], /
       <2>=>[8,9,10,11]]
+--- read matrix
+*m/0/+      --- <1>
+*m/+/0      --- <2>
 -->
 ++++
 
 [source,mmadt,subs="-replacements"]
 ----
+fhatos> --- write matrix
 fhatos> m -> [<0>=>[0,1,2,3],
               <1>=>[4,5,6,7],
               <2>=>[8,9,10,11]]
@@ -1356,12 +1394,42 @@ fhatos> m -> [<0>=>[0,1,2,3],
 ===>11
 =>]
 =>]
+fhatos> --- read matrix
+==>x
+fhatos> *m/0/+      --- <1>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      --- <2>
+==>0
+==>4
+==>8
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
 
+|===
+
+<1> Accessing the first row of matrix `m`.
+<2> Accessing the first column of matrix `m`.
+
+The above example demonstrates the power of structural embeddings.
+The platonic matrix `m` was embedded in a structure using 3 different representations: _entry-wise_, _row-wise_, and _row-column wise_.
+Next, each embedding was read twice: a _row read_ and a _column read_.
+All three read expressions are the same and the result of each expression is the same.
+This is possible because a structure resolves up the fURI path hiearchy until it finds a match.
+Once found, it then traverses within the match to resolve the remaining path segments.
+
+.Amortized Costs in Terms of Time
+[%header,width=50%,cols="l2,c1,c1,c1",role=center]
+|===
+| embedding      | single-element | row-access  | column-access
+| entry          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
+| row            | \$O(m)\$       | \$O(1)\$    | \$O(n+m)\$
+| row_column     | \$O(m)\$       | \$O(1)\$    | \$O(m)\$
 |===
 
 [source,mmadt]

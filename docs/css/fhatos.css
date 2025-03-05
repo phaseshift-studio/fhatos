@@ -112,6 +112,7 @@ details>summary {
 .colist {
     background: transparent;
     padding: 0.1em;
+    color: var(--primarycolor) !important;
 }
 
 .conum[data-value] {
@@ -187,15 +188,19 @@ mark {
 }
 
 /* Table styles */
-th {
+table {
     background-color: var(--maincolor);
-    color: var(--black) !important;
 }
 
 td {
-    background-color: var(--maincolor);
     color: var(--black) !important;
     font-family: Arial, sans-serif !important;
+}
+
+th {
+    background-color: #797979 !important;
+    font-weight: bold;
+    font-size: 0.8em;
 }
 
 #toc.toc2 a:link {
@@ -241,10 +246,6 @@ video {
     display: block;
     overflow-x: auto;
     padding: 0.5em;
-}
-
-.hljs-comment {
-    color: #525358;
 }
 
 .hljs-mmadt-noobj {
@@ -300,4 +301,8 @@ video {
 .hljs-mmadt-uri,
 .hljs-mmadt-type {
     color: #1c72ff;
+}
+
+.hljs-mmadt-comment {
+    color: #797979;
 }

@@ -181,7 +181,7 @@ namespace fhatos {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            ((ConsoleX *) console_state.get())->process_line(console_obj, code);
+            static_cast<ConsoleX *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

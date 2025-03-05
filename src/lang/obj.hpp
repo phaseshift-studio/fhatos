@@ -910,23 +910,36 @@ namespace fhatos {
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
 
     void poly_set(const Obj_p &key, const Obj_p &value) const {
-      if(!this->is_poly())
+      if(!this->is_poly() && !this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(this->is_rec())
         this->rec_set(key, value);
       else if(this->is_lst())
         this->lst_set(key, value);
-      else
+      else if(this->is_objs()) {
+        for(const auto &o: *this->objs_value()) {
+          if(o->is_poly())
+            o->poly_set(key, value);
+        }
+      } else
         throw fError("unknown poly base type (logic error): %s", this->tid->toString().c_str());
     }
 
     Obj_p poly_get(const Obj_p &key) const {
-      if(!this->is_poly())
+      if(!this->is_poly() && !this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(this->is_rec())
         return this->rec_get(key);
       if(this->is_lst())
         return this->lst_get(key);
+      if(this->is_objs()) {
+        const Obj_p os = Objs::to_objs();
+        for(const auto &o: *this->objs_value()) {
+          if(o->is_poly())
+            os->add_obj(o->poly_get(key));
+        }
+        return os;
+      }
       throw fError("unknown poly base type (logic error): %s", this->tid->toString().c_str());
     }
 
@@ -1645,6 +1658,10 @@ namespace fhatos {
 
     [[nodiscard]] bool is_poly() const {
       return this->is_lst() || this->is_rec(); // || this->is_objs() /*|| this->is_bcode() || this->is_inst()
+    }
+
+    [[nodiscard]] bool is_multi() const {
+      return this->is_poly() || this->is_objs() || this->is_bcode() || this->is_inst();
     }
 
     [[nodiscard]] bool is_rec() const { return this->otype == OType::REC; }
