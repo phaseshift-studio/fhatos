@@ -561,7 +561,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6912]
+[INFO]  [/sys/router] main memory [total=&gt;6656]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -1897,8 +1897,8 @@ This section will explore the following considerations when designing a <em>mult
 <div class="paragraph">
 <p>A <em>matrix</em> is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
 A relational database <em>table</em> is an example of a matrix, where the entries typically span numeric and non-numeric data types.
-There are two general approaches to embedding a matrix or table into an <code>fstruct</code>.
-Each at opposite ends of the space/time-tradeoff landscape.</p>
+Three general approaches to embedding a matrix or table into a <code>fos:structure</code> are presented below,
+where each makes different space/time tradeoffs.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1908,18 +1908,18 @@ Each at opposite ends of the space/time-tradeoff landscape.</p>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<td class="tableblock halign-center valign-top"><div class="content"><div class="listingblock big">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"> \    |   |    /
  [■] [■] [■] [■]
 
--[■] [■] [■] [■]-
+ -[■] [■] [■] [■]-
 
  [■] [■] [■] [■]
  /    |   |    \</code></pre>
 </div>
 </div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<td class="tableblock halign-center valign-top"><div class="content"><div class="listingblock big">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">​
 [■]-[■]-[■]-[■]
@@ -1930,13 +1930,13 @@ Each at opposite ends of the space/time-tradeoff landscape.</p>
 ​</code></pre>
 </div>
 </div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<td class="tableblock halign-center valign-top"><div class="content"><div class="listingblock big">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">​
 [■]-[■]-[■]-[■]
- |   |   |   |
+|   |   |   |
 [■]-[■]-[■]-[■]
- |   |   |   |
+|   |   |   |
 [■]-[■]-[■]-[■]
 ​</code></pre>
 </div>
@@ -2002,15 +2002,10 @@ fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
---- write matrix
-m/0 -> [0,1,2,3]
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
--->
+--- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2049,15 +2044,10 @@ fhatos&gt; *m/+/0      -<i class="conum" data-value="2"></i><b>(2)</b>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
---- write matrix
-m -> [[0,1,2,3],   /
-      [4,5,6,7],   /
-      [8,9,10,11]]
---- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
--->
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
+[4,5,6,7], /
+[8,9,10,11]]
+--- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2155,6 +2145,47 @@ Once found, it then traverses within the match to resolve the remaining path seg
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The different embeddings also have different space costs, where space is the amount of data accessed (i.e. pulled from the structure) in order to
+resolve the respective fURI.</p>
+</div>
+<table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
+<caption class="title">Table 2. Amortized Costs in Terms of Space</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">embedding</th>
+<th class="tableblock halign-left valign-top">single-element</th>
+<th class="tableblock halign-left valign-top">row-access</th>
+<th class="tableblock halign-left valign-top">column-access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">entry</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(1)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">row</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(m)\$</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="red">row_column</span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n+m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n+m)\$</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">\$O(n+m)\$</p></td>
 </tr>
 </tbody>
 </table>
@@ -2265,8 +2296,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 {1,2,3}
 {1,2,3}.plus(10)
 {1,2,3}.plus(_)
-{1,2,3}.plus(plus(_))
--->
+{1,2,3}.plus(plus(_)) -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}
@@ -2540,7 +2570,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 02:28:12 -0700
+Last updated 2025-03-05 02:51:01 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

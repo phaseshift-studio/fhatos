@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6912]
+[INFO]  [/sys/router] main memory [total=>6656]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -1194,24 +1194,26 @@ fhatos> 1.plus(2)
 
 A _matrix_ is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
 A relational database _table_ is an example of a matrix, where the entries typically span numeric and non-numeric data types.
-There are two general approaches to embedding a matrix or table into an `fstruct`.
-Each at opposite ends of the space/time-tradeoff landscape.
+Three general approaches to embedding a matrix or table into a `fos:structure` are presented below,
+where each makes different space/time tradeoffs.
 
 [cols="5,5,5",separator=🧱]
 |===
-a🧱
+^a🧱
+[.big]
 [source,mmadt]
 ----
  \    |   |    /
  [■] [■] [■] [■]
 
--[■] [■] [■] [■]-
+ -[■] [■] [■] [■]-
 
  [■] [■] [■] [■]
  /    |   |    \
 
 ----
-a🧱
+^a🧱
+[.big]
 [source,mmadt]
 ----
 ​
@@ -1223,14 +1225,15 @@ a🧱
 ​
 ----
 
-a🧱
+^a🧱
+[.big]
 [source,mmadt]
 ----
 ​
 [■]-[■]-[■]-[■]
- |   |   |   |
+|   |   |   |
 [■]-[■]-[■]-[■]
- |   |   |   |
+|   |   |   |
 [■]-[■]-[■]-[■]
 ​
 ----
@@ -1302,15 +1305,12 @@ fhatos> *m/+/0      --- <2>
 
 a🧱
 ++++
-<!-- 🐖 ./main_runner.out
---- write matrix
-m/0 -> [0,1,2,3]
+
+<!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
--->
+--- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
+
 ++++
 
 [source,mmadt,subs="-replacements"]
@@ -1351,20 +1351,19 @@ fhatos> *m/+/0      --- <2>
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 a🧱
 ++++
-<!-- 🐖 ./main_runner.out
---- write matrix
-m -> [[0,1,2,3],   /
-      [4,5,6,7],   /
-      [8,9,10,11]]
---- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
--->
+
+<!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
+[4,5,6,7], /
+[8,9,10,11]]
+--- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
+
 ++++
 
 [source,mmadt,subs="-replacements"]
@@ -1407,7 +1406,9 @@ fhatos> *m/+/0      --- <2>
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 |===
@@ -1431,6 +1432,20 @@ Once found, it then traverses within the match to resolve the remaining path seg
 | [.red]#row#            | \$O(m)\$       | \$O(1)\$    | \$O(m)\$
 | [.red]#row_column#     | \$O(1)\$       | \$O(1)\$    | \$O(1)\$
 |===
+
+The different embeddings also have different space costs, where space is the amount of data accessed (i.e. pulled from the structure) in order to
+resolve the respective fURI.
+
+.Amortized Costs in Terms of Space
+[.small][.center]
+[%header,width=50%,cols="l2,c1,c1,c1"]
+|===
+| embedding              | single-element | row-access  | column-access
+| [.red]#entry#          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
+| [.red]#row#            | \$O(m)\$       | \$O(m)\$    | \$O(m)\$
+| [.red]#row_column#     | \$O(n+m)\$       | \$O(n+m)\$    | \$O(n+m)\$
+|===
+
 
 [source,mmadt]
 ----
@@ -1487,16 +1502,19 @@ TIP: The more `/` in the fURI prefix, the more distributed the fURI repeat.
 .Monoid power method
 [latexmath]
 ++++
+
 M = aM
+
 ++++
 
 ++++
+
 <!-- 🐖 ./main_runner.out
 {1,2,3}
 {1,2,3}.plus(10)
 {1,2,3}.plus(_)
-{1,2,3}.plus(plus(_))
--->
+{1,2,3}.plus(plus(_)) -->
+
 ++++
 
 [source,mmadt,subs="-replacements"]
@@ -1520,7 +1538,9 @@ fhatos> {1,2,3}.plus(plus(_))
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 == FhatOS Modules
@@ -1580,7 +1600,9 @@ Two wire access
 ==== plus
 
 ++++
+
 <!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
+
 ++++
 
 [source,mmadt,subs="-replacements"]
@@ -1594,7 +1616,9 @@ fhatos> 'a'.plus('b')
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 ==== mult
@@ -1624,7 +1648,9 @@ fhatos> 'a'.plus('b')
 ==== match `~`
 
 ++++
+
 <!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
+
 ++++
 
 [source,mmadt,subs="-replacements"]
@@ -1644,7 +1670,9 @@ fhatos> [a=>2].match([a=>_])
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 ==== eq
