@@ -6,6 +6,7 @@
 :revnumber: 0.1
 :tabsize: 2
 :icons: font
+:icon-set: fas
 :stem: latexmath
 :source-highlighter: highlight.js
 :highlightjsdir: ./highlight
@@ -666,7 +667,7 @@ fhatos> a -> 12
 =>]
 ==>value=>[
 ===>id=>a
-===>obj=>12@a
+===>obj=>12
 ===>encoding=>int32_t
 =>]
 ==>sub=>[
@@ -1196,45 +1197,44 @@ A relational database _table_ is an example of a matrix, where the entries typic
 There are two general approaches to embedding a matrix or table into an `fstruct`.
 Each at opposite ends of the space/time-tradeoff landscape.
 
-[cols="5,5,5"]
+[cols="5,5,5",separator=🧱]
 |===
-a|
+a🧱
 [source,mmadt]
 ----
- \    \|   \|    /
+ \    |   |    /
  [■] [■] [■] [■]
 
 -[■] [■] [■] [■]-
 
  [■] [■] [■] [■]
- /    \|   \|    \
+ /    |   |    \
+
 ----
-a|
+a🧱
 [source,mmadt]
 ----
-m/0-[■]-[■]-[■]-[■]
+​
+[■]-[■]-[■]-[■]
 
+[■]-[■]-[■]-[■]
 
-m/1-[■]-[■]-[■]-[■]
-
-
-m/2-[■]-[■]-[■]-[■]
+[■]-[■]-[■]-[■]
+​
 ----
 
-a|
+a🧱
 [source,mmadt]
 ----
-   0-[■]-[■]-[■]-[■]
-  /
- /
-m--1-[■]-[■]-[■]-[■]
- \
-  \
-   2-[■]-[■]-[■]-[■]
-
-
+​
+[■]-[■]-[■]-[■]
+ |   |   |   |
+[■]-[■]-[■]-[■]
+ |   |   |   |
+[■]-[■]-[■]-[■]
+​
 ----
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 --- write matrix
@@ -1300,8 +1300,7 @@ fhatos> *m/+/0      --- <2>
 <!-- 🐓 -->
 ++++
 
-
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 --- write matrix
@@ -1355,13 +1354,13 @@ fhatos> *m/+/0      --- <2>
 <!-- 🐓 -->
 ++++
 
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 --- write matrix
-m -> [<0>=>[0,1,2,3], /
-      <1>=>[4,5,6,7], /
-      <2>=>[8,9,10,11]]
+m -> [[0,1,2,3],   /
+      [4,5,6,7],   /
+      [8,9,10,11]]
 --- read matrix
 *m/0/+      --- <1>
 *m/+/0      --- <2>
@@ -1371,23 +1370,23 @@ m -> [<0>=>[0,1,2,3], /
 [source,mmadt,subs="-replacements"]
 ----
 fhatos> --- write matrix
-fhatos> m -> [<0>=>[0,1,2,3],
-              <1>=>[4,5,6,7],
-              <2>=>[8,9,10,11]]
+fhatos> m -> [[0,1,2,3],  
+              [4,5,6,7],  
+              [8,9,10,11]]
 =>[
-==>0=>[
+=>[
 ===>0
 ===>1
 ===>2
 ===>3
 =>]
-==>1=>[
+=>[
 ===>4
 ===>5
 ===>6
 ===>7
 =>]
-==>2=>[
+=>[
 ===>8
 ===>9
 ===>10
@@ -1424,12 +1423,13 @@ This is possible because a structure resolves up the fURI path hiearchy until it
 Once found, it then traverses within the match to resolve the remaining path segments.
 
 .Amortized Costs in Terms of Time
-[%header,width=50%,cols="l2,c1,c1,c1",role=center]
+[.small][.center]
+[%header,width=50%,cols="l2,c1,c1,c1"]
 |===
-| embedding      | single-element | row-access  | column-access
-| entry          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
-| row            | \$O(m)\$       | \$O(1)\$    | \$O(n+m)\$
-| row_column     | \$O(m)\$       | \$O(1)\$    | \$O(m)\$
+| embedding              | single-element | row-access  | column-access
+| [.red]#entry#          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
+| [.red]#row#            | \$O(m)\$       | \$O(1)\$    | \$O(m)\$
+| [.red]#row_column#     | \$O(1)\$       | \$O(1)\$    | \$O(1)\$
 |===
 
 [source,mmadt]
@@ -1551,7 +1551,7 @@ Pins that support pulse-wave modulation can be manipulated with `/fos/io/pwm`.
 
 ===== i2c (i2c)
 
-Two wire acess
+Two wire access
 
 ==== FileSystem Module (fs)
 

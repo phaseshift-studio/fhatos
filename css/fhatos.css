@@ -36,6 +36,11 @@
     --black: #bfbfbf;
 }
 
+.red {
+    color: #ba3925;
+    font-weight: bold;
+}
+
 /* Text styles */
 html {
     font-family: Arial, sans-serif !important;
