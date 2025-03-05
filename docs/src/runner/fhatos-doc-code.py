@@ -37,15 +37,9 @@ else:  # pragma: no cover
 DEBUG: bool = os.environ.get("DEBUG", "0") == "1"
 
 
-def remove_md_comment(commented_text: str) -> str:
-    """Remove Markdown comment tags from a string."""
-    # commented_text = commented_text.strip()
+def remove_html_comment(commented_text: str) -> str:
     commented_text = commented_text.removesuffix(" -->")
     return commented_text.replace("<!-- ", "")
-    # if not (commented_text.startswith("<!-- ") and commented_text.endswith(" -->")):
-    #    msg = f"Invalid Markdown comment format: {commented_text}"
-    #    raise ValueError(msg)
-    # return commented_text[5:-4]
 
 
 def execute_code(
@@ -134,7 +128,7 @@ class ProcessingState:
                 line.lstrip().startswith("<!--") and
                 line.find("🐖") != -1):
             self.section = "🐖"
-            self.code.append(remove_md_comment(line.strip()).replace("🐖", ""))
+            self.code.append(remove_html_comment(line.strip()).replace("🐖", ""))
             if line.rstrip().endswith("-->"):
                 self._process_chicken_code(verbose=verbose)
                 self._process_output_start(line)
@@ -159,8 +153,9 @@ class ProcessingState:
 
     def _post_process_output(self, c: str, in_table: bool = True) -> str:
         if(not in_table):
+            # escape table separator character
             c = c.replace("\\|", "|").replace("|", "\\|")
-        # remove code=> frame reference as its an artifact of the console.eval() remote code evaluation
+        # remove code=> frame reference as it's an artifact of the console.eval() remote code evaluation
         c = re.sub('code=>\'.*?\',', "", c)
         # fix source code callouts
         c = re.sub('--- <(?P<a>[0-9]+)>', r'// <\g<a>>', c)
