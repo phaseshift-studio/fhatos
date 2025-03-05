@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6656]
+[INFO]  [/sys/router] main memory [total=>6912]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -1420,7 +1420,7 @@ The above example demonstrates the power of structural embeddings.
 The platonic matrix `m` was embedded in a structure using 3 different representations: _entry-wise_, _row-wise_, and _row-column wise_.
 Next, each embedding was read twice: a _row read_ and a _column read_.
 All three read expressions are the same and the result of each expression is the same.
-This is possible because a structure resolves up the fURI path hiearchy until it finds a match.
+This is possible because a structure resolves up the fURI path hierarchy until it finds a match.
 Once found, it then traverses within the match to resolve the remaining path segments.
 
 .Amortized Costs in Terms of Time
@@ -1440,10 +1440,10 @@ resolve the respective fURI.
 [.small][.center]
 [%header,width=50%,cols="l2,c1,c1,c1"]
 |===
-| embedding              | single-element | row-access  | column-access
-| [.red]#entry#          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
-| [.red]#row#            | \$O(m)\$       | \$O(m)\$    | \$O(m)\$
-| [.red]#row_column#     | \$O(n+m)\$       | \$O(n+m)\$    | \$O(n+m)\$
+| embedding              | single-element | row-access    | column-access
+| [.red]#entry#          | \$O(1)\$       | \$O(n)\$      | \$O(m)\$
+| [.red]#row#            | \$O(n)\$       | \$O(n)\$      | \$O(n+m)\$
+| [.red]#row_column#     | \$O(n+m)\$     | \$O(n+m)\$    | \$O(n+m)\$
 |===
 
 
