@@ -73,7 +73,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 <!-- 🐖 ./boot_runner.out -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
             PhaseShift Studio Presents 
  <`--'>____  ______ __  __  ______  ______  ______  ______ 
@@ -173,7 +173,7 @@ The FhatOS scheduler and router are accessible to the user when their respective
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> [a => b,
          b => [c =>
@@ -197,7 +197,7 @@ fhatos> [a => b,
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> */sys/scheduler
 =>[
@@ -247,7 +247,7 @@ By dereferencing the `/mmadt` root with the wildcard extension `#`, a reflective
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> */mmadt/#/
 =>[
@@ -364,6 +364,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/uri/::/mmadt/merge=>merge?objs{*}<=uri(from(0?count,2147483647)[cpp])[cpp]
 ==>/mmadt/uri/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/uri/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/uri/::/mmadt/rshift=>rshift(level=>1)[cpp]
 ==>/mmadt/within=>within(from(0?code,noobj)[cpp])
 =>]
 ----
@@ -394,7 +395,7 @@ The following subsections will provide a short overview of the aforementioned re
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> */io/console
 =>console[
@@ -457,7 +458,7 @@ real[6.0].inspect()
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> int[6].inspect()
 =>[
@@ -502,7 +503,7 @@ a -> int8[126]
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> /sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
 =>[
@@ -547,7 +548,7 @@ TIP: Given the frequency of use of base types, specifying the type is not necess
 <!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> /mmadt/int[6]
 ==>6
@@ -568,7 +569,7 @@ Examples of the aforementioned types are provided below.
 <!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> true
 ==>true
@@ -629,7 +630,7 @@ a -> age[45]
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> age -> \|(is(gt(0)).is(lt(120)))
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
@@ -651,7 +652,7 @@ fhatos> @a.inspect()
 <!-- 🐖 ./main_runner.out "a?sub -> |print(_)" "a -> 12" "@a.inspect()" "@a.plus(1)" "@a.plus(1).plus(1)" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
 ==>print?noobj<=obj(_)[noobj]
@@ -705,7 +706,7 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 <!-- 🐖 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
 [ERROR] [/sys/router] no attached structure for /type/int/nat  
@@ -759,7 +760,7 @@ The function of the router is to:
 <!-- 🐖 ./main_runner.out "/io/console/config/nest->3" "*/sys/router/#/" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> /io/console/config/nest->3
 ==>3
@@ -821,7 +822,7 @@ a -> 'meangirl'            --- <5>
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> a -> 'snowbutt'            --- <1>
 ==>'snowbutt'
@@ -890,7 +891,7 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 fhatos> *a/b            --- <1>
@@ -980,7 +981,7 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> abc?k1=v1&k2=v2&k3=v3                     --- <1>
 ==>abc?k1=v1&k2=v2&k3=v3
@@ -1029,7 +1030,7 @@ a -> b
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> *a
 fhatos> *b
@@ -1071,7 +1072,7 @@ a -> 12
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> a -> 12
 ==>12
@@ -1108,7 +1109,7 @@ a|
 <!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> a?sub -> \|to(b)
 ==>to?noobj<=obj(b)[noobj]
@@ -1182,7 +1183,7 @@ This section will explore the following considerations when designing a _multi-m
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> 1.plus(2)
 ==>3
@@ -1254,12 +1255,13 @@ m/2/1 -> 9
 m/2/2 -> 10
 m/2/3 -> 11
 --- read matrix
-*m/0/+      --- <1>
-*m/+/0      --- <2>
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
 -->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> --- write matrix
 fhatos> m/0/0 -> 0
@@ -1288,12 +1290,14 @@ fhatos> m/2/3 -> 11
 ==>11
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/+      --- <1>
+fhatos> *m/0/0      --- <1>
+==>0
+fhatos> *m/0/+      --- <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <2>
+fhatos> *m/+/0      --- <3>
 ==>0
 ==>4
 ==>8
@@ -1306,14 +1310,19 @@ fhatos> *m/+/0      --- <2>
 a🧱
 ++++
 
-<!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
+<!-- 🐖 ./main_runner.out
+--- write matrix
+m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
-
+--- read matrix
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
+-->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> --- write matrix
 fhatos> m/0 -> [0,1,2,3]
@@ -1339,19 +1348,20 @@ fhatos> m/2 -> [8,9,10,11]
 =>]
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/+      --- <1>
+fhatos> *m/0/0      --- <1>
+==>0
+fhatos> *m/0/+      --- <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <2>
+fhatos> *m/+/0      --- <3>
 ==>0
 ==>4
 ==>8
 ----
 
 ++++
-
 <!-- 🐓 -->
 
 ++++
@@ -1359,18 +1369,23 @@ fhatos> *m/+/0      --- <2>
 a🧱
 ++++
 
-<!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
-[4,5,6,7], /
-[8,9,10,11]]
---- read matrix *m/0/+ --- <1> *m/+/0 --- <2> -->
-
+<!-- 🐖 ./main_runner.out
+--- write matrix
+m -> [[0,1,2,3], /
+      [4,5,6,7], /
+      [8,9,10,11]]
+--- read matrix
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
+-->
 ++++
 
-[source,mmadt,subs="-replacements"]
+[source,mmadt]
 ----
 fhatos> --- write matrix
-fhatos> m -> [[0,1,2,3],  
-              [4,5,6,7],  
+fhatos> m -> [[0,1,2,3],
+              [4,5,6,7],
               [8,9,10,11]]
 =>[
 =>[
@@ -1394,32 +1409,34 @@ fhatos> m -> [[0,1,2,3],
 =>]
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/+      --- <1>
+fhatos> *m/0/0      --- <1>
+==>0
+fhatos> *m/0/+      --- <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <2>
+fhatos> *m/+/0      --- <3>
 ==>0
 ==>4
 ==>8
 ----
 
 ++++
-
 <!-- 🐓 -->
 
 ++++
 
 |===
 
-<1> Accessing the first row of matrix `m`.
-<2> Accessing the first column of matrix `m`.
+<1> Retrieve the first element of matrix `m`.
+<2> Retrieve the first row of matrix `m`.
+<3> Retrieve the first column of matrix `m`.
 
 The above example demonstrates the power of structural embeddings.
 The platonic matrix `m` was embedded in a structure using 3 different representations: _entry-wise_, _row-wise_, and _row-column wise_.
-Next, each embedding was read twice: a _row read_ and a _column read_.
-All three read expressions are the same and the result of each expression is the same.
+Next, each embedding was read: an _element read_, a _row read_ and a _column read_.
+The expression used to read from each of the three embeddings is the same and so is the result.
 This is possible because a structure resolves up the fURI path hierarchy until it finds a match.
 Once found, it then traverses within the match to resolve the remaining path segments.
 
@@ -1433,8 +1450,8 @@ Once found, it then traverses within the match to resolve the remaining path seg
 | [.red]#row_column#     | \$O(1)\$       | \$O(1)\$    | \$O(1)\$
 |===
 
-The different embeddings also have different space costs, where space is the amount of data accessed (i.e. pulled from the structure) in order to
-resolve the respective fURI.
+The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to
+satisfy the resolution of the respective fURI.
 
 .Amortized Costs in Terms of Space
 [.small][.center]

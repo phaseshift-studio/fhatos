@@ -308,6 +308,23 @@ video {
     color: #1c72ff;
 }
 
+.hljs-mmadt-doc-callout {
+    display: inline-block;
+    color: white;
+    background: #2d78e3 !important;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
+    -o-border-radius: 100px;
+    border-radius: 100px;
+    text-align: center;
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 28px;
+    font-family: Arial;
+}
+
 .hljs-mmadt-comment {
     color: #797979;
 }

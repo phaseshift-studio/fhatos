@@ -10,6 +10,7 @@ import argparse
 import os
 import subprocess
 import sys
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -161,12 +162,13 @@ class ProcessingState:
             self.output,
             list,
         ), f"Output must be a list, not {type(self.output)}, line: {line}"
-        preamble = ["++++", "", "[source,mmadt,subs=\"-replacements\"]", "----"]
+        preamble = ["++++", "", "[source,mmadt]", "----"]
         if not self.in_table:
             new_output = []
             for c in self.output:
                 new_output.append(c.replace("\\|", "|").replace("|", "\\|"))
             new_line = line.replace("\\|", "|").replace("|", "\\|")
+            # new_line = re.sub('--- <([0-9])>', r'// \1@', new_line)
             if new_line:
                 self.new_lines.append(new_line)
             self.new_lines.extend(preamble)
