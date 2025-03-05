@@ -578,7 +578,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6528]
+[INFO]  [/sys/router] main memory [total=&gt;6656]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -935,14 +935,14 @@ Without these resources, FhatOS will not function propertly.</p>
 <div class="sect2">
 <h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
-<p>FhatOS software can be written in C/C\++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a reflective, cluster-oriented programming language.
+<p>FhatOS software can be written in C/C\++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
 Every expression in mm-ADT yields an <code>obj</code> (object).
 An <code>obj</code> can be any one of</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>5 <strong>mono-types</strong> (<code>bool</code>, <code>int</code>, <code>real</code>, <code>uri</code>, and <code>str</code>),</p>
+<p>5 <strong>mono-types</strong> (<code>bool</code>, <code>int</code>, <code>real</code>, <code>str</code>, <code>uri</code>, and <code>noobj</code>),</p>
 </li>
 <li>
 <p>2 <strong>poly-types</strong> (<code>lst</code> and <code>rec</code>), or</p>
@@ -963,25 +963,28 @@ An <code>obj</code> can be any one of</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>/type/bool</code>: The set of binary values <code>true</code> and <code>false</code>.</p>
+<p><code>/mmadt/noobj</code>: A singleton representing <code>null</code>.</p>
 </li>
 <li>
-<p><code>/type/int</code>: The set of (32/64)-bit integers between <code>-46666666</code> and <code>4777777</code>.</p>
+<p><code>/mmadt/bool</code>: The set of binary values <code>true</code> and <code>false</code>.</p>
 </li>
 <li>
-<p><code>/type/real</code>: The set of (32/64)-bit floating point values between <code>-&#8230;&#8203;</code> and <code>&#8230;&#8203;.</code>.</p>
+<p><code>/mmadt/int</code>: The set of \$n\$-bit integers between \$-2^(n-1)\$ and \$2^(n-1)\$.</p>
 </li>
 <li>
-<p><code>/type/str</code>: The infinite set of all character sequences.</p>
+<p><code>/mmadt/real</code>: The set of \$n\$-bit floating point values between <code>-&#8230;&#8203;</code> and <code>&#8230;&#8203;.</code>.</p>
 </li>
 <li>
-<p><code>/type/uri</code>: The infinite set of all fHatOs Uniform Resource Identifiers (fURIs).</p>
+<p><code>/mmadt/str</code>: The infinite set of all UTF-8 character sequences.</p>
 </li>
 <li>
-<p><code>/type/lst</code>: An (un)ordered container of zero or more <code>objs</code>.</p>
+<p><code>/mmadt/uri</code>: The infinite set of all fHatOs UTF-8 Uniform Resource Identifiers (fURIs).</p>
 </li>
 <li>
-<p><code>/type/rec</code>: An (un)ordered container of key/value pair <code>objs</code>, where keys are unique.</p>
+<p><code>/mmadt/lst</code>: An (un)ordered collection of zero or more <code>objs</code>.</p>
+</li>
+<li>
+<p><code>/mmadt/rec</code>: An (un)ordered collection of key/value pair <code>objs</code>, where keys are unique.</p>
 </li>
 </ol>
 </div>
@@ -995,8 +998,8 @@ An <code>obj</code> can be any one of</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-The size of <code>int</code> and <code>real</code> in bits can be specified in the boot loader.
-Other machines in the cluster with a different bit-length encoding can still be communicated with.
+The bit-length of <code>int</code> and <code>real</code> can be specified at boot time via the boot-loader.
+Other machines in the cluster with a different bit-length encodings can still be communicated with.
 However, overflow is possible, but can be automatically checked using types in <code>/mmadt/ext/</code> such as:
 <code>int8</code>, <code>int16</code>, <code>int32</code>.
 </td>
@@ -1046,15 +1049,17 @@ fhatos&gt; real[6.0].inspect()
 </div>
 <!-- 🐓 --></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
-/sys/router/config/resolve/auto_prefix -> *(_).plus(|[/mmadt/ext/])
-a -> int8[126]
+/sys/router/config/resolve/auto_prefix -> /
+  *(_) + |[/mmadt/ext/]             --- <1>
+a -> int8[126]                       --- <2>
 @a + 1
 @a + 1
-@a + 1
+@a + 1                               --- <3>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt; *(_).plus(|[/mmadt/ext/])
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
+          *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
 =&gt;[
 ===&gt;
 ===&gt;/mmadt/
@@ -1067,18 +1072,34 @@ a -> int8[126]
 ===&gt;/sys/
 ===&gt;/mmadt/ext/
 =&gt;]
-fhatos&gt; a -&gt; int8[126]
+fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;int8[126]
 fhatos&gt; @a + 1
 ==&gt;int8[127]@a
 fhatos&gt; @a + 1
 ==&gt;int8[128]@a
-fhatos&gt; @a + 1
+fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
 [ERROR] [/sys/type] 129@a is not a /fos/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-    thrown at inst int8[128]@a =&gt; plus(1)[cpp] [code=&gt;'@a + 1',0=&gt;1]</code></pre>
+    thrown at inst int8[128]@a =&gt; plus(1)[cpp] [0=&gt;1]</code></pre>
 </div>
 </div>
-<!-- 🐓 --></div></td>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Including <code>/mmadt/ext</code> <code>objs</code> in the router&#8217;s automatic URI resolution.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Constructing an <code>int</code> constrained to values from <code>-127</code> to <code>128</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Triggering <code>int8</code> type error by overflowing its numeric range.</td>
+</tr>
+</table>
+</div></div></td>
 </tr>
 </tbody>
 </table>
@@ -1276,7 +1297,7 @@ fhatos&gt; nat[3].plus(2)
 ==&gt;nat[5]
 fhatos&gt; nat[3].mult(-2)
 [ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
-    thrown at inst nat[3] =&gt; mult(-2)[cpp] [code=&gt;'nat[3].mult(-2)',0=&gt;-2]</code></pre>
+    thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1396,28 +1417,28 @@ Every structure implements the <code>structure.hpp</code> and ultimately, is an 
 <!-- 🐖 ./main_runner.out
 a -> 'snowbutt'            --- <1>
 *a                         --- <2>
-a?sub -> |(*payload.to(b)) --- <3>
+a?sub -> |to(b)            --- <3>
 *a?sub                     --- <4>
 a -> 'meangirl'            --- <5>
 *b                         --- <6>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'snowbutt'            -<i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'snowbutt'            <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;'snowbutt'
-fhatos&gt; *a                         -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *a                         <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;'snowbutt'
-fhatos&gt; a?sub -&gt; |(*payload.to(b)) -<i class="conum" data-value="3"></i><b>(3)</b>
-==&gt;from?noobj&lt;=obj(payload)[noobj].to?noobj&lt;=obj(b)[noobj]
-fhatos&gt; *a?sub                     -<i class="conum" data-value="4"></i><b>(4)</b>
+fhatos&gt; a?sub -&gt; |to(b)            <i class="conum" data-value="3"></i><b>(3)</b>
+==&gt;to?noobj&lt;=obj(b)[noobj]
+fhatos&gt; *a?sub                     <i class="conum" data-value="4"></i><b>(4)</b>
 =&gt;sub[
 ==&gt;source=&gt;/sys/scheduler
 ==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;from(payload).to(b)
+==&gt;on_recv=&gt;to(b)
 =&gt;]
-fhatos&gt; a -&gt; 'meangirl'            -<i class="conum" data-value="5"></i><b>(5)</b>
+fhatos&gt; a -&gt; 'meangirl'            <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;'meangirl'
-fhatos&gt; *b                         -<i class="conum" data-value="6"></i><b>(6)</b>
+fhatos&gt; *b                         <i class="conum" data-value="6"></i><b>(6)</b>
 ==&gt;'meangirl'</code></pre>
 </div>
 </div>
@@ -1525,27 +1546,27 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a/a -&gt; 1; a/b -&gt; 2; a/b/c -&gt; 3; a/b/d -&gt; 4;
-fhatos&gt; *a/b            -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *a/b            <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;2
-fhatos&gt; *a/b/           -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *a/b/           <i class="conum" data-value="2"></i><b>(2)</b>
 =&gt;[
 ==&gt;a/b/c=&gt;3
 ==&gt;a/b/d=&gt;4
 =&gt;]
-fhatos&gt; *a/+            -<i class="conum" data-value="3"></i><b>(3)</b>
+fhatos&gt; *a/+            <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;1
 ==&gt;2
-fhatos&gt; *a/+/           -<i class="conum" data-value="4"></i><b>(4)</b>
+fhatos&gt; *a/+/           <i class="conum" data-value="4"></i><b>(4)</b>
 =&gt;[
 ==&gt;a/b/c=&gt;3
 ==&gt;a/b/d=&gt;4
 =&gt;]
-fhatos&gt; *a/#            -<i class="conum" data-value="5"></i><b>(5)</b>
+fhatos&gt; *a/#            <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;1
 ==&gt;2
 ==&gt;3
 ==&gt;4
-fhatos&gt; *a/#/           -<i class="conum" data-value="6"></i><b>(6)</b>
+fhatos&gt; *a/#/           <i class="conum" data-value="6"></i><b>(6)</b>
 =&gt;[
 ==&gt;a/a=&gt;1
 ==&gt;a/b=&gt;2
@@ -1687,17 +1708,17 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3                     -<i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3                     <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;abc?k1=v1&amp;k2=v2&amp;k3=v3
-fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
-fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          -<i class="conum" data-value="3"></i><b>(3)</b>
+fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
-fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    -<i class="conum" data-value="4"></i><b>(4)</b>
+fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    <i class="conum" data-value="4"></i><b>(4)</b>
 ==&gt;12
 fhatos&gt; *abc
 ==&gt;12
-fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   -<i class="conum" data-value="5"></i><b>(5)</b>
+fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; *abc
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6</code></pre>
@@ -2009,14 +2030,14 @@ fhatos&gt; m/2/3 -&gt; 11
 ==&gt;11
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
-fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/0/+      <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
+fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
@@ -2059,14 +2080,14 @@ fhatos&gt; m/2 -&gt; [8,9,10,11]
 =&gt;]
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
-fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/0/+      <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
+fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
@@ -2111,14 +2132,14 @@ fhatos&gt; m -&gt; [[0,1,2,3],
 =&gt;]
 fhatos&gt; --- read matrix
 ==&gt;x
-fhatos&gt; *m/0/0      -<i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; *m/0/0      <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
-fhatos&gt; *m/0/+      -<i class="conum" data-value="2"></i><b>(2)</b>
+fhatos&gt; *m/0/+      <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;0
 ==&gt;1
 ==&gt;2
 ==&gt;3
-fhatos&gt; *m/+/0      -<i class="conum" data-value="3"></i><b>(3)</b>
+fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;0
 ==&gt;4
 ==&gt;8</code></pre>
@@ -2611,7 +2632,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 10:18:36 -0700
+Last updated 2025-03-05 11:57:25 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6528]
+[INFO]  [/sys/router] main memory [total=>6656]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -419,11 +419,11 @@ fhatos> */io/console
 
 === The mm-ADT Language
 
-FhatOS software can be written in C/C\++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a reflective, cluster-oriented programming language.
+FhatOS software can be written in C/C\++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
 Every expression in mm-ADT yields an `obj` (object).
 An `obj` can be any one of
 
-. 5 **mono-types** (`bool`, `int`, `real`, `uri`, and `str`),
+. 5 **mono-types** (`bool`, `int`, `real`, `str`, `uri`, and `noobj`),
 . 2 **poly-types** (`lst` and `rec`), or
 . 2 **code-types** (`inst` and `bcode`).
 
@@ -433,18 +433,19 @@ The mono and poly types are **structural**, while the code-types are **functiona
 
 The 7 structural types (5 mono-types and 2 poly-types) are described below.
 
-. `/type/bool`: The set of binary values `true` and `false`.
-. `/type/int`: The set of (32/64)-bit integers between `-46666666` and `4777777`.
-. `/type/real`: The set of (32/64)-bit floating point values between `-...` and `....`.
-. `/type/str`: The infinite set of all character sequences.
-. `/type/uri`: The infinite set of all fHatOs Uniform Resource Identifiers (fURIs).
-. `/type/lst`: An (un)ordered container of zero or more `objs`.
-. `/type/rec`: An (un)ordered container of key/value pair `objs`, where keys are unique.
+. `/mmadt/noobj`: A singleton representing `null`.
+. `/mmadt/bool`: The set of binary values `true` and `false`.
+. `/mmadt/int`: The set of \$n\$-bit integers between \$-2^(n-1)\$ and \$2^(n-1)\$.
+. `/mmadt/real`: The set of \$n\$-bit floating point values between `-...` and `....`.
+. `/mmadt/str`: The infinite set of all UTF-8 character sequences.
+. `/mmadt/uri`: The infinite set of all fHatOs UTF-8 Uniform Resource Identifiers (fURIs).
+. `/mmadt/lst`: An (un)ordered collection of zero or more `objs`.
+. `/mmadt/rec`: An (un)ordered collection of key/value pair `objs`, where keys are unique.
 
 .Controlling Base Value Bit Encoding
 ====
-TIP: The size of `int` and `real` in bits can be specified in the boot loader.
-Other machines in the cluster with a different bit-length encoding can still be communicated with.
+TIP: The bit-length of `int` and `real` can be specified at boot time via the boot-loader.
+Other machines in the cluster with a different bit-length encodings can still be communicated with.
 However, overflow is possible, but can be automatically checked using types in `/mmadt/ext/` such as:
 `int8`, `int16`, `int32`.
 
@@ -495,17 +496,19 @@ fhatos> real[6.0].inspect()
 a|
 ++++
 <!-- 🐖 ./main_runner.out
-/sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
-a -> int8[126]
+/sys/router/config/resolve/auto_prefix -> /
+  *(_) + \|[/mmadt/ext/]             --- <1>
+a -> int8[126]                       --- <2>
 @a + 1
 @a + 1
-@a + 1
+@a + 1                               --- <3>
 -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> /sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
+fhatos> /sys/router/config/resolve/auto_prefix ->
+          *(_) + \|[/mmadt/ext/]             // <1>
 =>[
 ===>
 ===>/mmadt/
@@ -518,20 +521,25 @@ fhatos> /sys/router/config/resolve/auto_prefix -> *(_).plus(\|[/mmadt/ext/])
 ===>/sys/
 ===>/mmadt/ext/
 =>]
-fhatos> a -> int8[126]
+fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
 ==>int8[127]@a
 fhatos> @a + 1
 ==>int8[128]@a
-fhatos> @a + 1
+fhatos> @a + 1                               // <3>
 [ERROR] [/sys/type] 129@a is not a /fos/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-	  thrown at inst int8[128]@a => plus(1)[cpp] [code=>'@a + 1',0=>1]
+	  thrown at inst int8[128]@a => plus(1)[cpp] [0=>1]
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
+
+<1> Including `/mmadt/ext` `objs` in the router's automatic URI resolution.
+<2> Constructing an `int` constrained to values from `-127` to `128`.
+<3> Triggering `int8` type error by overflowing its numeric range.
+
 |===
 ====
 
@@ -719,7 +727,7 @@ fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
 [ERROR] [/sys/type] -6 is not a /fos/nat as defined by nat()[is(gte(0))]
-	  thrown at inst nat[3] => mult(-2)[cpp] [code=>'nat[3].mult(-2)',0=>-2]
+	  thrown at inst nat[3] => mult(-2)[cpp] [0=>-2]
 ----
 
 ++++
@@ -815,7 +823,7 @@ The aggregate of all structures accessible through the router defines the comple
 <!-- 🐖 ./main_runner.out
 a -> 'snowbutt'            --- <1>
 *a                         --- <2>
-a?sub -> |(*payload.to(b)) --- <3>
+a?sub -> |to(b)            --- <3>
 *a?sub                     --- <4>
 a -> 'meangirl'            --- <5>
 *b                         --- <6>
@@ -824,21 +832,21 @@ a -> 'meangirl'            --- <5>
 
 [source,mmadt]
 ----
-fhatos> a -> 'snowbutt'            --- <1>
+fhatos> a -> 'snowbutt'            // <1>
 ==>'snowbutt'
-fhatos> *a                         --- <2>
+fhatos> *a                         // <2>
 ==>'snowbutt'
-fhatos> a?sub -> |(*payload.to(b)) --- <3>
-==>from?noobj<=obj(payload)[noobj].to?noobj<=obj(b)[noobj]
-fhatos> *a?sub                     --- <4>
+fhatos> a?sub -> |to(b)            // <3>
+==>to?noobj<=obj(b)[noobj]
+fhatos> *a?sub                     // <4>
 =>sub[
 ==>source=>/sys/scheduler
 ==>pattern=>a
-==>on_recv=>from(payload).to(b)
+==>on_recv=>to(b)
 =>]
-fhatos> a -> 'meangirl'            --- <5>
+fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
-fhatos> *b                         --- <6>
+fhatos> *b                         // <6>
 ==>'meangirl'
 ----
 
@@ -894,27 +902,27 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 [source,mmadt]
 ----
 fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
-fhatos> *a/b            --- <1>
+fhatos> *a/b            // <1>
 ==>2
-fhatos> *a/b/           --- <2>
+fhatos> *a/b/           // <2>
 =>[
 ==>a/b/c=>3
 ==>a/b/d=>4
 =>]
-fhatos> *a/+            --- <3>
+fhatos> *a/+            // <3>
 ==>1
 ==>2
-fhatos> *a/+/           --- <4>
+fhatos> *a/+/           // <4>
 =>[
 ==>a/b/c=>3
 ==>a/b/d=>4
 =>]
-fhatos> *a/#            --- <5>
+fhatos> *a/#            // <5>
 ==>1
 ==>2
 ==>3
 ==>4
-fhatos> *a/#/           --- <6>
+fhatos> *a/#/           // <6>
 =>[
 ==>a/a=>1
 ==>a/b=>2
@@ -983,17 +991,17 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 
 [source,mmadt]
 ----
-fhatos> abc?k1=v1&k2=v2&k3=v3                     --- <1>
+fhatos> abc?k1=v1&k2=v2&k3=v3                     // <1>
 ==>abc?k1=v1&k2=v2&k3=v3
-fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            --- <2>
+fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          --- <3>
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          // <3>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    --- <4>
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    // <4>
 ==>12
 fhatos> *abc
 ==>12
-fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
+fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   // <5>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> *abc
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
@@ -1290,14 +1298,14 @@ fhatos> m/2/3 -> 11
 ==>11
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/0      --- <1>
+fhatos> *m/0/0      // <1>
 ==>0
-fhatos> *m/0/+      --- <2>
+fhatos> *m/0/+      // <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <3>
+fhatos> *m/+/0      // <3>
 ==>0
 ==>4
 ==>8
@@ -1348,14 +1356,14 @@ fhatos> m/2 -> [8,9,10,11]
 =>]
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/0      --- <1>
+fhatos> *m/0/0      // <1>
 ==>0
-fhatos> *m/0/+      --- <2>
+fhatos> *m/0/+      // <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <3>
+fhatos> *m/+/0      // <3>
 ==>0
 ==>4
 ==>8
@@ -1409,14 +1417,14 @@ fhatos> m -> [[0,1,2,3],
 =>]
 fhatos> --- read matrix
 ==>x
-fhatos> *m/0/0      --- <1>
+fhatos> *m/0/0      // <1>
 ==>0
-fhatos> *m/0/+      --- <2>
+fhatos> *m/0/+      // <2>
 ==>0
 ==>1
 ==>2
 ==>3
-fhatos> *m/+/0      --- <3>
+fhatos> *m/+/0      // <3>
 ==>0
 ==>4
 ==>8
