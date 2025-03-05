@@ -205,6 +205,10 @@ mark {
     background-color: #43454AFF !important;
 }
 
+.MathJax {
+    color: #d1dcdd !important;
+}
+
 /* Table styles */
 table {
     background-color: var(--maincolor);
@@ -288,16 +292,12 @@ video {
 
 #header .details,
 .hljs-mmadt-rec,
-.hljs-mmadt-keyword,
 .hljs-mmadt-form,
 .hljs-fhatos-prompt-begin {
     color: #b066cd;
 }
 
-.hljs-fhatos-prompt-end {
-    color: green;
-}
-
+.hljs-fhatos-prompt-end,
 .hljs-fhatos-result-prefix {
     color: green;
 }
@@ -310,12 +310,14 @@ video {
     color: #ba3925;
 }
 
+
 .hljs-mmadt-sugar-inst,
 .hljs-mmadt-inst-f-cpp,
 .hljs-fhatos-log-warn {
     color: #c2aa2f;
 }
 
+.hljs-mmadt-keyword,
 .hljs-mmadt-uri,
 .hljs-mmadt-type {
     color: #1c72ff;
@@ -369,7 +371,19 @@ video {
 <ul class="sectlevel2">
 <li><a href="#_the_mm_adt_language">The mm-ADT Language</a>
 <ul class="sectlevel3">
-<li><a href="#_structural_types">Structural Types</a></li>
+<li><a href="#_structural_types">Structural Types</a>
+<ul class="sectlevel4">
+<li><a href="#_base_types">Base Types</a></li>
+</ul>
+</li>
+<li><a href="#_functional_types">Functional Types</a>
+<ul class="sectlevel4">
+<li><a href="#_sugar_less_mm_adt">Sugar-Less mm-ADT</a></li>
+<li><a href="#_inst_evaluation_mechanics">Inst Evaluation Mechanics</a></li>
+<li><a href="#_generalized_poly_evaluation_mechanics">Generalized Poly Evaluation Mechanics</a></li>
+<li><a href="#_obj_application">Obj Application</a></li>
+</ul>
+</li>
 <li><a href="#_values">Values</a>
 <ul class="sectlevel4">
 <li><a href="#_by_value_vs_by_reference">By Value vs. By Reference</a></li>
@@ -988,9 +1002,61 @@ An <code>obj</code> can be any one of</p>
 </li>
 </ol>
 </div>
-<div class="exampleblock">
-<div class="title">Example 1. Controlling Base Value Bit Encoding</div>
+<div class="sect4">
+<h5 id="_base_types">Base Types</h5>
+<div class="paragraph">
+<p>Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.</p>
+</div>
+<!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
+<div class="listingblock">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/int[6]
+==&gt;6
+fhatos&gt; int[6]
+==&gt;6
+fhatos&gt; 6
+==&gt;6</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph">
+<p>Examples of the aforementioned types are provided below.</p>
+</div>
+<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; true
+==&gt;true
+fhatos&gt; 42
+==&gt;42
+fhatos&gt; -64.02567
+==&gt;-64.0257
+fhatos&gt; 'the fhatty'
+==&gt;'the fhatty'
+fhatos&gt; mmadt://a/furi
+==&gt;mmadt://a/furi
+fhatos&gt; [-1,'fhat',[0,1]]
+=&gt;[
+===&gt;-1
+===&gt;'fhat'
+=&gt;[
+===&gt;0
+===&gt;1
+=&gt;]
+=&gt;]
+fhatos&gt; [a=&gt;1,b=&gt;'2',c=&gt;3.0]
+=&gt;[
+==&gt;a=&gt;1
+==&gt;b=&gt;'2'
+==&gt;c=&gt;3.000000
+=&gt;]</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+</div>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -1105,85 +1171,292 @@ fhatos&gt; @a + 1                               <i class="conum" data-value="3">
 </table>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>The <code>inst</code> <code>*</code> dereferences the <code>/fos/nat</code> fURI which points to the respective type definition.</p>
-</li>
-<li>
-<p>The <code>/fos/nat</code> type is applied to a value by wrapping the value in <code>[]</code>.</p>
-</li>
-<li>
-<p>The router&#8217;s default <code>auto-prefix</code> configuration contains <code>/fos/#</code> and thus, the shorthand <code>nat</code> can be used.</p>
-</li>
-<li>
-<p>If a type wraps a value that doesn&#8217;t satisfy the type definition, an <code>error</code> occurs.</p>
-</li>
-</ol>
+<div class="sect3">
+<h4 id="_functional_types">Functional Types</h4>
+<div class="sect4">
+<h5 id="_sugar_less_mm_adt">Sugar-Less mm-ADT</h5>
+<div class="paragraph">
+<p>In the code example above, the expression to import <code>/mmadt/ext</code> is pretty intense looking, to say the least.</p>
 </div>
-<div class="exampleblock">
-<div class="title">Example 2. Base Type Sugar</div>
-<div class="content">
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
-</td>
-</tr>
-</table>
-</div>
-<!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/int[6]
-==&gt;6
-fhatos&gt; int[6]
-==&gt;6
-fhatos&gt; 6
-==&gt;6</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">/sys/router/config/resolve/auto_prefix -&gt;  *(_) + \|[/mmadt/ext/]</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Examples of the aforementioned types are provided below.</p>
+<p>mm-ADT is actually a very simple language.
+The above line obscures this because it is using numerous <a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugars</a>.
+The "sugar-free" form of the expression above is:</p>
 </div>
-<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; true
-==&gt;true
-fhatos&gt; 42
-==&gt;42
-fhatos&gt; -64.02567
-==&gt;-64.0257
-fhatos&gt; 'the fhatty'
-==&gt;'the fhatty'
-fhatos&gt; mmadt://a/furi
-==&gt;mmadt://a/furi
-fhatos&gt; [-1,'fhat',[0,1]]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">start(&lt;/sys/router/config/resolve/auto_prefix&gt;). <i class="conum" data-value="1"></i><b>(1)</b>
+ ref(                                            <i class="conum" data-value="2"></i><b>(2)</b>
+  from(_).                                       <i class="conum" data-value="3"></i><b>(3)</b>
+  plus(                                          <i class="conum" data-value="4"></i><b>(4)</b>
+    block(&lt;/mmadt/ext&gt;)))                        <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Evaluate the mm-ADT <code>bcode</code> with <code>uri[/sys/&#8230;&#8203;]</code>.  <code>a &#8230;&#8203;</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Use the <code>uri</code> to store a value into an underlying structure. <code>a = &#8230;&#8203;</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Fetch the value to store from the <code>uri</code>. <code>a = get(a) &#8230;&#8203;</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Add to the fetched valued stored at the <code>uri</code>. <code>a = get(a) + &#8230;&#8203;</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Add <code>uri[/mmadt/ext]</code> to the fetched value. <code>a = get(a) + b</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The one instruction that was not mentioned above is <code>block</code> (sugar&#8217;d <code>|</code>).
+This is probably the most useful instruction in the whole language.
+To understand <code>block</code>, it&#8217;s necessary to first understand how instructions are evaluated.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_inst_evaluation_mechanics">Inst Evaluation Mechanics</h5>
+<div class="paragraph">
+<p>An instruction has the following form:</p>
+</div>
+<div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">input --&gt; inst(arg1, arg2, ...) --&gt; output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When an input <code>obj</code> reaches an <code>inst</code>, the following mechanical process happens:</p>
+</div>
+<div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">       ____________________
+      /        \     \     \
+     /         |     |     |
+    /          v     v     v
+input --&gt; inst(arg1, arg2, ...) --&gt; output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The diagram states that the input <code>obj</code> is applied to each argument, the result of which are the actual arguments provided to the <code>inst</code>.
+The <code>inst</code> is thus, generally defined as:</p>
+</div>
+<div class="stemblock center">
+<div class="content">
+\[
+\begin{align*}
+x \cdot f(args...) &amp; \rightarrow y \\
+f(x,x \cdot args...) &amp; \rightarrow y \\
+f(x,x \cdot args_1, x \cdot args_2, ...) &amp; \rightarrow y \\
+\end{align*}
+\]
+</div>
+</div>
+<div class="paragraph">
+<p>What separates <code>inst</code> from other <code>poly</code> types such as <code>lst</code> and <code>rec</code> (discussed next) is that it mounts a <a href="https://en.wikipedia.org/wiki/Thread-local_storage">thread-local</a> structure on the router called a <code>fos:frame</code>.
+The router supports a chain <code>fos:frame</code> structures and, in this way, <code>fos:frame</code> serves the purpose of a <a href="https://en.wikipedia.org/wiki/Call_stack">callstack</a>, where the arguments of the <code>inst</code> can be dereferenced within the body of the <code>inst</code>.</p>
+</div>
+<!-- 🐖 ./main_runner.out "34.make_bigger(a=>plus(10))[plus(*a)]" -->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 34.make_bigger(a=&gt;plus(10))[plus(*a)]
+==&gt;78</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="paragraph">
+<p>In the example above, <code>make_bigger</code> is defined "on the fly" (a "named lambda", if one chooses to see it as such) where the argument <code>a</code> can be dereferenced within the body of the <code>inst</code> <code>[ &#8230;&#8203; ]</code>.
+The input to the body of the <code>inst</code> is, as can be expected, the left-hand side <code>int[34]</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_generalized_poly_evaluation_mechanics">Generalized Poly Evaluation Mechanics</h5>
+<div class="paragraph">
+<p>The <code>fos:frame</code> is the only aspect of an <code>inst</code> that makes it unique because every <code>poly</code>-type supports the same internally recursive application of an left-hand side <code>obj</code>.
+For example, see how the internal <code>objs</code> if a <code>lst</code> are effected by the application of an <code>obj</code> outside of the <code>lst</code>.</p>
+</div>
+<div class="sect5">
+<h6 id="_lst_application">Lst Application</h6>
+<!-- 🐖 ./main_runner.out
+2.lst[[1,plus(2),mult(plus(3)),'a']]
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.lst[[1,plus(2),mult(plus(3)),'a']]
 =&gt;[
-===&gt;-1
-===&gt;'fhat'
-=&gt;[
-===&gt;0
 ===&gt;1
-=&gt;]
-=&gt;]
-fhatos&gt; [a=&gt;1,b=&gt;'2',c=&gt;3.0]
-=&gt;[
-==&gt;a=&gt;1
-==&gt;b=&gt;'2'
-==&gt;c=&gt;3.000000
+===&gt;4
+===&gt;10
+===&gt;'a'
 =&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
+<div class="paragraph">
+<p>Note that the application is recursive in that <code>1.mult(plus(3))</code> is evaluated as follows:</p>
+</div>
+<div class="stemblock center">
+<div class="content">
+\[
+\begin{align*}
+2 \cdot \times(+(3)) &amp; \rightarrow 10 \\
+\times(2,2 \cdot +(3)) &amp; \rightarrow 10 \\
+\times(2, +(2,2 \cdot 3)) &amp; \rightarrow 10 \\
+\times(2, +(2,3)) &amp; \rightarrow 10 \\
+\times(2, 5) &amp; \rightarrow 10 \\
+10 &amp; \rightarrow 10 \\
+\end{align*}
+\]
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_rec_application">Rec Application</h6>
+<div class="paragraph">
+<p>A <code>rec</code> behaves in a similar manner to <code>lst</code> and <code>inst</code> when a left-hand side <code>obj</code> is applied to it. However, what makes
+<code>rec</code> interesting and useful beyond a data storage structure is it&#8217;s <em>delayed evaluation semantics</em> denoted by <code>&#8658;</code>.</p>
+</div>
+<!-- 🐖 ./main_runner.out
+2.rec[[is(gt(2)) => plus(2), _ => 0]]
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]
+=&gt;[
+==&gt;2=&gt;0
+=&gt;]</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="paragraph">
+<p>This feature of <code>rec</code> make it both a data structure and a flow control structure as once an <code>obj</code> has been applied to <code>rec</code>,
+the values of <code>rec</code> can be "drained". For instance,</p>
+</div>
+<!-- 🐖 ./main_runner.out
+{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <1>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <2>
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="1"></i><b>(1)</b>
+=&gt;[
+==&gt;1=&gt;noobj
+=&gt;]
+=&gt;[
+==&gt;2=&gt;noobj
+=&gt;]
+=&gt;[
+==&gt;3=&gt;_
+=&gt;]
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;3</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A stream of <code>objs</code> is applied one-by-one to the <code>rec</code> yielding a new internally-applied <code>rec</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The internally-applied <code>rec</code> is "drained" via the <code>merge</code> <code>inst</code> (sugar&#8217;d <code>&gt;-</code>).</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the above example, since <code>1</code> and <code>2</code> were mapped to <code>noobj</code>, they are effectively removed from the execution pipeline.
+However, because <code>3</code> is <code>gt(2)</code>, it is mapped to <code>_</code> (its self). Thus, when <code>&gt;-</code> is applied to this <code>rec</code>, the result is
+<code>{noobj,noobj,3}</code> which is equivalent to <code>{3}</code>. In this way, <code>rec</code> is both a data structure and a flow control structure.</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>merge</code> (sugar&#8217;d <code>&gt;-</code>) instruction has a correlate: <code>split</code> (sugar&#8217;d <code>-&lt;</code>). The way to think of these two
+instructions is that they either branch a serial execution pipeline (<code>split</code>) or the join a collection of parallel
+executing pipelines (<code>merge</code>). Interestingly, the application of an <code>obj</code> to a <code>poly</code> implements the <code>split</code> instruction.
+So why does an explicit <code>split</code> instruction exist? Because there are other ways in which branching pipelines can be defined
+and evaluated. This will be discussed later when discussing <code>fos:thread</code>, <code>fos:coroutine</code>, and <code>fos:fiber</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_obj_application">Obj Application</h5>
+<div class="paragraph">
+<p>The universal application of <code>.</code> (apply) implies that every <code>obj</code> is a function as every <code>obj</code> can have another <code>obj</code> applied to it.
+This is, in fact, the case.</p>
+</div>
+<!-- 🐖 ./main_runner.out
+1.plus(1)         // <1>
+1. 2              // <2>
+1.2.2             // <3>
+[1,2,3].<1>       // <4>
+[a=>1,b=>2].b     // <5>
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 1.plus(1)         <i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;2
+fhatos&gt; 1. 2              <i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;2
+fhatos&gt; 1.2.2             <i class="conum" data-value="3"></i><b>(3)</b>
+==&gt;2
+fhatos&gt; [1,2,3].&lt;1&gt;       <i class="conum" data-value="4"></i><b>(4)</b>
+==&gt;2
+fhatos&gt; [a=&gt;1,b=&gt;2].b     <i class="conum" data-value="5"></i><b>(5)</b>
+==&gt;2</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>int[1]</code> applied to <code>inst[plus(1)]</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>int[1]</code> applied to <code>int[2]</code> (the space before <code>.</code> is necessary to avoid parsing as a <code>real</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>real[1.2]</code> applied to <code>int[2]</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>lst[[1,2,3]]</code> applied to the <code>uri[1]</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>rec[[a&#8658;1,b&#8658;2]]</code> applied to the <code>uri[b]</code>.</td>
+</tr>
+</table>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_values">Values</h4>
@@ -1936,8 +2209,7 @@ This section will explore the following considerations when designing a <em>mult
 <div class="paragraph">
 <p>A <em>matrix</em> is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
 A relational database <em>table</em> is an example of a matrix, where the entries typically span numeric and non-numeric data types.
-Three general approaches to embedding a matrix or table into a <code>fos:structure</code> are presented below,
-where each makes different space/time tradeoffs.</p>
+Three general approaches to embedding a matrix or table into a <code>fos:structure</code> are presented below, where each makes different space/time tradeoffs.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -2044,16 +2316,10 @@ fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
---- write matrix
-m/0 -> [0,1,2,3]
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix
-*m/0/0      --- <1>
-*m/0/+      --- <2>
-*m/+/0      --- <3>
--->
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2094,16 +2360,10 @@ fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
---- write matrix
-m -> [[0,1,2,3], /
-      [4,5,6,7], /
-      [8,9,10,11]]
---- read matrix
-*m/0/0      --- <1>
-*m/0/+      --- <2>
-*m/+/0      --- <3>
--->
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
+[4,5,6,7], /
+[8,9,10,11]]
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
@@ -2632,7 +2892,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 11:57:25 -0700
+Last updated 2025-03-05 15:21:18 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

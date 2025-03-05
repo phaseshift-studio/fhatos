@@ -442,8 +442,74 @@ The 7 structural types (5 mono-types and 2 poly-types) are described below.
 . `/mmadt/lst`: An (un)ordered collection of zero or more `objs`.
 . `/mmadt/rec`: An (un)ordered collection of key/value pair `objs`, where keys are unique.
 
+
+===== Base Types
+
+Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
+
+++++
+<!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
+++++
+
+[source,mmadt]
+----
+fhatos> /mmadt/int[6]
+==>6
+fhatos> int[6]
+==>6
+fhatos> 6
+==>6
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+====
+
+Examples of the aforementioned types are provided below.
+
+++++
+<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
+++++
+
+[source,mmadt]
+----
+fhatos> true
+==>true
+fhatos> 42
+==>42
+fhatos> -64.02567
+==>-64.0257
+fhatos> 'the fhatty'
+==>'the fhatty'
+fhatos> mmadt://a/furi
+==>mmadt://a/furi
+fhatos> [-1,'fhat',[0,1]]
+=>[
+===>-1
+===>'fhat'
+=>[
+===>0
+===>1
+=>]
+=>]
+fhatos> [a=>1,b=>'2',c=>3.0]
+=>[
+==>a=>1
+==>b=>'2'
+==>c=>3.000000
+=>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+
 .Controlling Base Value Bit Encoding
 ====
+
 TIP: The bit-length of `int` and `real` can be specified at boot time via the boot-loader.
 Other machines in the cluster with a different bit-length encodings can still be communicated with.
 However, overflow is possible, but can be automatically checked using types in `/mmadt/ext/` such as:
@@ -541,74 +607,247 @@ fhatos> @a + 1                               // <3>
 <3> Triggering `int8` type error by overflowing its numeric range.
 
 |===
-====
 
-. The `inst` `*` dereferences the `/fos/nat` fURI which points to the respective type definition.
-. The `/fos/nat` type is applied to a value by wrapping the value in `[]`.
-. The router's default `auto-prefix` configuration contains `/fos/#` and thus, the shorthand `nat` can be used.
-. If a type wraps a value that doesn't satisfy the type definition, an `error` occurs.
+==== Functional Types
 
-.Base Type Sugar
-====
-TIP: Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
+===== Sugar-Less mm-ADT
+
+In the code example above, the expression to import `/mmadt/ext` is pretty intense looking, to say the least.
+
+[source,mmadt]
+----
+/sys/router/config/resolve/auto_prefix ->  *(_) + \|[/mmadt/ext/]
+----
+
+mm-ADT is actually a very simple language.
+The above line obscures this because it is using numerous https://en.wikipedia.org/wiki/Syntactic_sugar[syntactic sugars].
+The "sugar-free" form of the expression above is:
+
+[source,mmadt]
+----
+start(</sys/router/config/resolve/auto_prefix>). // <1>
+ ref(                                            // <2>
+  from(_).                                       // <3>
+  plus(                                          // <4>
+    block(</mmadt/ext>)))                        // <5>
+----
+
+<1> Evaluate the mm-ADT `bcode` with `uri[/sys/...]`.  `a ...`
+<2> Use the `uri` to store a value into an underlying structure. `a = ...`
+<3> Fetch the value to store from the `uri`. `a = get(a) ...`
+<4> Add to the fetched valued stored at the `uri`. `a = get(a) + ...`.
+<5> Add `uri[/mmadt/ext]` to the fetched value. `a = get(a) + b`.
+
+The one instruction that was not mentioned above is `block` (sugar'd `|`).
+This is probably the most useful instruction in the whole language.
+To understand `block`, it's necessary to first understand how instructions are evaluated.
+
+===== Inst Evaluation Mechanics
+
+An instruction has the following form:
+
+[source,mmadt,role=center]
+----
+input --> inst(arg1, arg2, ...) --> output
+----
+
+When an input `obj` reaches an `inst`, the following mechanical process happens:
+
+[source,mmadt,role="center"]
+----
+       ____________________
+      /        \     \     \
+     /         |     |     |
+    /          v     v     v
+input --> inst(arg1, arg2, ...) --> output
+----
+
+The diagram states that the input `obj` is applied to each argument, the result of which are the actual arguments provided to the `inst`.
+The `inst` is thus, generally defined as:
+
+[stem,role=center]
+++++
+\[
+\begin{align*}
+x \cdot f(args...) & \rightarrow y \\
+f(x,x \cdot args...) & \rightarrow y \\
+f(x,x \cdot args_1, x \cdot args_2, ...) & \rightarrow y \\
+\end{align*}
+\]
+++++
+
+What separates `inst` from other `poly` types such as `lst` and `rec` (discussed next) is that it mounts a https://en.wikipedia.org/wiki/Thread-local_storage[thread-local] structure on the router called a `fos:frame`.
+The router supports a chain `fos:frame` structures and, in this way, `fos:frame` serves the purpose of a https://en.wikipedia.org/wiki/Call_stack[callstack], where the arguments of the `inst` can be dereferenced within the body of the `inst`.
 
 ++++
-<!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
+<!-- 🐖 ./main_runner.out "34.make_bigger(a=>plus(10))[plus(*a)]" -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> /mmadt/int[6]
-==>6
-fhatos> int[6]
-==>6
-fhatos> 6
-==>6
+fhatos> 34.make_bigger(a=>plus(10))[plus(*a)]
+==>78
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
-====
 
-Examples of the aforementioned types are provided below.
+In the example above, `make_bigger` is defined "on the fly" (a "named lambda", if one chooses to see it as such) where the argument `a` can be dereferenced within the body of the `inst` `[ ... ]`.
+The input to the body of the `inst` is, as can be expected, the left-hand side `int[34]`.
+
+===== Generalized Poly Evaluation Mechanics
+
+The `fos:frame` is the only aspect of an `inst` that makes it unique because every `poly`-type supports the same internally recursive application of an left-hand side `obj`.
+For example, see how the internal `objs` if a `lst` are effected by the application of an `obj` outside of the `lst`.
+
+====== Lst Application
 
 ++++
-<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
+<!-- 🐖 ./main_runner.out
+2.lst[[1,plus(2),mult(plus(3)),'a']]
+-->
 ++++
 
 [source,mmadt]
 ----
-fhatos> true
-==>true
-fhatos> 42
-==>42
-fhatos> -64.02567
-==>-64.0257
-fhatos> 'the fhatty'
-==>'the fhatty'
-fhatos> mmadt://a/furi
-==>mmadt://a/furi
-fhatos> [-1,'fhat',[0,1]]
+fhatos> 2.lst[[1,plus(2),mult(plus(3)),'a']]
 =>[
-===>-1
-===>'fhat'
-=>[
-===>0
 ===>1
-=>]
-=>]
-fhatos> [a=>1,b=>'2',c=>3.0]
-=>[
-==>a=>1
-==>b=>'2'
-==>c=>3.000000
+===>4
+===>10
+===>'a'
 =>]
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
+
+Note that the application is recursive in that `1.mult(plus(3))` is evaluated as follows:
+
+[stem,role=center]
+++++
+\[
+\begin{align*}
+2 \cdot \times(+(3)) & \rightarrow 10 \\
+\times(2,2 \cdot +(3)) & \rightarrow 10 \\
+\times(2, +(2,2 \cdot 3)) & \rightarrow 10 \\
+\times(2, +(2,3)) & \rightarrow 10 \\
+\times(2, 5) & \rightarrow 10 \\
+10 & \rightarrow 10 \\
+\end{align*}
+\]
+++++
+
+
+====== Rec Application
+
+A `rec` behaves in a similar manner to `lst` and `inst` when a left-hand side `obj` is applied to it. However, what makes
+`rec` interesting and useful beyond a data storage structure is it's _delayed evaluation semantics_ denoted by `=>`.
+
+++++
+<!-- 🐖 ./main_runner.out
+2.rec[[is(gt(2)) => plus(2), _ => 0]]
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> 2.rec[[is(gt(2)) => plus(2), _ => 0]]
+=>[
+==>2=>0
+=>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+This feature of `rec` make it both a data structure and a flow control structure as once an `obj` has been applied to `rec`,
+the values of `rec` can be "drained". For instance,
+
+++++
+<!-- 🐖 ./main_runner.out
+{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <1>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <2>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <1>
+=>[
+==>1=>noobj
+=>]
+=>[
+==>2=>noobj
+=>]
+=>[
+==>3=>_
+=>]
+fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <2>
+==>3
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> A stream of `objs` is applied one-by-one to the `rec` yielding a new internally-applied `rec`.
+<2> The internally-applied `rec` is "drained" via the `merge` `inst` (sugar'd `>-`).
+
+In the above example, since `1` and `2` were mapped to `noobj`, they are effectively removed from the execution pipeline.
+However, because `3` is `gt(2)`, it is mapped to `_` (its self). Thus, when `>-` is applied to this `rec`, the result is
+`{noobj,noobj,3}` which is equivalent to `{3}`. In this way, `rec` is both a data structure and a flow control structure.
+
+====
+NOTE: The `merge` (sugar'd `>-`) instruction has a correlate: `split` (sugar'd `-<`). The way to think of these two
+instructions is that they either branch a serial execution pipeline (`split`) or the join a collection of parallel
+executing pipelines (`merge`). Interestingly, the application of an `obj` to a `poly` implements the `split` instruction.
+So why does an explicit `split` instruction exist? Because there are other ways in which branching pipelines can be defined
+and evaluated. This will be discussed later when discussing `fos:thread`, `fos:coroutine`, and `fos:fiber`.
+====
+
+
+===== Obj Application
+
+The universal application of `.` (apply) implies that every `obj` is a function as every `obj` can have another `obj` applied to it.
+This is, in fact, the case.
+
+++++
+<!-- 🐖 ./main_runner.out
+1.plus(1)         // <1>
+1. 2              // <2>
+1.2.2             // <3>
+[1,2,3].<1>       // <4>
+[a=>1,b=>2].b     // <5>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> 1.plus(1)         // <1>
+==>2
+fhatos> 1. 2              // <2>
+==>2
+fhatos> 1.2.2             // <3>
+==>2
+fhatos> [1,2,3].<1>       // <4>
+==>2
+fhatos> [a=>1,b=>2].b     // <5>
+==>2
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> `int[1]` applied to `inst[plus(1)]`.
+<2> `int[1]` applied to `int[2]` (the space before `.` is necessary to avoid parsing as a `real`).
+<3> `real[1.2]` applied to `int[2]`.
+<4> `lst[[1,2,3]]` applied to the `uri[1]`.
+<5> `rec[[a=>1,b=>2]]` applied to the `uri[b]`.
 
 ==== Values
 
@@ -1203,8 +1442,7 @@ fhatos> 1.plus(2)
 
 A _matrix_ is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
 A relational database _table_ is an example of a matrix, where the entries typically span numeric and non-numeric data types.
-Three general approaches to embedding a matrix or table into a `fos:structure` are presented below,
-where each makes different space/time tradeoffs.
+Three general approaches to embedding a matrix or table into a `fos:structure` are presented below, where each makes different space/time tradeoffs.
 
 [cols="5,5,5",separator=🧱]
 |===
@@ -1318,16 +1556,11 @@ fhatos> *m/+/0      // <3>
 a🧱
 ++++
 
-<!-- 🐖 ./main_runner.out
---- write matrix
-m/0 -> [0,1,2,3]
+<!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix
-*m/0/0      --- <1>
-*m/0/+      --- <2>
-*m/+/0      --- <3>
--->
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+
 ++++
 
 [source,mmadt]
@@ -1370,6 +1603,7 @@ fhatos> *m/+/0      // <3>
 ----
 
 ++++
+
 <!-- 🐓 -->
 
 ++++
@@ -1377,16 +1611,11 @@ fhatos> *m/+/0      // <3>
 a🧱
 ++++
 
-<!-- 🐖 ./main_runner.out
---- write matrix
-m -> [[0,1,2,3], /
-      [4,5,6,7], /
-      [8,9,10,11]]
---- read matrix
-*m/0/0      --- <1>
-*m/0/+      --- <2>
-*m/+/0      --- <3>
--->
+<!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
+[4,5,6,7], /
+[8,9,10,11]]
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+
 ++++
 
 [source,mmadt]
@@ -1431,6 +1660,7 @@ fhatos> *m/+/0      // <3>
 ----
 
 ++++
+
 <!-- 🐓 -->
 
 ++++
