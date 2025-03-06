@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6912]
+[INFO]  [/sys/router] main memory [total=>6784]
 [INFO]  [/sys/router] heap <none> spanning /sys/# attached
 [INFO]  [/sys/router] heap <none> spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -620,9 +620,16 @@ image:trill.png[width=150,float=right,title=trill] In the code example above, th
 ----
 
 mm-ADT is actually a very simple language.
-The above line obscures this because it is using numerous https://en.wikipedia.org/wiki/Syntactic_sugar[syntactic sugars].
-The "sugar-free" form of the expression above is:
+It has a few moving parts that drive the entire computation.
+Understanding these fundamentals is the key to mastering mm-ADT.
+The line above looks daunting because it contains numerous https://en.wikipedia.org/wiki/Syntactic_sugar[syntactic sugars].
+Specifically, the binary and unary operators `->` (binary), `*` (unary), `_` (unary), `+` (binary), and `|` (unary).
+These operators parse down to instructions which have a familiar functional form of `f(a,b,c,...)`.
+For example, the above expression in a sugar-free form is written below:
 
+[cols="2,2"]
+|===
+a|
 [source,mmadt]
 ----
 start(</sys/router/config/resolve/auto_prefix>). // <1>
@@ -631,36 +638,102 @@ start(</sys/router/config/resolve/auto_prefix>). // <1>
   plus(                                          // <4>
     block(</mmadt/ext>)))                        // <5>
 ----
-
+a|
 <1> Evaluate the mm-ADT `bcode` with `uri[/sys/...]`.  `a ...`
-<2> Use the `uri` to store a value into an underlying structure. `a = ...`
-<3> Fetch the value to store from the `uri`. `a = get(a) ...`
-<4> Add to the fetched valued stored at the `uri`. `a = get(a) + ...`.
-<5> Add `uri[/mmadt/ext]` to the fetched value. `a = get(a) + b`.
+<2> Use `uri[/sys/...]` as the address to store a value in an underlying structure. `a = ...`
+<3> Fetch the value to store from the `uri[/sys/...]`. `a = get(a) ...`
+<4> Add to the value stored at `uri[/sys/...]` to ... `a = get(a) + ...`.
+<5> ... `uri[/mmadt/ext]`. `a = get(a) + b`.
+|===
 
-The one instruction that was not mentioned above is `block` (sugar'd `|`).
-This is probably the most useful instruction in the whole language.
-To understand `block`, it's necessary to first understand how instructions are evaluated.
+Given that `uri[/sys/router/config/resolve/auto_prefix]` resolves to a `lst` of `uris`,
+`uri[/mmadt/ext]` is added that that `lst` and the updated `lst` is written back to
+`uri[/sys/router/config/resolve/auto_prefix]`.
+
+The one instruction that was not discussed above is `block` (sugar'd `|`).
+This is perhaps the most useful instruction in the whole of mm-ADT and knowing how to uses is absoluately crucial to being competent with the language.
+Moreover, when `block` is understood, so is a large portion of the language understood as well.
+Before diving into `block`, it's important to first realize how instructions are evaluated.
+For this, the fundamental, immutable instruction `apply` (sugar'd `.`) is the perfect place to start.
 
 ===== Inst Evaluation Mechanics
 
-An instruction has the following form:
-
-[source,mmadt,role=center]
-----
-input --> inst(arg1, arg2, ...) --> output
-----
-
-When an input `obj` reaches an `inst`, the following mechanical process happens:
+An mm-ADT `inst` is an https://en.wikipedia.org/wiki/Instruction_set_architecture#Instructions[instruction].
+More generally, a https://en.wikipedia.org/wiki/Function_(computer_programming)[function].
+More abstractly, a https://en.wikipedia.org/wiki/Function_(mathematics)[function].
+Syntactically, an `inst` has the form:
 
 [source,mmadt,role="center"]
 ----
-       ____________________
-      /        \     \     \
-     /         |     |     |
-    /          v     v     v
-input --> inst(arg1, arg2, ...) --> output
+type?rng{coeff}<=dom{coeff}(arg1, arg2, ...) [bcode]
 ----
+
+[.center]
+[stem]
+++++
+f(\mathcal{Dom}^{C} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Rng}^{C}
+++++
+
+The fURI query _type-specification_ is more advanced and requires an understanding of structure query processors.
+As such, for now, realize an `inst` to have the form:
+
+[source,mmadt,role="center"]
+----
+type(arg1, arg2, ...) [bcode]
+----
+
+[.center]
+[stem]
+++++
+f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\texttt{rng}}
+++++
+
+In order to evaluate an `inst` an `obj` must be _applied_ to it.
+Application is sugar'd `.`.
+
+[source,mmadt,role=center]
+----
+      inst(arg1, arg2, ...)
+obj_d.inst(arg1, arg2, ...)
+      inst(arg1, arg2, ...) => obj_r
+----
+
+When an `obj` is applied to an `inst`, the `obj` is called the _left-hand side_ `obj`.
+This `obj` is the catalyst for a cascade of events that take place across the `inst` arguments and internal `bcode`.
+The sequence of events are diagrammatically represented in the graphical explanation below where each line is a new timestep in the process.
+
+[cols="6,9"]
+|===
+a|
+[source,mmadt,role="center"]
+----
+        ┌────────────────────┐
+        ├──────────────┐     │
+        ├────────┐     │     │
+obj_d ──├─> inst(arg1, arg2, ...)
+        │         └─────┤   ┌─┘
+        │               │   │
+        └─────────────>[x.y.z]─────> obj_r
+
+----
+a|
+[source,mmadt,role="center"]
+----
+      inst(arg1, arg2, ...)             [x.y.z]             // <1>
+obj_d.inst(arg1, arg2, ...)             [x.y.z]             // <2>
+      inst(obj_d.arg1, obj_d.arg2, ...) [x.y.z]             // <3>
+      inst(arg1_d, arg2_d, ...)         [obj_d.x.y.z]       // <4>
+      inst(arg1_d, arg2_d, ...)         [x.y.z => obj_r]    // <5>
+      inst(arg1, arg2, ...) => obj_r    [x.y.z]             // <6>
+----
+|===
+
+<1> The `inst` with a collection of arguments and a `bcode` body called __inst_f__.
+<2> A left-hand side `obj` is applied to the `inst`.
+<3> The left-hand side `obj` is split across all arguments and applied to each.
+<4> When all argument applications have completed, the left-hand side `obj` percolates through the `bcode`.
+<5> The right-hand side `obj` produced by the `bcode` is the result of the application.
+<6> The right-hand side `obj` becomes the input to the next `inst` in the large `bcode` expression (not shown).
 
 The diagram states that the input `obj` is applied to each argument, the result of which are the actual arguments provided to the `inst`.
 The `inst` is thus, generally defined as:
@@ -724,7 +797,8 @@ fhatos> 2.lst[[1,plus(2),mult(plus(3)),'a']]
 <!-- 🐓 -->
 ++++
 
-Note that the application is recursive in that `1.mult(plus(3))` is evaluated as follows:
+Note that the application is recursive.
+For example, `2.mult(plus(3))` is evaluated as follows:
 
 [stem,role=center]
 ++++
@@ -740,10 +814,10 @@ Note that the application is recursive in that `1.mult(plus(3))` is evaluated as
 \]
 ++++
 
-
 ====== Rec Application
 
-A `rec` behaves in a similar manner to `lst` and `inst` when a left-hand side `obj` is applied to it. However, what makes
+A `rec` behaves in a similar manner to `lst` and `inst` when a left-hand side `obj` is applied to it.
+However, what makes
 `rec` interesting and useful beyond a data storage structure is it's _delayed evaluation semantics_ denoted by `=>`.
 
 ++++
@@ -764,8 +838,8 @@ fhatos> 2.rec[[is(gt(2)) => plus(2), _ => 0]]
 <!-- 🐓 -->
 ++++
 
-This feature of `rec` make it both a https://en.wikipedia.org/wiki/Data_structure[data structure] and a https://en.wikipedia.org/wiki/Control_flow[flow control structure] as once an `obj` has been applied to `rec`,
-the values of `rec` can be "drained". For instance, `if` is implemented with a two entry `rec`, where one entry maps to `noobj`.
+This feature of `rec` make it both a https://en.wikipedia.org/wiki/Data_structure[data structure] and a https://en.wikipedia.org/wiki/Control_flow[flow control structure] as once an `obj` has been applied to `rec`, the values of `rec` can be "drained".
+For instance, `if` is implemented with a two entry `rec`, where one entry maps to `noobj`.
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -798,24 +872,135 @@ fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <2>
 <2> The internally-applied `rec` is "drained" via the `merge` `inst` (sugar'd `>-`).
 
 In the above example, since `1` and `2` were mapped to `noobj`, they are effectively removed from the execution pipeline.
-However, because `3` is `gt(2)`, it is mapped to `_` (its self). Thus, when `>-` is applied to this `rec`, the result is
-`{noobj,noobj,3}` which is equivalent to `{3}`. In this way, `rec` is both a data structure and a flow control structure.
+However, because `3` is `gt(2)`, it is mapped to `_` (its self).
+Thus, when `>-` is applied to this `rec`, the result is
+`{noobj,noobj,3}` which is equivalent to `{3}`.
+In this way, `rec` is both a data structure and a flow control structure.
 
-It's not difficult to realize how an "if"-`rec` generalizes to support
-"https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else)[if-else]",
-"https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements[switch]",
-"https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals[guards]",
-"https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching[pattern matching]"
-"https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals[hash-conditionals]",
-and other variations on the computing's most universal theme: "https://en.wikipedia.org/wiki/Branch_(computer_science)[branch]".
+It's not difficult to realize how an "if"-`rec` generalizes to support the various plays on one of computing's most important concepts: https://en.wikipedia.org/wiki/Branch_(computer_science)[the branch].
 
+[cols="2,2",separator=🧱]
+|===
+a🧱
+
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
+{1,2,3}.[                  /
+  is(gt(2)) => mult(-1),   /
+  _         => mult(100)]>-
+-->
+++++
+
+.if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
+[source,mmadt]
+----
+fhatos> {1,2,3}.[                 
+          is(gt(2)) => mult(-1),  
+          _         => mult(100)]>-
+==>100
+==>200
+==>-3
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
+{1,2,3}.[               /
+  is(eq(1)) => mult(-1),    /
+  is(eq(2)) => mult(0),     /
+  is(eq(3)) => _]>-
+-->
+++++
+
+.switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
+[source,mmadt]
+----
+fhatos> {1,2,3}.[              
+          is(eq(1)) => mult(-1),   
+          is(eq(2)) => mult(0),    
+          is(eq(3)) => _]>-
+==>-1
+==>0
+==>3
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
+--- todo
+-->
+++++
+
+.guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
+[source,mmadt]
+----
+fhatos> --- todo
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
+--- todo
+-->
+++++
+
+.pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
+[source,mmadt]
+----
+fhatos> --- todo
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
+--- todo
+-->
+++++
+
+.conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
+[source,mmadt]
+----
+fhatos> --- todo
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+|===
 
 ====
-NOTE: The `merge` (sugar'd `>-`) instruction has a correlate: `split` (sugar'd `-<`). The way to think of these two
-instructions is that they either branch a serial execution pipeline (`split`) or the join a collection of parallel
-executing pipelines (`merge`). Interestingly, the application of an `obj` to a `poly` implements the `split` instruction.
-So why does an explicit `split` instruction exist? Because there are other ways in which branching pipelines can be defined
-and evaluated. This will be discussed later when discussing `fos:thread`, `fos:coroutine`, and `fos:fiber`.
+NOTE: The `merge` (sugar'd `>-`) instruction has a correlate: `split` (sugar'd `-<`).
+The way to think of these two instructions is that they either branch a serial execution pipeline (`split`) or the join a collection of parallel executing pipelines (`merge`).
+Interestingly, the application of an `obj` to a `poly` implements the `split` instruction.
+So why does an explicit `split` instruction exist?
+Because there are other ways in which branching pipelines can be defined and evaluated.
+This will be discussed later when discussing `fos:thread`, `fos:coroutine`, and `fos:fiber`.
 ====
 
 ====== Obj Application

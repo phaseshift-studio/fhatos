@@ -166,10 +166,15 @@ class ProcessingState:
             self.output,
             list,
         ), f"Output must be a list, not {type(self.output)}, line: {line}"
-        preamble = ["++++", "", "[source,mmadt]", "----"]
+        pre_header = ["++++", ""]
+        post_header = ["[source,mmadt]", "----"]
         new_output = []
+        new_header = []
         for c in self.output:
-            new_output.append(self._post_process_output(c, self.in_table))
+            if c.startswith("[HEADER] "):
+                new_header.append(c.removeprefix("[HEADER] "))
+            else:
+                new_output.append(self._post_process_output(c, self.in_table))
         ###################################################################
         if not self.in_table:
             new_line = line.replace("\\|", "|").replace("|", "\\|")
@@ -178,7 +183,9 @@ class ProcessingState:
         else:
             if line:
                 self.new_lines.append(line)
-        self.new_lines.extend(preamble)
+        self.new_lines.extend(pre_header)
+        self.new_lines.extend(new_header)
+        self.new_lines.extend(post_header)
         self.new_lines.extend(new_output)
         self.new_lines.pop()
         self.new_lines.extend(["----"])
@@ -186,13 +193,22 @@ class ProcessingState:
 
     def _process_chicken_code(self, *, verbose: bool) -> None:
         print(f"code: {self.code}")
-        self.output = execute_code(
-            self.code,
+        to_header = []
+        to_execute = []
+        for line in self.code:
+            if line.startswith("[HEADER]"):
+                to_header.append(line)
+            else:
+                to_execute.append(line)
+        self.output = []
+        self.output.extend(to_header)
+        self.output.extend(execute_code(
+            to_execute,
             self.context,
             "bash",
             output_file=self.backtick_options.get("filename"),
             verbose=verbose,
-        )
+        ))
         self.code = []
         self.backtick_options = {}
 

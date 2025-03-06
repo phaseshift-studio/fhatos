@@ -302,6 +302,7 @@ video {
     color: green;
 }
 
+.hljs-mmadt-pipe,
 .hljs-fhatos-log-info {
     color: limegreen;
 }
@@ -591,7 +592,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6912]
+[INFO]  [/sys/router] main memory [total=&gt;6784]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# attached
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# attached
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
@@ -1184,10 +1185,21 @@ fhatos&gt; @a + 1                               <i class="conum" data-value="3">
 </div>
 <div class="paragraph">
 <p>mm-ADT is actually a very simple language.
-The above line obscures this because it is using numerous <a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugars</a>.
-The "sugar-free" form of the expression above is:</p>
+It has a few moving parts that drive the entire computation.
+Understanding these fundamentals is the key to mastering mm-ADT.
+The line above looks daunting because it contains numerous <a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugars</a>.
+Specifically, the binary and unary operators <code>&#8594;</code> (binary), <code>*</code> (unary), <code>_</code> (unary), <code>+</code> (binary), and <code>|</code> (unary).
+These operators parse down to instructions which have a familiar functional form of <code>f(a,b,c,&#8230;&#8203;)</code>.
+For example, the above expression in a sugar-free form is written below:</p>
 </div>
-<div class="listingblock">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">start(&lt;/sys/router/config/resolve/auto_prefix&gt;). <i class="conum" data-value="1"></i><b>(1)</b>
  ref(                                            <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1195,8 +1207,8 @@ The "sugar-free" form of the expression above is:</p>
   plus(                                          <i class="conum" data-value="4"></i><b>(4)</b>
     block(&lt;/mmadt/ext&gt;)))                        <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
 </div>
-</div>
-<div class="colist arabic">
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
@@ -1204,49 +1216,144 @@ The "sugar-free" form of the expression above is:</p>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Use the <code>uri</code> to store a value into an underlying structure. <code>a = &#8230;&#8203;</code></td>
+<td>Use <code>uri[/sys/&#8230;&#8203;]</code> as the address to store a value in an underlying structure. <code>a = &#8230;&#8203;</code></td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Fetch the value to store from the <code>uri</code>. <code>a = get(a) &#8230;&#8203;</code></td>
+<td>Fetch the value to store from the <code>uri[/sys/&#8230;&#8203;]</code>. <code>a = get(a) &#8230;&#8203;</code></td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Add to the fetched valued stored at the <code>uri</code>. <code>a = get(a) + &#8230;&#8203;</code>.</td>
+<td>Add to the value stored at <code>uri[/sys/&#8230;&#8203;]</code> to &#8230;&#8203; <code>a = get(a) + &#8230;&#8203;</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Add <code>uri[/mmadt/ext]</code> to the fetched value. <code>a = get(a) + b</code>.</td>
+<td>&#8230;&#8203; <code>uri[/mmadt/ext]</code>. <code>a = get(a) + b</code>.</td>
 </tr>
 </table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Given that <code>uri[/sys/router/config/resolve/auto_prefix]</code> resolves to a <code>lst</code> of <code>uris</code>,
+<code>uri[/mmadt/ext]</code> is added that that <code>lst</code> and the updated <code>lst</code> is written back to
+<code>uri[/sys/router/config/resolve/auto_prefix]</code>.</p>
 </div>
 <div class="paragraph">
-<p>The one instruction that was not mentioned above is <code>block</code> (sugar&#8217;d <code>|</code>).
-This is probably the most useful instruction in the whole language.
-To understand <code>block</code>, it&#8217;s necessary to first understand how instructions are evaluated.</p>
+<p>The one instruction that was not discussed above is <code>block</code> (sugar&#8217;d <code>|</code>).
+This is perhaps the most useful instruction in the whole of mm-ADT and knowing how to uses is absoluately crucial to being competent with the language.
+Moreover, when <code>block</code> is understood, so is a large portion of the language understood as well.
+Before diving into <code>block</code>, it&#8217;s important to first realize how instructions are evaluated.
+For this, the fundamental, immutable instruction <code>apply</code> (sugar&#8217;d <code>.</code>) is the perfect place to start.</p>
 </div>
 </div>
 <div class="sect4">
 <h5 id="_inst_evaluation_mechanics">Inst Evaluation Mechanics</h5>
 <div class="paragraph">
-<p>An instruction has the following form:</p>
+<p>An mm-ADT <code>inst</code> is an <a href="https://en.wikipedia.org/wiki/Instruction_set_architecture#Instructions">instruction</a>.
+More generally, a <a href="https://en.wikipedia.org/wiki/Function_(computer_programming)">function</a>.
+More abstractly, a <a href="https://en.wikipedia.org/wiki/Function_(mathematics)">function</a>.
+Syntactically, an <code>inst</code> has the form:</p>
 </div>
 <div class="listingblock center">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">input --&gt; inst(arg1, arg2, ...) --&gt; output</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">type?rng{coeff}&lt;=dom{coeff}(arg1, arg2, ...) [bcode]</code></pre>
+</div>
+</div>
+<div class="stemblock center">
+<div class="content">
+\[f(\mathcal{Dom}^{C} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Rng}^{C}\]
 </div>
 </div>
 <div class="paragraph">
-<p>When an input <code>obj</code> reaches an <code>inst</code>, the following mechanical process happens:</p>
+<p>The fURI query <em>type-specification</em> is more advanced and requires an understanding of structure query processors.
+As such, for now, realize an <code>inst</code> to have the form:</p>
 </div>
 <div class="listingblock center">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">       ____________________
-      /        \     \     \
-     /         |     |     |
-    /          v     v     v
-input --&gt; inst(arg1, arg2, ...) --&gt; output</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">type(arg1, arg2, ...) [bcode]</code></pre>
 </div>
+</div>
+<div class="stemblock center">
+<div class="content">
+\[f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\texttt{rng}}\]
+</div>
+</div>
+<div class="paragraph">
+<p>In order to evaluate an <code>inst</code> an <code>obj</code> must be <em>applied</em> to it.
+Application is sugar&#8217;d <code>.</code>.</p>
+</div>
+<div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">      inst(arg1, arg2, ...)
+obj_d.inst(arg1, arg2, ...)
+      inst(arg1, arg2, ...) =&gt; obj_r</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When an <code>obj</code> is applied to an <code>inst</code>, the <code>obj</code> is called the <em>left-hand side</em> <code>obj</code>.
+This <code>obj</code> is the catalyst for a cascade of events that take place across the <code>inst</code> arguments and internal <code>bcode</code>.
+The sequence of events are diagrammatically represented in the graphical explanation below where each line is a new timestep in the process.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">        ┌────────────────────┐
+        ├──────────────┐     │
+        ├────────┐     │     │
+obj_d ──├─&gt; inst(arg1, arg2, ...)
+        │         └─────┤   ┌─┘
+        │               │   │
+        └─────────────&gt;[x.y.z]─────&gt; obj_r</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">      inst(arg1, arg2, ...)             [x.y.z]             <i class="conum" data-value="1"></i><b>(1)</b>
+obj_d.inst(arg1, arg2, ...)             [x.y.z]             <i class="conum" data-value="2"></i><b>(2)</b>
+      inst(obj_d.arg1, obj_d.arg2, ...) [x.y.z]             <i class="conum" data-value="3"></i><b>(3)</b>
+      inst(arg1_d, arg2_d, ...)         [obj_d.x.y.z]       <i class="conum" data-value="4"></i><b>(4)</b>
+      inst(arg1_d, arg2_d, ...)         [x.y.z =&gt; obj_r]    <i class="conum" data-value="5"></i><b>(5)</b>
+      inst(arg1, arg2, ...) =&gt; obj_r    [x.y.z]             <i class="conum" data-value="6"></i><b>(6)</b></code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>inst</code> with a collection of arguments and a <code>bcode</code> body called <em>inst_f</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A left-hand side <code>obj</code> is applied to the <code>inst</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The left-hand side <code>obj</code> is split across all arguments and applied to each.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>When all argument applications have completed, the left-hand side <code>obj</code> percolates through the <code>bcode</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The right-hand side <code>obj</code> produced by the <code>bcode</code> is the result of the application.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The right-hand side <code>obj</code> becomes the input to the next <code>inst</code> in the large <code>bcode</code> expression (not shown).</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>The diagram states that the input <code>obj</code> is applied to each argument, the result of which are the actual arguments provided to the <code>inst</code>.
@@ -1304,7 +1411,8 @@ For example, see how the internal <code>objs</code> if a <code>lst</code> are ef
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>Note that the application is recursive in that <code>1.mult(plus(3))</code> is evaluated as follows:</p>
+<p>Note that the application is recursive.
+For example, <code>2.mult(plus(3))</code> is evaluated as follows:</p>
 </div>
 <div class="stemblock center">
 <div class="content">
@@ -1324,7 +1432,8 @@ For example, see how the internal <code>objs</code> if a <code>lst</code> are ef
 <div class="sect5">
 <h6 id="_rec_application">Rec Application</h6>
 <div class="paragraph">
-<p>A <code>rec</code> behaves in a similar manner to <code>lst</code> and <code>inst</code> when a left-hand side <code>obj</code> is applied to it. However, what makes
+<p>A <code>rec</code> behaves in a similar manner to <code>lst</code> and <code>inst</code> when a left-hand side <code>obj</code> is applied to it.
+However, what makes
 <code>rec</code> interesting and useful beyond a data storage structure is it&#8217;s <em>delayed evaluation semantics</em> denoted by <code>&#8658;</code>.</p>
 </div>
 <!-- 🐖 ./main_runner.out
@@ -1340,8 +1449,8 @@ For example, see how the internal <code>objs</code> if a <code>lst</code> are ef
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>This feature of <code>rec</code> make it both a <a href="https://en.wikipedia.org/wiki/Data_structure">data structure</a> and a <a href="https://en.wikipedia.org/wiki/Control_flow">flow control structure</a> as once an <code>obj</code> has been applied to <code>rec</code>,
-the values of <code>rec</code> can be "drained". For instance, <code>if</code> is implemented with a two entry <code>rec</code>, where one entry maps to <code>noobj</code>.</p>
+<p>This feature of <code>rec</code> make it both a <a href="https://en.wikipedia.org/wiki/Data_structure">data structure</a> and a <a href="https://en.wikipedia.org/wiki/Control_flow">flow control structure</a> as once an <code>obj</code> has been applied to <code>rec</code>, the values of <code>rec</code> can be "drained".
+For instance, <code>if</code> is implemented with a two entry <code>rec</code>, where one entry maps to <code>noobj</code>.</p>
 </div>
 <!-- 🐖 ./main_runner.out
 {1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <1>
@@ -1378,18 +1487,86 @@ fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conu
 </div>
 <div class="paragraph">
 <p>In the above example, since <code>1</code> and <code>2</code> were mapped to <code>noobj</code>, they are effectively removed from the execution pipeline.
-However, because <code>3</code> is <code>gt(2)</code>, it is mapped to <code>_</code> (its self). Thus, when <code>&gt;-</code> is applied to this <code>rec</code>, the result is
-<code>{noobj,noobj,3}</code> which is equivalent to <code>{3}</code>. In this way, <code>rec</code> is both a data structure and a flow control structure.</p>
+However, because <code>3</code> is <code>gt(2)</code>, it is mapped to <code>_</code> (its self).
+Thus, when <code>&gt;-</code> is applied to this <code>rec</code>, the result is
+<code>{noobj,noobj,3}</code> which is equivalent to <code>{3}</code>.
+In this way, <code>rec</code> is both a data structure and a flow control structure.</p>
 </div>
 <div class="paragraph">
-<p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support
-"<a href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else)">if-else</a>",
-"<a href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements">switch</a>",
-"<a href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals">guards</a>",
-"<a href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching">pattern matching</a>"
-"<a href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals">hash-conditionals</a>",
-and other variations on the computing&#8217;s most universal theme: "<a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">branch</a>".</p>
+<p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support the various plays on one of computing&#8217;s most important concepts: <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">the branch</a>.</p>
 </div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+[HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
+{1,2,3}.[                  /
+  is(gt(2)) => mult(-1),   /
+  _         => mult(100)]>-
+-->
+<div class="listingblock">
+<div class="title">if-else <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else)"><i class="fa fa-link"></i></a></span></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
+          is(gt(2)) =&gt; mult(-1),
+          _         =&gt; mult(100)]&gt;-
+==&gt;100
+==&gt;200
+==&gt;-3</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+[HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
+{1,2,3}.[               /
+  is(eq(1)) => mult(-1),    /
+  is(eq(2)) => mult(0),     /
+  is(eq(3)) => _]>-
+-->
+<div class="listingblock">
+<div class="title">switch <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements"><i class="fa fa-link"></i></a></span></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
+          is(eq(1)) =&gt; mult(-1),
+          is(eq(2)) =&gt; mult(0),
+          is(eq(3)) =&gt; _]&gt;-
+==&gt;-1
+==&gt;0
+==&gt;3</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+[HEADER] .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
+--- todo
+-->
+<div class="listingblock">
+<div class="title">guard <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals"><i class="fa fa-link"></i></a></span></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+[HEADER] .pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
+--- todo
+-->
+<div class="listingblock">
+<div class="title">pattern-match <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching"><i class="fa fa-link"></i></a></span></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+</tr>
+</tbody>
+</table>
 <div class="exampleblock">
 <div class="content">
 <div class="admonitionblock note">
@@ -1399,11 +1576,12 @@ and other variations on the computing&#8217;s most universal theme: "<a href="ht
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>merge</code> (sugar&#8217;d <code>&gt;-</code>) instruction has a correlate: <code>split</code> (sugar&#8217;d <code>-&lt;</code>). The way to think of these two
-instructions is that they either branch a serial execution pipeline (<code>split</code>) or the join a collection of parallel
-executing pipelines (<code>merge</code>). Interestingly, the application of an <code>obj</code> to a <code>poly</code> implements the <code>split</code> instruction.
-So why does an explicit <code>split</code> instruction exist? Because there are other ways in which branching pipelines can be defined
-and evaluated. This will be discussed later when discussing <code>fos:thread</code>, <code>fos:coroutine</code>, and <code>fos:fiber</code>.
+The <code>merge</code> (sugar&#8217;d <code>&gt;-</code>) instruction has a correlate: <code>split</code> (sugar&#8217;d <code>-&lt;</code>).
+The way to think of these two instructions is that they either branch a serial execution pipeline (<code>split</code>) or the join a collection of parallel executing pipelines (<code>merge</code>).
+Interestingly, the application of an <code>obj</code> to a <code>poly</code> implements the <code>split</code> instruction.
+So why does an explicit <code>split</code> instruction exist?
+Because there are other ways in which branching pipelines can be defined and evaluated.
+This will be discussed later when discussing <code>fos:thread</code>, <code>fos:coroutine</code>, and <code>fos:fiber</code>.
 </td>
 </tr>
 </table>
@@ -2900,7 +3078,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 15:37:46 -0700
+Last updated 2025-03-05 22:39:52 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
