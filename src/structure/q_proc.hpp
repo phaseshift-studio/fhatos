@@ -47,6 +47,9 @@ namespace fhatos {
 
     ~QProc() override = default;
 
+    virtual void loop() const {
+    }
+
     [[nodiscard]] fURI q_key() const {
       return this->rec_get("pattern")->uri_value();
     }

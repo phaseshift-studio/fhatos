@@ -27,6 +27,7 @@
 #include "../util/mutex_deque.hpp"
 #include "q_proc.hpp"
 #include "../model/fos/sys/thread/fmutex.hpp"
+#include "qtype/q_sub.hpp"
 
 
 #define FOS_TRY_META                                                                                                   \
@@ -50,6 +51,7 @@ namespace fhatos {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
+    Rec_p q_procs_;
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
@@ -62,22 +64,22 @@ namespace fhatos {
       Rec(config->rec_value()->empty()
             ? Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", lst()},
-                {"sub", lst()}
+                {"q_proc", rec({{"sub", QSub::create()}})},
             })->
             rec_value()
             : Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", lst()},
-                {"sub", lst()},
+                {"q_proc", rec({{"sub", QSub::create()}})},
                 {"config", config->clone()}})->rec_value(),
           OType::REC, type_id,
           value_id),
       pattern(p_p(pattern)) {
-      /*if(!value_id && !pattern.equals("/sys/#")) {
-       *
-        ROUTER_WRITE(furi_p(ID("/sys/router/struct").extend(pattern.retract_pattern())),this->clone(),true);
-      }*/
+      this->q_procs_ = this->Obj::rec_get("q_proc");
+    }
+
+    void save() const override {
+      this->rec_set("q_proc", this->q_procs_);
+      Obj::save();
     }
 
     template<typename STRUCTURE>
@@ -91,15 +93,15 @@ namespace fhatos {
     static Structure_p add_qproc(const Structure_p &structure, const ptr<QProc> &qprocA,
                                  const ptr<QProc> &qprocB = nullptr,
                                  const ptr<QProc> &qprocC = nullptr) {
-      structure->rec_get("q_proc")->lst_add(qprocA);
-      LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocA->vid_or_tid()->toString()));
+      structure->q_procs_->rec_set(vri(qprocA->q_key()), qprocA);
+      LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocA->vid_or_tid()->toString()));
       if(qprocB) {
-        structure->rec_get("q_proc")->lst_add(qprocB);
-        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocB->vid_or_tid()->toString()));
+        structure->q_procs_->rec_set(vri(qprocB->q_key()), qprocB);
+        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocB->vid_or_tid()->toString()));
       }
       if(qprocC) {
-        structure->rec_get("q_proc")->lst_add(qprocC);
-        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocC->vid_or_tid()->toString()));
+        structure->q_procs_->rec_set(vri(qprocB->q_key()), qprocB);
+        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocC->vid_or_tid()->toString()));
       }
       structure->save();
       return structure;
@@ -116,6 +118,10 @@ namespace fhatos {
     }
 
     virtual void loop() {
+        for(const auto &[k,o]: *this->q_procs_->rec_value())  {
+        ((QProc *) o.get())->loop();
+      }
+
       if(!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
@@ -201,7 +207,7 @@ namespace fhatos {
       if(furi.has_query()) {
         const Objs_p results = Obj::to_objs();
         bool found = false;
-        for(const auto &o: *this->get<LstList_p>("q_proc")) {
+        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
           const QProc *q = (QProc *) o.get();
           const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
           if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
@@ -226,16 +232,16 @@ namespace fhatos {
     QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi, const Obj_p &obj,
                                          const bool retain) const {
       if(QProc::POSITION::Q_LESS == position) {
-        for(const auto &o: *this->get<LstList_p>("q_proc")) {
-          QProc *q = (QProc *) o.get();
+        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+          auto q = (QProc *) o.get();
           if(QProc::ON_RESULT::NO_Q != q->is_q_less_write()) {
             q->write(position, furi, obj, retain);
           }
         }
       } else if(furi.has_query()) {
         bool found = false;
-        for(const auto &o: *this->get<LstList_p>("q_proc")) {
-          QProc *q = (QProc *) o.get();
+        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+          auto q = (QProc *) o.get();
           QProc::ON_RESULT on_result = position == QProc::POSITION::PRE ? q->is_pre_write() : q->is_post_write();
           if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
             found = true;
@@ -266,23 +272,17 @@ namespace fhatos {
       /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
+        Objs_p results = Obj::to_objs();
         if(furi.has_query()) {
           auto [on_result, q_obj] = this->process_query_read(QProc::POSITION::PRE, furi, nullptr);
           if(on_result == QProc::ON_RESULT::ONLY_Q)
             return q_obj;
-          Objs_p results = Objs::to_objs();
           results->add_obj(q_obj);
-          if(furi.has_query("sub")) {
-            const List<Subscription_p> &subs = this->get_matching_subscriptions(furi.no_query());
-            results->objs_value()->insert(results->objs_value()->begin(), subs.begin(), subs.end());
-          }
-          return results->none_one_all();
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         const fURI furi_no_query = furi.no_query();
-        Obj_p return_obj;
         IdObjPairs matches = this->read_raw_pairs(furi_no_query.is_branch()
                                                     ? furi_no_query.extend("+")
                                                     : furi_no_query);
@@ -292,7 +292,7 @@ namespace fhatos {
           for(const auto &[key, value]: matches) {
             rec->rec_set(vri(key), value, false);
           }
-          return_obj = rec;
+          results->add_obj(rec);
         } else {
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           /////////////////////////////////////// READ NODE PATTERN/ID /////////////////////////////////////////////
@@ -306,20 +306,21 @@ namespace fhatos {
               const fURI furi_subpath = furi_no_query.remove_subpath(pair->first.as_branch().toString(), true);
               const Poly_p poly_read = pair->second; //->clone();
               const Obj_p read_obj = poly_read->poly_get(vri(furi_subpath));
-              return_obj = read_obj;
-            } else if(matches.empty())
-              return_obj = Obj::to_noobj();
+              results->add_obj(read_obj);
+            } else if(matches.empty()) {
+              results->add_obj(Obj::to_noobj());
+            }
           } else if(!furi_no_query.is_pattern())
-            return_obj = matches.front().second;
+            results->add_obj(matches.front().second);
           else {
             const Objs_p objs = Obj::to_objs();
             for(const auto &o: matches) {
               objs->add_obj(o.second);
             }
-            return_obj = objs;
+            results->add_obj(objs);
           }
         }
-        return this->process_query_read(QProc::POSITION::POST, furi, return_obj).second;
+        return this->process_query_read(QProc::POSITION::POST, furi, results).second->none_one_all();
       } catch(const std::exception &e) {
         throw fError("unable to read from %s\n\t %s", furi.toString().c_str(), e.what());
       }
@@ -352,22 +353,6 @@ namespace fhatos {
         QProc::ON_RESULT result = this->process_query_write(QProc::POSITION::PRE, furi, obj, retain);
         if(result == QProc::ON_RESULT::ONLY_Q)
           return;
-        if(retain && furi.has_query("sub")) {
-          if(obj->is_noobj()) {
-            // unsubscribe
-            this->recv_unsubscribe(
-                *(Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), furi.no_query());
-          } else if(obj->is_code()) {
-            // bcode for on_recv
-            this->recv_subscription(Subscription::create(
-                Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID, p_p(furi.no_query()),
-                obj));
-          } else if(obj->is_rec() && Compiler(false, false).type_check(obj.get(), ID("/fos/q/sub"))) {
-            // complete sub[=>] record
-            this->recv_subscription(make_shared<Subscription>(obj));
-          }
-          return;
-        }
       }
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////

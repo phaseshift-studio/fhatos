@@ -71,7 +71,7 @@ namespace fhatos {
       return ON_RESULT::ONLY_Q;
     }
 
-    [[nodiscard]] virtual ON_RESULT is_q_less_write() const {
+    [[nodiscard]] ON_RESULT is_q_less_write() const override {
       return ON_RESULT::IGNORE_Q;
     }
   };

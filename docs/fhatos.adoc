@@ -89,9 +89,9 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] main memory [total=>6784]
-[INFO]  [/sys/router] heap <none> spanning /sys/# attached
-[INFO]  [/sys/router] heap <none> spanning /mnt/# attached
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# attached
+[INFO]  [/sys/router] heap <none> spanning /sys/# mounted
+[INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
+[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
 [INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 746 bytes)
 [WARN]  [/sys/router] router has no auto-prefix configuration: noobj
 [INFO]  [/sys/router] 
@@ -109,28 +109,29 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] /sys/lib/heap type imported
 [INFO]  [/sys/router] /sys/lib/mqtt type imported
 [INFO]  [/sys/router] /sys/lib/bus type imported
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# attached
+[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
       .oO loading mmadt lang Oo.
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# attached
+[INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
+[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
       .oO loading fos models Oo.
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# attached
+[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [INFO]  [/sys/router] /io/terminal obj loaded
 [INFO]  [/sys/router] /io/parser obj loaded
 [INFO]  [/io/log] switching from boot logger to system logger
 [INFO]  [/sys/router] /io/log obj loaded
 [INFO]  [/sys/router] log boot config dropped
-[INFO]  [/sys/router] heap /mnt/cache spanning +/# attached
+[INFO]  [/sys/router] heap /mnt/cache spanning +/# mounted
 [INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
 [INFO]  [/sys/router] /io/lib/fs type imported
 [INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
-[INFO]  [/sys/router] fs /mnt/disk spanning /disk/# attached
+[INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
 [INFO]  [/sys/router] fs boot config dropped
 [INFO]  [/mnt/mqtt] /mnt/mqtt mqtt [broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true] connected
 [INFO]  [/mnt/mqtt] cache enabled
-[INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# attached
+[INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# mounted
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
-[INFO]  [/sys/router] bus /mnt/bus spanning /bus/# attached
+[INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
 [INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped
@@ -1093,13 +1094,10 @@ fhatos> @a.inspect()
 [source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
-[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>print?noobj<=obj(_)[noobj]
 fhatos> a -> 12
 ==>12
-fhatos> @a.inspect()
-[ERROR] [/sys/router] unable to read from a?sub
-	 [/mnt/cache] no query processor for sub on read
+msg[[target=>a,payload=>12,retain=>true]]fhatos> @a.inspect()
 =>[
 ==>type=>[
 ===>id=>/mmadt/int
@@ -1112,10 +1110,15 @@ fhatos> @a.inspect()
 ===>obj=>12
 ===>encoding=>int32_t
 =>]
+==>sub=>[
+===>source=>/sys/scheduler
+===>pattern=>a
+===>on_recv=>print(_)
 =>]
-fhatos> @a.plus(1)
+=>]
+msg[[target=>a,payload=>12@a,retain=>true]]fhatos> @a.plus(1)
 ==>13@a
-fhatos> @a.plus(1).plus(1)
+msg[[target=>a,payload=>13@a,retain=>true]]fhatos> @a.plus(1).plus(1)
 ==>15@a
 ----
 
@@ -1145,7 +1148,7 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
-[ERROR] [/sys/router] no attached structure for /type/int/nat  
+[ERROR] [/sys/router] no mounted structure for /type/int/nat  
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
 ==>nat[6]
@@ -1265,13 +1268,17 @@ fhatos> a -> 'snowbutt'            // <1>
 fhatos> *a                         // <2>
 ==>'snowbutt'
 fhatos> a?sub -> |to(b)            // <3>
-[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub                     // <4>
-[ERROR] [/sys/router] unable to read from a?sub
-	 [/mnt/cache] no query processor for sub on read
+=>sub[
+==>source=>/sys/scheduler
+==>pattern=>a
+==>on_recv=>to(b)
+=>]
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as uri
+	  thrown at inst msg[[target=>a,payload=>'meangirl',retain=>true]] => to(b) [0=>noobj,1=>true]
 fhatos> *b                         // <6>
 ----
 
@@ -1545,14 +1552,18 @@ a|
 [source,mmadt]
 ----
 fhatos> a?sub -> \|to(b)
-[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
-[ERROR] [/sys/router] unable to read from a?sub
-	 [/mnt/cache] no query processor for sub on read
+=>sub[
+==>source=>/sys/scheduler
+==>pattern=>a
+==>on_recv=>to(b)
+=>]
 fhatos> *b
 fhatos> a->12
 ==>12
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as uri
+	  thrown at inst msg[[target=>a,payload=>12,retain=>true]] => to(b) [0=>noobj,1=>true]
 fhatos> *a
 ==>12
 fhatos> *b

@@ -36,6 +36,7 @@
 #include "structure/stype/heap.hpp"
 #include "model/fos/sys/router/bus.hpp"
 #include "structure/qtype/q_doc.hpp"
+#include "structure/qtype/q_sub.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/type.hpp"
 /////////////////////////////////////////
