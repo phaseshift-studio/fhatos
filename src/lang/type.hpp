@@ -31,11 +31,12 @@ namespace fhatos {
   using std::const_pointer_cast;
   inline thread_local ptr<ProgressBar> type_progress_bar_;
 
-  static const ID_p MESSAGE_FURI = id_p(/*FOS_URI*/ "/fos/q/msg");
-  static const ID_p SUBSCRIPTION_FURI = id_p(/*FOS_URI*/ "/fos/q/sub");
+  static const ID_p Q_PROC_FURI = id_p(FOS_URI "/q");
+  static const ID_p MESSAGE_FURI = id_p(FOS_URI "/q/msg");
+  static const ID_p SUBSCRIPTION_FURI = id_p(FOS_URI "/q/sub");
   static const ID_p CHAR_FURI = id_p(FOS_URI "/char");
   static const ID_p HEX_FURI = id_p(FOS_URI "/Ox");
-  static const ID_p INT8_FURI = id_p(FOS_URI" /int8");
+  static const ID_p INT8_FURI = id_p(FOS_URI "/int8");
   static const ID_p UINT8_FURI = id_p(FOS_URI "/uint8");
   static const ID_p INT16_FURI = id_p(FOS_URI "/int16");
   static const ID_p INT32_FURI = id_p(FOS_URI "/int32");

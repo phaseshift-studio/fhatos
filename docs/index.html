@@ -1453,22 +1453,19 @@ However, what makes
 For instance, <code>if</code> is implemented with a two entry <code>rec</code>, where one entry maps to <code>noobj</code>.</p>
 </div>
 <!-- 🐖 ./main_runner.out
-{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <1>
-{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <2>
+/io/console/config/nest -> 0                  --- <1>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <2>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <3>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="1"></i><b>(1)</b>
-=&gt;[
-==&gt;1=&gt;noobj
-=&gt;]
-=&gt;[
-==&gt;2=&gt;noobj
-=&gt;]
-=&gt;[
-==&gt;3=&gt;_
-=&gt;]
-fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="2"></i><b>(2)</b>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;[1=&gt;noobj]
+==&gt;[2=&gt;noobj]
+==&gt;[3=&gt;_]
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;3</code></pre>
 </div>
 </div>
@@ -1477,10 +1474,14 @@ fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conu
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>A stream of <code>objs</code> is applied one-by-one to the <code>rec</code> yielding a new internally-applied <code>rec</code>.</td>
+<td>Reducing the console&#8217;s display depth for nested structures (purely aesthetic).</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A stream of <code>objs</code> is applied one-by-one to the <code>rec</code> yielding a new internally-applied <code>rec</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
 <td>The internally-applied <code>rec</code> is "drained" via the <code>merge</code> <code>inst</code> (sugar&#8217;d <code>&gt;-</code>).</td>
 </tr>
 </table>
@@ -1633,11 +1634,11 @@ fhatos&gt; [a=&gt;1,b=&gt;2].b     <i class="conum" data-value="5"></i><b>(5)</b
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><code>lst[[1,2,3]]</code> applied to the <code>uri[1]</code>.</td>
+<td><code>lst\[[1,2,3]]</code> applied to the <code>uri[1]</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><code>rec[[a&#8658;1,b&#8658;2]]</code> applied to the <code>uri[b]</code>.</td>
+<td><code>rec\[[a&#8658;1,b&#8658;2]]</code> applied to the <code>uri[b]</code>.</td>
 </tr>
 </table>
 </div>
@@ -1693,10 +1694,13 @@ fhatos&gt; @a.inspect()
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |print(_)
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==&gt;print?noobj&lt;=obj(_)[noobj]
 fhatos&gt; a -&gt; 12
 ==&gt;12
-12fhatos&gt; @a.inspect()
+fhatos&gt; @a.inspect()
+[ERROR] [/sys/router] unable to read from a?sub
+   [/mnt/cache] no query processor for sub on read
 =&gt;[
 ==&gt;type=&gt;[
 ===&gt;id=&gt;/mmadt/int
@@ -1709,15 +1713,10 @@ fhatos&gt; a -&gt; 12
 ===&gt;obj=&gt;12
 ===&gt;encoding=&gt;int32_t
 =&gt;]
-==&gt;sub=&gt;[
-===&gt;source=&gt;/sys/scheduler
-===&gt;pattern=&gt;a
-===&gt;on_recv=&gt;print(_)
 =&gt;]
-=&gt;]
-12@afhatos&gt; @a.plus(1)
+fhatos&gt; @a.plus(1)
 ==&gt;13@a
-13@afhatos&gt; @a.plus(1).plus(1)
+fhatos&gt; @a.plus(1).plus(1)
 ==&gt;15@a</code></pre>
 </div>
 </div>
@@ -1888,17 +1887,14 @@ a -> 'meangirl'            --- <5>
 fhatos&gt; *a                         <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;'snowbutt'
 fhatos&gt; a?sub -&gt; |to(b)            <i class="conum" data-value="3"></i><b>(3)</b>
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub                     <i class="conum" data-value="4"></i><b>(4)</b>
-=&gt;sub[
-==&gt;source=&gt;/sys/scheduler
-==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;to(b)
-=&gt;]
+[ERROR] [/sys/router] unable to read from a?sub
+   [/mnt/cache] no query processor for sub on read
 fhatos&gt; a -&gt; 'meangirl'            <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;'meangirl'
-fhatos&gt; *b                         <i class="conum" data-value="6"></i><b>(6)</b>
-==&gt;'meangirl'</code></pre>
+fhatos&gt; *b                         <i class="conum" data-value="6"></i><b>(6)</b></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2174,9 +2170,9 @@ fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            <i class="conum" da
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    <i class="conum" data-value="4"></i><b>(4)</b>
+[ERROR] [/sys/router] [/mnt/cache] no query processor for k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6 on write
 ==&gt;12
 fhatos&gt; *abc
-==&gt;12
 fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; *abc
@@ -2306,20 +2302,17 @@ fhatos&gt; *a
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub
-=&gt;sub[
-==&gt;source=&gt;/sys/scheduler
-==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;to(b)
-=&gt;]
+[ERROR] [/sys/router] unable to read from a?sub
+   [/mnt/cache] no query processor for sub on read
 fhatos&gt; *b
 fhatos&gt; a-&gt;12
 ==&gt;12
 fhatos&gt; *a
 ==&gt;12
-fhatos&gt; *b
-==&gt;12</code></pre>
+fhatos&gt; *b</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3078,7 +3071,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-05 22:39:52 -0700
+Last updated 2025-03-06 21:31:12 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

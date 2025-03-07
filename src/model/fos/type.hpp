@@ -51,34 +51,35 @@ namespace fhatos {
       Typer::singleton()->start_progress_bar(10);
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(
-        *MESSAGE_FURI, Obj::to_rec({
-          {"target", Obj::to_type(URI_FURI)},
-          {"payload", Obj::to_bcode()},
-          {"retain", Obj::to_type(BOOL_FURI)}}));
+          *MESSAGE_FURI, Obj::to_rec({
+              {"target", Obj::to_type(URI_FURI)},
+              {"payload", Obj::to_bcode()},
+              {"retain", Obj::to_type(BOOL_FURI)}}));
       Typer::singleton()->save_type(
-        *SUBSCRIPTION_FURI, Obj::to_rec({
-          {"source", Obj::to_type(URI_FURI)},
-          {"pattern", Obj::to_type(URI_FURI)},
-          {"on_recv", Obj::to_bcode()}}));
+          *SUBSCRIPTION_FURI, Obj::to_rec({
+              {"source", Obj::to_type(URI_FURI)},
+              {"pattern", Obj::to_type(URI_FURI)},
+              {"on_recv", Obj::to_bcode()}}));
+      Typer::singleton()->save_type(*Q_PROC_FURI, Obj::to_rec());
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(
-        *CHAR_FURI,
-        *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
-      Typer::singleton()->save_type(*INT8_FURI,*__(*UINT8_FURI, *INT_FURI, *INT_FURI)
-        ->is(*__()->gte(jnt(-127)))
-        ->is(*__()->lte(jnt(128))));
+          *CHAR_FURI,
+          *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
+      Typer::singleton()->save_type(*INT8_FURI, *__(*UINT8_FURI, *INT_FURI, *INT_FURI)
+                                    ->is(*__()->gte(jnt(-127)))
+                                    ->is(*__()->lte(jnt(128))));
       Typer::singleton()->save_type(
-        *UINT8_FURI,
-        *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
+          *UINT8_FURI,
+          *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
       Typer::singleton()->save_type(*INT16_FURI, Obj::to_type(INT16_FURI));
       Typer::singleton()->save_type(*INT32_FURI, Obj::to_type(INT32_FURI));
       Typer::singleton()->save_type(*NAT_FURI, *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
       Typer::singleton()->save_type(
-        *CELSIUS_FURI,
-        *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
+          *CELSIUS_FURI,
+          *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
       Typer::singleton()->save_type(
-        *PERCENT_FURI,
-        *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
+          *PERCENT_FURI,
+          *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
       Typer::singleton()->save_type(*HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(*MILLISECOND_FURI, Obj::to_type(INT_FURI));
@@ -90,7 +91,7 @@ namespace fhatos {
           ->type_args(x(0, "type"))
           ->inst_f([](const Obj_p &secret_obj, const InstArgs &args) {
             if(args->arg(0)->is_uri() && Router::singleton()->resolve(args->arg(0)->uri_value()).equals(*STR_FURI)) {
-              const int length = secret_obj->str_value().length();
+              const size_t length = secret_obj->str_value().length();
               return Obj::to_str(StringHelper::repeat(length, "*"), STR_FURI);
             }
             return Router::singleton()->read(MMADT_SCHEME "/as")->apply(secret_obj, args);
@@ -98,14 +99,16 @@ namespace fhatos {
           ->save();
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
       return nullptr;
     }
 
-    static void import_query_processor() {
+    static void *import_query_processor() {
       Typer::singleton()->start_progress_bar(14);
+      Typer::singleton()->save_type(Q_PROC_FURI->extend("q_doc"), Obj::to_rec());
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
+      return nullptr;
     }
 
     static void *import_io() {
@@ -118,7 +121,7 @@ namespace fhatos {
       OTA::import();
 #endif
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));
       return nullptr;
     }
 
@@ -126,7 +129,7 @@ namespace fhatos {
       Typer::singleton()->start_progress_bar(1);
       fThread::import();
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
       return nullptr;
     }
 
@@ -137,7 +140,7 @@ namespace fhatos {
       MLX90614::import();
 #endif
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysensor types!! loaded!g]!! \n",FOS_URI "/sensor/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysensor types!! loaded!g]!! \n",FOS_URI "/sensor/+"));
       return nullptr;
     }
 
@@ -149,7 +152,7 @@ namespace fhatos {
       OLED::import();
 #endif
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !yui types!! loaded!g]!! \n",FOS_URI "/ui/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yui types!! loaded!g]!! \n",FOS_URI "/ui/+"));
       return nullptr;
     }
 
@@ -160,7 +163,7 @@ namespace fhatos {
       Text::import();
 
       Typer::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
       return nullptr;
     }
   };

@@ -35,6 +35,7 @@
 #include "structure/stype/mqtt/mqtt.hpp"
 #include "structure/stype/heap.hpp"
 #include "model/fos/sys/router/bus.hpp"
+#include "structure/qtype/q_doc.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/type.hpp"
 /////////////////////////////////////////
@@ -121,8 +122,10 @@ namespace fhatos {
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
             ->import(fOS::import_types())
+            ->import(fOS::import_query_processor())
             ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
-            ->mount(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")))
+            ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
+                                         QDoc::create("/mnt/mmadt/q/doc")))
             ->import(mmADT::import())
             ////////
             ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
@@ -139,11 +142,11 @@ namespace fhatos {
             ->install(Log::create("/io/log",
                                   Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
                                   ->or_else(Obj::to_rec({
-                                    {"INFO", lst({vri("#")})},
-                                    {"ERROR", lst({vri("#")})},
-                                    {"WARN", lst()},
-                                    {"DEBUG", lst()},
-                                    {"TRACE", lst()}}))))
+                                      {"INFO", lst({vri("#")})},
+                                      {"ERROR", lst({vri("#")})},
+                                      {"WARN", lst()},
+                                      {"DEBUG", lst()},
+                                      {"TRACE", lst()}}))))
             ->drop_config("log")
             ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
             ->import(FSx::import("/sys/structure/lib/fs"))
@@ -168,13 +171,13 @@ namespace fhatos {
 #endif
             ->mount(Mqtt::create("//io/#", id_p("/mnt/mqtt"),
                                  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
-                                   Obj::to_rec({
-                                     {"broker",
-                                       vri(args_parser->option_string(
-                                         "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                     {"client",
-                                       vri(args_parser->option_string(
-                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+                                     Obj::to_rec({
+                                         {"broker",
+                                          vri(args_parser->option_string(
+                                              "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                         {"client",
+                                          vri(args_parser->option_string(
+                                              "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
             ->mount(Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
             ->install(ConsoleX::create("/io/console",

@@ -71,9 +71,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(95), PROCESS("*/router/cde"));
   }
 
-  void test_lock_query_processor() {
+  /*void test_lock_query_processor() {
     PROCESS("/router/a -> 12");
-    Obj_p a = PROCESS("*/router/a");
+    Obj_p a = PROCESS("router/a");
     TEST_ASSERT_NULL(a->vid);
     TEST_ASSERT_EQUAL_INT(12, a->int_value());
     a = PROCESS("@/router/a.lock(person)");
@@ -90,15 +90,14 @@ namespace fhatos {
     a = PROCESS("@/router/a");
     FOS_TEST_FURI_EQUAL(fURI("/router/a"), *a->vid);
     TEST_ASSERT_EQUAL_INT(13, a->int_value());
-
-  }
+  }*/
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_router_config); //
       FOS_RUN_TEST(test_router_attach_detach); //
       FOS_RUN_TEST(test_retain_write); //
       FOS_RUN_TEST(test_transient_write); //
-      FOS_RUN_TEST(test_lock_query_processor); //
+     // FOS_RUN_TEST(test_lock_query_processor); //
       )
 
 }

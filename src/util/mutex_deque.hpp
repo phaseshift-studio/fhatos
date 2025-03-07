@@ -33,7 +33,7 @@ namespace fhatos {
   public:
     explicit MutexDeque() = default;
 
-    Deque<T>& get_base() {
+    Deque<T> &get_base() {
       return this->deque_;
     }
 
@@ -107,11 +107,11 @@ namespace fhatos {
       return Option<T>();
     }
 
-    typename std::deque<T>::iterator begin() {
+    auto begin() {
       return this->deque_.begin();
     }
 
-    typename std::deque<T>::iterator end() {
+    auto end() {
       return this->deque_.end();
     }
 
@@ -145,7 +145,8 @@ namespace fhatos {
       deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
                                   [predicate, count](T t) {
                                     const bool r = predicate(t);
-                                    if(r) count->fetch_add(1);
+                                    if(r)
+                                      count->fetch_add(1);
                                     return r;
                                   }),
                    deque_.end());
