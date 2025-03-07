@@ -92,10 +92,15 @@ namespace fhatos {
                                  const ptr<QProc> &qprocB = nullptr,
                                  const ptr<QProc> &qprocC = nullptr) {
       structure->rec_get("q_proc")->lst_add(qprocA);
-      if(qprocB)
+      LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocA->vid_or_tid()->toString()));
+      if(qprocB) {
         structure->rec_get("q_proc")->lst_add(qprocB);
-      if(qprocC)
+        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocB->vid_or_tid()->toString()));
+      }
+      if(qprocC) {
         structure->rec_get("q_proc")->lst_add(qprocC);
+        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! loaded\n", qprocC->vid_or_tid()->toString()));
+      }
       structure->save();
       return structure;
     }
