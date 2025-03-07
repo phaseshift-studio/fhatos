@@ -843,24 +843,21 @@ For instance, `if` is implemented with a two entry `rec`, where one entry maps t
 
 ++++
 <!-- 🐖 ./main_runner.out
-{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <1>
-{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <2>
+/io/console/config/nest -> 0                  --- <1>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <2>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <3>
 -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <1>
-=>[
-==>1=>noobj
-=>]
-=>[
-==>2=>noobj
-=>]
-=>[
-==>3=>_
-=>]
-fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <2>
+fhatos> /io/console/config/nest -> 0                  // <1>
+==>0
+fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
+==>[1=>noobj]
+==>[2=>noobj]
+==>[3=>_]
+fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
 ==>3
 ----
 
@@ -868,8 +865,9 @@ fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <2>
 <!-- 🐓 -->
 ++++
 
-<1> A stream of `objs` is applied one-by-one to the `rec` yielding a new internally-applied `rec`.
-<2> The internally-applied `rec` is "drained" via the `merge` `inst` (sugar'd `>-`).
+<1> Reducing the console's display depth for nested structures (purely aesthetic).
+<2> A stream of `objs` is applied one-by-one to the `rec` yielding a new internally-applied `rec`.
+<3> The internally-applied `rec` is "drained" via the `merge` `inst` (sugar'd `>-`).
 
 In the above example, since `1` and `2` were mapped to `noobj`, they are effectively removed from the execution pipeline.
 However, because `3` is `gt(2)`, it is mapped to `_` (its self).
@@ -1039,8 +1037,8 @@ fhatos> [a=>1,b=>2].b     // <5>
 <1> `int[1]` applied to `inst[plus(1)]`.
 <2> `int[1]` applied to `int[2]` (the space before `.` is necessary to avoid parsing as a `real`).
 <3> `real[1.2]` applied to `int[2]`.
-<4> `lst[[1,2,3]]` applied to the `uri[1]`.
-<5> `rec[[a=>1,b=>2]]` applied to the `uri[b]`.
+<4> `lst\[[1,2,3]]` applied to the `uri[1]`.
+<5> `rec\[[a=>1,b=>2]]` applied to the `uri[b]`.
 
 ==== Values
 
@@ -1095,10 +1093,13 @@ fhatos> @a.inspect()
 [source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>print?noobj<=obj(_)[noobj]
 fhatos> a -> 12
 ==>12
-12fhatos> @a.inspect()
+fhatos> @a.inspect()
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mnt/cache] no query processor for sub on read
 =>[
 ==>type=>[
 ===>id=>/mmadt/int
@@ -1111,15 +1112,10 @@ fhatos> a -> 12
 ===>obj=>12
 ===>encoding=>int32_t
 =>]
-==>sub=>[
-===>source=>/sys/scheduler
-===>pattern=>a
-===>on_recv=>print(_)
 =>]
-=>]
-12@afhatos> @a.plus(1)
+fhatos> @a.plus(1)
 ==>13@a
-13@afhatos> @a.plus(1).plus(1)
+fhatos> @a.plus(1).plus(1)
 ==>15@a
 ----
 
@@ -1269,17 +1265,14 @@ fhatos> a -> 'snowbutt'            // <1>
 fhatos> *a                         // <2>
 ==>'snowbutt'
 fhatos> a?sub -> |to(b)            // <3>
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub                     // <4>
-=>sub[
-==>source=>/sys/scheduler
-==>pattern=>a
-==>on_recv=>to(b)
-=>]
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mnt/cache] no query processor for sub on read
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
 fhatos> *b                         // <6>
-==>'meangirl'
 ----
 
 ++++
@@ -1430,9 +1423,9 @@ fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
 fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          // <3>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    // <4>
+[ERROR] [/sys/router] [/mnt/cache] no query processor for k1=v1,v2&k2=v3&k3=v4,v5,v6 on write
 ==>12
 fhatos> *abc
-==>12
 fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   // <5>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> *abc
@@ -1552,20 +1545,17 @@ a|
 [source,mmadt]
 ----
 fhatos> a?sub -> \|to(b)
+[ERROR] [/sys/router] [/mnt/cache] no query processor for sub on write
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
-=>sub[
-==>source=>/sys/scheduler
-==>pattern=>a
-==>on_recv=>to(b)
-=>]
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mnt/cache] no query processor for sub on read
 fhatos> *b
 fhatos> a->12
 ==>12
 fhatos> *a
 ==>12
 fhatos> *b
-==>12
 ----
 
 ++++
