@@ -21,13 +21,16 @@ FhatOS: A Distributed Operating System
 #define fhatos_q_proc_hpp
 
 #include "../lang/obj.hpp"
+#include "../furi.hpp"
+#include "../fhatos.hpp"
 
 namespace fhatos {
   class QProc : public Rec {
   public:
     enum class POSITION {
       PRE,
-      POST
+      POST,
+      Q_LESS,
     };
 
     enum class ON_RESULT {
@@ -52,13 +55,29 @@ namespace fhatos {
 
     virtual void write(POSITION position, const fURI &furi, const Obj_p &obj, bool retain) = 0;
 
-    [[nodiscard]] virtual ON_RESULT is_pre_read() const = 0;
+    [[nodiscard]] virtual ON_RESULT is_pre_read() const {
+      return ON_RESULT::NO_Q;
+    }
 
-    [[nodiscard]] virtual ON_RESULT is_post_read() const = 0;
+    [[nodiscard]] virtual ON_RESULT is_post_read() const {
+      return ON_RESULT::NO_Q;
+    }
 
-    [[nodiscard]] virtual ON_RESULT is_pre_write() const =0;
+    [[nodiscard]] virtual ON_RESULT is_pre_write() const {
+      return ON_RESULT::NO_Q;
+    }
 
-    [[nodiscard]] virtual ON_RESULT is_post_write() const =0;
+    [[nodiscard]] virtual ON_RESULT is_post_write() const {
+      return ON_RESULT::NO_Q;
+    }
+
+    [[nodiscard]] virtual ON_RESULT is_q_less_write() const {
+      return ON_RESULT::NO_Q;
+    }
+
+    [[nodiscard]] virtual ON_RESULT is_q_less_read() const {
+      return ON_RESULT::NO_Q;
+    }
   };
 }
 

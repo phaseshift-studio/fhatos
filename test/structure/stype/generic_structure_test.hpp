@@ -19,6 +19,7 @@ FhatOS: A Distributed Operating System
 #include "../../../src/fhatos.hpp"
 #include "../../test_fhatos.hpp"
 #include "../../../src/structure/structure.hpp"
+#include "../../../src/structure/qtype/q_doc.hpp"
 
 namespace fhatos {
   class GenericStructureTest {
@@ -34,8 +35,9 @@ namespace fhatos {
       FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
     }
 
-    [[nodiscard]] fURI p(const fURI &furi) const {
-      return prefix_->extend(furi);
+    [[nodiscard]] fURI p(const fURI &furi, const char* q = nullptr) const {
+      fURI temp = prefix_->extend(furi);
+      return q ? temp.query(q) : temp;
     }
 
     void detach() const {
@@ -180,6 +182,23 @@ namespace fhatos {
       }*/
       ////////////////////////////////////////////////////////////////////////////////////
       this->detach();
+    }
+
+    void test_q_doc() const {
+     Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/qdoc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
+      ROUTER_WRITE(p("abc"), str("no docs"), true);
+      FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
+      ROUTER_WRITE(p("abc","doc"), str("these are the docs"),true);
+      FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("these are the docs"), ROUTER_READ(p("abc","doc")));
+      ROUTER_WRITE(p("abc","doc"), str("docs updated"),true);
+      FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("docs updated"), ROUTER_READ(p("abc","doc")));
+      ROUTER_WRITE(p("abc"), Obj::to_noobj(),true);
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
     }
 
     void test_subscribe() const {

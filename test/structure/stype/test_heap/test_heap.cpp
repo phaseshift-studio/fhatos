@@ -28,24 +28,27 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
-  const Structure_p test_heap = std::make_shared<Heap<>>("/xyz/#", id_p("/sys/test"));
+  const Structure_p test_structure = std::make_shared<Heap<>>("/xyz/#", id_p("/sys/test"));
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 
-  void test_heap_generic_write() { GenericStructureTest(test_heap).test_write(); }
+  void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
 
-  void test_heap_generic_subscribe() { GenericStructureTest(test_heap).test_subscribe(); }
+  void test_generic_subscribe() { GenericStructureTest(test_structure).test_subscribe(); }
 
-  void test_heap_generic_lst_embedding() { GenericStructureTest(test_heap).test_lst_embedding(); }
+  void test_generic_lst_embedding() { GenericStructureTest(test_structure).test_lst_embedding(); }
 
-  void test_heap_generic_rec_embedding() { GenericStructureTest(test_heap).test_rec_embedding(); }
+  void test_generic_rec_embedding() { GenericStructureTest(test_structure).test_rec_embedding(); }
+
+  void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_heap_generic_write); //
-      FOS_RUN_TEST(test_heap_generic_subscribe); //
+      FOS_RUN_TEST(test_generic_write); //
+      FOS_RUN_TEST(test_generic_subscribe); //
       //FOS_RUN_TEST(test_heap_generic_lst_embedding); //
-      FOS_RUN_TEST(test_heap_generic_rec_embedding); //
+      FOS_RUN_TEST(test_generic_rec_embedding); //
+      FOS_RUN_TEST(test_generic_q_doc); //
       );
 
 } // namespace fhatos

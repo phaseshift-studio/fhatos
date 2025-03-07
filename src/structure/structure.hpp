@@ -220,7 +220,14 @@ namespace fhatos {
 
     QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi, const Obj_p &obj,
                                          const bool retain) const {
-      if(furi.has_query()) {
+      if(QProc::POSITION::Q_LESS == position) {
+        for(const auto &o: *this->get<LstList_p>("q_proc")) {
+          QProc *q = (QProc *) o.get();
+          if(QProc::ON_RESULT::NO_Q != q->is_q_less_write()) {
+            q->write(position, furi, obj, retain);
+          }
+        }
+      } else if(furi.has_query()) {
         bool found = false;
         for(const auto &o: *this->get<LstList_p>("q_proc")) {
           QProc *q = (QProc *) o.get();
@@ -426,6 +433,7 @@ namespace fhatos {
           }
         }
         this->process_query_write(QProc::POSITION::POST, furi, obj, retain);
+        this->process_query_write(QProc::POSITION::Q_LESS, furi, obj, retain);
       } catch(const std::exception &e) {
         throw fError("unable to write %s to %s\n\t %s", obj->toString().c_str(), furi.toString().c_str(), e.what());
       }

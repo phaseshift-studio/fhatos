@@ -19,36 +19,45 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPE
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 #include "../generic_structure_test.hpp"
-#include STR(../../../../src/structure/stype/mqtt/HARDWARE/mqtt.hpp)
+#include "../../../../src/structure/stype/mqtt/mqtt.hpp"
 
 namespace fhatos {
   using namespace mmadt;
   //Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
-  const Structure_p test_mqtt = std::make_shared<Mqtt>("/xyz/#", id_p("/sys/test"),
+  const ptr<Mqtt> test_structure = std::make_shared<Mqtt>("/xyz/#", id_p("/sys/test"),
   Obj::to_rec({{"broker",vri("mqtt://localhost:1883")},
                {"client",vri("test_client")}}));
+
+  void setup() {
+    test_structure->enable_cache();
+   }
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 
-  void test_heap_generic_write() { GenericStructureTest(test_mqtt).test_write(); }
+  void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
 
-  void test_heap_generic_subscribe() { GenericStructureTest(test_mqtt).test_subscribe(); }
+  void test_generic_subscribe() { GenericStructureTest(test_structure).test_subscribe(); }
 
-  void test_heap_generic_lst_embedding() { GenericStructureTest(test_mqtt).test_lst_embedding(); }
+  void test_generic_lst_embedding() { GenericStructureTest(test_structure).test_lst_embedding(); }
 
-  void test_heap_generic_rec_embedding() { GenericStructureTest(test_mqtt).test_rec_embedding(); }
+  void test_generic_rec_embedding() { GenericStructureTest(test_structure).test_rec_embedding(); }
+
+  void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_heap_generic_write); //
-      FOS_RUN_TEST(test_heap_generic_subscribe); //
+      FOS_RUN_TEST(setup); //
+      FOS_RUN_TEST(test_generic_write); //
+      FOS_RUN_TEST(test_generic_subscribe); //
       //FOS_RUN_TEST(test_heap_generic_lst_embedding); //
-      FOS_RUN_TEST(test_heap_generic_rec_embedding); //
+      FOS_RUN_TEST(test_generic_rec_embedding); //
+      FOS_RUN_TEST(test_generic_q_doc); //
       );
 
 } // namespace fhatos

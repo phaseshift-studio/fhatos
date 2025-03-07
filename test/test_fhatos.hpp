@@ -44,6 +44,7 @@
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #include "../src/boot_config_loader.hpp"
+#include "../src/model/fos/type.hpp"
 
 #define FOS_DEPLOY_PRINTER
 
@@ -80,16 +81,17 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/model/fos/type.hpp"
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
-  Router::singleton()->attach(Heap<>::create("/boot/#"));                                                   \
-  Router::singleton()->attach(Heap<>::create("/sys/#"));                                                    \
+  Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
+  Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
   Heap<>::import("/sys/lib/heap");                                                                                     \
   boot_config_obj_copy_len = boot_config_obj_len; 						                                                         \
   boot_config_obj_copy = boot_config_obj; 								                                                             \
   mmadt::Parser::load_boot_config(); 									                                                                 \
   Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID); 			                                                   \
   Router::singleton()->import(); 							                                                                  			 \
-  Router::singleton()->attach(Heap<>::create("/fos/#"));                                                    \
+  Router::singleton()->attach(Heap<>::create("/fos/#"));                                                               \
   fOS::import_types();                                                                                                 \
+  fOS::import_q_procs();                                                                                               \
   Router::singleton()->attach(Heap<>::create("/io/log/#"));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;

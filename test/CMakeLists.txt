@@ -73,7 +73,7 @@
                 GIT_TAG v3.8.0 # or a later release
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
-        ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)
+        ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)#define FOS_DEPLOY_ROUTER
         TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a fmt::fmt)
         ADD_TEST(${CATCH_TESTS} ${CMAKE_BINARY_DIR}/test/tests)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -147,7 +147,7 @@
             MAKE_TESTS(process "test_scheduler" true)
             MAKE_TESTS(structure "test_router;test_structure" true)
             MAKE_TESTS(structure/stype "test_heap;test_fs" true)
-            IF(FALSE AND BUILD_MQTT_TESTS) # mqtt isn't loading properly
+            IF(BUILD_MQTT_TESTS)
                 MAKE_TESTS(structure/stype "test_mqtt" true)
             ENDIF()
             MAKE_TESTS(. "test_main;test_furi;test_kernel" true)

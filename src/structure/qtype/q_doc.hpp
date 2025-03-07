@@ -21,6 +21,7 @@ FhatOS: A Distributed Operating System
 #define fhatos_q_doc_hpp
 
 #include "../q_proc.hpp"
+#include "../../fhatos.hpp"
 
 namespace fhatos {
   class QDoc final : public QProc {
@@ -40,6 +41,8 @@ namespace fhatos {
       if(retain && POSITION::PRE == pos) {
         this->doc_data_->insert_or_assign(furi.no_query(), obj);
         LOG_WRITE(DEBUG, this,L("!ypre-wrote!! !b{}!! -> {}\n", furi.no_query().toString(), obj->toString()));
+      } else if(retain && POSITION::Q_LESS == pos && obj->is_noobj()) {
+        this->doc_data_->erase(furi.no_query());
       }
     }
 
@@ -60,20 +63,16 @@ namespace fhatos {
       return return_obj;
     }
 
-    [[nodiscard]] virtual ON_RESULT is_pre_read() const {
+    [[nodiscard]] ON_RESULT is_pre_read() const override {
       return ON_RESULT::ONLY_Q;
     }
 
-    [[nodiscard]] virtual ON_RESULT is_post_read() const {
-      return ON_RESULT::NO_Q;
-    }
-
-    [[nodiscard]] virtual ON_RESULT is_pre_write() const {
+    [[nodiscard]] ON_RESULT is_pre_write() const override {
       return ON_RESULT::ONLY_Q;
     }
 
-    [[nodiscard]] virtual ON_RESULT is_post_write() const {
-      return ON_RESULT::NO_Q;
+    [[nodiscard]] virtual ON_RESULT is_q_less_write() const {
+      return ON_RESULT::IGNORE_Q;
     }
   };
 }

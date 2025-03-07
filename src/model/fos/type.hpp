@@ -103,7 +103,7 @@ namespace fhatos {
       return nullptr;
     }
 
-    static void *import_query_processor() {
+    static void *import_q_procs() {
       Typer::singleton()->start_progress_bar(14);
       Typer::singleton()->save_type(Q_PROC_FURI->extend("q_doc"), Obj::to_rec());
       Typer::singleton()->end_progress_bar(
