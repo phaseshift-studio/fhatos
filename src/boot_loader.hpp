@@ -25,7 +25,7 @@
 #include "util/argv_parser.hpp"
 #include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "lang/obj.hpp"
-#include "lang/mmadt/type.hpp"
+#include "lang/mmadt/mmadt_obj.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/console.hpp"
@@ -38,7 +38,7 @@
 #include "structure/qtype/q_doc.hpp"
 #include "structure/qtype/q_sub.hpp"
 #include "lang/processor/processor.hpp"
-#include "model/fos/type.hpp"
+#include "model/fos/fos_obj.hpp"
 /////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
 /////////////////////////////////////////
@@ -128,6 +128,7 @@ namespace fhatos {
             ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
                                          QDoc::create("/mnt/mmadt/q/doc")))
             ->import(mmADT::import())
+            ->import(mmADT::import_ext_types())
             ////////
             ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
             ->import(fOS::import_io())

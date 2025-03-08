@@ -23,11 +23,13 @@ FhatOS: A Distributed Operating System
 #include "../../../../lang/obj.hpp"
 #include "../../../../util/obj_helper.hpp"
 #include "../../../model.hpp"
+#include "../../../../lang/mmadt/mmadt_obj.hpp"
 #include "fmutex.hpp"
 
 namespace fhatos {
   class fThread;
   using fThread_p = ptr<fThread>;
+  using namespace mmadt;
 
   static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
   static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");

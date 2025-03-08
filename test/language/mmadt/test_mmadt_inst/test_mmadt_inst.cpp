@@ -219,6 +219,31 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("a/a/a/a/a/a"), PROCESS("<a>.plus(plus(plus(plus(plus(_)))))"));
   }
 
+  void test_minus_inst() {
+    // bool
+    FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("true.minus(false)"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("bool[false].minus(true)"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("false.minus(bool[true])"));
+    //FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("true.minus(minus(minus(_)))"));
+    FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("false.minus(minus(minus(_)))"));
+    // int
+    FOS_TEST_OBJ_EQUAL(objs({jnt(-9),jnt(-8),jnt(-8),jnt(57)}), PROCESS_ALL("{1,2,2,67}.minus(10)"));
+    FOS_TEST_OBJ_EQUAL(jnt(-244), PROCESS("1.minus(245)"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("1.minus(minus(minus(minus(minus(_)))))")); // TODO:
+    // str
+    FOS_TEST_OBJ_EQUAL(objs({str("aa"),str(""),str("aa"),str("acde")}), PROCESS_ALL("{'aab','bbb','aba','acde'}.minus('b')"));
+    // TODO: FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("str['1'].plus('245')"));
+    FOS_TEST_OBJ_EQUAL(str("1"), PROCESS("'1'.minus(str['245'])"));
+    FOS_TEST_OBJ_EQUAL(str(""), PROCESS("'a'.minus(minus(minus(minus(minus(_)))))"));
+    // uri
+    // TODO: FOS_TEST_OBJ_EQUAL(objs({vri("a/x"),vri("/b/x"),vri("/b/x"),vri("cd.e/x")}), PROCESS_ALL("{a,/b/,/b/,cd.e}.plus(x)"));
+   /* FOS_TEST_OBJ_EQUAL(objs({vri("a/x"),vri("/b/x"),vri("/b/x"),vri("cd_e/x")}),
+                       PROCESS_ALL("{a,/b/,/b/,cd_e}.plus(x)"));
+    FOS_TEST_OBJ_EQUAL(str("1245"), PROCESS("str['1'].plus('245')"));
+    FOS_TEST_OBJ_EQUAL(vri("a1/b245"), PROCESS("a1.plus(<b245>)"));
+    FOS_TEST_OBJ_EQUAL(vri("a/a/a/a/a/a"), PROCESS("<a>.plus(plus(plus(plus(plus(_)))))"));*/
+  }
+
   void test_mult_inst() {
     // bool
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("true.mult(false)"));
@@ -290,6 +315,7 @@ namespace fhatos {
   //FOS_RUN_TEST(test_reduce_inst); //
   //FOS_RUN_TEST(test_neg_inst); //
   FOS_RUN_TEST(test_plus_inst); //
+  FOS_RUN_TEST(test_minus_inst); //
   FOS_RUN_TEST(test_mult_inst); //
   FOS_RUN_TEST(test_count_inst); //
   FOS_RUN_TEST(test_drop_inst); //

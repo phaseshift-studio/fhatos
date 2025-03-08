@@ -44,7 +44,7 @@
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #include "../src/boot_config_loader.hpp"
-#include "../src/model/fos/type.hpp"
+#include "../src/model/fos/fos_obj.hpp"
 
 #define FOS_DEPLOY_PRINTER
 
@@ -79,7 +79,6 @@
 #ifdef FOS_DEPLOY_ROUTER
 #include "../src/structure/router.hpp"
 #include "../src/lang/mmadt/parser.hpp"
-#include "../src/model/fos/type.hpp"
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
   Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
   Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
@@ -116,7 +115,7 @@
 ////////////////////////////////////////// TYPE ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_TYPE
 #include "../src/lang/type.hpp"
-#include "../src/lang/mmadt/type.hpp"
+#include "../src/lang/mmadt/mmadt_obj.hpp"
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
   Router::singleton()->attach(Heap<>::create("/mmadt/#")); \

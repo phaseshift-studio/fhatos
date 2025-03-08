@@ -23,7 +23,7 @@
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../../util/string_printer.hpp"
-#include "../mmadt/type.hpp"
+#include "mmadt_obj.hpp"
 
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;

@@ -56,7 +56,7 @@ IF(BUILD_DOCS)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/docs
-            COMMAND asciidoctor -o index.html ${FILES}
+            COMMAND asciidoctor -v -r asciidoctor-tabs -o index.html ${FILES}
             COMMENT "Evaluating asciidoctor: ${FILES}")
     UNSET(FILES)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")

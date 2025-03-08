@@ -142,10 +142,10 @@ namespace fhatos {
         left_pos = s->find(left_delim, left_pos);
         if(left_pos != std::string::npos) {
           new_string += s->substr(right_pos, left_pos);
-          temp_pos = left_pos+ left_delim.length();
+          temp_pos = left_pos + left_delim.length();
           if(right_pos = s->find(right_delim, left_pos + left_delim.length());
             right_pos != std::string::npos) {
-            temp_pos = right_pos+ right_delim.length();
+            temp_pos = right_pos + right_delim.length();
             // Calculate the length of the substring to be replaced
             const size_t length_to_replace = right_pos - left_pos - left_delim.length();
             // Replace the content between delimiters
@@ -173,10 +173,10 @@ namespace fhatos {
 
     static void rtrim(std::string &s) {
       s.erase(
-        std::find_if(s.rbegin(), s.rend(), [](const char c) {
-          return !std::isspace(c) && c < 127 && c != '\0';
-        }).base(),
-        s.end());
+          std::find_if(s.rbegin(), s.rend(), [](const char c) {
+            return !std::isspace(c) && c < 127 && c != '\0';
+          }).base(),
+          s.end());
     }
 
     static bool has_wildcards(const std::string &s) {
@@ -282,6 +282,8 @@ namespace fhatos {
     }
 
     static void replace(string *s, const string &search, const string &replace, const bool forward = true) {
+      if(search.empty() || s->length() < search.length())
+        return;
       if(!forward) {
         const size_t pos = s->rfind(search, s->length() - 1);
         if(pos == string::npos)
@@ -312,8 +314,10 @@ namespace fhatos {
     }
 
     static bool char_ptr_equal(const char *a, const char *b) {
-      if(!a) return !b;
-      if(!b) return false;
+      if(!a)
+        return !b;
+      if(!b)
+        return false;
       return strcmp(a, b) == 0;
     }
   };
