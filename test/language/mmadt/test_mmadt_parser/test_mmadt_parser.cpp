@@ -338,6 +338,31 @@ namespace fhatos {
         jnt(0), PROCESS("/abc -> [8,rec[[a=>rec[[b=>6]],c=>7]]];\n*/abc/1/a.b.to(/abc/2);\n*/abc/2 + -6\n"));
   }
 
+  void test_is_predicate_parsing() {
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?= 5"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?= 6"));
+    //
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?!= 6"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?!= 5"));
+    //
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?>= 4"));
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?>= 5"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?>= 6"));
+    //
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("4 ?<= 5"));
+    FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("4 ?<= 4"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("4 ?<= 3"));
+    //
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?> 4"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?> 5"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?> 6"));
+    //
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("5 ?< 6"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?< 5"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("5 ?< 4"));
+    //
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_comment_parsing); //
       FOS_RUN_TEST(test_tracker); //
@@ -357,6 +382,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_inst_sugar_parsing); //
       FOS_RUN_TEST(test_apply_mono_parsing); //
       FOS_RUN_TEST(test_apply_poly_parsing); //
+      FOS_RUN_TEST(test_is_predicate_parsing); //
       )
 } // namespace fhatos
 

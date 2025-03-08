@@ -400,9 +400,9 @@ video {
 </li>
 <li><a href="#_the_router_structure">The Router Structure</a>
 <ul class="sectlevel3">
-<li><a href="#_reading_and_writing_structures">Reading and Writing Structures</a>
+<li><a href="#_structure_reading_and_writing">Structure Reading and Writing</a>
 <ul class="sectlevel4">
-<li><a href="#_structure_modules_and_furi_queries">Structure Modules and fURI Queries</a></li>
+<li><a href="#_query_processors">Query Processors</a></li>
 </ul>
 </li>
 <li><a href="#_embedding">Embedding</a>
@@ -592,7 +592,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;6784]
+[INFO]  [/sys/router] main memory [total=&gt;6912]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -1782,6 +1782,11 @@ threadx[[ /
 The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI.
 Once spawned, the <code>setup</code> function prints the thread&#8217;s id and halts.</p>
 </div>
+<!-- #############################################################################################################
+     #############################################################################################################
+     ############################################ ROUTER #########################################################
+     #############################################################################################################
+     ############################################################################################################# -->
 </div>
 </div>
 </div>
@@ -1940,20 +1945,66 @@ However, ultimately, the router serves as a simple singleton proxy to the struct
 It&#8217;s in the structures where the heavily lifting of the memory operations takes place.</p>
 </div>
 <div class="sect3">
-<h4 id="_reading_and_writing_structures">Reading and Writing Structures</h4>
+<h4 id="_structure_reading_and_writing">Structure Reading and Writing</h4>
 <div class="paragraph">
 <p>Every structure supports 2 primary operations:</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
+<table class="tableblock frame-all grid-all center" style="width: 75%;">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>\$\text{read} : U \rightarrow O\$</p>
-</li>
-<li>
-<p>\$\text{write}: (U \times O) \rightarrow \emptyset\$</p>
-</li>
-</ol>
 </div>
+<div class="paragraph">
+<p>The router is given a fURI <code>u</code> from <code>U</code>.
+The router locates the <code>structure</code> responsible for the fURI subspace containing <code>u</code>.
+The <code>structure</code> resolves <code>u</code> to an <code>obj</code>. If no <code>obj</code> is found, <code>noobj</code> is returned.</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+[HIDDEN] u -> 'fhatos'
+from(u)
+*u
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; '';u -&gt; 'fhatos'
+==&gt;'fhatos'
+==&gt;'fhatos'
+fhatos&gt; from(u)
+==&gt;'fhatos'
+fhatos&gt; *u
+==&gt;'fhatos'</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>\$\text{write}: (U \times O) \rightarrow \emptyset\$</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+u -> o
+u.ref(o)
+o.to(u)
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; u -&gt; o
+==&gt;o
+fhatos&gt; u.ref(o)
+==&gt;o
+fhatos&gt; o.to(u)
+==&gt;o</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
 <p>A read accepts a direct fURI (called an <code>id</code>) or a match fURI (called a <code>pattern</code>).
 Within the category of <code>id</code> and <code>pattern</code>, there are <code>node</code> fURIs and <code>branch</code> fURIs.
@@ -2081,7 +2132,7 @@ With <code>end</code>, it&#8217;s possible to write mm-ADT in the classic statem
 </tbody>
 </table>
 <div class="sect4">
-<h5 id="_structure_modules_and_furi_queries">Structure Modules and fURI Queries</h5>
+<h5 id="_query_processors">Query Processors</h5>
 <div class="paragraph">
 <p>Every fURI can have any number of key/value(s) pairs attached to it via the <code>?</code> query encoding scheme defined by the
 <a href="https://datatracker.ietf.org/doc/html/rfc3986#section-3.4">W3C URI</a> specification.
@@ -2714,6 +2765,11 @@ satisfy the resolution of the respective fURI.</p>
            x                            x/</code></pre>
 </div>
 </div>
+<!-- ########################################################################################################
+#############################################################################################################
+########################################### SCHEDULER #######################################################
+#############################################################################################################
+############################################################################################################# -->
 </div>
 </div>
 </div>
@@ -3082,7 +3138,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-07 12:28:55 -0700
+Last updated 2025-03-07 18:35:48 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

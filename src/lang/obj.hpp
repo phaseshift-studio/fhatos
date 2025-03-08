@@ -514,6 +514,14 @@ namespace fhatos {
       this->at(this->vid);
     }
 
+    /*virtual void write(const fURI &furi, const Obj_p to_write, const bool retain) {
+      ROUTER_WRITE(furi, to_write, retain);
+    }
+
+    virtual Obj_p read(const fURI& furi) {
+      return ROUTER_READ(furi);
+    }*/
+
     virtual void load() {
       if(this->vid) {
         const Obj_p other = ROUTER_READ(*this->vid);
@@ -754,7 +762,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Uri_p uri_set(const Int_p &index, const Obj_p &val) {
-     fURI furi = this->uri_value();
+      fURI furi = this->uri_value();
 
     }
 

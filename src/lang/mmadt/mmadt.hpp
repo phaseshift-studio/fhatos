@@ -33,8 +33,6 @@ namespace mmadt {
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// PROTECTED  /////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
-
-    const BCode_p _bcode;
     fURI tid;
     fURI domain;
     IntCoefficient dc = {1, 1};
@@ -43,7 +41,7 @@ namespace mmadt {
 
     [[nodiscard]] _mmadt_p extend(const Obj_p &inst) const {
       const auto insts = make_shared<List<Obj_p>>();
-      for(const auto &old_inst: *this->_bcode->bcode_value()) {
+      for(const auto &old_inst: *this->bcode_->bcode_value()) {
         insts->push_back(old_inst);
       }
       insts->push_back(inst);
@@ -69,20 +67,22 @@ namespace mmadt {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
+    const BCode_p bcode_;
+
     explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, BCode_p bcode) :
-      tid(tid), domain(domain), range(range), _bcode(std::move(bcode)) {
+      tid(tid), domain(domain), range(range), bcode_(std::move(bcode)) {
     }
 
-    [[nodiscard]] string toString() const { return this->_bcode->toString(); }
+    [[nodiscard]] string toString() const { return this->bcode_->toString(); }
 
     operator Obj_p() const {
       if(this->tid.equals(*BCODE_FURI))
-        return this->_bcode;
-        // Conversion logic here
-        return InstBuilder::build(this->tid)
-            ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
-            ->inst_f(this->_bcode)
-            ->create();
+        return this->bcode_;
+      // Conversion logic here
+      return InstBuilder::build(this->tid)
+          ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)
+          ->inst_f(this->bcode_)
+          ->create();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ namespace mmadt {
     ///////////////////////////////////////////////////////////////////
 
     std::vector<Obj_p>::iterator begin() {
-      return BCODE_PROCESSOR(this->_bcode)->objs_value()->begin();
+      return BCODE_PROCESSOR(this->bcode_)->objs_value()->begin();
     }
 
   };

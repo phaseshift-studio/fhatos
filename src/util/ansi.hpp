@@ -83,6 +83,7 @@ namespace fhatos {
       static auto printer = CPrinter();
       return &printer;
     }
+    ~CPrinter() = default;
 #ifdef NATIVE
     static int print(const char *c_str) {
       const size_t length = strlen(c_str);

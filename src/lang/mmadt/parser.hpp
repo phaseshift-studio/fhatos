@@ -157,7 +157,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
     Definition
         EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
-        MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP,
+        MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ,
         SPLIT, EACH;
 #endif
 
@@ -445,6 +445,12 @@ namespace mmadt {
         return {obj->value_, obj->otype};
       };
 
+      auto is_maker = [](const ID_p &predicate, const Obj_p &obj) -> Inst_p {
+        return Obj::to_inst(Obj::to_inst_args({
+                                Obj::to_inst(Obj::to_inst_args({obj}), predicate)}),
+                            id_p("is"));
+      };
+
       WS <= zom(cls(" \t\n"));
       ////////////////////// COMMENTS ///////////////////////////
       COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT), [](const SemanticValues &) { return str("comment"); };
@@ -543,9 +549,10 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS,
-                        REF,
-                        BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
+      SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, AT, RSHIFT, LSHIFT,
+                        RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
+                        EMPTY_BCODE, FROM, PASS,
+                        REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(RSHIFT, ">>", "rshift");
@@ -558,6 +565,28 @@ namespace mmadt {
       SUGAR_GENERATOR(EACH, "==", "each");
       SUGAR_GENERATOR(PLUS, "+", "plus");
       SUGAR_GENERATOR(MULT, "x", "mult");
+      SUGAR_GENERATOR(GT, "?>", "gt");
+      SUGAR_GENERATOR(GTE, "?>=", "gte");
+      SUGAR_GENERATOR(LT, "?<", "lt");
+      SUGAR_GENERATOR(LTE, "?<=", "lte");
+      EQ <= seq(lit("?="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("eq"), any_cast<Obj_p>(vs[0]));
+      };
+      NEQ <= seq(lit("?!="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("neq"), any_cast<Obj_p>(vs[0]));
+      };
+      GT <= seq(lit("?>"), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("gt"), any_cast<Obj_p>(vs[0]));
+      };
+      GTE <= seq(lit("?>="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("gte"), any_cast<Obj_p>(vs[0]));
+      };
+      LT <= seq(lit("?<"), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("lt"), any_cast<Obj_p>(vs[0]));
+      };
+      LTE <= seq(lit("?<="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("lte"), any_cast<Obj_p>(vs[0]));
+      };
       LSHIFT_0 <= lit("<<"), lshift_0_action;
       RSHIFT_0 <= lit(">>"), rshift_0_action;
       PASS <= seq(lit("-->"), WRAQ("(", OBJ, START, ")")), pass_action;

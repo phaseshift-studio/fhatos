@@ -22,26 +22,28 @@
 
 #include "../fhatos.hpp"
 #include "../lang/type.hpp"
+#include "../model/fos/sys/thread/fmutex.hpp"
 
 namespace fhatos {
   class Terminal final : public Rec {
   protected:
-    explicit Terminal(const ID &id) : Rec(rmap({{":stdout", InstBuilder::build(":stdout")
-                                              ->type_args(x(0, Obj::to_bcode()))
-                                              ->inst_f([](const Str_p &obj, const InstArgs &args) {
-                                                FEED_WATCHDOG();
-                                                STD_OUT_DIRECT(obj);
-                                                return noobj();
-                                              })->create()},
-                                            {":stdin", InstBuilder::build(":stdin")
-                                              ->inst_f([](const Str_p &, const InstArgs &) {
-                                                return STD_IN_DIRECT();
-                                              })->create()}}),
-                                          OType::REC, /*id_p(REC_FURI->extend("terminal"))*/ REC_FURI, id_p(id)) {
+    explicit Terminal(const ID &id) :
+      Rec(rmap({{":stdout", InstBuilder::build(":stdout")
+                 ->type_args(x(0, Obj::to_bcode()))
+                 ->inst_f([](const Str_p &obj, const InstArgs &args) {
+                   FEED_WATCHDOG();
+                   STD_OUT_DIRECT(obj);
+                   return noobj();
+                 })->create()},
+                {":stdin", InstBuilder::build(":stdin")
+                 ->inst_f([](const Str_p &, const InstArgs &) {
+                   return STD_IN_DIRECT();
+                 })->create()}}),
+          OType::REC, /*id_p(REC_FURI->extend("terminal"))*/ REC_FURI, id_p(id)) {
     }
 
   public:
-    static void* import() {
+    static void *import() {
       return nullptr;
     }
 
@@ -58,8 +60,8 @@ namespace fhatos {
     }
 
     static void STD_OUT_DIRECT(const Str_p &str) {
-      static auto STDOUT_MUTEX = std::mutex();
-      std::lock_guard<std::mutex> lock(STDOUT_MUTEX);
+      static auto mutex_ = fMutex();
+      auto lock = std::lock_guard(mutex_);
       printer<>()->print(str->str_value().c_str());
     }
 

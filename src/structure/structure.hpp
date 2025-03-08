@@ -118,7 +118,7 @@ namespace fhatos {
     }
 
     virtual void loop() {
-        for(const auto &[k,o]: *this->q_procs_->rec_value())  {
+      for(const auto &[k,o]: *this->q_procs_->rec_value()) {
         ((QProc *) o.get())->loop();
       }
 
@@ -208,7 +208,7 @@ namespace fhatos {
         const Objs_p results = Obj::to_objs();
         bool found = false;
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
-          const QProc *q = (QProc *) o.get();
+           QProc *q = (QProc *) o.get();
           const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
           if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
             found = true;
@@ -350,8 +350,8 @@ namespace fhatos {
                              furi.toString().c_str());
       }
       if(furi.has_query()) {
-        QProc::ON_RESULT result = this->process_query_write(QProc::POSITION::PRE, furi, obj, retain);
-        if(result == QProc::ON_RESULT::ONLY_Q)
+        if(const QProc::ON_RESULT result = this->process_query_write(QProc::POSITION::PRE, furi, obj, retain);
+          result == QProc::ON_RESULT::ONLY_Q)
           return;
       }
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -478,15 +478,6 @@ namespace fhatos {
           return true;
         return false;
       });
-    }
-
-    List<Subscription_p> get_matching_subscriptions(const fURI &topic, const ID &source = "") const {
-      List<Subscription_p> matches;
-      this->subscriptions_->forEach([topic,source,&matches](const Subscription_p &subscription) {
-        if((source.empty() || source.matches(*subscription->source())) && topic.bimatches(*subscription->pattern()))
-          matches.push_back(subscription);
-      });
-      return matches;
     }
 
     Objs_p get_subscription_objs(const fURI &pattern = "#") const {
