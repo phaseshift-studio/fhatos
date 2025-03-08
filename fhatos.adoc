@@ -47,6 +47,42 @@ In general, FhatOS provides a convenient medium for coordinating a heterogeneous
 
 https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
 
+[tabs]
+====
+sugar::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[a => b, /
+ b => [c => /
+  [d => e]]]
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> [a => b,
+         b => [c =>
+          [d => e]]]
+=>[
+==>a=>b
+==>b=>[
+===>c=>[d=>e]
+=>]
+=>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+
+sugar free::
++
+Contents of Tab B.
+====
+
 == FhatOS Features
 
 . A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for executing multi-threaded https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
@@ -620,13 +656,10 @@ image:trill.png[width=150,float=right,title=trill] In the code example above, th
 /sys/router/config/resolve/auto_prefix ->  *(_) + \|[/mmadt/ext/]
 ----
 
-mm-ADT is actually a very simple language.
-It has a few moving parts that drive the entire computation.
-Understanding these fundamentals is the key to mastering mm-ADT.
 The line above looks daunting because it contains numerous https://en.wikipedia.org/wiki/Syntactic_sugar[syntactic sugars].
 Specifically, the binary and unary operators `->` (binary), `*` (unary), `_` (unary), `+` (binary), and `|` (unary).
-These operators parse down to instructions which have a familiar functional form of `f(a,b,c,...)`.
-For example, the above expression in a sugar-free form is written below:
+Each of these symbols ultimately parse down to an `inst`. Each having that familiar functional form of `f(a,b,c,...)`.
+For example, the _sugar free_ representation of the expression above is:
 
 [cols="2,2"]
 |===
@@ -885,16 +918,17 @@ In this way, `rec` is both a data structure and a flow control structure.
 
 It's not difficult to realize how an "if"-`rec` generalizes to support the various plays on one of computing's most important concepts: https://en.wikipedia.org/wiki/Branch_(computer_science)[the branch].
 
-[cols="2,2",separator=🧱]
-|===
-a🧱
-
+[tabs]
+====
+if-else::
++
+--
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
 {1,2,3}.[                  /
-  is(gt(2)) => mult(-1),   /
-  _         => mult(100)]>-
+  ?>2 => mult(-1),   /
+  _   => mult(100)]>-
 -->
 ++++
 
@@ -902,8 +936,8 @@ a🧱
 [source,mmadt]
 ----
 fhatos> {1,2,3}.[                 
-          is(gt(2)) => mult(-1),  
-          _         => mult(100)]>-
+          ?>2 => mult(-1),  
+          _   => mult(100)]>-
 ==>100
 ==>200
 ==>-3
@@ -912,26 +946,28 @@ fhatos> {1,2,3}.[
 ++++
 <!-- 🐓 -->
 ++++
-
-a🧱
+--
+switch::
++
+--
 
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
-{1,2,3}.[               /
-  is(eq(1)) => mult(-1),    /
-  is(eq(2)) => mult(0),     /
-  is(eq(3)) => _]>-
+{1,2,3}.[             /
+  ?=1 => mult(-1),    /
+  ?=2 => mult(0),     /
+  ?=3 => _]>-
 -->
 ++++
 
 .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
 [source,mmadt]
 ----
-fhatos> {1,2,3}.[              
-          is(eq(1)) => mult(-1),   
-          is(eq(2)) => mult(0),    
-          is(eq(3)) => _]>-
+fhatos> {1,2,3}.[            
+          ?=1 => mult(-1),   
+          ?=2 => mult(0),    
+          ?=3 => _]>-
 ==>-1
 ==>0
 ==>3
@@ -940,27 +976,35 @@ fhatos> {1,2,3}.[
 ++++
 <!-- 🐓 -->
 ++++
-
-a🧱
+--
+guard::
++
+--
 
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
---- todo
+{1,2,3}.[
 -->
 ++++
 
 .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
 [source,mmadt]
 ----
-fhatos> --- todo
+fhatos> {1,2,3}.[
+==>1
+==>2
+==>3
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
+--
 
-a🧱
+pattern::
++
+--
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -978,9 +1022,11 @@ fhatos> --- todo
 ++++
 <!-- 🐓 -->
 ++++
+--
 
-a🧱
-
+hash::
++
+--
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
@@ -997,8 +1043,8 @@ fhatos> --- todo
 ++++
 <!-- 🐓 -->
 ++++
-
-|===
+--
+====
 
 ====
 NOTE: The `merge` (sugar'd `>-`) instruction has a correlate: `split` (sugar'd `-<`).
@@ -1047,6 +1093,25 @@ fhatos> [a=>1,b=>2].b     // <5>
 <3> `real[1.2]` applied to `int[2]`.
 <4> `lst\[[1,2,3]]` applied to the `uri[1]`.
 <5> `rec\[[a=>1,b=>2]]` applied to the `uri[b]`.
+
+[.small]
+[.center]
+[cols="1,1,1,1,1,1,1,1,1,1,1", width=75%]
+|===
+|  X   | noobj | bool | int | real | str | uri | lst | rec | inst | bcode
+|noobj |    x  |  y   |    z| a    |  b  |  c  |  d  |  e  |  f   |  g
+|bool  |    x  |   y  |   z |  a   |   b |   c |   d |   e |   f  |   g
+|int   |     x |  y   |  z  |   a  | b   | c   |  d  | e   |  f   |    g
+|real  |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|str   |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|uri   |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|lst   |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|rec   |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|inst  |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
+|bcode |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g  
+
+|===
+
 
 ==== Values
 

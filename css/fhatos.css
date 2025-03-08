@@ -77,7 +77,7 @@ h2, h3, h4, h5, h6 {
 }
 
 .title {
-/*color: var(--black) !important;*/
+    color: #d70000 !important;
     font-family: Arial, sans-serif !important;
     font-style: normal;
     font-weight: bold !important;
@@ -186,6 +186,25 @@ mark {
     box-shadow: none;
     margin-bottom: 0px;
 
+}
+
+
+.tab, .tabs:not(.is-loading) .tablist li.is-selected::after {
+    background-color: var(--maincolor) !important;
+    border-color: var(--maincolor);
+    border-width: thin;
+    border-radius: 0.25em;
+    border-style: solid;
+    font-size: 0.65em !important;
+}
+
+.tabpanel {
+    background-color: var(--maincolor) !important;
+    border-color: #797979;
+    border-width: thin;
+    border-radius: 0.25em;
+    border-style: solid;
+    padding: 0.5em !important;
 }
 
 .admonitionblock>table td.content {
