@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>6784]
+[INFO]  [/sys/router] main memory [total=>6912]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -664,7 +664,8 @@ More generally, a https://en.wikipedia.org/wiki/Function_(computer_programming)[
 More abstractly, a https://en.wikipedia.org/wiki/Function_(mathematics)[function].
 Syntactically, an `inst` has the form:
 
-[source,mmadt,role="center"]
+[.center]
+[source,mmadt]
 ----
 type?rng{coeff}<=dom{coeff}(arg1, arg2, ...) [bcode]
 ----
@@ -678,7 +679,8 @@ f(\mathcal{Dom}^{C} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Rn
 The fURI query _type-specification_ is more advanced and requires an understanding of structure query processors.
 As such, for now, realize an `inst` to have the form:
 
-[source,mmadt,role="center"]
+[.center]
+[source,mmadt]
 ----
 type(arg1, arg2, ...) [bcode]
 ----
@@ -692,7 +694,8 @@ f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow 
 In order to evaluate an `inst` an `obj` must be _applied_ to it.
 Application is sugar'd `.`.
 
-[source,mmadt,role=center]
+[.center]
+[source,mmadt]
 ----
       inst(arg1, arg2, ...)
 obj_d.inst(arg1, arg2, ...)
@@ -706,7 +709,8 @@ The sequence of events are diagrammatically represented in the graphical explana
 [cols="6,9"]
 |===
 a|
-[source,mmadt,role="center"]
+[.center]
+[source,mmadt]
 ----
         ┌────────────────────┐
         ├──────────────┐     │
@@ -718,7 +722,8 @@ obj_d ──├─> inst(arg1, arg2, ...)
 
 ----
 a|
-[source,mmadt,role="center"]
+[.center]
+[source,mmadt]
 ----
       inst(arg1, arg2, ...)             [x.y.z]             // <1>
 obj_d.inst(arg1, arg2, ...)             [x.y.z]             // <2>
@@ -739,7 +744,8 @@ obj_d.inst(arg1, arg2, ...)             [x.y.z]             // <2>
 The diagram states that the input `obj` is applied to each argument, the result of which are the actual arguments provided to the `inst`.
 The `inst` is thus, generally defined as:
 
-[stem,role=center]
+[.center]
+[stem]
 ++++
 \[
 \begin{align*}
@@ -801,7 +807,8 @@ fhatos> 2.lst[[1,plus(2),mult(plus(3)),'a']]
 Note that the application is recursive.
 For example, `2.mult(plus(3))` is evaluated as follows:
 
-[stem,role=center]
+[.center]
+[stem]
 ++++
 \[
 \begin{align*}
@@ -1185,6 +1192,14 @@ The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler
 The scheduler spawns the program on an individual `thread` accessible via the target fURI.
 Once spawned, the `setup` function prints the thread's id and halts.
 
+++++
+<!-- #############################################################################################################
+     #############################################################################################################
+     ############################################ ROUTER #########################################################
+     #############################################################################################################
+     ############################################################################################################# -->
+++++
+
 === The Router Structure
 
 image:cooties-2.png[width=140,float=right] Every fhatOS machine has a single _router_.
@@ -1298,12 +1313,71 @@ Not only are read/write requests managed by the router, but also subscriptions a
 However, ultimately, the router serves as a simple singleton proxy to the structures it manages.
 It's in the structures where the heavily lifting of the memory operations takes place.
 
-==== Reading and Writing Structures
+==== Structure Reading and Writing
 
 Every structure supports 2 primary operations:
 
-. \$\text{read} : U \rightarrow O\$
-. \$\text{write}: (U \times O) \rightarrow \emptyset\$
+[.center]
+[cols="2,2",width=75%]
+|===
+a|
+
+\$\text{read} : U \rightarrow O\$
+
+The router is given a fURI `u` from `U`.
+The router locates the `structure` responsible for the fURI subspace containing `u`.
+The `structure` resolves `u` to an `obj`. If no `obj` is found, `noobj` is returned.
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+[HIDDEN] u -> 'fhatos'
+from(u)
+*u
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> '';u -> 'fhatos'
+==>'fhatos'
+==>'fhatos'
+fhatos> from(u)
+==>'fhatos'
+fhatos> *u
+==>'fhatos'
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+\$\text{write}: (U \times O) \rightarrow \emptyset\$
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+u -> o
+u.ref(o)
+o.to(u)
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> u -> o
+==>o
+fhatos> u.ref(o)
+==>o
+fhatos> o.to(u)
+==>o
+----
+
+++++
+<!-- 🐓 -->
+++++
+|===
 
 A read accepts a direct fURI (called an `id`) or a match fURI (called a `pattern`).
 Within the category of `id` and `pattern`, there are `node` fURIs and `branch` fURIs.
@@ -1381,7 +1455,7 @@ With `end`, it's possible to write mm-ADT in the classic statement-oriented, imp
 <4> Dereferencing a `pattern`-branch fURI to access `objs` at respective branches.
 |===
 
-===== Structure Modules and fURI Queries
+===== Query Processors
 
 Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the
 https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
@@ -1910,7 +1984,18 @@ satisfy the resolution of the respective fURI.
 
 ----
 
+++++
+<!-- ########################################################################################################
+#############################################################################################################
+########################################### SCHEDULER #######################################################
+#############################################################################################################
+############################################################################################################# -->
+++++
+
 === The Scheduler Process
+
+
+
 
 === A FhatOS Console
 

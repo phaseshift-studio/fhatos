@@ -152,7 +152,7 @@ class ProcessingState:
                 self.section = "👨‍🌾"
 
     def _post_process_output(self, c: str, in_table: bool = True) -> str:
-        if(not in_table):
+        if (not in_table):
             # escape table separator character
             c = c.replace("\\|", "|").replace("|", "\\|")
         # remove code=> frame reference as it's an artifact of the console.eval() remote code evaluation
@@ -199,16 +199,19 @@ class ProcessingState:
             if line.startswith("[HEADER]"):
                 to_header.append(line)
             else:
-                to_execute.append(line)
+                to_execute.append(line.replace("[HIDDEN] ","'';"))
         self.output = []
         self.output.extend(to_header)
-        self.output.extend(execute_code(
+        x = execute_code(
             to_execute,
             self.context,
             "bash",
             output_file=self.backtick_options.get("filename"),
             verbose=verbose,
-        ))
+        )
+        for line in x:
+            if not line.startswith("'';"):
+               self.output.append(line)
         self.code = []
         self.backtick_options = {}
 
