@@ -120,6 +120,7 @@ namespace fhatos {
         return kp
             ->import(Heap<>::import("/mnt/lib/heap"))
             ->import(Mqtt::import("/mnt/lib/mqtt"))
+            ->import(DSM::import("/mnt/lib/dsm"))
             ->import(Bus::import("/mnt/lib/bus"))
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
@@ -172,15 +173,15 @@ namespace fhatos {
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(Mqtt::create("//io/#", id_p("/mnt/mqtt"),
-                                 Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
-                                     Obj::to_rec({
-                                         {"broker",
-                                          vri(args_parser->option_string(
-                                              "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                         {"client",
-                                          vri(args_parser->option_string(
-                                              "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
+            ->mount(DSM::create("/shared/#", id_p("/mnt/dsm"),
+                                Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
+                                    Obj::to_rec({
+                                        {"broker",
+                                         vri(args_parser->option_string(
+                                             "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                        {"client",
+                                         vri(args_parser->option_string(
+                                             "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
             ->drop_config("mqtt")
             ->mount(Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
             ->install(ConsoleX::create("/io/console",

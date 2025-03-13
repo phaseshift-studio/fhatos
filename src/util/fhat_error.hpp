@@ -53,7 +53,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
-#ifdef NATIVE
+#ifdef DNATIVE
       const cpptrace::stacktrace st = cpptrace::generate_trace();
       const string stack_message = string(this->message_).append("\n").append(st.to_string(true));
       return stack_message.c_str();

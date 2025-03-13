@@ -56,7 +56,7 @@ namespace fhatos {
                                              : make_pair(Obj::to_noobj(), mqtt_message->is_retained());
           // assert(mqtt_message->is_retained() == retained); // TODO: why does this sometimes not match?
           const Message_p message = Message::create(id_p(ID(mqtt_message->get_topic())), payload, retained);
-          LOG_WRITE(INFO, this, L("{} received\n", message->toString()));
+          LOG_WRITE(DEBUG, this, L("{} received\n", message->toString()));
           //this->on_recv(message);
           this->subscriptions_->forEach([this,&message](const Subscription_p &sub) {
             if(this->clients_->find([this,sub](const ID &client) {

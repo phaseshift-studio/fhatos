@@ -81,6 +81,8 @@ namespace fhatos {
           Process::current_process()->yield();
         }
         line += static_cast<char>(c);
+        if(until == '\0')
+          break;
       }
       return str(line);
     }

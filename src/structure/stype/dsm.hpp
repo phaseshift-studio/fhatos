@@ -42,7 +42,7 @@ namespace fhatos {
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
     int max_size = 100;
-    unique_ptr<MqttClient> mqtt;
+    uptr<MqttClient> mqtt;
 
   public:
     explicit DSM(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -55,8 +55,7 @@ namespace fhatos {
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
                               const Rec_p &config = Obj::to_rec()) {
-      const Structure_p s = Structure::create<DSM>(pattern, value_id, config);
-      return s;
+      return Structure::create<DSM>(pattern, value_id, config);
     }
 
     static void *import(const ID &import_id) {
@@ -85,13 +84,13 @@ namespace fhatos {
     }
 
   protected:
-    void write_raw_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) {
+    void write_raw_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) const {
       if(retain) {
         if(obj->is_noobj()) {
           if(this->data_->exists(id))
             this->data_->erase(id);
         } else {
-          this->data_->insert_or_assign(id, std::move(obj));
+          this->data_->insert_or_assign(id, const_pointer_cast<Obj>(obj));
           while(this->data_->size() >= this->max_size) {
             this->data_->pop();
           }
