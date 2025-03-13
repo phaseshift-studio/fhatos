@@ -22,22 +22,20 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include "../../structure.hpp"
-#include "../../../util/obj_helper.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../../model/fos/util/log.hpp"
-#include "../../router.hpp"
 
 namespace fhatos {
+  class MqttClient;
+  static auto CLIENTS = Map<fURI,ptr<MqttClient>>();
 
   class MqttClient final : Rec {
   public:
     std::any handler_;
-    Consumer<Message_p> on_recv;
     uptr<MutexDeque<ID>> clients_ = make_unique<MutexDeque<ID>>();
     uptr<MutexDeque<Subscription_p>> subscriptions_ = make_unique<MutexDeque<Subscription_p>>();
 
-    explicit MqttClient(const Rec_p &config, const Consumer<Message_p> &on_recv = [](const Message_p &) {
-                        });
+    explicit MqttClient(const Rec_p &config);
 
     ID broker() const {
       return this->rec_get("broker")->uri_value();
@@ -47,7 +45,7 @@ namespace fhatos {
       return this->rec_get("client")->uri_value();
     }
 
-    // bool is_connected();
+    bool is_connected() const;
 
     /* virtual void recv_unsubscribe(const ID &source, const fURI &target) {
           if(!this->available_.load())
@@ -92,7 +90,21 @@ namespace fhatos {
 
     void publish(const Message_p &message) const;
 
-    bool connect(const ID& source) const;
+    void receive(const Message_p &message) const {
+      LOG_WRITE(DEBUG, this, L("{} received\n", message->toString()));
+      this->subscriptions_->forEach([this,&message](const Subscription_p &sub) {
+        if(this->clients_->find([this,sub](const ID &client) {
+          return sub->source()->equals(client);
+        }).has_value()) {
+          if(message->target()->matches(*sub->pattern())) {
+            if(sub->on_recv().get())
+              sub->apply(message);
+          }
+        }
+      });
+    }
+
+    bool connect(const ID &source) const;
 
     bool disconnect(const ID &source) const;
 
@@ -107,6 +119,17 @@ namespace fhatos {
       const Lst_p lst = Obj::deserialize(bobj);
       return {lst->lst_value()->at(0), lst->lst_value()->at(1)->bool_value()};
     }
+
+
+    static ptr<MqttClient> get_or_create(const fURI &broker, const fURI &client) {
+      if(CLIENTS.count(broker))
+        return CLIENTS.at(broker);
+      ptr<MqttClient> mqtt = make_shared<MqttClient>(
+          Obj::to_rec({{"broker", vri(broker)}, {"client", vri(client)}}));
+      CLIENTS.insert_or_assign(broker, mqtt);
+      return mqtt;
+    }
   };
+
 } // namespace fhatos
 #endif

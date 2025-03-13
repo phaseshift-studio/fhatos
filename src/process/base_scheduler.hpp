@@ -114,9 +114,9 @@ namespace fhatos {
       if(!this->router_)
         this->router_ = Router::singleton();
 
-      while(true || ((passPredicate && !passPredicate()) ||
-             (!passPredicate && this->running_ && !this->processes_->empty()))) {
+      while(true) {
         this->router_->loop();
+        Process::current_process()->delay(100);
         this->feed_local_watchdog();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));

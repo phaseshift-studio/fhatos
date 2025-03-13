@@ -17,21 +17,7 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-#############################
-## DEFINE GLOBAL VARIABLES ##
-#############################
-NC='\033[0m'
-RED='\033[0;31m'
-#BOLDRED='\033[1;31m'
-#IRED='\033[0;91m'
-GREEN='\033[0;32m'
-#BOLDGREEN='\033[1;32m'
-MAGENTA='\033[0;35m'
-BLUE='\033[0;34m'
-FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
-LB="${MAGENTA}[${NC}"
-RB="${MAGENTA}]${NC}"
+source colors.sh
 #############################################
 if [ -z "$FHATOS_HOME" ]; then
   echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";

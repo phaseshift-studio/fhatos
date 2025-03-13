@@ -42,7 +42,7 @@ namespace fhatos {
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
     int max_size = 100;
-    uptr<MqttClient> mqtt;
+    ptr<MqttClient> mqtt;
 
   public:
     explicit DSM(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -63,8 +63,16 @@ namespace fhatos {
       return nullptr;
     }
 
+    void loop() override {
+      Structure::loop();
+      FEED_WATCHDOG();
+      this->mqtt->loop();
+    }
+
     void setup() override {
-      this->mqtt = std::make_unique<MqttClient>(this->rec_get("config"));
+      this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"),
+                                             this->get<fURI>("config/client"));
+
       if(this->mqtt->connect(*this->vid)) {
         this->mqtt->subscribe(Subscription::create(this->vid, this->pattern,
                                                    [this](const Obj_p &obj, const InstArgs &args) {
@@ -134,8 +142,8 @@ namespace fhatos {
     }*/
   };
 
-#ifdef ESP_ARCH
+/*#ifdef ESP_ARCH
   using DSM_PSRAM = DSM<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
-#endif
+#endif*/
 } // namespace fhatos
 #endif

@@ -96,6 +96,7 @@ namespace fhatos {
                                 }
                               } catch(std::exception &e) {
                                 console_state->print_exception(console_obj, e);
+#ifdef NATIVE
                                 console_state->write_stdout(console_obj, str("print stack trace [y/N]? "));
                                 string response = console_state->read_stdin(console_obj, '\0')->str_value();
                                 StringHelper::lower_case(response);
@@ -103,6 +104,7 @@ namespace fhatos {
                                   const cpptrace::stacktrace st = cpptrace::generate_trace();
                                   console_state->write_stdout(console_obj, str(st.to_string(true)));
                                 }
+#endif
                                 console_state->line_.clear();
                                 console_state->new_input_ = true;
                               }

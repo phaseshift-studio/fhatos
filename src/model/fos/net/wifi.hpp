@@ -17,8 +17,8 @@
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_wifix_hpp
-#define fhatos_wifix_hpp
+#ifndef fhatos_wifi_hpp
+#define fhatos_wifi_hpp
 #ifndef NATIVE
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"

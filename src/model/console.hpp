@@ -134,13 +134,6 @@ namespace fhatos {
                                   this->line_.clear();
                                 } catch(std::exception &e) {
                                   this->print_exception(e);
-                                  this->write_stdout(str("print stack trace [y/N]? "));
-                                  string response = this->read_stdin('\0')->str_value();
-                                  StringHelper::lower_case(response);
-                                  if(response[0] == 'y') {
-                                    const cpptrace::stacktrace st = cpptrace::generate_trace();
-                                    this->write_stdout(str(st.to_string(true)));
-                                  }
                                   this->line_.clear();
                                   this->new_input_ = true;
                                 }

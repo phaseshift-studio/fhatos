@@ -37,6 +37,15 @@ namespace fhatos {
       return this->deque_;
     }
 
+    bool exists(const T &t) {
+      auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
+      for(const T &r: this->deque_) {
+        if(r == t)
+          return true;
+      }
+      return false;
+    }
+
     bool exists(const Predicate<T> &predicate) {
       auto lock = std::shared_lock<fMutex>(this->deque_mutex_);
       for(const T &t: this->deque_) {

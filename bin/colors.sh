@@ -18,10 +18,19 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-source colors.sh
-
-echo -e "${FHATOS} MQTT Mosquitto Script"
-echo -e "  ${MAGENTA}mosquitto configuration${NC} at ${BLUE}conf/mosquitto.conf${NC}"
-
-$(which mosquitto) -c conf/mosquitto.conf
+#############################
+## DEFINE GLOBAL VARIABLES ##
+#############################
+NC='\033[0m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+#BOLDRED='\033[1;31m'
+#IRED='\033[0;91m'
+GREEN='\033[0;32m'
+BOLDGREEN='\033[1;32m'
+MAGENTA='\033[0;35m'
+BLUE='\033[0;34m'
+FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
+LB="${MAGENTA}[${YELLOW}"
+RB="${MAGENTA}]${NC}"
+#############################

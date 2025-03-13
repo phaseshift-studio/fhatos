@@ -187,6 +187,9 @@ code {
     border-style: solid;
     font-size: 0.9em !important;
     font-family: monospace, fixed !important;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 mark {
@@ -657,46 +660,6 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <div class="paragraph">
 <p><a href="https://github.com/phaseshift-studio/fhatos">🐙 <strong>source code</strong></a></p>
 </div>
-<div id="_tabs_1" class="openblock tabs is-loading">
-<div class="content">
-<div class="ulist tablist">
-<ul>
-<li id="_tabs_1_sugar" class="tab">
-<p>sugar</p>
-</li>
-<li id="_tabs_1_sugar_free" class="tab">
-<p>sugar free</p>
-</li>
-</ul>
-</div>
-<div id="_tabs_1_sugar--panel" class="tabpanel" aria-labelledby="_tabs_1_sugar">
-<!-- 🐖 ./main_runner.out
-[a => b, /
- b => [c => /
-  [d => e]]]
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a =&gt; b,
-         b =&gt; [c =&gt;
-          [d =&gt; e]]]
-=&gt;[
-==&gt;a=&gt;b
-==&gt;b=&gt;[
-===&gt;c=&gt;[d=&gt;e]
-=&gt;]
-=&gt;]</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-</div>
-<div id="_tabs_1_sugar_free--panel" class="tabpanel" aria-labelledby="_tabs_1_sugar_free">
-<div class="paragraph">
-<p>Contents of Tab B.</p>
-</div>
-</div>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -763,7 +726,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;7296]
+[INFO]  [/sys/router] main memory [total=&gt;7552]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -783,6 +746,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router] scheduler boot config dropped
 [INFO]  [/sys/router] /sys/lib/heap type imported
 [INFO]  [/sys/router] /sys/lib/mqtt type imported
+[INFO]  [/sys/router] /sys/lib/dsm type imported
 [INFO]  [/sys/router] /sys/lib/bus type imported
 [INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
       .oO loading mmadt lang Oo.
@@ -814,9 +778,8 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
 [INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/mqtt] /mnt/mqtt mqtt [broker=&gt;mqtt://chibi.local:1883,client=&gt;fhatos_client,cache=&gt;true] connected
-[INFO]  [/mnt/mqtt] cache enabled
-[INFO]  [/sys/router] mqtt /mnt/mqtt spanning //io/# mounted
+[ERROR] [/mmadt/rec] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
+[INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==&gt;//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
@@ -872,38 +835,19 @@ The core <strong class="yellow">f</strong>​<span class="lime">H</span>​<stro
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>/sys/scheduler</code> (<strong>process</strong>): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.</p>
+<p><code>/sys/scheduler</code> (<strong>process</strong>): provides all <a href="https://en.wikipedia.org/wiki/Thread_(computing)">thread</a>, fiber, and coroutine processes compute time on the underlying hardware processor.</p>
 </li>
 <li>
-<p><code>/sys/router</code> (<strong>structure</strong>) : maintains the multi-level tuple space used for storing and retrieving <code>objs</code> in the fURI address space.</p>
+<p><code>/sys/router</code> (<strong>structure</strong>) : maintains a distributed, partitioned <a href="https://en.wikipedia.org/wiki/Tuple_space">tuple space</a> used for storing and retrieving <code>objs</code> in the fURI address space.</p>
 </li>
 <li>
-<p><code>/mmadt/</code> (<strong>language</strong>): exposes parsing, type management, and caching functionality to all mm-ADT programs.</p>
+<p><code>/mmadt/</code> (<strong>language</strong>): enables source <a href="https://en.wikipedia.org/wiki/Parsing_expression_grammar">parsing</a>, <a href="https://en.wikipedia.org/wiki/Type_system">type system</a> reasoning, and execution of mm-ADT programs.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>The <strong class="lime">F</strong>​<strong class="yellow">h</strong>​<span class="fuchsia">a</span>​<strong class="red">t</strong>​<span class="blue">o</span>​<span class="aqua">s</span>​ scheduler and router are accessible to the user when their respective fURIs are dereferenced (<code>*</code> or <code>from</code>).</p>
+<p>The <strong class="lime">F</strong>​<strong class="yellow">h</strong>​<span class="fuchsia">a</span>​<strong class="red">t</strong>​<span class="blue">o</span>​<span class="aqua">s</span>​ scheduler and router are accessed when their respective fURIs are <a href="https://en.wikipedia.org/wiki/Reference_(computer_science)">dereferenced</a> using the <code>from</code> instruction (sugar&#8217;d <code>*</code>).</p>
 </div>
-<!-- 🐖 ./main_runner.out
-[a => b, /
- b => [c => /
-  [d => e]]]
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a =&gt; b,
-         b =&gt; [c =&gt;
-          [d =&gt; e]]]
-=&gt;[
-==&gt;a=&gt;b
-==&gt;b=&gt;[
-===&gt;c=&gt;[d=&gt;e]
-=&gt;]
-=&gt;]</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
 <!-- 🐖 ./main_runner.out
 */sys/scheduler
 */sys/router
@@ -930,7 +874,7 @@ fhatos&gt; */sys/router
 ===&gt;/io/#
 ===&gt;+/#
 ===&gt;/disk/#
-===&gt;//io/#
+===&gt;/shared/#
 ===&gt;/bus/#
 =&gt;]
 ==&gt;frame=&gt;[rec][_]
@@ -945,8 +889,8 @@ fhatos&gt; */sys/router
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>Likewise, the mmADT language is encoded within the fURI address space. mmADT&#8217;s encoding is large as it includes all the mmADT types and instructions.
-By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>#</code>, a reflective representation of the mmADT language is accessed.</p>
+<p>Likewise, the mmADT language is embedded within the fURI address space. mm-ADT&#8217;s encoding is large as it includes all mm-ADT types and instructions.
+By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>#</code>, a <a href="https://en.wikipedia.org/wiki/Reflective_programming">reflective</a> representation of the mm-ADT language is accessed.</p>
 </div>
 <div class="paragraph">
 <p> <details><summary> 
@@ -1110,60 +1054,106 @@ By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>
 <p> </div></details> </p>
 </div>
 <div class="paragraph">
-<p>All resources off the specified kernel fURIs can be interacted with, but can not be shutdown.
-That is, <code>/sys/# &#8594; noobj</code> yields an error.
-Without these resources, <span class="blue">F</span>​<span class="red">h</span>​<strong class="yellow">A</strong>​<span class="lime">t</span>​<span class="aqua">O</span>​<strong class="fuchsia">S</strong>​ will not function propertly.</p>
-</div>
-<div class="paragraph">
-<p>User resources are typicaly structured as below:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><code>/io/</code>: location of input/output devices such as terminal, files, etc.</p>
-</li>
-<li>
-<p><code>/home/</code>: location of all user data and programs.</p>
-</li>
-<li>
-<p><code>/driver/</code>: location of all external device drivers.</p>
-</li>
-<li>
-<p><code>/log/</code>: location of all log output.</p>
-</li>
-<li>
-<p><code>/ext/</code>: location of various mm-ADT extensions.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>The following subsections will provide a short overview of the aforementioned resources in reverse order: mm-ADT, router, and then scheduler.</p>
+<p>The wildcard feature of the fURI scheme makes it possible to access instructions associated with a particular type.</p>
 </div>
 <!-- 🐖 ./main_runner.out
-*/io/console
+*/mmadt/int/#
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */io/console
-=&gt;console[
-==&gt;halt=&gt;false
-==&gt;delay=&gt;nat[0]
-==&gt;loop=&gt;inst()[cpp]
-==&gt;config=&gt;[
-===&gt;nest=&gt;2
-===&gt;prompt=&gt;'fhatos&gt; '
-===&gt;strict=&gt;false
-===&gt;log=&gt;INFO
-===&gt;stack_size=&gt;24288
-=&gt;]
-=&gt;]@/io/console</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/int/#
+==&gt;[int][[_]]
+==&gt;as?obj&lt;=int(from?obj&lt;=obj(0?type,noobj)[cpp])[cpp]
+==&gt;div?int&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;gt?bool&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;gte?bool&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;inspect?rec&lt;=int(from?obj&lt;=obj(0?inspected,_)[cpp])[cpp]
+==&gt;lt?bool&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;lte?bool&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;minus?int&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;mod?int&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;mult?int&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]
+==&gt;neg?int&lt;=int(from?obj&lt;=obj(0?self,_)[cpp])[cpp]
+==&gt;plus?int&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="exampleblock">
+<div class="content">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+When an instruction body is displayed as <code>[cpp]</code>, it means that the instruction&#8217;s implementation is written C++ and thus, no further introspection is possible from within mm-ADT.
+When the instruction implementation is written in mm-ADT, the instruction body is displayed as <code>bcode</code> (a linear chain of <code>objs</code>).
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "*int::lt" -->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *int::lt
+==&gt;lt?bool&lt;=int(from?obj&lt;=obj(0?rhs,noobj)[cpp])[cpp]</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "*nat" -->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
+==&gt;nat?int&lt;=int()[is(gte(0))]</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="paragraph">
+<p>Shutting down <span class="yellow">f</span>​<span class="fuchsia">h</span>​<strong class="aqua">A</strong>​<strong class="lime">T</strong>​<strong class="red">O</strong>​<span class="blue">s</span>​ is as simple as writing <code>noobj</code> to every <code>obj</code> that is fURI accessible to the local processor.</p>
+</div>
+<!-- 🐖 ./main_runner.out
+# -> noobj
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
+[ERROR] [/sys/router] # crosses multiple structures
+[INFO]  [/sys/router] 1 bus(s) closing
+[INFO]  [/sys/router] 1 dsm(s) closing
+[INFO]  [/sys/router] 1 fs(s) closing
+[INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
+[INFO]  [/sys/router] router /sys/router stopped
+[INFO]  [/sys/router] /sys/# heap detached
+[INFO]  [/sys/router] /mnt/# heap detached
+[INFO]  [/sys/router] /boot/# heap detached
+[INFO]  [/sys/router] /fos/# heap detached
+[INFO]  [/sys/router] /mmadt/# heap detached
+[INFO]  [/sys/router] /io/# heap detached
+[INFO]  [/sys/router] +/# heap detached
+[INFO]  [/sys/router] /disk/# fs detached
+[INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
 <div class="sect2">
 <h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
-<p><span class="aqua">F</span>​<span class="red">h</span>​<strong class="lime">a</strong>​<span class="blue">t</span>​<strong class="yellow">o</strong>​<span class="fuchsia">s</span>​ software can be written in C/C\++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
+<p><span class="aqua">F</span>​<span class="red">h</span>​<strong class="lime">a</strong>​<span class="blue">t</span>​<strong class="yellow">o</strong>​<span class="fuchsia">s</span>​ software can be written in C/C++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
 Every expression in mm-ADT yields an <code>obj</code> (object).
 An <code>obj</code> can be any one of</p>
 </div>
@@ -1221,37 +1211,37 @@ An <code>obj</code> can be any one of</p>
 <div class="paragraph">
 <p>Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.</p>
 </div>
-<div id="_tabs_2" class="openblock tabs is-loading">
+<div id="_tabs_1" class="openblock tabs is-loading">
 <div class="content">
 <div class="ulist tablist">
 <ul>
-<li id="_tabs_2_bool" class="tab">
+<li id="_tabs_1_bool" class="tab">
 <p>bool</p>
 </li>
-<li id="_tabs_2_int" class="tab">
+<li id="_tabs_1_int" class="tab">
 <p>int</p>
 </li>
-<li id="_tabs_2_real" class="tab">
+<li id="_tabs_1_real" class="tab">
 <p>real</p>
 </li>
-<li id="_tabs_2_str" class="tab">
+<li id="_tabs_1_str" class="tab">
 <p>str</p>
 </li>
-<li id="_tabs_2_uri" class="tab">
+<li id="_tabs_1_uri" class="tab">
 <p>uri</p>
 </li>
-<li id="_tabs_2_lst" class="tab">
+<li id="_tabs_1_lst" class="tab">
 <p>lst</p>
 </li>
-<li id="_tabs_2_rec" class="tab">
+<li id="_tabs_1_rec" class="tab">
 <p>rec</p>
 </li>
-<li id="_tabs_2_noobj" class="tab">
+<li id="_tabs_1_noobj" class="tab">
 <p>noobj</p>
 </li>
 </ul>
 </div>
-<div id="_tabs_2_bool--panel" class="tabpanel" aria-labelledby="_tabs_2_bool">
+<div id="_tabs_1_bool--panel" class="tabpanel" aria-labelledby="_tabs_1_bool">
 <!-- 🐖 ./main_runner.out "/mmadt/bool[true]" "bool[true]" "true" -->
 <div class="listingblock">
 <div class="content">
@@ -1265,7 +1255,7 @@ fhatos&gt; true
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_int--panel" class="tabpanel" aria-labelledby="_tabs_2_int">
+<div id="_tabs_1_int--panel" class="tabpanel" aria-labelledby="_tabs_1_int">
 <!-- 🐖 ./main_runner.out "/mmadt/int[6]" "int[6]" "6" -->
 <div class="listingblock">
 <div class="content">
@@ -1279,7 +1269,7 @@ fhatos&gt; 6
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_real--panel" class="tabpanel" aria-labelledby="_tabs_2_real">
+<div id="_tabs_1_real--panel" class="tabpanel" aria-labelledby="_tabs_1_real">
 <!-- 🐖 ./main_runner.out "/mmadt/real[6.2]" "real[6.2]" "6.2" -->
 <div class="listingblock">
 <div class="content">
@@ -1293,7 +1283,7 @@ fhatos&gt; 6.2
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_str--panel" class="tabpanel" aria-labelledby="_tabs_2_str">
+<div id="_tabs_1_str--panel" class="tabpanel" aria-labelledby="_tabs_1_str">
 <!-- 🐖 ./main_runner.out "/mmadt/str['cooties']" "str['cooties']" "'cooties'" -->
 <div class="listingblock">
 <div class="content">
@@ -1307,7 +1297,7 @@ fhatos&gt; 'cooties'
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_uri--panel" class="tabpanel" aria-labelledby="_tabs_2_uri">
+<div id="_tabs_1_uri--panel" class="tabpanel" aria-labelledby="_tabs_1_uri">
 <!-- 🐖 ./main_runner.out "/mmadt/uri[/dog/curly]" "uri[/dog/curly]" "/dog/curly" -->
 <div class="listingblock">
 <div class="content">
@@ -1321,7 +1311,7 @@ fhatos&gt; /dog/curly
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_lst--panel" class="tabpanel" aria-labelledby="_tabs_2_lst">
+<div id="_tabs_1_lst--panel" class="tabpanel" aria-labelledby="_tabs_1_lst">
 <!-- 🐖 ./main_runner.out
 [HIDDEN] /io/console/config/nest -> 0
 /mmadt/lst[['a',2,true]]
@@ -1340,7 +1330,7 @@ fhatos&gt; ['a',2,true]
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_rec--panel" class="tabpanel" aria-labelledby="_tabs_2_rec">
+<div id="_tabs_1_rec--panel" class="tabpanel" aria-labelledby="_tabs_1_rec">
 <!-- 🐖 ./main_runner.out
 [HIDDEN] /io/console/config/nest->0
 /mmadt/rec[[a=>6,b=>false]]
@@ -1359,7 +1349,7 @@ fhatos&gt; [a=&gt;6,b=&gt;false]
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_2_noobj--panel" class="tabpanel" aria-labelledby="_tabs_2_noobj">
+<div id="_tabs_1_noobj--panel" class="tabpanel" aria-labelledby="_tabs_1_noobj">
 <!-- 🐖 ./main_runner.out
 /mmadt/noobj[]
 noobj[]
@@ -1503,58 +1493,7 @@ fhatos&gt; @a + 1
 ==&gt;int8[128]@a
 fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
 [ERROR] [/sys/type] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-Stack trace (most recent call first):
-#0  [34m0x0000578e88d44a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x0000578e88d61589[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1909[0m:[34m108[0m
-#2  [34m0x0000578e88da6cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#3  [34m0x0000578e88da6659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#4  [34m0x0000578e88da5ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#5  [34m0x0000578e88da53f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#6  [34m0x0000578e88da57a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#7  [34m0x0000578e88da6051[0m in [33mfhatos::Processor::compute(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m163[0m:[34m51[0m
-#8  [34m0x0000578e88d3b60d[0m in [33moperator()[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m390[0m:[34m51[0m
-#9  [34m0x0000578e88d3d6b0[0m in [33m__invoke_impl&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#10 [34m0x0000578e88d3d370[0m in [33m__invoke_r&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#11 [34m0x0000578e88d3cee2[0m in [33m_M_invoke[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#12 [34m0x0000578e88df854d[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#13 [34m0x0000578e88ddd86d[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m168[0m:[34m54[0m
-#14 [34m0x0000578e88ddde4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#15 [34m0x0000578e88ea2088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#16 [34m0x0000578e88e75dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#17 [34m0x0000578e88e45728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#18 [34m0x0000578e88df8338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#19 [34m0x0000578e88d609bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#20 [34m0x0000578e88da6cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#21 [34m0x0000578e88da6659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#22 [34m0x0000578e88da5ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#23 [34m0x0000578e88da53f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#24 [34m0x0000578e88da57a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#25 [34m0x0000578e88da6138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#26 [34m0x0000578e88d3bece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#27 [34m0x00007dc864c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#28 [34m0x00007dc864c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#29 [34m0x0000578e88d39064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
-    thrown at inst int8[128]@a =&gt; plus(1)[cpp] [0=&gt;1]
-Stack trace (most recent call first):
-#0  [34m0x0000578e88d44a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x0000578e88ddd041[0m in [33mfhatos::ConsoleX::print_exception(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::exception const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m137[0m:[34m82[0m
-#2  [34m0x0000578e88dddbc5[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m175[0m:[34m30[0m
-#3  [34m0x0000578e88ddde4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#4  [34m0x0000578e88ea2088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#5  [34m0x0000578e88e75dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#6  [34m0x0000578e88e45728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#7  [34m0x0000578e88df8338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#8  [34m0x0000578e88d609bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#9  [34m0x0000578e88da6cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#10 [34m0x0000578e88da6659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#11 [34m0x0000578e88da5ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#12 [34m0x0000578e88da53f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#13 [34m0x0000578e88da57a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#14 [34m0x0000578e88da6138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#15 [34m0x0000578e88d3bece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#16 [34m0x00007dc864c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#17 [34m0x00007dc864c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#18 [34m0x0000578e88d39064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m</code></pre>
+    thrown at inst int8[128]@a =&gt; plus(1)[cpp] [0=&gt;1]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1903,28 +1842,28 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 <div class="paragraph">
 <p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support the various plays on one of computing&#8217;s most important concepts: <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">the branch</a>.</p>
 </div>
-<div id="_tabs_3" class="openblock tabs is-loading">
+<div id="_tabs_2" class="openblock tabs is-loading">
 <div class="content">
 <div class="ulist tablist">
 <ul>
-<li id="_tabs_3_if_else" class="tab">
+<li id="_tabs_2_if_else" class="tab">
 <p>if-else</p>
 </li>
-<li id="_tabs_3_switch" class="tab">
+<li id="_tabs_2_switch" class="tab">
 <p>switch</p>
 </li>
-<li id="_tabs_3_guard" class="tab">
+<li id="_tabs_2_guard" class="tab">
 <p>guard</p>
 </li>
-<li id="_tabs_3_pattern" class="tab">
+<li id="_tabs_2_pattern" class="tab">
 <p>pattern</p>
 </li>
-<li id="_tabs_3_hash" class="tab">
+<li id="_tabs_2_hash" class="tab">
 <p>hash</p>
 </li>
 </ul>
 </div>
-<div id="_tabs_3_if_else--panel" class="tabpanel" aria-labelledby="_tabs_3_if_else">
+<div id="_tabs_2_if_else--panel" class="tabpanel" aria-labelledby="_tabs_2_if_else">
 <!-- 🐖 ./main_runner.out
 [HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
 {1,2,3}.[                  /
@@ -1944,7 +1883,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_3_switch--panel" class="tabpanel" aria-labelledby="_tabs_3_switch">
+<div id="_tabs_2_switch--panel" class="tabpanel" aria-labelledby="_tabs_2_switch">
 <!-- 🐖 ./main_runner.out
 [HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
 {1,2,3}.[             /
@@ -1966,7 +1905,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_3_guard--panel" class="tabpanel" aria-labelledby="_tabs_3_guard">
+<div id="_tabs_2_guard--panel" class="tabpanel" aria-labelledby="_tabs_2_guard">
 <!-- 🐖 ./main_runner.out
 [HEADER] .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
 {1,2,3}.[
@@ -1982,7 +1921,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_3_pattern--panel" class="tabpanel" aria-labelledby="_tabs_3_pattern">
+<div id="_tabs_2_pattern--panel" class="tabpanel" aria-labelledby="_tabs_2_pattern">
 <!-- 🐖 ./main_runner.out
 [HEADER] .pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
 --- todo
@@ -1995,7 +1934,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_3_hash--panel" class="tabpanel" aria-labelledby="_tabs_3_hash">
+<div id="_tabs_2_hash--panel" class="tabpanel" aria-labelledby="_tabs_2_hash">
 <!-- 🐖 ./main_runner.out
 [HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
 --- todo
@@ -2284,48 +2223,8 @@ fhatos&gt; a -&gt; age[45]
 ==&gt;age[45]
 fhatos&gt; *a.inspect()
 [ERROR] [/mmadt/bcode] 45 is not a /mmadt/bcode as defined by [bcode][_]
-Stack trace (most recent call first):
-#0  [34m0x000062a5d17c3a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000062a5d185c041[0m in [33mfhatos::ConsoleX::print_exception(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::exception const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m137[0m:[34m82[0m
-#2  [34m0x000062a5d185cbc5[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m175[0m:[34m30[0m
-#3  [34m0x000062a5d185ce4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#4  [34m0x000062a5d1921088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#5  [34m0x000062a5d18f4dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#6  [34m0x000062a5d18c4728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#7  [34m0x000062a5d1877338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#8  [34m0x000062a5d17df9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#9  [34m0x000062a5d1825cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#10 [34m0x000062a5d1825659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#11 [34m0x000062a5d1824ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#12 [34m0x000062a5d18243f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#13 [34m0x000062a5d18247a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#14 [34m0x000062a5d1825138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#15 [34m0x000062a5d17baece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#16 [34m0x000071bd7202a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#17 [34m0x000071bd7202a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#18 [34m0x000062a5d17b8064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
 fhatos&gt; @a.inspect()
-[ERROR] [/mmadt/bcode] 45@a is not a /mmadt/bcode as defined by [bcode][_]
-Stack trace (most recent call first):
-#0  [34m0x000062a5d17c3a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000062a5d185c041[0m in [33mfhatos::ConsoleX::print_exception(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::exception const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m137[0m:[34m82[0m
-#2  [34m0x000062a5d185cbc5[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m175[0m:[34m30[0m
-#3  [34m0x000062a5d185ce4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#4  [34m0x000062a5d1921088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#5  [34m0x000062a5d18f4dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#6  [34m0x000062a5d18c4728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#7  [34m0x000062a5d1877338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#8  [34m0x000062a5d17df9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#9  [34m0x000062a5d1825cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#10 [34m0x000062a5d1825659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#11 [34m0x000062a5d1824ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#12 [34m0x000062a5d18243f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#13 [34m0x000062a5d18247a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#14 [34m0x000062a5d1825138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#15 [34m0x000062a5d17baece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#16 [34m0x000071bd7202a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#17 [34m0x000071bd7202a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#18 [34m0x000062a5d17b8064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m</code></pre>
+[ERROR] [/mmadt/bcode] 45@a is not a /mmadt/bcode as defined by [bcode][_]</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -2390,124 +2289,16 @@ For instance, if a natural number \(\mathbb{N}\) is any non-negative number, the
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /type/int/nat -&gt; |is(gt(0))
 [ERROR] [/sys/router] no mounted structure for /type/int/nat
-Stack trace (most recent call first):
-#0  [34m0x000061f3c7250a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000061f3c742aba3[0m in [33mfhatos::Router::write(fhatos::fURI const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, bool)[0m at [32m/home/killswitch/software/fhatos/src/structure/router.cpp[0m:[34m222[0m:[34m7[0m
-#2  [34m0x000061f3c729732f[0m in [33mmmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../mmadt/mmadt_obj.hpp[0m:[34m678[0m:[34m39[0m
-#3  [34m0x000061f3c7398182[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#4  [34m0x000061f3c736ac68[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#5  [34m0x000061f3c733a518[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#6  [34m0x000061f3c7304338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#7  [34m0x000061f3c726c9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#8  [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#9  [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#10 [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#11 [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#12 [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#13 [34m0x000061f3c72b2051[0m in [33mfhatos::Processor::compute(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m163[0m:[34m51[0m
-#14 [34m0x000061f3c724760d[0m in [33moperator()[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m390[0m:[34m51[0m
-#15 [34m0x000061f3c72496b0[0m in [33m__invoke_impl&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#16 [34m0x000061f3c7249370[0m in [33m__invoke_r&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#17 [34m0x000061f3c7248ee2[0m in [33m_M_invoke[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#18 [34m0x000061f3c730454d[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#19 [34m0x000061f3c72e986d[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m168[0m:[34m54[0m
-#20 [34m0x000061f3c72e9e4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#21 [34m0x000061f3c73ae088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#22 [34m0x000061f3c7381dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#23 [34m0x000061f3c7351728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#24 [34m0x000061f3c7304338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#25 [34m0x000061f3c726c9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#26 [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#27 [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#28 [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#29 [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#30 [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#31 [34m0x000061f3c72b2138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#32 [34m0x000061f3c7247ece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#33 [34m0x000076bc47c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#34 [34m0x000076bc47c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#35 [34m0x000061f3c7245064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
 ==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj]
 fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
 [ERROR] [/sys/type] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-Stack trace (most recent call first):
-#0  [34m0x000061f3c7250a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000061f3c72e9041[0m in [33mfhatos::ConsoleX::print_exception(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::exception const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m137[0m:[34m82[0m
-#2  [34m0x000061f3c72e9bc5[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m175[0m:[34m30[0m
-#3  [34m0x000061f3c72e9e4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#4  [34m0x000061f3c73ae088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#5  [34m0x000061f3c7381dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#6  [34m0x000061f3c7351728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#7  [34m0x000061f3c7304338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#8  [34m0x000061f3c726c9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#9  [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#10 [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#11 [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#12 [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#13 [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#14 [34m0x000061f3c72b2138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#15 [34m0x000061f3c7247ece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#16 [34m0x000076bc47c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#17 [34m0x000076bc47c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#18 [34m0x000061f3c7245064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
 fhatos&gt; nat[3].plus(2)
 ==&gt;nat[5]
 fhatos&gt; nat[3].mult(-2)
 [ERROR] [/sys/type] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-Stack trace (most recent call first):
-#0  [34m0x000061f3c7250a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000061f3c726d589[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1909[0m:[34m108[0m
-#2  [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#3  [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#4  [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#5  [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#6  [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#7  [34m0x000061f3c72b2051[0m in [33mfhatos::Processor::compute(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m163[0m:[34m51[0m
-#8  [34m0x000061f3c724760d[0m in [33moperator()[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m390[0m:[34m51[0m
-#9  [34m0x000061f3c72496b0[0m in [33m__invoke_impl&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#10 [34m0x000061f3c7249370[0m in [33m__invoke_r&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#11 [34m0x000061f3c7248ee2[0m in [33m_M_invoke[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#12 [34m0x000061f3c730454d[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#13 [34m0x000061f3c72e986d[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m168[0m:[34m54[0m
-#14 [34m0x000061f3c72e9e4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#15 [34m0x000061f3c73ae088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#16 [34m0x000061f3c7381dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#17 [34m0x000061f3c7351728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#18 [34m0x000061f3c7304338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#19 [34m0x000061f3c726c9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#20 [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#21 [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#22 [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#23 [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#24 [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#25 [34m0x000061f3c72b2138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#26 [34m0x000061f3c7247ece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#27 [34m0x000076bc47c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#28 [34m0x000076bc47c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#29 [34m0x000061f3c7245064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
-    thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]
-Stack trace (most recent call first):
-#0  [34m0x000061f3c7250a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x000061f3c72e9041[0m in [33mfhatos::ConsoleX::print_exception(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::exception const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m137[0m:[34m82[0m
-#2  [34m0x000061f3c72e9bc5[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m175[0m:[34m30[0m
-#3  [34m0x000061f3c72e9e4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#4  [34m0x000061f3c73ae088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#5  [34m0x000061f3c7381dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#6  [34m0x000061f3c7351728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#7  [34m0x000061f3c7304338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#8  [34m0x000061f3c726c9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#9  [34m0x000061f3c72b2cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#10 [34m0x000061f3c72b2659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#11 [34m0x000061f3c72b1ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#12 [34m0x000061f3c72b13f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#13 [34m0x000061f3c72b17a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#14 [34m0x000061f3c72b2138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#15 [34m0x000061f3c7247ece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#16 [34m0x000076bc47c2a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#17 [34m0x000076bc47c2a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#18 [34m0x000061f3c7245064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m</code></pre>
+    thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2578,7 +2369,7 @@ fhatos&gt; */sys/router/#/
 ====&gt;/io/#
 ====&gt;+/#
 ====&gt;/disk/#
-====&gt;//io/#
+====&gt;/shared/#
 ====&gt;/bus/#
 ==&gt;]
 ===&gt;frame=&gt;[rec][_]
@@ -2959,43 +2750,6 @@ fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          <i class="con
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    <i class="conum" data-value="4"></i><b>(4)</b>
 [ERROR] [/sys/router] [/mnt/cache] no query processor for k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6 on write
-Stack trace (most recent call first):
-#0  [34m0x0000576b224a1a89[0m in [33mfhatos::fError::what() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/util/fhat_error.hpp[0m:[34m57[0m:[34m64[0m
-#1  [34m0x0000576b2267bba3[0m in [33mfhatos::Router::write(fhatos::fURI const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, bool)[0m at [32m/home/killswitch/software/fhatos/src/structure/router.cpp[0m:[34m222[0m:[34m7[0m
-#2  [34m0x0000576b224e832f[0m in [33mmmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../mmadt/mmadt_obj.hpp[0m:[34m678[0m:[34m39[0m
-#3  [34m0x0000576b225e9182[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#4  [34m0x0000576b225bbc68[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#5  [34m0x0000576b2258b518[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), mmadt::mmADT::import_base_inst()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#42}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#6  [34m0x0000576b22555338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#7  [34m0x0000576b224bd9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#8  [34m0x0000576b22503cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#9  [34m0x0000576b22503659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#10 [34m0x0000576b22502ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#11 [34m0x0000576b225023f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#12 [34m0x0000576b225027a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#13 [34m0x0000576b22503051[0m in [33mfhatos::Processor::compute(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m163[0m:[34m51[0m
-#14 [34m0x0000576b2249860d[0m in [33moperator()[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m390[0m:[34m51[0m
-#15 [34m0x0000576b2249a6b0[0m in [33m__invoke_impl&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#16 [34m0x0000576b2249a370[0m in [33m__invoke_r&lt;std::shared_ptr&lt;const fhatos::Obj&gt;, fhatos::load_processor()::&lt;lambda(const fhatos::BCode_p&amp;)&gt;&amp;, std::shared_ptr&lt;const fhatos::Obj&gt; &gt;[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#17 [34m0x0000576b22499ee2[0m in [33m_M_invoke[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#18 [34m0x0000576b2255554d[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#19 [34m0x0000576b2253a86d[0m in [33mfhatos::ConsoleX::process_line(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m168[0m:[34m54[0m
-#20 [34m0x0000576b2253ae4f[0m in [33mfhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}::operator()(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/model/fos/ui/console/console.hpp[0m:[34m201[0m:[34m71[0m
-#21 [34m0x0000576b225ff088[0m in [33mstd::shared_ptr&lt;fhatos::Obj const&gt; std::__invoke_impl&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(std::__invoke_other, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m61[0m:[34m67[0m
-#22 [34m0x0000576b225d2dde[0m in [33mstd::enable_if&lt;is_invocable_r_v&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;::type std::__invoke_r&lt;std::shared_ptr&lt;fhatos::Obj const&gt;, fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt; &gt;(fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/invoke.h[0m:[34m116[0m:[34m38[0m
-#23 [34m0x0000576b225a2728[0m in [33mstd::_Function_handler&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;), fhatos::ConsoleX::import()::{lambda(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;)#2}&gt;::_M_invoke(std::_Any_data const&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;, std::shared_ptr&lt;fhatos::Obj const&gt;&amp;&amp;)[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m291[0m:[34m44[0m
-#24 [34m0x0000576b22555338[0m in [33mstd::function&lt;std::shared_ptr&lt;fhatos::Obj const&gt; (std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;)&gt;::operator()(std::shared_ptr&lt;fhatos::Obj const&gt;, std::shared_ptr&lt;fhatos::Obj const&gt;) const[0m at [32m/usr/include/c++/13/bits/std_function.h[0m:[34m591[0m:[34m66[0m
-#25 [34m0x0000576b224bd9bb[0m in [33mfhatos::Obj::apply(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/../obj.hpp[0m:[34m1902[0m:[34m84[0m
-#26 [34m0x0000576b22503cf4[0m in [33mfhatos::Processor::Monad::domain_loop(std::shared_ptr&lt;fhatos::Obj const&gt; const&amp;) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m250[0m:[34m50[0m
-#27 [34m0x0000576b22503659[0m in [33mfhatos::Processor::Monad::loop() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m223[0m:[34m28[0m
-#28 [34m0x0000576b22502ca8[0m in [33mfhatos::Processor::execute(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m140[0m:[34m18[0m
-#29 [34m0x0000576b225023f0[0m in [33mfhatos::Processor::next(int) const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m111[0m:[34m24[0m
-#30 [34m0x0000576b225027a3[0m in [33mfhatos::Processor::to_objs() const[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m125[0m:[34m41[0m
-#31 [34m0x0000576b22503138[0m in [33mfhatos::Processor::compute(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/../../../src/process/ptype/native/../../../lang/processor/processor.hpp[0m:[34m169[0m:[34m63[0m
-#32 [34m0x0000576b22498ece[0m in [33mmain[0m at [32m/home/killswitch/software/fhatos/docs/src/runner/main_runner.cpp[0m:[34m84[0m:[34m25[0m
-#33 [34m0x00007e8de622a1c9[0m in [33m__libc_start_call_main[0m at [32m./csu/../sysdeps/nptl/libc_start_call_main.h[0m:[34m58[0m:[34m16[0m
-#34 [34m0x00007e8de622a28a[0m in [33m__libc_start_main_impl[0m at [32m./csu/../csu/libc-start.c[0m:[34m360[0m:[34m3[0m
-#35 [34m0x0000576b22496064[0m in [33m_start[0m at [32m/home/killswitch/software/fhatos/build/docs/build/main_runner.out[0m
 ==&gt;12
 fhatos&gt; *abc
 fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   <i class="conum" data-value="5"></i><b>(5)</b>
@@ -3904,7 +3658,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-13 01:30:10 -0600
+Last updated 2025-03-13 06:03:09 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
