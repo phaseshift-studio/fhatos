@@ -28,7 +28,7 @@
  *    )-)_/-(>  \/_/    \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
  *                                    A Dogturd Stynx Production
  */
-
+#define BACKWARD_HAS_BFD 1
 
 #ifndef ESP32
 #ifndef ESP8266
@@ -182,7 +182,7 @@ namespace fhatos {
     typename VALUE,
     typename HASH = std::hash<KEY>,
     typename EQ = std::equal_to<KEY>>
-    //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
+  //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
   using OrderedMap = tsl::ordered_map<KEY, VALUE, HASH, EQ>;
 
   using string = std::string;
@@ -204,8 +204,8 @@ namespace fhatos {
 #ifndef FOS_STR_ENCODING
 #define FOS_STR_ENCODING sizeof(std::string::value_type)
 #endif
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
 #define FOS_BOOT_CONFIG_VALUE_ID "/boot/config"
 #ifdef NATIVE
 #define FOS_BOOT_CONFIG_FS_URI "../conf/boot_config.obj"
@@ -214,7 +214,7 @@ namespace fhatos {
 #endif
 #define FOS_BOOT_CONFIG_HEADER_URI "boot_config.hpp"
   static unsigned int boot_config_obj_copy_len = 0;
-  static unsigned char* boot_config_obj_copy;
+  static unsigned char *boot_config_obj_copy;
 #define FOS_BOOT_CONFIG_MEM_USAGE 24576
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \

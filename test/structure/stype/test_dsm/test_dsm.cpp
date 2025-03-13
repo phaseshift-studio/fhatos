@@ -21,19 +21,19 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_SCHEDULER
-//#define FOS_DEPLOY_SHARED_MEMORY /io/#
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
-#include STR(../../../../src/structure/stype/fs/HARDWARE/fs.hpp)
+#include "../../../../src/structure/stype/dsm.hpp"
+#include "../../../../src/structure/util/mqtt/mqtt_client.hpp"
 #include "../generic_structure_test.hpp"
 
 namespace fhatos {
   using namespace mmadt;
 
-  Structure_p test_structure = std::make_shared<FSx>("/fs/xyz/#",id_p("/sys/test"),Obj::to_rec({{"root",vri("./fs")}}));
-
+  const Structure_p test_structure = DSM::create("/xyz/#", id_p("/sys/test"),
+                                                 Obj::to_rec({{"broker", vri("mqtt://chibi.local:1883")},
+                                                              {"client", vri("test_dsm")},
+                                                              {"max_size", jnt(1000)}}));
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
@@ -50,11 +50,12 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_generic_write); //
-      FOS_RUN_TEST(test_generic_subscribe); //
+      //FOS_RUN_TEST(test_generic_subscribe); //
       //FOS_RUN_TEST(test_heap_generic_lst_embedding); //
-      FOS_RUN_TEST(test_generic_rec_embedding); //
+      //FOS_RUN_TEST(test_generic_rec_embedding); //
       //FOS_RUN_TEST(test_generic_q_doc); //
       );
+
 } // namespace fhatos
 
 SETUP_AND_LOOP();

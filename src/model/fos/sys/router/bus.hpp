@@ -55,12 +55,12 @@ namespace fhatos {
     }
 
   protected:
-    void recv_unsubscribe(const ID &source, const fURI &target) override {
+    /*void recv_unsubscribe(const ID &source, const fURI &target) override {
       //   Structure::recv_unsubscribe(source, target);
       const fURI from_furi = this->rec_get("config/source")->uri_value();
       const fURI to_furi = this->rec_get("config/target")->uri_value();
       const fURI new_furi = to_furi.extend(target.remove_subpath(from_furi.toString()));
-      Router::singleton()->unsubscribe(source, new_furi);
+      Router::singleton()->write(new_furi.query("sub"),Obj::to_noobj());
     }
 
     void recv_subscription(const Subscription_p &subscription) override {
@@ -68,9 +68,9 @@ namespace fhatos {
       const fURI from_furi = this->rec_get("config/source")->uri_value();
       const fURI to_furi = this->rec_get("config/target")->uri_value();
       const fURI new_furi = to_furi.extend(subscription->pattern()->remove_subpath(from_furi.toString()));
-      Router::singleton()->subscribe(
+      Router::singleton()->write(new_furi.query("sub"),
         Subscription::create(subscription->source(), p_p(new_furi), subscription->on_recv()));
-    }
+    }*/
 
     void write(const fURI &furi, const Obj_p &obj, const bool retain = RETAIN) override {
       fURI from_furi = this->rec_get("config/source")->uri_value();

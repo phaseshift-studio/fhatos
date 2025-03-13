@@ -79,14 +79,14 @@ namespace fhatos {
 #ifdef NATIVE
             gpiod_chip *chip = gpiod_chip_open_by_name(GPIO_CHIP_NAME);
             if(!chip)
-              throw fError::create(gpio->tid->toString(), "unable to open gpio chip %s\n", GPIO_CHIP_NAME);
+              throw fError::create(gpio->tid->toString(), "unable to open gpio chip %s", GPIO_CHIP_NAME);
             gpiod_line *line = gpiod_chip_get_line(chip, pin);
             if(!line)
-              throw fError::create(gpio->tid->toString(), "unable to access pin %i on gpio chip %s\n", pin,
+              throw fError::create(gpio->tid->toString(), "unable to access pin %i on gpio chip %s", pin,
                                    GPIO_CHIP_NAME);
             gpiod_line_request_output(line, GPIO_FURI->toString().c_str(), 0);
             if(gpiod_line_set_value(line, value) < 0) {
-              throw fError::create(gpio->tid->toString(), "unable to write to pin %i on gpio chip %s\n",
+              throw fError::create(gpio->tid->toString(), "unable to write to pin %i on gpio chip %s",
                                    pin,
                                    GPIO_CHIP_NAME);
             }
@@ -107,14 +107,14 @@ namespace fhatos {
 #ifdef NATIVE
             gpiod_chip *chip = gpiod_chip_open_by_name(GPIO_CHIP_NAME);
             if(!chip)
-              throw fError::create(gpio->tid->toString(), "unable to open gpio chip %s\n", GPIO_CHIP_NAME);
+              throw fError::create(gpio->tid->toString(), "unable to open gpio chip %s", GPIO_CHIP_NAME);
             gpiod_line *line = gpiod_chip_get_line(chip, pin);
             if(!line)
-              throw fError::create(gpio->tid->toString(), "unable to access pin %i on gpio chip %s\n", pin,
+              throw fError::create(gpio->tid->toString(), "unable to access pin %i on gpio chip %s", pin,
                                    GPIO_CHIP_NAME);
             gpiod_line_request_input(line, GPIO_FURI->toString().c_str());
             if((val = gpiod_line_get_value(line)) < 0) {
-              throw fError::create(gpio->tid->toString(), "unable to read from pin %i on gpio chip %s\n",
+              throw fError::create(gpio->tid->toString(), "unable to read from pin %i on gpio chip %s",
                                    pin,
                                    GPIO_CHIP_NAME);
             }

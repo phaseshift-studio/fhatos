@@ -37,9 +37,9 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   bool Mqtt::exists() const {
-    if(!this->handler_.has_value())
+    if(!this->available_.load() || !this->handler_.has_value())
       return false;
-    const ptr<async_client> h = std::any_cast<ptr<async_client>>(this->handler_);
+    const auto h = std::any_cast<ptr<async_client>>(this->handler_);
     return h->is_connected() && h->get_server_uri() == this->rec_get("config/broker")->uri_value().toString();
   }
 
@@ -82,17 +82,24 @@ namespace fhatos {
       std::any_cast<ptr<async_client>>(this->handler_)->set_message_callback(
           [this](const const_message_ptr &mqtt_message) {
             const binary_ref ref = mqtt_message->get_payload_ref();
-            const auto bobj =
-                std::make_shared<BObj>(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
-            const auto [payload, retained] = make_payload(bobj);
-            //assert(mqtt_message->is_retained() == retained); // TODO: why does this sometimes not match?
+            const auto bobj = ref.empty()
+                                ? nullptr
+                                : std::make_shared<BObj>(ref.length(),
+                                                         reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
+            const auto [payload, retained] = bobj
+                                               ? make_payload(bobj)
+                                               : make_pair(Obj::to_noobj(), mqtt_message->is_retained());
+            // assert(mqtt_message->is_retained() == retained); // TODO: why does this sometimes not match?
             const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
             LOG_WRITE(DEBUG, this, L("received message {}\n", message->toString()));
-            for(const auto *client: MQTT_VIRTUAL_CLIENTS) {
-              //const auto matches =  //get_matching_subscriptions(*message->target());
+            for(auto *client: MQTT_VIRTUAL_CLIENTS) {
+              if(message->target()->matches(*client->pattern) && retained) {
+                client->write_cache(*message->target(), payload);
+              }
               for(const Subscription_p &sub: *client->subscriptions_) {
-                if(message->target()->bimatches(*sub->pattern()))
-                  client->outbox_->push_back(mail_p(sub, message));
+                if(message->target()->matches(*sub->pattern())) {
+                  sub->apply(message);
+                }
               }
             }
           });
@@ -114,7 +121,8 @@ namespace fhatos {
   void Mqtt::native_mqtt_publish(const Message_p &message) {
     if(message->payload()->is_noobj()) {
       std::any_cast<ptr<async_client>>(this->handler_)->publish(message->target()->toString().c_str(),
-                                                                const_cast<char *>(""), 0, 0, true)->wait();
+                                                                const_cast<char *>(""), 0, 0,
+                                                                message->retain())->wait();
     } else {
       const BObj_p source_payload = make_bobj(message->payload(), message->retain());
       std::any_cast<ptr<async_client>>(this->handler_)
@@ -126,8 +134,18 @@ namespace fhatos {
 
   void Mqtt::native_mqtt_disconnect() {
     //std::erase_if(*MQTT_VIRTUAL_CLIENTS, [this](const Mqtt *m) { return m == this; });
-    if(MQTT_VIRTUAL_CLIENTS.empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
-      std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
+    if(1 == MQTT_VIRTUAL_CLIENTS.size()) {
+      if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
+        std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
+      MQTT_VIRTUAL_CLIENTS.clear();
+    } else {
+      MQTT_VIRTUAL_CLIENTS.erase(std::remove_if(MQTT_VIRTUAL_CLIENTS.begin(), MQTT_VIRTUAL_CLIENTS.end(),
+                                                [this](const Mqtt *mqtt) {
+                                                  const bool remove = mqtt == this;
+                                                  return remove;
+                                                }), MQTT_VIRTUAL_CLIENTS.end());
+    }
+    MQTT_VIRTUAL_CLIENTS.clear();
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +163,7 @@ namespace fhatos {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
-                        this->rec_get("config/broker")->uri_value().toString()));
+                                  this->rec_get("config/broker")->uri_value().toString()));
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
@@ -155,7 +173,7 @@ namespace fhatos {
         this->enable_cache();
     } catch(const mqtt::exception &e) {
       LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n",
-                    this->rec_get("config/broker")->uri_value().toString(), e.what()));
+                               this->rec_get("config/broker")->uri_value().toString(), e.what()));
     }
   }
 }

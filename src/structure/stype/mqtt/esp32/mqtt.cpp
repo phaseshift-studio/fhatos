@@ -75,8 +75,11 @@ namespace fhatos {
         const auto [payload, retained] = make_payload(bobj);
         const Message_p message = Message::create(id_p(topic), payload, retained);
         LOG_WRITE(DEBUG, this, L("received message {}\n", message->toString()));
-        for(const auto *client: MQTT_VIRTUAL_CLIENTS) {
+        for(auto *client: MQTT_VIRTUAL_CLIENTS) {
          //const auto matches = client->subscriptions_;// client->get_matching_subscriptions(*message->target());
+              if(message->target()->matches(*client->pattern) && retained) {
+                client->write_cache(*message->target(), payload);
+              }
           for(const Subscription_p &sub: *client->subscriptions_) {
             if(message->target()->bimatches(*sub->pattern()))
               client->outbox_->push_back(mail_p(sub, message));

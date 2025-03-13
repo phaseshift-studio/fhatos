@@ -137,14 +137,14 @@ namespace fhatos {
       ////////////////////////////////
       if(const Process_p spawned_process = this->raw_spawn(process)) {
         this->processes_->push_back(process);
-        Router::singleton()->subscribe(
+        Router::singleton()->write(spawned_process->vid->query("sub"),
             Subscription::create(this->vid,
                                  p_p(*spawned_process->vid),
                                  [this,spawned_process](const Obj_p &, const InstArgs &args) {
                                    if(args->arg("payload")->is_noobj()) {
                                      if(spawned_process && spawned_process.get() && !spawned_process->is_noobj())
                                        spawned_process->stop(); // = true;
-                                     Router::singleton()->unsubscribe(*this->vid, *spawned_process->vid);
+                                  // TODO: need source on write   Router::singleton()->unsubscribe(*this->vid, *spawned_process->vid);
                                    }
                                    return Obj::to_noobj();
                                  }));

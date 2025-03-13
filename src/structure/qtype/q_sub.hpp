@@ -46,9 +46,9 @@ namespace fhatos {
         FEED_WATCHDOG();
         Option<Mail> mail = this->outbox_->pop_front();
         LOG_WRITE(TRACE, this,L("!yprocessing mail!! !b{}!! -> {}\n",
-                               mail.value().second->toString(),
-                               mail.value().first->toString())        );
-        mail.value().first->on_recv()->apply(mail.value().second);
+                                mail.value().second->toString(),
+                                mail.value().first->toString())        );
+        mail.value().first->apply(mail.value().second);
       }
     }
 
@@ -58,7 +58,10 @@ namespace fhatos {
         // unsubscribe
         this->subscriptions_->remove_if(
           [this, &furi_no_query](const Subscription_p &sub) {
-            const bool removing = /*sub->source()->equals(source) &&*/ (sub->pattern()->matches(furi_no_query));
+            const bool removing = /*sub->source()->equals(source) &&*/ (Process::current_process()
+                                                                          ? Process::current_process()->vid
+                                                                          : SCHEDULER_ID) && (sub->pattern()->matches(
+                                                                         furi_no_query));
             if(removing)
               LOG_WRITE(DEBUG, this,
                         L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", /*source.toString()*/ "",
@@ -67,10 +70,16 @@ namespace fhatos {
           });
         // if obj, subscribe
         if(!obj->is_noobj()) {
-          this->subscriptions_->push_back(Subscription::create(
-            (Process::current_process() ? Process::current_process()->vid : SCHEDULER_ID), p_p(furi_no_query), obj));
+          if(obj->tid->equals("/fos/q/sub")) {
+            this->subscriptions_->push_back(make_shared<Subscription>(obj));
+          } else {
+            this->subscriptions_->push_back(Subscription::create(
+              (Process::current_process()
+                 ? Process::current_process()->vid
+                 : SCHEDULER_ID), p_p(furi_no_query), obj));
+          }
           LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
-                                 furi_no_query.toString())          );
+                                  furi_no_query.toString())          );
           // NEEDS ACCESS TO STRUCTURE?? this->publish_retained(subscription);
         }
         LOG_WRITE(TRACE, this,L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));

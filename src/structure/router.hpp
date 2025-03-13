@@ -64,9 +64,9 @@ namespace fhatos {
 
     void write(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
 
-    void unsubscribe(const ID &subscriber, const fURI &pattern = "#");
+   /* void unsubscribe(const ID &subscriber, const fURI &pattern = "#");
 
-    void subscribe(const Subscription_p &subscription);
+    void subscribe(const Subscription_p &subscription);*/
 
     static void push_frame(const Pattern &pattern, const Rec_p &frame_data);
 

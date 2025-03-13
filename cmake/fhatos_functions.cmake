@@ -70,6 +70,20 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     ####################################
     ######## EXTERNAL LIBRARIES ########
     ####################################
+    SET(TARGET_LIBRARIES "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a fmt::fmt cpptrace::cpptrace PARENT_SCOPE)
+    ###############################################################################################
+    ####################################
+    ####################################
+    ### CPPTRACE: STACKTRACE UTILITY
+    MESSAGE(CHECK_START "${.y}making cpptrace library${..}")
+    FETCHCONTENT_DECLARE(
+            cpptrace
+            GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+            GIT_TAG v0.8.2
+    )
+    FETCHCONTENT_MAKEAVAILABLE(cpptrace)
+    TARGET_LINK_LIBRARIES(${TARGET_NAME} PUBLIC cpptrace::cpptrace)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ####################################
     ### GPIOD: GPIO READ/WRITE ACCESS
@@ -190,66 +204,10 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
         TARGET_LINK_LIBRARIES(${TARGET_NAME} PUBLIC ${WIRINGXX_LIBRARIES})
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ENDIF()
-
     ####################################
     ####################################
     ### PEGLIB: A C++ PEG PARSER
     MESSAGE(CHECK_START "${.y}making cpp-peglib library${..}")
     MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
-    IF(DO_NOT)
-        SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-        FETCHCONTENT_DECLARE(
-                peglib
-                GIT_REPOSITORY https://github.com/yhirose/cpp-peglib
-                GIT_TAG v1.9.1
-                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-        FETCHCONTENT_MAKEAVAILABLE(peglib)
-        TARGET_INCLUDE_DIRECTORIES(${TARGET_NAME} PUBLIC peglib)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/peglib)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/peglib)
-        TARGET_LINK_LIBRARIES(TARGET_NAME PRIVATE peglib)
-    ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
-    ############################################################################################################
-    ######################################## UNUSED LIBRARIES ##################################################
-    ############################################################################################################
-
-    IF(DO_NOT)
-        ####################################
-        ####################################
-        ### FMT: PRINT FORMATTING
-        MESSAGE(CHECK_START "${.y}making fmt library${..}")
-        FETCHCONTENT_DECLARE(
-                fmt
-                GIT_REPOSITORY https://github.com/fmtlib/fmt
-                GIT_TAG 11.1.1
-                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-        FETCHCONTENT_MAKEAVAILABLE(fmt)
-        TARGET_LINK_LIBRARIES(${TARGET_NAME} PRIVATE fmt::fmt)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/fmt-src/include/fmt/ DESTINATION ${CMAKE_BINARY_DIR}/include/fmt)
-        TARGET_INCLUDE_DIRECTORIES(${TARGET_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/fmt)
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-        ####################################
-        ####################################
-        ### FTXUI: ANSI C++ TERMINAL UI
-        MESSAGE(CHECK_START "${.y}making ftxui library${..}")
-        SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-        FETCHCONTENT_DECLARE(
-                ftxui
-                GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-                GIT_TAG v5.0.0
-                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS})
-        FETCHCONTENT_MAKEAVAILABLE(ftxui)
-        TARGET_INCLUDE_DIRECTORIES(${TARGET_NAME} PUBLIC ftxui)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
-        TARGET_LINK_LIBRARIES(fhatos
-                PRIVATE ftxui::screen
-                PRIVATE ftxui::dom
-                PRIVATE ftxui::component # Not needed for this example.
-        )
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ENDIF()
 ENDFUNCTION()

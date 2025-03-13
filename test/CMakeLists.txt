@@ -4,6 +4,7 @@
     IF(BUILD_TESTS)
         MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
         UNSET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
+        MESSAGE(STATUS "target linked libraries: ${TARGET_LIBRARIES}")
         SET(CATCH_TESTS tests)
         ENABLE_TESTING()
         MESSAGE(CHECK_START "${.y}searching for MQTT broker${..}")
@@ -42,7 +43,7 @@
                 INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
                 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
                 ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
-                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3)
+                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} ${TARGET_LIBRARIES})
                 ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
             ELSE()
                 MESSAGE("${.r}unable to locate boost unit_test_framework${..}. proceeding without respective depending tests.")
@@ -74,7 +75,7 @@
         )
         FETCHCONTENT_MAKEAVAILABLE(Catch2)
         ADD_EXECUTABLE(${CATCH_TESTS} ${CMAKE_SOURCE_DIR}/test/test_basic.cpp)#define FOS_DEPLOY_ROUTER
-        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE "${PROJECT_NAME}-lib" Catch2::Catch2WithMain paho-mqttpp3 paho-mqtt3a fmt::fmt)
+        TARGET_LINK_LIBRARIES(${CATCH_TESTS} PRIVATE Catch2::Catch2WithMain ${TARGET_LIBRARIES})
         ADD_TEST(${CATCH_TESTS} ${CMAKE_BINARY_DIR}/test/tests)
         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ###########################################
@@ -102,7 +103,7 @@
                         MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}${..}")
                         TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                     ENDIF()
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE "${PROJECT_NAME}-lib" unity paho-mqttpp3 paho-mqtt3a fmt::fmt)
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PRIVATE unity ${TARGET_LIBRARIES})
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
@@ -134,19 +135,19 @@
         IF(PLAYTIME)
             MAKE_TESTS(play "play" , true)
         ELSE()
+            ########## REMOVE TEST GENERATED DATA ############
             FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/a")
             FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/b")
             FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/lst")
             FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/rec")
-
-
+            ##################################################
             MAKE_TESTS(language "test_obj" true)
             MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst" true)
             MAKE_TESTS(language/processor "test_processor" true)
             MAKE_TESTS(model/fos/util "test_poll" true)
             MAKE_TESTS(process "test_scheduler" true)
             MAKE_TESTS(structure "test_router;test_structure" true)
-            MAKE_TESTS(structure/stype "test_heap;test_fs" true)
+            MAKE_TESTS(structure/stype "test_dsm;test_heap;test_fs" true)
             IF(BUILD_MQTT_TESTS)
                 MAKE_TESTS(structure/stype "test_mqtt" true)
             ENDIF()

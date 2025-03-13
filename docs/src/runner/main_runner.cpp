@@ -22,7 +22,7 @@
 #include <chrono>
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
-#include "../../../src/lang/mmadt/type.hpp"
+#include "../../../src/lang/mmadt/mmadt_obj.hpp"
 #include "../../../src/lang/mmadt/parser.hpp"
 #include "../../../src/lang/processor/processor.hpp"
 #include "../../../src/lang/type.hpp"

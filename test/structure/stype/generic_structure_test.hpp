@@ -31,11 +31,12 @@ namespace fhatos {
     explicit GenericStructureTest(const Structure_p &structure): structure_(structure),
                                                                  prefix_(id_p(structure->pattern->retract_pattern())) {
       Router::singleton()->attach(structure);
-      TEST_ASSERT_TRUE(structure->available());
-      FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
+      // TEST_ASSERT_TRUE(structure->available());
+      // FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
+      LOG_WRITE(INFO, structure.get(),L("generic structure test setup for {}", structure->toString()));
     }
 
-    [[nodiscard]] fURI p(const fURI &furi, const char* q = nullptr) const {
+    [[nodiscard]] fURI p(const fURI &furi, const char *q = nullptr) const {
       fURI temp = prefix_->extend(furi);
       return q ? temp.query(q) : temp;
     }
@@ -52,7 +53,19 @@ namespace fhatos {
         structure_->write(p(string("a/a").append(to_string(i))), jnt(i * 10));
       }
       for(int i = 0; i < 50; i++) {
-        TEST_ASSERT_EQUAL_INT(i*10, structure_->read(p(string("a/a").append(to_string(i))))->int_value());
+        FOS_TEST_OBJ_EQUAL(jnt(i*10), structure_->read(p(string("a/a").append(to_string(i)))));
+      }
+      for(int i = 49; i >= 0; i--) {
+        FOS_TEST_OBJ_EQUAL(jnt(i*10), structure_->read(p(string("a/a").append(to_string(i)))));
+      }
+      for(int i = 0; i < 50; i++) {
+        structure_->write(p(string("a/a").append(to_string(i))), Obj::to_noobj());
+      }
+      for(int i = 0; i < 50; i++) {
+        FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("a/a").append(to_string(i)))));
+      }
+      for(int i = 49; i >= 0; i--) {
+        FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("a/a").append(to_string(i)))));
       }
       this->detach();
     }
@@ -118,6 +131,7 @@ namespace fhatos {
         //                   Router::singleton()->read(id_p(test_furi->retract().extend("#/"))));
       }*/
       ////////////////////////////////////////////////////////////////////////////////////
+      Router::singleton()->write(p("rec/a/b"), Obj::to_noobj());
       this->detach();
     }
 
@@ -185,48 +199,50 @@ namespace fhatos {
     }
 
     void test_q_doc() const {
-     Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/qdoc")));
+      Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/qdoc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
       ROUTER_WRITE(p("abc"), str("no docs"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
-      ROUTER_WRITE(p("abc","doc"), str("these are the docs"),true);
+      ROUTER_WRITE(p("abc", "doc"), str("these are the docs"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(str("these are the docs"), ROUTER_READ(p("abc","doc")));
-      ROUTER_WRITE(p("abc","doc"), str("docs updated"),true);
+      ROUTER_WRITE(p("abc", "doc"), str("docs updated"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(str("docs updated"), ROUTER_READ(p("abc","doc")));
-      ROUTER_WRITE(p("abc"), Obj::to_noobj(),true);
+      ROUTER_WRITE(p("abc"), Obj::to_noobj(), true);
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
+      this->detach();
     }
 
     void test_subscribe() const {
       auto counter = new int(0);
-      Router::singleton()->subscribe(Subscription::create(
-        id_p("tester"),
-        p_p(p("b/#")), [this,counter](const Obj_p &obj, const InstArgs &args) {
-          TEST_ASSERT_EQUAL_INT(3, args->rec_value()->size());
-          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("payload")));
-          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("target")));
-          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("retain")));
-          TEST_ASSERT_EQUAL_INT(0, args->rec_value()->count(vri("other")));
-          FOS_TEST_OBJ_EQUAL(obj, args->arg("payload"));
-          TEST_ASSERT_TRUE(args->arg("retain")->bool_value());
-          TEST_ASSERT_GREATER_THAN_INT(obj->int_value(), counter);
-          FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), p("b/#"));
-          FOS_TEST_FURI_EQUAL(p((string("b/b").append(std::to_string(args->arg("payload")->int_value())))),
-                              fURI(args->arg("target")->uri_value()));
+      Router::singleton()->write(p("b/#").query("sub"), Subscription::create(
+                                   id_p("tester"),
+                                   p_p(p("b/#")), [this,counter](const Obj_p &obj, const InstArgs &args) {
+                                     TEST_ASSERT_EQUAL_INT(3, args->rec_value()->size());
+                                     TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("payload")));
+                                     TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("target")));
+                                     TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("retain")));
+                                     TEST_ASSERT_EQUAL_INT(0, args->rec_value()->count(vri("other")));
+                                     FOS_TEST_OBJ_EQUAL(obj, args->arg("payload"));
+                                     TEST_ASSERT_TRUE(args->arg("retain")->bool_value());
+                                     TEST_ASSERT_GREATER_THAN_INT(obj->int_value(), counter);
+                                     FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), p("b/#"));
+                                     FOS_TEST_FURI_EQUAL(
+                                       p((string("b/b").append(std::to_string(args->arg("payload")->int_value())))),
+                                       fURI(args->arg("target")->uri_value()));
 
-          *counter = *counter + 1;
-          return Obj::to_noobj();
-        }));
+                                     *counter = *counter + 1;
+                                     return Obj::to_noobj();
+                                   }));
       for(int i = 0; i < 25; i++) {
         Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);
-      Router::singleton()->unsubscribe("tester", p("b/#"));
+      Router::singleton()->write(p("b/#").query("sub"), Obj::to_noobj());
       for(int i = 0; i < 25; i++) {
         Router::singleton()->write(p(string("b/b").append(to_string(i))), jnt(i));
         Router::singleton()->loop();

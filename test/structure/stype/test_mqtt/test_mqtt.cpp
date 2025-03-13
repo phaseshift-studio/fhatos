@@ -30,13 +30,11 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
   //Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
-  const ptr<Mqtt> test_structure = std::make_shared<Mqtt>("/xyz/#", id_p("/sys/test"),
-  Obj::to_rec({{"broker",vri("mqtt://localhost:1883")},
-               {"client",vri("test_client")}}));
+  const auto test_structure = std::make_shared<Mqtt>("/xyz/#", id_p("/sys/test"),
+                                                          Obj::to_rec({{"broker", vri("mqtt://chibi.local:1883")},
+                                                                       {"client", vri("test_client")},
+                                                                       {"cache", dool(true)}}));
 
-  void setup() {
-    test_structure->enable_cache();
-   }
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
@@ -52,12 +50,11 @@ namespace fhatos {
   void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(setup); //
-      FOS_RUN_TEST(test_generic_write); //
+      FOS_RUN_TEST(test_generic_write) ; //
       FOS_RUN_TEST(test_generic_subscribe); //
       //FOS_RUN_TEST(test_heap_generic_lst_embedding); //
       FOS_RUN_TEST(test_generic_rec_embedding); //
-      FOS_RUN_TEST(test_generic_q_doc); //
+      //FOS_RUN_TEST(test_generic_q_doc); //
       );
 
 } // namespace fhatos

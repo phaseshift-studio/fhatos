@@ -118,7 +118,7 @@ namespace fhatos {
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid->equals(*thread->vid);
         if(remove) {
-          Router::singleton()->unsubscribe(*singleton()->vid, *proc->vid);
+         // TODO: need source on write Router::singleton()->unsubscribe(*singleton()->vid, *proc->vid);
           LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destroyed\n", proc->vid->toString().c_str());
         }
         return remove;

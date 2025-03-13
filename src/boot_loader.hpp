@@ -34,6 +34,7 @@
 #include "model/fos/sys/thread/fthread.hpp"
 #include "structure/stype/mqtt/mqtt.hpp"
 #include "structure/stype/heap.hpp"
+#include "structure/stype/dsm.hpp"
 #include "model/fos/sys/router/bus.hpp"
 #include "structure/qtype/q_doc.hpp"
 #include "structure/qtype/q_sub.hpp"

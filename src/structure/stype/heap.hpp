@@ -39,7 +39,7 @@ namespace fhatos {
   protected:
     const unique_ptr<Map<const ID, Obj_p, furi_less, ALLOCATOR>> data_ =
         make_unique<Map<const ID, Obj_p, furi_less, ALLOCATOR>>();
-   fMutex map_mutex;
+    fMutex map_mutex;
 
   public:
     explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -49,7 +49,7 @@ namespace fhatos {
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
-                                       const Rec_p &config = Obj::to_rec()) {
+                              const Rec_p &config = Obj::to_rec()) {
       return Structure::create<Heap<ALLOCATOR>>(pattern, value_id, config);
     }
 
@@ -88,7 +88,7 @@ namespace fhatos {
     IdObjPairs read_raw_pairs(const fURI &match) override {
       auto list = IdObjPairs();
       if(!match.is_pattern()) {
-       auto lock = std::shared_lock<fMutex>(this->map_mutex);
+        auto lock = std::shared_lock<fMutex>(this->map_mutex);
         if(const auto id_match = ID(match); this->data_->count(id_match))
           list.push_back({id_match, this->data_->at(id_match)});
         lock.unlock();

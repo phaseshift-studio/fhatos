@@ -138,7 +138,7 @@ namespace fhatos {
     }
 
     void print_prompt(const Obj_p &console_obj, const bool blank = false) const {
-      const string prompt = console_obj->get<string>("config/prompt");
+      const auto prompt = console_obj->get<string>("config/prompt");
       this->write_stdout(console_obj,
                          str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }

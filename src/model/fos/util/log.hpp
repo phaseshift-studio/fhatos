@@ -78,8 +78,7 @@ namespace fhatos {
         printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
       else
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
-      const string m = message().c_str();
-      printer()->print(m.c_str());
+      printer()->print( message().c_str());
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {

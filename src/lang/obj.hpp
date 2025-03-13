@@ -977,7 +977,11 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool has_arg(const Obj_p &key) const {
-      return (this->is_inst() ? this->inst_args().get() : this)->rec_value()->count(key) != 0;
+      return !(this->is_inst() ? this->inst_args().get() : this)->rec_get(key)->is_noobj();
+    }
+
+    [[nodiscard]] bool has_arg(const fURI &furi_key) const {
+      return this->has_arg(Obj::to_uri(furi_key));
     }
 
     [[nodiscard]] InstF inst_f() const {

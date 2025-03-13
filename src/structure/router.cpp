@@ -200,24 +200,15 @@ namespace fhatos {
     }
   }
 
+  /*void Router::write(const ID& source, const fURI& target, const Obj_p& obj) {
+    this->write(target,obj,target.has_query("pass"));
+  }*/
+
   void Router::write(const fURI &furi, const Obj_p &obj, const bool retain) {
     if(!this->active)
       return;
     if(obj->is_noobj() && furi.is_node() && this->vid->matches(furi))
       this->active = false;
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////// PROCESS FURI QUERIES  ///////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /*if(furi.has_query()) {
-      for(const auto &[query_key, query_value]: furi.query_values()) {
-        if(query_key != "sub") {
-          const Obj_p query_processor = this->read(this->vid->extend(FOS_ROUTER_QUERY_WRITE).extend(query_key));
-          if(query_processor->is_noobj())
-            throw fError("router has no query processor for !y%s!!", query_key.c_str());
-          query_processor->apply(obj, Obj::to_inst_args({vri(furi)}));
-        }
-      }
-    }*/
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,7 +227,7 @@ namespace fhatos {
       this->stale = true;*/
   }
 
-  void Router::unsubscribe(const ID &subscriber, const fURI &pattern) {
+  /*void Router::unsubscribe(const ID &subscriber, const fURI &pattern) {
     if(!this->active)
       return;
     try {
@@ -262,7 +253,7 @@ namespace fhatos {
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);
     }
-  }
+  }*/
 
   void *Router::import() {
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(),RETAIN);

@@ -85,8 +85,8 @@ IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     ADD_SUBDIRECTORY(src)
 ENDIF()
 #########################################
-IF(NOT DEFINED CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE DEBUG)
+IF(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 #########################################
 IF(NOT DEFINED CMAKE_BINARY_DIR)
@@ -132,7 +132,7 @@ ELSEIF(LINUX)
     ENDIF()
 ENDIF()
 #######################################################################################################################
-IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
+IF(CMAKE_BUILD_TYPE MATCHES "Debug" AND SANITIZER)
     SET(CMAKE_CXX_FLAGS "-fsanitize=address -O1 -fno-omit-frame-pointer -g ${CMAKE_CXX_FLAGS}")
 ENDIF()
 FIND_PROGRAM(CCACHE_FOUND ccache)
@@ -150,7 +150,7 @@ SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_C_COMPILER_VERSION 14)
 SET(CMAKE_CXX_COMPILER_VERSION 14)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra ${CMAKE_CXX_FLAGS}")
-SET(CMAKE_CXX_FLAGS_DEBUG "-g ${CMAKE_CXX_FLAGS_DEBUG}")
+SET(CMAKE_CXX_FLAGS_DEBUG "-g -lbfd -ldl ${CMAKE_CXX_FLAGS_DEBUG}")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 SET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use")
 ####################################################################
@@ -170,6 +170,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 IF(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
     SET(BUILD_TESTING ON)
+    SET(PRINT_STACKTRACE ON)
 ENDIF()
 ####################################################################
 ####################### CPACK PACKAGING ############################
@@ -218,6 +219,7 @@ MESSAGE(NOTICE "
 \t  ${.g}SANITIZER${..}                     : ${SANITIZER}
 \t  ${.g}USE_CCACHE${..}                    : ${USE_CCACHE}
 \t  ${.g}CMAKE_CXX_INCLUDE_WHAT_YOU_USE${..}: ${CMAKE_CXX_INCLUDE_WHAT_YOU_USE}
+\t  ${.g}PRINT_STACKTRACE${..}              : ${PRINT_STACKTRACE}
 
 \t  \t${.m}-----${.c}S${.y}T${.r}A${.c}T${.m}I${.b}C ${.r}pR${.m}OP${.y}Er${.g}tI${.r}eS${.m}-----${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}

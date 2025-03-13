@@ -26,7 +26,6 @@
 #include "pubsub.hpp"
 #include "../util/mutex_deque.hpp"
 #include "q_proc.hpp"
-#include "../model/fos/sys/thread/fmutex.hpp"
 #include "qtype/q_sub.hpp"
 
 
@@ -146,42 +145,42 @@ namespace fhatos {
 
     /////////////////////////////////////////////////
 
-    virtual void recv_unsubscribe(const ID &source, const fURI &target) {
-      if(!this->available_.load())
-        LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
-      else {
-        this->subscriptions_->remove_if(
-            [this,source, target](const Subscription_p &sub) {
-              const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(target));
-              if(removing)
-                LOG_WRITE(DEBUG, this,
-                          L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
-              return removing;
-            });
-        this->rec_set("sub", lst(LstList(this->subscriptions_->begin(), this->subscriptions_->end())));
-        this->save();
-      }
-    }
+    /* virtual void recv_unsubscribe(const ID &source, const fURI &target) {
+       if(!this->available_.load())
+         LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
+       else {
+         this->subscriptions_->remove_if(
+             [this,source, target](const Subscription_p &sub) {
+               const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(target));
+               if(removing)
+                 LOG_WRITE(DEBUG, this,
+                           L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
+               return removing;
+             });
+         this->rec_set("sub", lst(LstList(this->subscriptions_->begin(), this->subscriptions_->end())));
+         this->save();
+       }
+     }
 
-    virtual void recv_subscription(const Subscription_p &subscription) {
-      if(!this->available_.load()) {
-        LOG_WRITE(ERROR, this, L("!yunable to receive!! {}\n", subscription->toString()));
-        return;
-      }
-      LOG_WRITE(DEBUG, this, L("!yreceived!! {}\n", subscription->toString()));
-      /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-      this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
-      if(!subscription->on_recv()->is_noobj()) {
-        /////////////// ADD NEW SUBSCRIPTION
-        this->rec_get("sub")->lst_add(subscription);
-        this->save();
-        this->subscriptions_->push_back(subscription);
-        LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
-                                pattern->toString())            );
-        /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-        this->publish_retained(subscription);
-      }
-    }
+     virtual void recv_subscription(const Subscription_p &subscription) {
+       if(!this->available_.load()) {
+         LOG_WRITE(ERROR, this, L("!yunable to receive!! {}\n", subscription->toString()));
+         return;
+       }
+       LOG_WRITE(DEBUG, this, L("!yreceived!! {}\n", subscription->toString()));
+       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
+       this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
+       if(!subscription->on_recv()->is_noobj()) {
+         /////////////// ADD NEW SUBSCRIPTION
+         this->rec_get("sub")->lst_add(subscription);
+         this->save();
+         this->subscriptions_->push_back(subscription);
+         LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
+                                 pattern->toString())            );
+         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
+         this->publish_retained(subscription);
+       }
+     }*/
 
     virtual void publish_retained(const Subscription_p &subscription) {
       const IdObjPairs list = this->read_raw_pairs(*subscription->pattern());
@@ -208,7 +207,7 @@ namespace fhatos {
         const Objs_p results = Obj::to_objs();
         bool found = false;
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
-           QProc *q = (QProc *) o.get();
+          QProc *q = (QProc *) o.get();
           const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
           if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
             found = true;
@@ -261,6 +260,10 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    virtual Obj_p read(const ID &source, const fURI &pattern) {
+      return this->read(pattern);
+    }
 
     virtual Obj_p read(const fURI &furi) {
       if(!this->available_.load()) {
@@ -343,9 +346,13 @@ namespace fhatos {
                : Option<Pair<ID, Poly_p>>();
     }
 
+    virtual void write(const ID &source, const fURI &target, const Obj_p &obj) {
+      this->write(target, obj, true);
+    }
+
     virtual void write(const fURI &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if(!this->available_.load()) {
-        throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s to !b%s!!\n",
+        throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s to !b%s!!",
                              obj->toString().c_str(),
                              furi.toString().c_str());
       }

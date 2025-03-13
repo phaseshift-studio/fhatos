@@ -23,16 +23,18 @@ FhatOS: A Distributed Operating System
 #include <shared_mutex>
 
 namespace fhatos {
-  template<typename K, typename V>
+  template<typename KEY, typename VALUE,
+           typename COMPARATOR = std::less<KEY>,
+           typename ALLOCATOR = std::allocator<std::pair<const KEY, VALUE>>>
   class MutexMap {
   protected:
-    std::map<const K, V> map_;
+    std::map<KEY, VALUE, COMPARATOR, ALLOCATOR> map_;
     fMutex mutex_;
 
   public:
     explicit MutexMap() = default;
 
-    std::map<K, V> get_base() const {
+    std::map<KEY, VALUE> &get_base() const {
       return this->map_;
     }
 
@@ -44,20 +46,24 @@ namespace fhatos {
       return this->map_.end();
     }
 
-    V at(const K &key) {
+    [[nodiscard]] VALUE at(const KEY &key) {
       auto lock = std::shared_lock<fMutex>(this->mutex_);
       return this->map_.at(key);
     }
 
-    void erase(const K &key) {
+    void erase(const KEY &key) {
       auto lock = std::lock_guard<fMutex>(this->mutex_);
       this->map_.erase(key);
     }
 
 
-    size_t count(const K &key) {
+    [[nodiscard]] size_t count(const KEY &key) {
       auto lock = std::shared_lock<fMutex>(this->mutex_);
       return this->map_.count(key);
+    }
+
+    [[nodiscard]] bool exists(const KEY &key) {
+      return this->count(key) > 0;
     }
 
     [[nodiscard]] bool empty() {
@@ -65,9 +71,21 @@ namespace fhatos {
       return this->map_.empty();
     }
 
-    void insert_or_assign(const K &key, V &&value) {
+    [[nodiscard]] size_t size() {
+      auto lock = std::shared_lock<fMutex>(this->mutex_);
+      return this->map_.size();
+    }
+
+    void insert_or_assign(const KEY &key, const VALUE &&value) {
       auto lock = std::lock_guard<fMutex>(this->mutex_);
       this->map_.insert_or_assign(key, value);
+    }
+
+    std::pair<const KEY, VALUE> pop() {
+      auto lock = std::lock_guard<fMutex>(this->mutex_);
+      auto pair = std::pair<ID,Obj_p>(*this->map_.begin());
+      this->map_.erase(pair.first);
+      return pair;
     }
 
     void clear() {

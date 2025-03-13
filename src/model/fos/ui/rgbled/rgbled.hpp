@@ -28,7 +28,7 @@ namespace fhatos {
                                         rgbled->rec_get("config/pin/r")->int_value(),
                                         rgbled->rec_get("config/pin/g")->int_value(),
                                         rgbled->rec_get("config/pin/b")->int_value());
-        Router::singleton()->subscribe(
+        Router::singleton()->write(rgbled->vid->extend("color").query("sub"),
             Subscription::create(rgbled->vid, p_p(rgbled->vid->extend("color")),
                                  [](const Obj_p &payload, const InstArgs &) {
                                    LOG(INFO, "rgb payload: %s\n", payload->toString().c_str());
