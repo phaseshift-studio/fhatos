@@ -30,11 +30,9 @@
 namespace fhatos {
   using std::const_pointer_cast;
   inline thread_local ptr<ProgressBar> type_progress_bar_;
-
   static const ID_p Q_PROC_FURI = id_p(FOS_URI "/q");
   static const ID_p MESSAGE_FURI = id_p(FOS_URI "/q/msg");
   static const ID_p SUBSCRIPTION_FURI = id_p(FOS_URI "/q/sub");
-
 
 
   class Typer final : public Obj {
@@ -120,11 +118,11 @@ namespace fhatos {
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
         using DerivationTree = List<Trip<ID_p, ID_p, Obj_p>>;
         LOG_WRITE(DEBUG, Typer::singleton().get(), L(" !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString()));
-        const auto compiler = Compiler(true, false);
+        // const auto compiler = Compiler(true, false);
         if(inst->is_noobj())
           return inst;
-        if(!lhs->is_noobj())
-          compiler.coefficient_check<IntCoefficient>(lhs->range_coefficient(), inst->domain_coefficient());
+        // if(!lhs->is_noobj())
+        //   compiler.coefficient_check<IntCoefficient>(lhs->range_coefficient(), inst->domain_coefficient());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
           const ID inst_type_id = Router::singleton()->resolve(*inst->tid);
@@ -148,8 +146,8 @@ namespace fhatos {
             LOG_WRITE(DEBUG, Typer::singleton().get(),
                       L("!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id.toString()));
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
-                                           ? ID(inst_type_id) // drop back to flat namespace
-                                           : current_obj->tid->no_query().add_component(inst_type_id);
+                                           ? inst_type_id // drop back to flat namespace
+                                           : ID(current_obj->tid->no_query().add_component(inst_type_id));
             maybe = Router::singleton()->read(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid->no_query()), id_p(next_inst_type_id), maybe);
@@ -168,14 +166,14 @@ namespace fhatos {
         /////////////////////////////////////
         DerivationTree *dt = nullptr; //make_unique<DerivationTree>();
         if(dt)
-          dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
-        ID inst_type_id = Router::singleton()->resolve(*inst->tid);
+          dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
+        const ID inst_type_id = Router::singleton()->resolve(*inst->tid);
         Inst_p final_inst = Router::singleton()->read(inst_type_id);
         if(dt)
           dt->emplace_back(id_p(""), id_p(inst_type_id), final_inst);
         if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
           if(dt)
-            dt->push_back({id_p(""), id_p(""), Obj::to_noobj()});
+            dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
           final_inst = TEMP(lhs, inst, dt);
           if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
             const Obj_p next_lhs = Router::singleton()->read(*lhs->tid);
@@ -255,8 +253,7 @@ namespace fhatos {
       };
     }
 
-  public
-  :
+  public:
     static ptr<Typer> singleton(const ID &id = "/sys/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       return types_p;
@@ -297,7 +294,7 @@ namespace fhatos {
       }
     }
 
-    bool is_type_of(const ID_p &is_type_id, const ID_p &of_type_id, List<ID_p> *derivation_tree = nullptr) const {
+    bool is_type_of(const ID_p &is_type_id, const ID_p &of_type_id, List<ID_p> *derivation_tree = nullptr) {
       ID_p current_type_id = is_type_id;
       while(true) {
         if(derivation_tree)

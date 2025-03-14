@@ -28,7 +28,7 @@
 #include "util/poll.hpp"
 #include "util/text.hpp"
 #include "sys/thread/fthread.hpp"
-#include "ui/console/console.hpp"
+#include "ui/console.hpp"
 #ifdef ARDUINO
 #include "net/wifi.hpp"
 #include "net/ota.hpp"
@@ -71,7 +71,7 @@ namespace fhatos {
       Typer::singleton()->start_progress_bar(14);
       Typer::singleton()->save_type(Q_PROC_FURI->extend("q_doc"), Obj::to_rec());
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n",MMADT_SCHEME "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yquery processors!! loaded!g]!! \n",FOS_URI "/q/+"));
       return nullptr;
     }
 
@@ -110,6 +110,7 @@ namespace fhatos {
 
     static void *import_ui() {
       Typer::singleton()->start_progress_bar(6);
+      Terminal::import();
       Console::import();
 #ifdef ARDUINO
       RGBLED::import();

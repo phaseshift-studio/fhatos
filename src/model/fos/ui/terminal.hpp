@@ -20,9 +20,9 @@
 #ifndef fhatos_terminal_hpp
 #define fhatos_terminal_hpp
 
-#include "../fhatos.hpp"
-#include "../lang/type.hpp"
-#include "../model/fos/sys/thread/fmutex.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../lang/type.hpp"
+#include "../sys/thread/fmutex.hpp"
 
 namespace fhatos {
   class Terminal final : public Rec {

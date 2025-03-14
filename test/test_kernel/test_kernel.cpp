@@ -31,8 +31,8 @@ FhatOS: A Distributed Operating System
 #include "../../src/process/ptype/native/scheduler.hpp"
 #include "../../src/lang/type.hpp"
 #include "../../src/lang/mmadt/parser.hpp"
-#include "../../src/model/fos/ui/console/console.hpp"
-#include "../../src/model/terminal.hpp"
+#include "../../src/model/fos/ui/console.hpp"
+#include "../../src/model/fos/ui/terminal.hpp"
 #include "../../src/model/fos/util/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
 #include "../../src/structure/stype/mqtt/mqtt.hpp"

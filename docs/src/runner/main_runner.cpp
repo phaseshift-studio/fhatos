@@ -26,8 +26,8 @@
 #include "../../../src/lang/mmadt/parser.hpp"
 #include "../../../src/lang/processor/processor.hpp"
 #include "../../../src/lang/type.hpp"
-#include "../../../src/model/fos/ui/console/console.hpp"
-#include "../../../src/model/terminal.hpp"
+#include "../../../src/model/fos/ui/console.hpp"
+#include "../../../src/model/fos/ui/terminal.hpp"
 #include "../../../src/process/ptype/native/scheduler.hpp"
 #include <thread>
 #include "../../../src/util/ansi.hpp"

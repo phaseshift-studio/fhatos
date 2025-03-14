@@ -40,7 +40,7 @@
 #include "../src/structure/router.hpp"
 #include "../src/util/logger.hpp"
 #include "../src/model/fos/util/log.hpp"
-#include "../src/model/terminal.hpp"
+#include "../src/model/fos/ui/terminal.hpp"
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
 #include "../src/boot_config_loader.hpp"

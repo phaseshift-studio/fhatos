@@ -66,6 +66,7 @@ namespace mmadt {
     }
 
     static void *import_ext_types() {
+      Typer::singleton()->start_progress_bar(13);
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(
           *CHAR_FURI,
@@ -103,6 +104,8 @@ namespace mmadt {
           })
           ->save();
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
+      Typer::singleton()->end_progress_bar(
+        StringHelper::format("\n\t\t!^u1^ !g[!b%s !yextension types!! loaded!g]!! \n",MMADT_SCHEME "/ext/+"));
       return nullptr;
     }
 
@@ -1143,7 +1146,7 @@ namespace mmadt {
     }
 
     static void *import() {
-      const Str_p ARG_ERROR = str("wrong number of arguments");
+      //const Str_p ARG_ERROR = str("wrong number of arguments");
       ///////////////////////////////////////// OBJ TYPES ///////////////////////////////////////////////////
       mmADT::import_base_types();
       mmADT::import_base_inst();

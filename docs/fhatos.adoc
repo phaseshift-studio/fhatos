@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>7168]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -113,25 +113,8 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading mmadt lang Oo.
 [INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
 [INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-[INFO]  [/sys/type] /mmadt/ext/char type defined
-[INFO]  [/sys/type] /mmadt/ext/int8 type defined
-[INFO]  [/sys/type] /mmadt/ext/uint8 type defined
-[INFO]  [/sys/type] /mmadt/ext/int16 type defined
-[INFO]  [/sys/type] /mmadt/ext/int32 type defined
-[INFO]  [/sys/type] /mmadt/ext/nat type defined
-[INFO]  [/sys/type] /mmadt/ext/C type defined
-[INFO]  [/sys/type] /mmadt/ext/prnt type defined
-[INFO]  [/sys/type] /mmadt/ext/Ox type defined
-[INFO]  [/sys/type] /mmadt/ext/ms type defined
-[INFO]  [/sys/type] /mmadt/ext/sec type defined
-[INFO]  [/sys/type] /mmadt/ext/secret type defined
-[INFO]  [/sys/type] /mmadt/ext/secret/::/mmadt/as type defined
       .oO loading fos models Oo.
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-[INFO]  [/sys/type] /fos/ui/console type [delay=>[nat][_],loop=>_,halt=>[bool][_],::=>[clear=>clear()[cpp],eval=>eval?obj{?}<=console(code=>noobj)[cpp]]] overwritten
-[INFO]  [/sys/type] /fos/ui/console/::/clear type defined
-[INFO]  [/sys/type] /fos/ui/console/::/eval type defined
-[INFO]  [/sys/router] /io/terminal obj loaded
 [INFO]  [/sys/router] /io/parser obj loaded
 [INFO]  [/io/log] switching from boot logger to system logger
 [INFO]  [/sys/router] /io/log obj loaded
@@ -1327,7 +1310,7 @@ fhatos> [a=>1,b=>2].b     // <5>
 
 ===== By Value vs. By Reference
 
-[rows]
+[cols="2,2"]
 |===
 a|
 [source,mmadt]

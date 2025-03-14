@@ -19,14 +19,14 @@
 #ifndef fhatos_ui_console_hpp
 #define fhatos_ui_console_hpp
 
-#include "../../../../fhatos.hpp"
-#include "../../../../lang/obj.hpp"
-#include "../../../../lang/mmadt/parser.hpp"
-#include "../../../model.hpp"
-#include "../../../terminal.hpp"
-#include "../../../../lang/type.hpp"
-#include "../../sys/thread/fthread.hpp"
-#include <fmt/core.h>
+#include "../../../fhatos.hpp"
+#include "../../../lang/obj.hpp"
+#include "../../../lang/mmadt/parser.hpp"
+#include "../../model.hpp"
+#include "terminal.hpp"
+#include "../../../lang/type.hpp"
+#include "../sys/thread/fthread.hpp"
+#include "../../../extern/fmt/include/fmt/core.h"
 
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
@@ -197,7 +197,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
-            static_cast<Console *>(console_state.get())->clear();
+            dynamic_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
@@ -207,7 +207,7 @@ namespace fhatos {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            static_cast<Console *>(console_state.get())->process_line(console_obj, code);
+            dynamic_cast<Console *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

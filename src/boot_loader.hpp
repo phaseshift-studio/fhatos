@@ -28,7 +28,7 @@
 #include "lang/mmadt/mmadt_obj.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
-#include "model/terminal.hpp"
+#include "model/fos/ui/terminal.hpp"
 #include "model/fos/util/log.hpp"
 #include "model/fos/sys/thread/fthread.hpp"
 #include "structure/stype/heap.hpp"
@@ -50,7 +50,7 @@
 //// FOS MODELS
 #include "model/fos/io/gpio/gpio.hpp"
 #include "model/fos/io/i2c/i2c.hpp"
-#include "model/fos/ui/console/console.hpp"
+#include "model/fos/ui/console.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
 #include "model/fos/ui/rgbled/rgbled.hpp"
@@ -138,8 +138,6 @@ namespace fhatos {
             ->import(fOS::import_util())
             /////////
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->import(Console::import())
-            ->install(Terminal::singleton())
             ->install(mmadt::Parser::singleton("/io/parser"))
             ->install(Log::create("/io/log",
                                   Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
@@ -207,6 +205,7 @@ namespace fhatos {
                   L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));
         Ansi<>::singleton()->println("");
       }
+      return Kernel::build();
     }
   };
 } // namespace fhatos
