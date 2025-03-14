@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>7552]
+[INFO]  [/sys/router] main memory [total=>7168]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -107,7 +107,6 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] router boot config dropped
 [INFO]  [/sys/router] scheduler boot config dropped
 [INFO]  [/sys/router] /sys/lib/heap type imported
-[INFO]  [/sys/router] /sys/lib/mqtt type imported
 [INFO]  [/sys/router] /sys/lib/dsm type imported
 [INFO]  [/sys/router] /sys/lib/bus type imported
 [INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
@@ -129,6 +128,9 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/type] /mmadt/ext/secret/::/mmadt/as type defined
       .oO loading fos models Oo.
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
+[INFO]  [/sys/type] /fos/ui/console type [delay=>[nat][_],loop=>_,halt=>[bool][_],::=>[clear=>clear()[cpp],eval=>eval?obj{?}<=console(code=>noobj)[cpp]]] overwritten
+[INFO]  [/sys/type] /fos/ui/console/::/clear type defined
+[INFO]  [/sys/type] /fos/ui/console/::/eval type defined
 [INFO]  [/sys/router] /io/terminal obj loaded
 [INFO]  [/sys/router] /io/parser obj loaded
 [INFO]  [/io/log] switching from boot logger to system logger
@@ -140,13 +142,14 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
 [INFO]  [/sys/router] fs boot config dropped
-[ERROR] [/mmadt/rec] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
+[INFO]  [/mnt/dsm] query processor /mnt/dsm/ attached
+[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
 [INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
+[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] console boot config dropped
 ----
 
@@ -240,6 +243,7 @@ By dereferencing the `/mmadt` root with the wildcard extension `#`, a https://en
 ----
 fhatos> */mmadt/#/
 =>[
+==>/mmadt/a=>a(type=>_)[cpp]
 ==>/mmadt/apply=>apply?obj{*}<=obj(rhs=>noobj,args=>[=>])[cpp]
 ==>/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
 ==>/mmadt/at=>at?obj{?}<=obj{?}(from(0?var,noobj)[cpp])[cpp]
@@ -310,6 +314,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/lst/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/lst/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/lst/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
+==>/mmadt/lst/::/mmadt/split=>split(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/lst/::/mmadt/within=>within(from(0?code,noobj)[cpp])[cpp]
 ==>/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])
 ==>/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])
@@ -479,18 +484,6 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
-[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
-[INFO]  [/sys/router] router /sys/router stopped
-[INFO]  [/sys/router] /sys/# heap detached
-[INFO]  [/sys/router] /mnt/# heap detached
-[INFO]  [/sys/router] /boot/# heap detached
-[INFO]  [/sys/router] /fos/# heap detached
-[INFO]  [/sys/router] /mmadt/# heap detached
-[INFO]  [/sys/router] /io/# heap detached
-[INFO]  [/sys/router] +/# heap detached
-[INFO]  [/sys/router] /disk/# fs detached
-[INFO]  [/sys/router] /shared/# dsm detached
-[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++
@@ -1399,11 +1392,7 @@ fhatos> a -> 12
 ===>obj=>12
 ===>encoding=>int32_t
 =>]
-==>sub=>[
-===>source=>/sys/scheduler
-===>pattern=>a
-===>on_recv=>print(_)
-=>]
+==>sub=>a(type=>_)[cpp]
 =>]
 12@afhatos> @a.plus(1)
 ==>13@a
@@ -1567,11 +1556,7 @@ fhatos> *a                         // <2>
 fhatos> a?sub -> |to(b)            // <3>
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub                     // <4>
-=>sub[
-==>source=>/sys/scheduler
-==>pattern=>a
-==>on_recv=>to(b)
-=>]
+==>a?bool<=obj(type=>_)[cpp]
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
 fhatos> *b                         // <6>
@@ -1828,6 +1813,7 @@ a -> b
 [source,mmadt]
 ----
 fhatos> *a
+==>a?bool<=obj(type=>_)[cpp]
 fhatos> *b
 fhatos> b -> 12
 ==>12
@@ -1909,11 +1895,7 @@ a|
 fhatos> a?sub -> \|to(b)
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
-=>sub[
-==>source=>/sys/scheduler
-==>pattern=>a
-==>on_recv=>to(b)
-=>]
+==>a?bool<=obj(type=>_)[cpp]
 fhatos> *b
 fhatos> a->12
 ==>12

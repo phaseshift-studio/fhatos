@@ -84,11 +84,11 @@ int main(int arg, char **argsv) {
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
       Router::singleton()->loop();
       if(x.find("spawn") != string::npos)
-        std::this_thread::sleep_for(milliseconds(5000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   delete[] argsv;
   return 0;

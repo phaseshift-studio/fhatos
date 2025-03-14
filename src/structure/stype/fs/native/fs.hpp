@@ -91,7 +91,7 @@ namespace fhatos {
       if(obj->is_noobj()) {
         if(is_regular_file(file_path))
           fs::remove(file_path);
-        this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
+        //this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
         return;
       }
       if(id.is_node()) {
@@ -108,7 +108,7 @@ namespace fhatos {
       } else {
         throw fError("unimplemented dir writer\n");
       }
-      this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
+     // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
     }
 
     void read_raw_pairs_dir(const fURI &match, const fs::path &fs_path, IdObjPairs *pairs) {

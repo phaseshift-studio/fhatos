@@ -36,7 +36,7 @@
 namespace fhatos {
   const static ID DSM_FURI = ID("/sys/lib/dsm");
 
-  /*template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>*/
+  template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
   protected:
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
@@ -142,8 +142,8 @@ namespace fhatos {
     }*/
   };
 
-/*#ifdef ESP_ARCH
+#ifdef ESP_ARCH
   using DSM_PSRAM = DSM<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
-#endif*/
+#endif
 } // namespace fhatos
 #endif

@@ -48,8 +48,8 @@ namespace fhatos {
 
   class Structure : public Rec {
   protected:
-    ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
-    ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
+   // ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
+   // ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
     Rec_p q_procs_;
     std::atomic_bool available_ = std::atomic_bool(false);
 
@@ -123,7 +123,7 @@ namespace fhatos {
 
       if(!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
-      Option<Mail_p> mail = this->outbox_->pop_front();
+    /*  Option<Mail_p> mail = this->outbox_->pop_front();
       while(mail.has_value()) {
         FEED_WATCHDOG();
         LOG_WRITE(TRACE, this, L("processing message {} for subscription {}\n",
@@ -132,14 +132,14 @@ namespace fhatos {
         const Subscription_p subscription = mail.value()->first;
         subscription->apply(message);
         mail = this->outbox_->pop_front();
-      }
+      }*/
     }
 
     virtual void stop() {
       if(!this->available_.load())
         LOG_WRITE(WARN, this, L("!ystructure!! already stopped\n"));
-      this->subscriptions_->clear();
-      this->outbox_->get_base().clear();
+   //   this->subscriptions_->clear();
+   //   this->outbox_->get_base().clear();
       this->available_ = false;
     }
 
@@ -420,7 +420,7 @@ namespace fhatos {
               const fURI id_insert = new_furi.remove_subpath(pair->first.as_branch().toString(), true).to_node();
               const Poly_p poly_insert = pair->second; //->clone();
               poly_insert->poly_set(vri(id_insert), obj);
-              distribute_to_subscribers(Message::create(id_p(new_furi), obj, retain));
+              //distribute_to_subscribers(Message::create(id_p(new_furi), obj, retain));
               LOG_WRITE(TRACE, this, L("base poly reinserted into structure at {}: {}\n",
                                        pair->first.toString(), poly_insert->toString()));
               this->write(pair->first, poly_insert, retain); // NOTE: using write() so poly recursion happens
@@ -470,7 +470,7 @@ namespace fhatos {
         throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
     }
 
-    virtual void distribute_to_subscribers(const Message_p &message) {
+   /* virtual void distribute_to_subscribers(const Message_p &message) {
       this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
         if(message->target()->matches(*subscription->pattern()))
           this->outbox_->push_back(mail_p(subscription, message));
@@ -495,7 +495,7 @@ namespace fhatos {
         }
       });
       return objs;
-    }
+    }*/
   };
 } // namespace fhatos
 

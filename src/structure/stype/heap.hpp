@@ -82,7 +82,7 @@ namespace fhatos {
         /*LOG(INFO, "[%s] %s => %s = %s\n", id->toString().c_str(), obj->toString().c_str(), eval_obj->toString().c_str(),
             send_obj->toString().c_str());*/
       }
-      this->distribute_to_subscribers(Message::create(id_p(id), send_obj, retain));
+    //  this->distribute_to_subscribers(Message::create(id_p(id), send_obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {

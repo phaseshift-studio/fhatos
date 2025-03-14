@@ -24,7 +24,6 @@
 #include "../../../../lang/mmadt/parser.hpp"
 #include "../../../model.hpp"
 #include "../../../terminal.hpp"
-#include "../../util/log.hpp"
 #include "../../../../lang/type.hpp"
 #include "../../sys/thread/fthread.hpp"
 #include <fmt/core.h>
@@ -32,7 +31,7 @@
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class ConsoleX final : public fThread {
+  class Console final : public fThread {
   protected:
     string line_;
     bool new_input_ = true;
@@ -42,7 +41,7 @@ namespace fhatos {
     mmadt::Tracker tracker_;
 
   public:
-    explicit ConsoleX(const Obj_p &console_obj) :
+    explicit Console(const Obj_p &console_obj) :
       fThread(console_obj) {
     }
 
@@ -52,7 +51,7 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = static_cast<ConsoleX *>(get_state<fThread>(console_obj).get());
+                              const auto console_state = static_cast<Console *>(get_state<fThread>(console_obj).get());
                               try {
                                 static bool first = true;
                                 if(first) {
@@ -70,6 +69,7 @@ namespace fhatos {
                                   if(const string x = console_state->read_stdin(console_obj, '\n')->str_value();
                                     x == ":clear") {
                                     console_state->clear();
+                                    return noobj();
                                   } else {
                                     console_state->tracker_.track(x);
                                     if(console_state->tracker_.closed()) {
@@ -112,12 +112,12 @@ namespace fhatos {
                             })))},
                        {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       // const auto console_state = make_shared<ConsoleX>(console_obj);
-      MODEL_STATES::singleton()->store(*console_obj->vid, ConsoleX::create_state(console_obj));
+      MODEL_STATES::singleton()->store(*console_obj->vid, Console::create_state(console_obj));
       return console_obj;
     }
 
     static ptr<fThread> create_state(const Obj_p &console_obj) {
-      ptr<fThread> console_state = make_shared<ConsoleX>(console_obj);
+      ptr<fThread> console_state = make_shared<Console>(console_obj);
       //ConsoleX::start_inst(console_obj, Obj::to_inst_args());
       return console_state;
     }
@@ -197,7 +197,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
-            static_cast<ConsoleX *>(console_state.get())->clear();
+            static_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
@@ -207,7 +207,7 @@ namespace fhatos {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            static_cast<ConsoleX *>(console_state.get())->process_line(console_obj, code);
+            static_cast<Console *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

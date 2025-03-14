@@ -96,11 +96,11 @@ namespace fhatos {
               if(message->target()->matches(*client->pattern) && retained) {
                 client->write_cache(*message->target(), payload);
               }
-              for(const Subscription_p &sub: *client->subscriptions_) {
+             /* for(const Subscription_p &sub: *client->subscriptions_) {
                 if(message->target()->matches(*sub->pattern())) {
                   sub->apply(message);
                 }
-              }
+              }*/
             }
           });
       /// MQTT CONNECTION ESTABLISHED CALLBACK

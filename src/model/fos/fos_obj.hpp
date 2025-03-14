@@ -110,7 +110,7 @@ namespace fhatos {
 
     static void *import_ui() {
       Typer::singleton()->start_progress_bar(6);
-      ConsoleX::import();
+      Console::import();
 #ifdef ARDUINO
       RGBLED::import();
       OLED::import();

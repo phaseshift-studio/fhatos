@@ -30,7 +30,7 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
-  const Structure_p test_structure = DSM::create("/xyz/#", id_p("/sys/test"),
+  const Structure_p test_structure = DSM<>::create("/xyz/#", id_p("/sys/test"),
                                                  Obj::to_rec({{"broker", vri("mqtt://chibi.local:1883")},
                                                               {"client", vri("test_dsm")},
                                                               {"max_size", jnt(1000)}}));

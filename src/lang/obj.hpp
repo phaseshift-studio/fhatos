@@ -235,20 +235,21 @@ namespace fhatos {
     }
   };
 
-  static const Map<const OType, shared_ptr<ID>, std::less<const OType>> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
-    {OType::OBJ, OBJ_FURI},
-    {OType::TYPE, TYPE_FURI},
-    {OType::OBJS, OBJS_FURI},
-    {OType::URI, URI_FURI},
-    {OType::BOOL, BOOL_FURI},
-    {OType::INT, INT_FURI},
-    {OType::REAL, REAL_FURI},
-    {OType::STR, STR_FURI},
-    {OType::LST, LST_FURI},
-    {OType::REC, REC_FURI},
-    {OType::INST, INST_FURI},
-    {OType::BCODE, BCODE_FURI},
-    {OType::ERROR, ERROR_FURI}}};
+  static const Map<const OType, shared_ptr<ID>, std::less<const OType>> OTYPE_FURI = {{
+      {OType::NOOBJ, NOOBJ_FURI},
+      {OType::OBJ, OBJ_FURI},
+      {OType::TYPE, TYPE_FURI},
+      {OType::OBJS, OBJS_FURI},
+      {OType::URI, URI_FURI},
+      {OType::BOOL, BOOL_FURI},
+      {OType::INT, INT_FURI},
+      {OType::REAL, REAL_FURI},
+      {OType::STR, STR_FURI},
+      {OType::LST, LST_FURI},
+      {OType::REC, REC_FURI},
+      {OType::INST, INST_FURI},
+      {OType::BCODE, BCODE_FURI},
+      {OType::ERROR, ERROR_FURI}}};
 
   static const Map<ID, OType> FURI_OTYPE = {{{*NOOBJ_FURI, OType::NOOBJ},
                                              {*OBJ_FURI, OType::OBJ},
@@ -1941,12 +1942,10 @@ namespace fhatos {
       if(type_obj->is_empty_bcode())
         return true;
       if(type_obj->is_type())
-        return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !this->clone()->apply(type_obj->type_value())->is_noobj();
+        return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
       if(type_obj->is_code() && !this->is_code()) {
-        if(type_obj->is_code() && !this->is_code()) {
           const Obj_p result = type_obj->apply(this->clone());
           return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
-        }
       }
       /* if(!type_obj->value_.has_value() &&
           (type_obj->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid->no_query()) && FURI_OTYPE.at(
@@ -1987,11 +1986,11 @@ namespace fhatos {
         case OType::REC: {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
-          for(const auto &[b_id, b_obj]: *pairs_b) {
+          for(const auto &[b_key, b_obj]: *pairs_b) {
             bool found = false;
-            for(const auto &[a_id, a_obj]: *pairs_a) {
-              if((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
-                   a_id->match(b_id) && a_obj->match(b_obj))) {
+            for(const auto &[a_key, a_obj]: *pairs_a) {
+              if((b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos) || (
+                   a_key->match(b_key) && a_obj->match(b_obj))) {
                 found = true;
                 break;
               }

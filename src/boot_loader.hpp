@@ -28,16 +28,15 @@
 #include "lang/mmadt/mmadt_obj.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
-#include "model/console.hpp"
 #include "model/terminal.hpp"
 #include "model/fos/util/log.hpp"
 #include "model/fos/sys/thread/fthread.hpp"
-#include "structure/stype/mqtt/mqtt.hpp"
 #include "structure/stype/heap.hpp"
 #include "structure/stype/dsm.hpp"
 #include "model/fos/sys/router/bus.hpp"
 #include "structure/qtype/q_doc.hpp"
 #include "structure/qtype/q_sub.hpp"
+#include "structure/qtype/q_sub_mqtt.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/fos_obj.hpp"
 /////////////////////////////////////////
@@ -119,8 +118,7 @@ namespace fhatos {
         ////////////////////////////////////////////////////////////
         return kp
             ->import(Heap<>::import("/mnt/lib/heap"))
-            ->import(Mqtt::import("/mnt/lib/mqtt"))
-            ->import(DSM::import("/mnt/lib/dsm"))
+            ->import(DSM<>::import("/mnt/lib/dsm"))
             ->import(Bus::import("/mnt/lib/bus"))
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
@@ -173,27 +171,37 @@ namespace fhatos {
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(DSM::create("/shared/#", id_p("/mnt/dsm"),
-                                Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->or_else(
-                                    Obj::to_rec({
-                                        {"broker",
-                                         vri(args_parser->option_string(
-                                             "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                        {"client",
-                                         vri(args_parser->option_string(
-                                             "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))))
-            ->drop_config("mqtt")
-            ->mount(Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
-            ->install(ConsoleX::create("/io/console",
-                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            // ->process(Console::create("/io/console",
-            //                         Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            ->drop_config("console")
-            ->eval([args_parser] {
-              // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
-              //Router::singleton()->loop();
-              delete args_parser;
-            });
+            ->mount(Structure::add_qproc(DSM<>::create("/shared/#", id_p("/mnt/dsm"),
+                                                     Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
+                                                     or_else(
+                                                         Obj::to_rec({
+                                                             {"broker",
+                                                              vri(args_parser->option_string(
+                                                                  "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                             {"client",
+                                                              vri(args_parser->option_string(
+                                                                  "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
+                                         QSubMqtt::create(Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
+                                                          or_else(
+                                                              Obj::to_rec({
+                                                                  {"broker",
+                                                                   vri(args_parser->option_string(
+                                                                       "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                                  {"client",
+                                                                   vri(args_parser->option_string(
+                                                                       "--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
+                                                          id_p("/mnt/dsm/"))))
+                ->drop_config("mqtt")
+                ->mount(
+                    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
+                ->install(Console::create("/io/console",
+                                           Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+                ->drop_config("console")
+                ->eval([args_parser] {
+                  // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
+                  //Router::singleton()->loop();
+                  delete args_parser;
+                });
       } catch(const std::exception &e) {
         LOG_WRITE(ERROR, Obj::to_noobj().get(),
                   L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));

@@ -156,7 +156,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition
-        EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
+        IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
         MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ,
         SPLIT, EACH;
 #endif
@@ -549,7 +549,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, AT, RSHIFT, LSHIFT,
+      SUGAR_INST <= cho(IS_A, EQ, GTE, GT, LTE, LT, NEQ, AT, RSHIFT, LSHIFT,
                         RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
                         EMPTY_BCODE, FROM, PASS,
                         REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
@@ -569,22 +569,25 @@ namespace mmadt {
       SUGAR_GENERATOR(GTE, "?>=", "gte");
       SUGAR_GENERATOR(LT, "?<", "lt");
       SUGAR_GENERATOR(LTE, "?<=", "lte");
-      EQ <= seq(lit("?="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      IS_A <= seq(lit("?"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
+        return is_maker(id_p("a"), Obj::to_inst({Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p("block"))}, id_p("from")));
+      };
+      EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("eq"), any_cast<Obj_p>(vs[0]));
       };
-      NEQ <= seq(lit("?!="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      NEQ <= seq(lit("?!="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("neq"), any_cast<Obj_p>(vs[0]));
       };
-      GT <= seq(lit("?>"), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      GT <= seq(lit("?>"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("gt"), any_cast<Obj_p>(vs[0]));
       };
-      GTE <= seq(lit("?>="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      GTE <= seq(lit("?>="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("gte"), any_cast<Obj_p>(vs[0]));
       };
-      LT <= seq(lit("?<"), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      LT <= seq(lit("?<"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("lt"), any_cast<Obj_p>(vs[0]));
       };
-      LTE <= seq(lit("?<="), START), [&is_maker](const SemanticValues &vs) -> Inst_p {
+      LTE <= seq(lit("?<="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return is_maker(id_p("lte"), any_cast<Obj_p>(vs[0]));
       };
       LSHIFT_0 <= lit("<<"), lshift_0_action;
