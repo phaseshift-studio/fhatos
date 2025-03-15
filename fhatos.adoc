@@ -1338,12 +1338,157 @@ fhatos> a -> 12
 <!-- 🐓 -->
 ++++
 
-==== Expression Structure
+==== Types
 
-[source]
+mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the `obj` [.yellow]#*type*#, [.yellow]#*value*#, and storage location/[.yellow]#*reference*#, where type and reference are fURIs.
+
+[stem]
+++++
+\texttt{obj} := \texttt{type}[\texttt{value}]@\texttt{ref}
+++++
+
+The `/mmadt/ext` prefix contains a collection of generally useful types.
+
+++++
+<!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
+++++
+
+[source,mmadt]
 ----
-obj.f(obj).f(obj).f(obj)
+fhatos> */mmadt/ext/#/
+=>[
+==>/mmadt/ext/C=>C()[is(gte(-273.149994))]
+==>/mmadt/ext/Ox=>Ox()[is(true)]
+==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
+==>/mmadt/ext/int16=>[int16][_]
+==>/mmadt/ext/int32=>[int32][_]
+==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
+==>/mmadt/ext/ms=>[int][_]
+==>/mmadt/ext/nat=>nat()[is(gte(0))]
+==>/mmadt/ext/prnt=>prnt()[is(gte(0.000000)).is(lte(100.000000))]
+==>/mmadt/ext/sec=>[int][_]
+==>/mmadt/ext/secret=>[str][_]
+==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
+==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
+=>]
 ----
+
+++++
+<!-- 🐓 -->
+++++
+
+
+Typing values with types from `/mmadt/ext` are provided below.
+
+[tabs]
+====
+char::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
+*char
+char['a']@a
+char['b']@b
+@a + @b
+@a.as(str) + @b
+-->
+++++
+
+.char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
+[source,mmadt]
+----
+fhatos> *char
+==>char?int<=str()[merge(2).count().is(eq(1))]
+fhatos> char['a']@a
+==>char['a']@a
+fhatos> char['b']@b
+==>char['b']@b
+fhatos> @a + @b
+[ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
+	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
+fhatos> @a.as(str) + @b
+==>'aa'@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+nat::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
+*nat
+nat[12]
+nat[-30]
+nat[12]@a
+@a.minus(11)
+@a.minus(2)
+*a
+-->
+++++
+
+.nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
+[source,mmadt]
+----
+fhatos> *nat
+==>nat?int<=int()[is(gte(0))]
+fhatos> nat[12]
+==>nat[12]
+fhatos> nat[-30]
+[ERROR] [/sys/type] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+fhatos> nat[12]@a
+==>nat[12]@a
+fhatos> @a.minus(11)
+==>nat[1]@a
+fhatos> @a.minus(2)
+[ERROR] [/sys/type] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
+fhatos> *a
+==>nat[1]@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+celsius::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
+*C
+C[0.0]
+C[274.0]
+C[-274.0]
+-->
+++++
+
+.celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
+[source,mmadt]
+----
+fhatos> *C
+==>C?real<=real()[is(gte(-273.149994))]
+fhatos> C[0.0]
+==>C[0]
+fhatos> C[274.0]
+==>C[274]
+fhatos> C[-274.0]
+[ERROR] [/sys/type] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))]
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+
+====
 
 ===== Bytecode and Instruction Types
 
