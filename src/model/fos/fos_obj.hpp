@@ -27,7 +27,8 @@
 #include "../../lang/mmadt/mmadt.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
-#include "sys/thread/fthread.hpp"
+#include "sys/scheduler/thread/fthread.hpp"
+#include "../../lang/processor/processor.hpp"
 #include "ui/console.hpp"
 #ifdef ARDUINO
 #include "net/wifi.hpp"

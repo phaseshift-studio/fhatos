@@ -1,5 +1,5 @@
 /*******************************************************************************
-  FhatOS: A Distributed Operating System
+FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -16,3 +16,46 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#pragma once
+#ifndef fhatos_fmutex_hpp
+#define fhatos_fmutex_hpp
+#include "../../../../../fhatos.hpp"
+#include <any>
+
+namespace fhatos {
+  using namespace std;
+
+  // calling lock twice from the same thread will deadlock
+  class fMutex final {
+  protected:
+    std::any handler_;
+
+  public:
+    fMutex();
+
+    ~fMutex();
+
+    void lock_shared();
+
+    void unlock_shared();
+
+    void lock();
+
+    void unlock();
+  };
+
+  class LockGuard {
+    fMutex *mutex_;
+
+  public:
+    explicit LockGuard(fMutex &m) : mutex_(&m) {
+    }
+
+    ~LockGuard() {
+      this->mutex_->unlock();
+    }
+
+    LockGuard(const LockGuard &) = delete;
+  };
+}
+#endif

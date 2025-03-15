@@ -713,65 +713,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 <!-- 🐖 ./boot_runner.out -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">            PhaseShift Studio Presents
- &lt;`--'&gt;____  ______ __  __  ______  ______  ______  ______
- /. .  `'  \/\  ___/\ \_\ \/\  __ \/\__  _\/\  __ \/\  ___\
-(`')  ,     @ \  __\ \  __ \ \  __ \/_/\ \/\ \ \_\ \ \___  \
- `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\
-    )-)_/-(&gt;  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
-                                   A Dogturd Stynx Production
-    fhatos-0.1-alpha &gt; linux-6.8.0-54-generic &gt; x86_64
-       [x86_64]
-      Use noobj for noobj
-      .oO loading system objs Oo.
-[INFO]  [/sys/scheduler] scheduler started
-[INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5632]
-[INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
-[INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 758 bytes)
-[WARN]  [/sys/router] router has no auto-prefix configuration: noobj
-[INFO]  [/sys/router]
-  [
-    router=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
-    scheduler=&gt;[def_stack_size=&gt;8096]
-    mqtt=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;fhatos_client,cache=&gt;true]
-    wifi=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;fhatos]
-    ota=&gt;[host=&gt;mdns://fhatos_client:3232]
-    console=&gt;[terminal=&gt;[stdout=&gt;/io/terminal/:stdout,stdin=&gt;/io/terminal/:stdin],nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288]
-    fs=&gt;[root=&gt;./data/fs]
-  ]@/boot/config
-[INFO]  [/sys/router] router boot config dropped
-[INFO]  [/sys/router] scheduler boot config dropped
-[INFO]  [/sys/router] /sys/lib/heap type imported
-[INFO]  [/sys/router] /sys/lib/dsm type imported
-[INFO]  [/sys/router] /sys/lib/bus type imported
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
-      .oO loading mmadt lang Oo.
-[INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-      .oO loading fos models Oo.
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-[INFO]  [/sys/router] /io/parser obj loaded
-[INFO]  [/io/log] switching from boot logger to system logger
-[INFO]  [/sys/router] /io/log obj loaded
-[INFO]  [/sys/router] log boot config dropped
-[INFO]  [/sys/router] heap /mnt/cache spanning +/# mounted
-[INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
-[INFO]  [/sys/router] /io/lib/fs type imported
-[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
-[INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
-[INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/dsm] query processor /mnt/dsm/ attached
-[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
-[INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
-[INFO]  [/sys/router] mqtt boot config dropped
-[INFO]  [/mnt/bus] mapping /bus==&gt;//io
-[INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/sys/router] /io/console obj loaded
-[INFO]  [/io/console] thread spawned: inst()[cpp]
-[INFO]  [/sys/router] console boot config dropped</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -842,8 +784,8 @@ The core <strong class="yellow">f</strong>​<span class="lime">H</span>​<stro
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 =&gt;[
-==&gt;barrier=&gt;noobj
-==&gt;process=&gt;[
+==&gt;thread=&gt;[
+===&gt;/io/console
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;def_stack_size=&gt;8096
@@ -905,7 +847,6 @@ By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>
 ==&gt;/mmadt/bool/::/mmadt/neg=&gt;neg(from(0?self,_)[cpp])[cpp]
 ==&gt;/mmadt/bool/::/mmadt/plus=&gt;plus(from(0?rhs,noobj)[cpp])[cpp]
 ==&gt;/mmadt/count=&gt;count?int&lt;=objs{*}()[cpp]
-==&gt;/mmadt/delay=&gt;delay(from(0?millis,_)[cpp])[cpp]
 ==&gt;/mmadt/div=&gt;div(from(0?rhs,noobj)[cpp])
 ==&gt;/mmadt/drop=&gt;drop?obj{?}&lt;=obj{?}(from(0?obj,_)[cpp])[cpp]
 ==&gt;/mmadt/each=&gt;each(from(0?poly,noobj)[cpp])
@@ -929,7 +870,6 @@ By dereferencing the <code>/mmadt</code> root with the wildcard extension <code>
 ==&gt;/mmadt/ext/uint8=&gt;uint8()[is(gte(0)).is(lte(255))]
 ==&gt;/mmadt/frame=&gt;frame?rec&lt;=obj{?}()[cpp]
 ==&gt;/mmadt/from=&gt;from?obj{?}&lt;=obj{?}(from(0?uri,_)[cpp],from(1?default,noobj)[cpp])[cpp]
-==&gt;/mmadt/goto=&gt;goto(from(0?inst_id,noobj)[cpp])[cpp]
 ==&gt;/mmadt/gt=&gt;gt(from(0?rhs,noobj)[cpp])
 ==&gt;/mmadt/gte=&gt;gte(from(0?rhs,noobj)[cpp])
 ==&gt;/mmadt/inspect=&gt;inspect(from(0?inspected,_)[cpp])
@@ -1122,7 +1062,19 @@ When the instruction implementation is written in mm-ADT, the instruction body i
 [INFO]  [/sys/router] 1 bus(s) closing
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
-[INFO]  [/sys/router] 7 heap(s) closing</code></pre>
+[INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
+[INFO]  [/sys/router] router /sys/router stopped
+[INFO]  [/sys/router] /sys/# heap detached
+[INFO]  [/sys/router] /mnt/# heap detached
+[INFO]  [/sys/router] /boot/# heap detached
+[INFO]  [/sys/router] /fos/# heap detached
+[INFO]  [/sys/router] /mmadt/# heap detached
+[INFO]  [/sys/router] /io/# heap detached
+[INFO]  [/sys/router] +/# heap detached
+[INFO]  [/sys/router] /disk/# fs detached
+[INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3622,7 +3574,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-14 16:37:40 -0600
+Last updated 2025-03-15 00:07:59 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

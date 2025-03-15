@@ -27,7 +27,6 @@
 #include "../router.hpp"
 #include "../../util/mutex_map.hpp"
 #include "../util/mqtt/mqtt_client.hpp"
-#include "../../model/fos/sys/thread/fmutex.hpp"
 
 #ifdef ESP_ARCH
 #include "../../util/esp32/psram_allocator.hpp"
@@ -86,6 +85,7 @@ namespace fhatos {
     }
 
     void stop() override {
+      this->mqtt->unsubscribe(*this->vid, *this->pattern);
       this->mqtt->disconnect(*this->vid);
       Structure::stop();
       this->data_->clear();

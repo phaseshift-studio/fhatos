@@ -19,8 +19,8 @@
 #include <chrono>
 #include <thread>
 #include "../fthread.hpp"
-#include "../../../../../fhatos.hpp"
-#include "../../../../../lang/obj.hpp"
+#include "../../../../../../fhatos.hpp"
+#include "../../../../../../lang/obj.hpp"
 
 namespace fhatos {
 

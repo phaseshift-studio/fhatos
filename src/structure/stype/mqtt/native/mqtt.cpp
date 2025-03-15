@@ -111,11 +111,11 @@ namespace fhatos {
   }
 
   void Mqtt::native_mqtt_subscribe(const Subscription_p &subscription) {
-    std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1)->wait();
+    std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1);
   }
 
   void Mqtt::native_mqtt_unsubscribe(const fURI &pattern) {
-    std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(pattern.toString())->wait();
+    std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(pattern.toString());
   }
 
   void Mqtt::native_mqtt_publish(const Message_p &message) {
@@ -145,7 +145,7 @@ namespace fhatos {
                                                   return remove;
                                                 }), MQTT_VIRTUAL_CLIENTS.end());
     }
-    MQTT_VIRTUAL_CLIENTS.clear();
+    //MQTT_VIRTUAL_CLIENTS.clear();
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ namespace fhatos {
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
                                   this->rec_get("config/broker")->uri_value().toString()));
-          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
+          std::this_thread::sleep_for(chrono::milliseconds(FOS_MQTT_RETRY_WAIT));
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected())
           break;

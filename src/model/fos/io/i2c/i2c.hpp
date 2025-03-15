@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include "../../../../lang/obj.hpp"
 #include "../../../../lang/type.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include STR(../../../../process/ptype/HARDWARE/scheduler.hpp)
 #include "../gpio/gpio.hpp"
 #include "../../../model.hpp"
 
@@ -79,7 +78,7 @@ namespace fhatos {
       const Lst_p result_set = Obj::to_lst();
       try {
         for(int i = 8; i < 120; i++) {
-          Scheduler::singleton()->feed_local_watchdog();
+          FEED_WATCHDOG();
         Wire.beginTransmission(i);
           const int result =Wire.endTransmission();
           if(0 == result || 4 == result) {

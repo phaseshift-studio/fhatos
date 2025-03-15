@@ -28,7 +28,7 @@
 #include "../../../src/lang/type.hpp"
 #include "../../../src/model/fos/ui/console.hpp"
 #include "../../../src/model/fos/ui/terminal.hpp"
-#include "../../../src/process/ptype/native/scheduler.hpp"
+#include "../../../src/model/fos/sys/scheduler/fscheduler.hpp"
 #include <thread>
 #include "../../../src/util/ansi.hpp"
 #include "../../../src/util/print_helper.hpp"
@@ -86,7 +86,7 @@ int main(int arg, char **argsv) {
       if(x.find("spawn") != string::npos)
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     } catch(std::exception &e) {
-      LOG_EXCEPTION(Scheduler::singleton(), e);
+      LOG_EXCEPTION(fScheduler::singleton(), e);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

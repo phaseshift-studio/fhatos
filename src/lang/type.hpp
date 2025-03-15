@@ -22,7 +22,6 @@
 #include "../fhatos.hpp"
 #include "obj.hpp"
 #include "../model/fos/util/log.hpp"
-#include "../process/process.hpp"
 #include "mmadt/compiler.hpp"
 
 #define FOS_URI "/fos"
@@ -48,12 +47,12 @@ namespace fhatos {
         try {
           const Obj_p current = ROUTER_READ(type_id);
           if(type_progress_bar_) {
-            ROUTER_WRITE(type_id, type_def,RETAIN);
+            ROUTER_WRITE(type_id, type_def,true);
             type_progress_bar_->incr_count(type_id.toString());
             if(type_progress_bar_->done())
-              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),true);
           } else {
-            ROUTER_WRITE(type_id, type_def,RETAIN);
+            ROUTER_WRITE(type_id, type_def,true);
             if(current->is_noobj()) {
               LOG_WRITE(INFO, this, L("{} !ytype!! defined\n", type_id.toString().c_str()));
             } else {
@@ -125,7 +124,7 @@ namespace fhatos {
         //   compiler.coefficient_check<IntCoefficient>(lhs->range_coefficient(), inst->domain_coefficient());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, DerivationTree *dt) {
           Obj_p current_obj = lhs;
-          const ID inst_type_id = Router::singleton()->resolve(*inst->tid);
+          const ID inst_type_id = ROUTER_RESOLVE(static_cast<fURI>(*inst->tid));
           while(true) {
             Inst_p maybe;
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
@@ -135,7 +134,7 @@ namespace fhatos {
                                                            inst_type_id.toString()));
               const ID next_inst_type_id =
                   current_obj->vid->add_component(inst_type_id);
-              maybe = Router::singleton()->read(next_inst_type_id);
+              maybe = ROUTER_READ(next_inst_type_id);
               if(dt)
                 dt->emplace_back(current_obj->vid, id_p(next_inst_type_id), maybe);
               if(!maybe->is_noobj() && maybe->is_inst() && maybe->has_inst_f())
@@ -148,14 +147,14 @@ namespace fhatos {
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
                                            ? inst_type_id // drop back to flat namespace
                                            : ID(current_obj->tid->no_query().add_component(inst_type_id));
-            maybe = Router::singleton()->read(next_inst_type_id);
+            maybe = ROUTER_READ(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid->no_query()), id_p(next_inst_type_id), maybe);
             if(!maybe->is_noobj() && maybe->is_inst() && maybe->has_inst_f())
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
             if(current_obj->tid->no_query().equals(
-                (current_obj = Router::singleton()->read(current_obj->tid->no_query()))->tid->no_query())) {
+                (current_obj = ROUTER_READ(current_obj->tid->no_query()))->tid->no_query())) {
               // infinite loop (i.e. base type)
               return noobj();
             }
@@ -167,8 +166,8 @@ namespace fhatos {
         DerivationTree *dt = nullptr; //make_unique<DerivationTree>();
         if(dt)
           dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
-        const ID inst_type_id = Router::singleton()->resolve(*inst->tid);
-        Inst_p final_inst = Router::singleton()->read(inst_type_id);
+        const ID inst_type_id = ROUTER_RESOLVE(static_cast<fURI>(*inst->tid));
+        Inst_p final_inst = ROUTER_READ(inst_type_id);
         if(dt)
           dt->emplace_back(id_p(""), id_p(inst_type_id), final_inst);
         if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
@@ -176,9 +175,9 @@ namespace fhatos {
             dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
           final_inst = TEMP(lhs, inst, dt);
           if(final_inst->is_noobj() || !final_inst->is_inst() || !final_inst->has_inst_f()) {
-            const Obj_p next_lhs = Router::singleton()->read(*lhs->tid);
+            const Obj_p next_lhs = ROUTER_READ(*lhs->tid);
             const ID next_id = next_lhs->range()->no_query();
-            const Obj_p next_obj = Router::singleton()->read(next_id);
+            const Obj_p next_obj = ROUTER_READ(next_id);
             if(dt)
               dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
             final_inst = TEMP(next_obj, inst, dt);
@@ -275,14 +274,14 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     void save_type(const ID &type_id, const Obj_p &type_def) const {
       try {
-        const Obj_p current = Router::singleton()->read(type_id);
+        const Obj_p current = ROUTER_READ(type_id);
         if(type_progress_bar_) {
-          Router::singleton()->write(type_id, type_def,RETAIN);
+          ROUTER_WRITE(type_id, type_def,true);
           type_progress_bar_->incr_count(type_id.toString());
           if(type_progress_bar_->done())
-            Router::singleton()->write(*this->vid, const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+            ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),true);
         } else {
-          Router::singleton()->write(type_id, type_def,RETAIN);
+          ROUTER_WRITE(type_id, type_def,true);
           if(current->is_noobj()) {
             LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString(), type_id.toString()));
           } else {

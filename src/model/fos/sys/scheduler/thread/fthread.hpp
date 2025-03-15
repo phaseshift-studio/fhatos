@@ -18,18 +18,19 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_fthread_hpp
 #define fhatos_fthread_hpp
-#include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
-#include "../../../../lang/obj.hpp"
-#include "../../../../util/obj_helper.hpp"
-#include "../../../model.hpp"
-#include "../../../../lang/mmadt/mmadt_obj.hpp"
-#include "fmutex.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../lang/type.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../../../../util/obj_helper.hpp"
+#include "../../../../model.hpp"
+#include "../../../../../lang/mmadt/mmadt_obj.hpp"
 
 namespace fhatos {
+  using namespace mmadt;
   class fThread;
   using fThread_p = ptr<fThread>;
-  using namespace mmadt;
+  static auto this_thread = atomic<const fThread *>(nullptr);
+
 
   static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
   static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");
@@ -39,6 +40,14 @@ namespace fhatos {
     Obj_p thread_obj_;
     Consumer<Obj_p> thread_function_;
     Any handler_;
+
+    static Option<const fThread *> current_thread() {
+      if(this_thread.load())
+        return {this_thread.load()};
+      else {
+        return {};
+      }
+    }
 
     template<typename HANDLER>
     HANDLER get_handler() {
@@ -56,14 +65,21 @@ namespace fhatos {
                          const Obj_p loop_code = thread_obj->rec_get("loop");
                          LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
                          const ptr<fThread> thread_state = get_state<fThread>(thread_obj);
+                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+                         threads->lst_add(vri(thread_obj->vid));
+                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                          while(!thread_obj->get<bool>("halt")) {
+                           this_thread.store(fThread::get_state(thread_obj).get());
                            const BCode_p &code = thread_obj->rec_get("loop");
                            code->apply(thread_obj);
                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                             thread_state->delay(delay);
+                             fThread::get_state(thread_obj)->delay(delay);
                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
                            }
                          }
+                         threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+                         threads->lst_remove(vri(thread_obj->vid));
+                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                          try {
                            thread_state->halt();
                            MODEL_STATES::singleton()->remove(*thread_obj->vid);
@@ -89,14 +105,14 @@ namespace fhatos {
 
     static void *import() {
       Typer::singleton()->save_type(*THREADX_FURI, Obj::to_rec({
-                                      {"loop", Obj::to_bcode()},
-                                      {"delay", Obj::to_type(NAT_FURI)},
-                                      {"halt", Obj::to_type(BOOL_FURI)}
+                                        {"loop", Obj::to_bcode()},
+                                        {"delay", Obj::to_type(NAT_FURI)},
+                                        {"halt", Obj::to_type(BOOL_FURI)}
                                     }));
       Typer::singleton()->save_type(*THREADX_FURI_DEFAULT, Obj::to_rec({
-                                      {"loop", Obj::to_bcode()},
-                                      {"delay", jnt(0, NAT_FURI)},
-                                      {"halt", dool(false)}
+                                        {"loop", Obj::to_bcode()},
+                                        {"delay", jnt(0, NAT_FURI)},
+                                        {"halt", dool(false)}
                                     }));
 
       InstBuilder::build(THREADX_FURI->add_component("spawn"))

@@ -20,7 +20,7 @@
 #define fhatos_mutex_deque_hpp
 
 #include  "../fhatos.hpp"
-#include "../model/fos/sys/thread/fmutex.hpp"
+#include "../model/fos/sys/scheduler/thread/fmutex.hpp"
 #include <shared_mutex>
 
 namespace fhatos {

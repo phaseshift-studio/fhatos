@@ -22,7 +22,6 @@
 
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
-#include "../sys/thread/fmutex.hpp"
 
 namespace fhatos {
   class Terminal final : public Rec {
@@ -68,7 +67,7 @@ namespace fhatos {
     static Int_p STD_IN_DIRECT() {
       int c;
       while(-1 == (c = printer<>()->read())) {
-        Process::current_process()->yield();
+        std::this_thread::yield();
       }
       return jnt(c);
     }
@@ -78,7 +77,7 @@ namespace fhatos {
       int c = EOF;
       while(c != until) {
         while(-1 == (c = printer<>()->read())) {
-          Process::current_process()->yield();
+          std::this_thread::yield();
         }
         line += static_cast<char>(c);
         if(until == '\0')

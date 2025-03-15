@@ -23,6 +23,7 @@ FhatOS: A Distributed Operating System
 #include "../q_proc.hpp"
 #include "../../fhatos.hpp"
 #include "../pubsub.hpp"
+#include "../../model/fos/sys/scheduler/thread/fthread.hpp"
 #include "../../util/mutex_deque.hpp"
 
 namespace fhatos {
@@ -32,7 +33,8 @@ namespace fhatos {
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
 
   public:
-    explicit QSub(const ID_p &value_id = nullptr) : QProc(REC_FURI, value_id) {
+    explicit QSub(const ID_p &value_id = nullptr) :
+      QProc(REC_FURI, value_id) {
       this->Obj::rec_set("pattern", vri("sub"));
     }
 
@@ -47,7 +49,7 @@ namespace fhatos {
         Option<Mail> mail = this->outbox_->pop_front();
         LOG_WRITE(TRACE, this,L("!yprocessing mail!! !b{}!! -> {}\n",
                                 mail.value().second->toString(),
-                                mail.value().first->toString())        );
+                                mail.value().first->toString())            );
         mail.value().first->apply(mail.value().second);
       }
     }
@@ -57,29 +59,30 @@ namespace fhatos {
       if(retain && POSITION::PRE == pos) {
         // unsubscribe
         this->subscriptions_->remove_if(
-          [this, &furi_no_query](const Subscription_p &sub) {
-            const bool removing = /*sub->source()->equals(source) &&*/ (Process::current_process()
-                                                                          ? Process::current_process()->vid
-                                                                          : SCHEDULER_ID) && (sub->pattern()->matches(
-                                                                         furi_no_query));
-            if(removing)
-              LOG_WRITE(DEBUG, this,
-                        L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", /*source.toString()*/ "",
-                          furi_no_query.toString()));
-            return removing;
-          });
+            [this, &furi_no_query](const Subscription_p &sub) {
+              const bool removing = /*sub->source()->equals(source) &&*/ (fThread::current_thread().has_value()
+                                                                            ? fThread::current_thread().value()->
+                                                                            thread_obj_->vid
+                                                                            : SCHEDULER_ID) && (sub->pattern()->matches(
+                                                                             furi_no_query));
+              if(removing)
+                LOG_WRITE(DEBUG, this,
+                          L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", /*source.toString()*/ "",
+                            furi_no_query.toString()));
+              return removing;
+            });
         // if obj, subscribe
         if(!obj->is_noobj()) {
           if(obj->tid->equals("/fos/q/sub")) {
             this->subscriptions_->push_back(make_shared<Subscription>(obj));
           } else {
             this->subscriptions_->push_back(Subscription::create(
-              (Process::current_process()
-                 ? Process::current_process()->vid
-                 : SCHEDULER_ID), p_p(furi_no_query), obj));
+            (fThread::current_thread().has_value()
+               ? fThread::current_thread().value()->thread_obj_->vid
+               : SCHEDULER_ID), p_p(furi_no_query), obj));
           }
           LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
-                                  furi_no_query.toString())          );
+                                  furi_no_query.toString())              );
           // NEEDS ACCESS TO STRUCTURE?? this->publish_retained(subscription);
         }
         LOG_WRITE(TRACE, this,L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));

@@ -17,7 +17,6 @@
  ******************************************************************************/
 #include  "obj_helper.hpp"
 #include "../lang/obj.hpp"
-#include "../structure/router.hpp"
 
 namespace fhatos {
   using std::make_pair;
@@ -45,7 +44,7 @@ namespace fhatos {
 
 
   InstBuilder *InstBuilder::build(const ID &type_id) {
-    return new InstBuilder(id_p(Router::singleton()->resolve(type_id)));
+    return new InstBuilder(id_p(ROUTER_RESOLVE(static_cast<fURI>(type_id))));
   }
 
   InstBuilder *InstBuilder::build(const fURI_p &type_id) {
@@ -111,7 +110,7 @@ namespace fhatos {
 
   Inst_p InstBuilder::create(const ID_p &value_id, const Obj_p &root) const {
     if(value_id) {
-      if(const Inst_p maybe = Router::singleton()->read(*value_id); !maybe->is_noobj())
+      if(const Inst_p maybe = ROUTER_READ(*value_id); !maybe->is_noobj())
         return maybe;
     }
     const Inst_p inst = Inst::create(InstValue(

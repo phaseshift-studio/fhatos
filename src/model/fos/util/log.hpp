@@ -25,7 +25,6 @@
 #include "../../../furi.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../../util/obj_helper.hpp"
-#include "../../../structure/router.hpp"
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
@@ -74,7 +73,7 @@ namespace fhatos {
         printer()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer()->print("!r[TRACE]!! ");
-      if((Router::singleton()->vid->equals(*source->vid_or_tid())) || SCHEDULER_ID->equals(*source->vid_or_tid()))
+      if((ROUTER_ID->equals(*source->vid_or_tid())) || SCHEDULER_ID->equals(*source->vid_or_tid()))
         printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
       else
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());

@@ -28,7 +28,7 @@ FhatOS: A Distributed Operating System
 #include "../../src/kernel.hpp"
 #include "../../src/structure/router.hpp"
 #include "../../src/util/argv_parser.hpp"
-#include "../../src/process/ptype/native/scheduler.hpp"
+#include "../../src/model/fos/sys/scheduler/fscheduler.hpp"
 #include "../../src/lang/type.hpp"
 #include "../../src/lang/mmadt/parser.hpp"
 #include "../../src/model/fos/ui/console.hpp"
@@ -72,7 +72,7 @@ namespace fhatos {
         ->display_reset_reason()
         ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
         ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-        ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+        ->using_scheduler(fScheduler::singleton("/sys/scheduler"))
         ->using_router(Router::singleton("/sys/router"))
         ////////////////// SYS STRUCTURE
         ->mount(Heap<ALLOC>::create("/boot/#"))
@@ -81,7 +81,7 @@ namespace fhatos {
         ->using_boot_config()
         ->import(Router::import())
         ->drop_config("router")
-        ->import(Scheduler::import())
+        ->import(fScheduler::import())
         ////////////////// USER STRUCTURE(S)
         ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))

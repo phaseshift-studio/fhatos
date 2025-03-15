@@ -21,6 +21,7 @@
 
 #include "../fhatos.hpp"
 #include  "../lang/obj.hpp"
+#include "../util/obj_helper.hpp"
 
 namespace fhatos {
 #define RETAIN true
@@ -41,10 +42,10 @@ namespace fhatos {
            ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!!\n"                                         \
            : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!!\n"),                                       \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
-      ((subscription).source().toString().c_str()), ((subscription).pattern().toString().c_str()),                         \
-      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                      \
-                                                        : ((message).target().toString().c_str()),                       \
-      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                      \
+      ((subscription).source().toString().c_str()), ((subscription).pattern().toString().c_str()),                     \
+      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
+                                                        : ((message).target().toString().c_str()),                     \
+      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
                                                         : (message).payload()->toString.c_str())
 
   //////////////////////////////////////////////

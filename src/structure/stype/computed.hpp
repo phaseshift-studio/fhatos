@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include "../../furi.hpp"
 #include "../../lang/obj.hpp"
 #include "../structure.hpp"
-#include STR(../../process/ptype/HARDWARE/scheduler.hpp)
 
 // TODO: rename to virtual. redesign using objs as functions so its runtime configurable
 namespace fhatos {
@@ -50,9 +49,9 @@ namespace fhatos {
       if(retain) {
         for(const auto &[furi, func]: *this->write_functions_) {
           if(id.matches(furi)) {
-            scheduler()->feed_local_watchdog();
+            FEED_WATCHDOG();
             func(id, obj);
-            scheduler()->feed_local_watchdog();
+            FEED_WATCHDOG();
             LOG_WRITE(DEBUG, this, L("!g{}!y=>!g{}!! written\n", id.toString(), obj->toString()));
           }
         }
@@ -64,10 +63,10 @@ namespace fhatos {
       auto list = IdObjPairs();
       for(const auto &[furi2, func]: *this->read_functions_) {
         if(furi.bimatches(furi2)) {
-          Scheduler::singleton()->feed_local_watchdog();
+          FEED_WATCHDOG();
           const IdObjPairs list2 = func(furi);
           list.insert(list.end(), list2.begin(), list2.end());
-          scheduler()->feed_local_watchdog();
+          FEED_WATCHDOG();
         }
       }
       return list;

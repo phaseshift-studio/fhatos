@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include "../q_proc.hpp"
 #include "../../fhatos.hpp"
 #include "../pubsub.hpp"
-#include "../../util/mutex_deque.hpp"
 #include "../../util/mutex_map.hpp"
 
 namespace fhatos {

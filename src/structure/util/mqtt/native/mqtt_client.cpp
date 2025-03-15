@@ -29,7 +29,7 @@ FhatOS: A Distributed Operating System
 */
 
 #define FOS_MQTT_MAX_RETRIES 10
-#define FOS_MQTT_RETRY_WAIT 5
+#define FOS_MQTT_RETRY_WAIT 2000
 
 namespace fhatos {
   using namespace mqtt;
@@ -73,7 +73,7 @@ namespace fhatos {
     this->subscriptions_->remove_if([this,&source,&pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove)
-        std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(sub->pattern()->toString())->wait();
+        std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(sub->pattern()->toString());
       return remove;
     });
   }
@@ -93,8 +93,8 @@ namespace fhatos {
   }
 
   bool MqttClient::disconnect(const ID &source) const {
-    this->unsubscribe(source, "#");
     this->clients_->remove(source);
+    this->unsubscribe(source,"#");
     if(this->clients_->empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
       std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
       CLIENTS.erase(this->broker());
@@ -144,7 +144,7 @@ namespace fhatos {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n", this->broker().toString()));
-          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT * 1000);
+          std::this_thread::sleep_for(chrono::milliseconds(FOS_MQTT_RETRY_WAIT));
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
           this->clients_->push_back(source);

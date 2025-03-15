@@ -25,7 +25,7 @@
 #include "../../lang/obj.hpp"
 #include "../structure.hpp"
 #include "../router.hpp"
-#include "../../model/fos/sys/thread/fmutex.hpp"
+#include "../../model/fos/sys/scheduler/thread/fmutex.hpp"
 
 #ifdef ESP_ARCH
 #include "../../util/esp32/psram_allocator.hpp"

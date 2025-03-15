@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 #include <semphr.h>
 
 namespace fhatos {
-  		// mutexes can not be used in ISR context
+      // mutexes can not be used in ISR context
        fMutex::fMutex() : handler_(xSemaphoreCreateMutex()) {
           if (std::any_cast<SemaphoreHandle_t>(this->handler_) == NULL)
             throw fError("unable to construct mutex");

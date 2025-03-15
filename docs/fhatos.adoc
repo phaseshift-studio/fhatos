@@ -75,65 +75,6 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 
 [source,mmadt]
 ----
-            PhaseShift Studio Presents 
- <`--'>____  ______ __  __  ______  ______  ______  ______ 
- /. .  `'  \/\  ___/\ \_\ \/\  __ \/\__  _\/\  __ \/\  ___\ 
-(`')  ,     @ \  __\ \  __ \ \  __ \/_/\ \/\ \ \_\ \ \___  \ 
- `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\ 
-    )-)_/-(>  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/ 
-                                   A Dogturd Stynx Production 
-    fhatos-0.1-alpha > linux-6.8.0-54-generic > x86_64
-       [x86_64]
-      Use noobj for noobj
-      .oO loading system objs Oo.
-[INFO]  [/sys/scheduler] scheduler started
-[INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5632]
-[INFO]  [/sys/router] heap <none> spanning /sys/# mounted
-[INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 758 bytes)
-[WARN]  [/sys/router] router has no auto-prefix configuration: noobj
-[INFO]  [/sys/router] 
-  [
-    router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
-    scheduler=>[def_stack_size=>8096]
-    mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true]
-    wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
-    ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288]
-    fs=>[root=>./data/fs]
-  ]@/boot/config
-[INFO]  [/sys/router] router boot config dropped
-[INFO]  [/sys/router] scheduler boot config dropped
-[INFO]  [/sys/router] /sys/lib/heap type imported
-[INFO]  [/sys/router] /sys/lib/dsm type imported
-[INFO]  [/sys/router] /sys/lib/bus type imported
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
-      .oO loading mmadt lang Oo.
-[INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-      .oO loading fos models Oo.
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-[INFO]  [/sys/router] /io/parser obj loaded
-[INFO]  [/io/log] switching from boot logger to system logger
-[INFO]  [/sys/router] /io/log obj loaded
-[INFO]  [/sys/router] log boot config dropped
-[INFO]  [/sys/router] heap /mnt/cache spanning +/# mounted
-[INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
-[INFO]  [/sys/router] /io/lib/fs type imported
-[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
-[INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
-[INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/dsm] query processor /mnt/dsm/ attached
-[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
-[INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
-[INFO]  [/sys/router] mqtt boot config dropped
-[INFO]  [/mnt/bus] mapping /bus==>//io
-[INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/sys/router] /io/console obj loaded
-[INFO]  [/io/console] thread spawned: inst()[cpp]
-[INFO]  [/sys/router] console boot config dropped
 ----
 
 ++++
@@ -176,8 +117,8 @@ The [lime]*F*​[yellow]*h*​[fuchsia]#a#​[red]*t*​[blue]#o#​[aqua]#s#​
 ----
 fhatos> */sys/scheduler
 =>[
-==>barrier=>noobj
-==>process=>[
+==>thread=>[
+===>/io/console
 =>]
 ==>config=>[
 ===>def_stack_size=>8096
@@ -243,7 +184,6 @@ fhatos> */mmadt/#/
 ==>/mmadt/bool/::/mmadt/neg=>neg(from(0?self,_)[cpp])[cpp]
 ==>/mmadt/bool/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
 ==>/mmadt/count=>count?int<=objs{*}()[cpp]
-==>/mmadt/delay=>delay(from(0?millis,_)[cpp])[cpp]
 ==>/mmadt/div=>div(from(0?rhs,noobj)[cpp])
 ==>/mmadt/drop=>drop?obj{?}<=obj{?}(from(0?obj,_)[cpp])[cpp]
 ==>/mmadt/each=>each(from(0?poly,noobj)[cpp])
@@ -267,7 +207,6 @@ fhatos> */mmadt/#/
 ==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
 ==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
 ==>/mmadt/from=>from?obj{?}<=obj{?}(from(0?uri,_)[cpp],from(1?default,noobj)[cpp])[cpp]
-==>/mmadt/goto=>goto(from(0?inst_id,noobj)[cpp])[cpp]
 ==>/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])
 ==>/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])
 ==>/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])
@@ -467,6 +406,18 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
+[INFO]  [/sys/router] router /sys/router stopped
+[INFO]  [/sys/router] /sys/# heap detached
+[INFO]  [/sys/router] /mnt/# heap detached
+[INFO]  [/sys/router] /boot/# heap detached
+[INFO]  [/sys/router] /fos/# heap detached
+[INFO]  [/sys/router] /mmadt/# heap detached
+[INFO]  [/sys/router] /io/# heap detached
+[INFO]  [/sys/router] +/# heap detached
+[INFO]  [/sys/router] /disk/# fs detached
+[INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++

@@ -21,7 +21,6 @@
 #include "../util/obj_helper.hpp"
 #include "../structure/stype/frame.hpp"
 #include "../util/print_helper.hpp"
-#include "../util/string_helper.hpp"
 
 namespace fhatos {
 
@@ -42,9 +41,9 @@ namespace fhatos {
         //stop and attach
         OType::REC, REC_FURI, id_p(id)),
     structures_(make_unique<MutexDeque<Structure_p>>()) {
+    ROUTER_ID = id_p(id);
     load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_ID = id_p(id);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       this->push_frame(pattern, frame_data);
@@ -215,7 +214,7 @@ namespace fhatos {
     try {
       const Structure_p structure = this->get_structure(furi, obj);
       LOG_WRITE(DEBUG, this, L(FURI_WRAP " !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to " FURI_WRAP "\n",
-                               Process::current_process()->vid->toString(), retain ? "retained" : "transient",
+                               "obj", retain ? "retained" : "transient",
                                furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
@@ -286,7 +285,9 @@ namespace fhatos {
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p obj = args->arg(0);
           if(obj->lock().has_value() && !obj->lock().value().equals(
-                 *Process::current_process()->vid)) {
+                 fThread::current_thread().has_value()
+                   ? *fThread::current_thread().value()->thread_obj_->vid
+                   : *obj->vid)) {
             throw fError("!runable write obj!! locked by !b%s!!: %s",
                          obj->lock().value().toString().c_str(),
                          obj->toString().c_str());
@@ -313,7 +314,9 @@ namespace fhatos {
         if(pattern.bimatches(*s->pattern)) {
           if(found && throw_on_error)
             throw fError("!b%s!! crosses multiple structures", pattern.toString().c_str());
-          found = s;
+            //LOG_WRITE(WARN, this,L("!b{}!! crosses multiple structures", pattern.toString()));
+          else
+            found = s;
         }
       }
     }

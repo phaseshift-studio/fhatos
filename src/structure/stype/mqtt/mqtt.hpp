@@ -34,7 +34,7 @@ FhatOS: A Distributed Operating System
 #define FOS_MQTT_MAX_RETRIES 10
 #define FOS_MQTT_RETRY_WAIT 5000
 #ifdef NATIVE
-#define FOS_MQTT_WAIT_TIME 1000
+#define FOS_MQTT_RETRY_WAIT 2000
 #else
 #define FOS_MQTT_WAIT_TIME 1250
 #endif
@@ -103,8 +103,8 @@ namespace fhatos {
     void stop() override {
       LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n",
                               this->rec_get("config")->rec_get("broker")->toString()));
-      native_mqtt_disconnect();
       Structure::stop();
+      native_mqtt_disconnect();
     }
 
     /*void recv_subscription(const Subscription_p &subscription) override {

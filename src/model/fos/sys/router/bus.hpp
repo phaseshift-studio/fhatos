@@ -23,7 +23,7 @@
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../structure/structure.hpp"
-#include "../thread/fmutex.hpp"
+#include "../scheduler/thread/fmutex.hpp"
 
 namespace fhatos {
   const static ID BUS_FURI = ID("/sys/lib/bus");

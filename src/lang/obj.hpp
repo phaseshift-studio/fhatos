@@ -640,6 +640,18 @@ namespace fhatos {
       this->lst_value()->push_back(obj);
     }
 
+    void lst_remove(const Obj_p &obj) const {
+      if(!this->is_lst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      const LstList_p l = this->lst_value();
+      auto itty = l->begin();
+      while(itty != l->end()) {
+        if((*itty)->equals(*obj))
+          l->erase(itty);
+        ++itty;
+      }
+    }
+
     [[nodiscard]] Obj_p deref(const Obj_p &uri, const bool uri_on_fail = true) const {
       if(this->is_rec())
         return this->rec_get(uri);
@@ -1944,8 +1956,8 @@ namespace fhatos {
       if(type_obj->is_type())
         return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
       if(type_obj->is_code() && !this->is_code()) {
-          const Obj_p result = type_obj->apply(this->clone());
-          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
+        const Obj_p result = type_obj->apply(this->clone());
+        return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
       }
       /* if(!type_obj->value_.has_value() &&
           (type_obj->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid->no_query()) && FURI_OTYPE.at(

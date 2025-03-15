@@ -23,14 +23,14 @@
 #include "kernel.hpp"
 #include "structure/router.hpp"
 #include "util/argv_parser.hpp"
-#include STR(process/ptype/HARDWARE/scheduler.hpp)
+//#include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include "lang/obj.hpp"
 #include "lang/mmadt/mmadt_obj.hpp"
 #include "lang/type.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/fos/ui/terminal.hpp"
 #include "model/fos/util/log.hpp"
-#include "model/fos/sys/thread/fthread.hpp"
+#include "model/fos/sys/scheduler/thread/fthread.hpp"
 #include "structure/stype/heap.hpp"
 #include "structure/stype/dsm.hpp"
 #include "model/fos/sys/router/bus.hpp"
@@ -51,6 +51,7 @@
 #include "model/fos/io/gpio/gpio.hpp"
 #include "model/fos/io/i2c/i2c.hpp"
 #include "model/fos/ui/console.hpp"
+#include "model/fos/sys/scheduler/fscheduler.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_ARCH)
 #include "model/fos/ui/rgbled/rgbled.hpp"
@@ -94,7 +95,7 @@ namespace fhatos {
         }
         ////////////////////////////////////////////////////////////
         kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+            ->using_scheduler(fScheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"));
         if(args_parser->option_bool("--headers", true)) {
           kp->display_memory("inst memory", Memory::instruction_memory())
@@ -111,7 +112,7 @@ namespace fhatos {
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
             ->import(Router::import())
             ->drop_config("router")
-            ->import(Scheduler::import())
+            ->import(fScheduler::import())
             ->drop_config("scheduler");
         ////////////////////////////////////////////////////////////
         ////////////////// USER IMPORT(S) //////////////////////////

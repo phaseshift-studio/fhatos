@@ -25,7 +25,7 @@
 #include "../../model.hpp"
 #include "terminal.hpp"
 #include "../../../lang/type.hpp"
-#include "../sys/thread/fthread.hpp"
+#include "../sys/scheduler/thread/fthread.hpp"
 #include "../../../extern/fmt/include/fmt/core.h"
 
 namespace fhatos {

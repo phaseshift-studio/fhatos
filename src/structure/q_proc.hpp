@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 
 #include "../lang/obj.hpp"
 #include "../furi.hpp"
-#include "../fhatos.hpp"
 
 namespace fhatos {
   class QProc : public Rec {

@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include "../../structure.hpp"
-#include "../../../util/obj_helper.hpp"
+#include "../../router.hpp"
 
 namespace fhatos {
 

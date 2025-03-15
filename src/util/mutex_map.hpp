@@ -19,7 +19,7 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_mutex_map_hpp
 #define fhatos_mutex_map_hpp
 
-#include "../model/fos/sys/thread/fmutex.hpp"
+#include "../model/fos/sys/scheduler/thread/fmutex.hpp"
 #include <shared_mutex>
 
 namespace fhatos {
