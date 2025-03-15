@@ -41,9 +41,9 @@ namespace fhatos {
         //stop and attach
         OType::REC, REC_FURI, id_p(id)),
     structures_(make_unique<MutexDeque<Structure_p>>()) {
-    ROUTER_ID = id_p(id);
     load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
+    ROUTER_ID = id_p(id);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       this->push_frame(pattern, frame_data);

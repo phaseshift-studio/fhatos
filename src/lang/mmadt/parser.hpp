@@ -382,32 +382,32 @@ namespace mmadt {
 
       const auto SUGAR_GENERATOR = [this](Definition &definition, const string &sugar, const string &opcode) {
         definition <= seq(lit(sugar.c_str()), WRAQ("(", OBJ, START, ")")),
-            [opcode](const SemanticValues &vs) -> Inst_p const {
-              return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve(opcode)));
+            [opcode](const SemanticValues &vs) -> Inst_p {
+              return Obj::to_inst(vs.transform<Obj_p>(), id_p(ID(opcode)));
             };
       };
       auto barrier_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve("barrier")));
+        return Obj::to_inst(vs.transform<Obj_p>(), id_p(MMADT_PREFIX "barrier"));
       };
       auto within_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.transform<Obj_p>(), id_p(Router::singleton()->resolve("within")));
+        return Obj::to_inst(vs.transform<Obj_p>(), id_p(MMADT_PREFIX "within"));
       };
       auto end_action = [](const SemanticValues &) -> Inst_p {
-        return Obj::to_inst(Obj::to_inst_args(), id_p(Router::singleton()->resolve("end")));
+        return Obj::to_inst(Obj::to_inst_args(), id_p(MMADT_PREFIX "end"));
       };
       auto merge_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
-                            id_p(Router::singleton()->resolve("merge")));
+                            id_p(MMADT_PREFIX "merge"));
       };
       auto lshift_0_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(rec(), id_p(Router::singleton()->resolve("lshift")));
+        return Obj::to_inst(rec(), id_p(MMADT_PREFIX "lshift"));
       };
       auto rshift_0_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(rec(), id_p(Router::singleton()->resolve("rshift")));
+        return Obj::to_inst(rec(), id_p(MMADT_PREFIX "rshift"));
       };
       auto pass_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
-                            id_p(Router::singleton()->resolve("ref")));
+                            id_p(MMADT_PREFIX "ref"));
       };
 
 
@@ -555,40 +555,42 @@ namespace mmadt {
                         REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
-      SUGAR_GENERATOR(RSHIFT, ">>", "rshift");
-      SUGAR_GENERATOR(LSHIFT, "<<", "lshift");
-      SUGAR_GENERATOR(DROP, "v", "drop");
-      SUGAR_GENERATOR(FROM, "*", "from");
-      SUGAR_GENERATOR(REF, "->", "ref");
-      SUGAR_GENERATOR(BLOCK, "|", "block");
-      SUGAR_GENERATOR(SPLIT, "-<", "split");
-      SUGAR_GENERATOR(EACH, "==", "each");
-      SUGAR_GENERATOR(PLUS, "+", "plus");
-      SUGAR_GENERATOR(MULT, "x", "mult");
-      SUGAR_GENERATOR(GT, "?>", "gt");
-      SUGAR_GENERATOR(GTE, "?>=", "gte");
-      SUGAR_GENERATOR(LT, "?<", "lt");
-      SUGAR_GENERATOR(LTE, "?<=", "lte");
+      SUGAR_GENERATOR(RSHIFT, ">>", MMADT_PREFIX "rshift");
+      SUGAR_GENERATOR(LSHIFT, "<<", MMADT_PREFIX "lshift");
+      SUGAR_GENERATOR(DROP, "v", MMADT_PREFIX "drop");
+      SUGAR_GENERATOR(FROM, "*", MMADT_PREFIX "from");
+      SUGAR_GENERATOR(REF, "->", MMADT_PREFIX "ref");
+      SUGAR_GENERATOR(BLOCK, "|", MMADT_PREFIX "block");
+      SUGAR_GENERATOR(SPLIT, "-<", MMADT_PREFIX "split");
+      SUGAR_GENERATOR(EACH, "==", MMADT_PREFIX "each");
+      SUGAR_GENERATOR(PLUS, "+", MMADT_PREFIX "plus");
+      SUGAR_GENERATOR(MULT, "x", MMADT_PREFIX "mult");
+      SUGAR_GENERATOR(GT, "?>", MMADT_PREFIX "gt");
+      SUGAR_GENERATOR(GTE, "?>=", MMADT_PREFIX "gte");
+      SUGAR_GENERATOR(LT, "?<", MMADT_PREFIX "lt");
+      SUGAR_GENERATOR(LTE, "?<=", MMADT_PREFIX "lte");
       IS_A <= seq(lit("?"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("a"), Obj::to_inst({Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p("block"))}, id_p("from")));
+        return is_maker(id_p(MMADT_PREFIX "a"),
+                        Obj::to_inst({Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(MMADT_PREFIX "block"))},
+                                     id_p(MMADT_PREFIX "from")));
       };
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("eq"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "eq"), any_cast<Obj_p>(vs[0]));
       };
       NEQ <= seq(lit("?!="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("neq"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "neq"), any_cast<Obj_p>(vs[0]));
       };
       GT <= seq(lit("?>"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("gt"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "gt"), any_cast<Obj_p>(vs[0]));
       };
       GTE <= seq(lit("?>="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("gte"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "gte"), any_cast<Obj_p>(vs[0]));
       };
       LT <= seq(lit("?<"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("lt"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "lt"), any_cast<Obj_p>(vs[0]));
       };
       LTE <= seq(lit("?<="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p("lte"), any_cast<Obj_p>(vs[0]));
+        return is_maker(id_p(MMADT_PREFIX "lte"), any_cast<Obj_p>(vs[0]));
       };
       LSHIFT_0 <= lit("<<"), lshift_0_action;
       RSHIFT_0 <= lit(">>"), rshift_0_action;

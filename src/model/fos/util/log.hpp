@@ -73,10 +73,10 @@ namespace fhatos {
         printer()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer()->print("!r[TRACE]!! ");
-      if((ROUTER_ID->equals(*source->vid_or_tid())) || SCHEDULER_ID->equals(*source->vid_or_tid()))
-        printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
+      if(source->vid && source->vid->has_path("sys"))
+        printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString()).c_str());
       else
-        printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString().c_str()).c_str());
+        printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString()).c_str());
       printer()->print( message().c_str());
     }
 
