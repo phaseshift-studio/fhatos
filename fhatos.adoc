@@ -841,6 +841,19 @@ More generally, a https://en.wikipedia.org/wiki/Function_(computer_programming)[
 More abstractly, a https://en.wikipedia.org/wiki/Function_(mathematics)[function].
 Syntactically, an `inst` has the form:
 
+[stem]
+++++
+\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}.
+++++
+
+Starting with the template above, components will be removed to highlight various `inst` forms and functions.
+
+. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]@\texttt{ref}]: The complete form is a [.yellow]#referenced `inst`# and is used with coroutines.
+. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]]: Without a reference location, the `obj` is a [.yellow]#standard `inst`#.
+. latexmath:[\texttt{type}(\texttt{frame})[\]]: Without a reference or value, the `obj` is a [.yellow]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
+. latexmath:[\texttt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.yellow]#zero-arg proto `inst`# and is resolved during compilation or runtime.
+. latexmath:[\texttt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.yellow]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
+
 [.center]
 [source,mmadt]
 ----
@@ -1340,14 +1353,14 @@ fhatos> a -> 12
 
 ==== Types
 
-mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the `obj` [.yellow]#*type*#, [.yellow]#*value*#, and storage location/[.yellow]#*reference*#, where type and reference are fURIs.
+mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the `obj` [.yellow]#*type*#, [.yellow]#*value*#, a local variable frame [.yellow]#*frame*#, and a storage location/[.yellow]#*reference*#, where type and reference are fURIs.
 
 [stem]
 ++++
-\texttt{obj} := \texttt{type}[\texttt{value}]@\texttt{ref}
+\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}
 ++++
 
-The `/mmadt/ext` prefix contains a collection of generally useful types.
+The following examples are presented using the generally useful types from the `/mmadt/ext` prefix.
 
 ++++
 <!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
@@ -1377,8 +1390,14 @@ fhatos> */mmadt/ext/#/
 <!-- 🐓 -->
 ++++
 
-
-Typing values with types from `/mmadt/ext` are provided below.
+When an mm-ADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket,
+the type is first resolved to it's `inst` form and then the base value `obj` is applied to it.
+If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
+However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective  latexmath:[\texttt{type}[\]]-bracket.
+The type evaluation can be understood as a predicate, where `false` is `error` or `noobj`, otherwise `true`.
+Finally, if the `obj` has a latexmath:[\texttt{@}]-reference, then any subsequent mutations to that `obj` must continue to satisfy the constraints of the type.
+If any mutation falls outside the bounds of the type, a type `error` is thrown.
+The `@`-reference ensures that as the `obj` mutates, it's corresponding representation in the underlying fURI structure legally mutates as well.
 
 [tabs]
 ====
@@ -1392,6 +1411,7 @@ char::
 char['a']@a
 char['b']@b
 @a + @b
+*a
 @a.as(str) + @b
 -->
 ++++
@@ -1408,6 +1428,8 @@ fhatos> char['b']@b
 fhatos> @a + @b
 [ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
 	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
+fhatos> *a
+==>char['a']@a
 fhatos> @a.as(str) + @b
 ==>'aa'@a
 ----
