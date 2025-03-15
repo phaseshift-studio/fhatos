@@ -1530,6 +1530,33 @@ More generally, a <a href="https://en.wikipedia.org/wiki/Function_(computer_prog
 More abstractly, a <a href="https://en.wikipedia.org/wiki/Function_(mathematics)">function</a>.
 Syntactically, an <code>inst</code> has the form:</p>
 </div>
+<div class="stemblock">
+<div class="content">
+\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}.\]
+</div>
+</div>
+<div class="paragraph">
+<p>Starting with the template above, components will be removed to highlight various <code>inst</code> forms and functions.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\): The complete form is a <span class="yellow">referenced <code>inst</code></span> and is used with coroutines.</p>
+</li>
+<li>
+<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]\): Without a reference location, the <code>obj</code> is a <span class="yellow">standard <code>inst</code></span>.</p>
+</li>
+<li>
+<p>\(\texttt{type}(\texttt{frame})[]\): Without a reference or value, the <code>obj</code> is a <span class="yellow">proto <code>inst</code></span> resolved to a standard <code>inst</code> during compilation or runtime.</p>
+</li>
+<li>
+<p>\(\texttt{type}()[]\): Without a reference, value, or frame, the <code>obj</code> is a <span class="yellow">zero-arg proto <code>inst</code></span> and is resolved during compilation or runtime.</p>
+</li>
+<li>
+<p>\(\texttt{type}\): Without a reference, value, frame, or respective tokens, the <code>obj</code> is an <span class="yellow"><code>inst</code> reference</span> which can be dereferenced to yield the corresponding <code>inst</code> implementation.</p>
+</li>
+</ol>
+</div>
 <div class="listingblock center">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">type?rng{coeff}&lt;=dom{coeff}(arg1, arg2, ...) [bcode]</code></pre>
@@ -2192,15 +2219,15 @@ fhatos&gt; a -&gt; 12
 <div class="sect3">
 <h4 id="_types">Types</h4>
 <div class="paragraph">
-<p>mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the <code>obj</code> <span class="yellow"><strong>type</strong></span>, <span class="yellow"><strong>value</strong></span>, and storage location/<span class="yellow"><strong>reference</strong></span>, where type and reference are fURIs.</p>
+<p>mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the <code>obj</code> <span class="yellow"><strong>type</strong></span>, <span class="yellow"><strong>value</strong></span>, a local variable frame <span class="yellow"><strong>frame</strong></span>, and a storage location/<span class="yellow"><strong>reference</strong></span>, where type and reference are fURIs.</p>
 </div>
 <div class="stemblock">
 <div class="content">
-\[\texttt{obj} := \texttt{type}[\texttt{value}]@\texttt{ref}\]
+\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\]
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>/mmadt/ext</code> prefix contains a collection of generally useful types.</p>
+<p>The following examples are presented using the generally useful types from the <code>/mmadt/ext</code> prefix.</p>
 </div>
 <!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
 <div class="listingblock">
@@ -2225,7 +2252,14 @@ fhatos&gt; a -&gt; 12
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>Typing values with types from <code>/mmadt/ext</code> are provided below.</p>
+<p>When an mm-ADT base type is wrapped in a \(\texttt{type}[]\)-bracket,
+the type is first resolved to it&#8217;s <code>inst</code> form and then the base value <code>obj</code> is applied to it.
+If the result of the application yields an <code>error</code> or a <code>noobj</code>, then the base value <code>obj</code> is not of that type and a type <code>error</code> is thrown.
+However, should any other <code>obj</code> be returned, then the base value <code>obj</code> is of that type and is returned wrapped in the respective  \(\texttt{type}[]\)-bracket.
+The type evaluation can be understood as a predicate, where <code>false</code> is <code>error</code> or <code>noobj</code>, otherwise <code>true</code>.
+Finally, if the <code>obj</code> has a \(\texttt{@}\)-reference, then any subsequent mutations to that <code>obj</code> must continue to satisfy the constraints of the type.
+If any mutation falls outside the bounds of the type, a type <code>error</code> is thrown.
+The <code>@</code>-reference ensures that as the <code>obj</code> mutates, it&#8217;s corresponding representation in the underlying fURI structure legally mutates as well.</p>
 </div>
 <div id="_tabs_3" class="openblock tabs is-loading">
 <div class="content">
@@ -2249,6 +2283,7 @@ fhatos&gt; a -&gt; 12
 char['a']@a
 char['b']@b
 @a + @b
+*a
 @a.as(str) + @b
 -->
 <div class="listingblock">
@@ -2263,6 +2298,8 @@ fhatos&gt; char['b']@b
 fhatos&gt; @a + @b
 [ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
     thrown at inst char['a']@a =&gt; plus(at(b))[cpp] [0=&gt;char['a']@a]
+fhatos&gt; *a
+==&gt;char['a']@a
 fhatos&gt; @a.as(str) + @b
 ==&gt;'aa'@a</code></pre>
 </div>
@@ -3705,7 +3742,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-15 12:16:01 -0600
+Last updated 2025-03-15 15:38:58 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
