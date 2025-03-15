@@ -6,6 +6,7 @@ IF(TASKSCH_BUILD_WITH_DOCS)
 ENDIF()
 IF(BUILD_DOCS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}D${.c}O${.g}C${.r}S${..}\n")
+    MESSAGE(STATUS "target linked libraries: ${TARGET_LIBRARIES}")
     SET(TOTAL 0)
     FUNCTION(MAKE_CODE_RUNNERS PACKAGE PACKAGE_RUNNERS)
         SET(COUNTER 0)
@@ -17,15 +18,10 @@ IF(BUILD_DOCS)
             ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}.cpp)
             IF(USE_PAHO_MQTT_HACK)
                 MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} PUBLIC "${PROJECT_NAME}-lib"
-                        ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
-                        ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
-                        ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                        paho-mqttpp3
-                        fmt::fmt)
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} PUBLIC ${TARGET_LIBRARIES})
                 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ELSE()
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} "${PROJECT_NAME}-lib" paho-mqttpp3 paho-mqtt3a fmt::fmt)
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} ${TARGET_LIBRARIES})
             ENDIF()
             TARGET_PRECOMPILE_HEADERS(${PACKAGE_RUNNER} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES

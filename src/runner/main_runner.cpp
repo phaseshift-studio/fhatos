@@ -22,13 +22,13 @@
 #include <chrono>
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
-#include "../../../src/lang/mmadt/type.hpp"
+#include "../../../src/lang/mmadt/mmadt_obj.hpp"
 #include "../../../src/lang/mmadt/parser.hpp"
 #include "../../../src/lang/processor/processor.hpp"
 #include "../../../src/lang/type.hpp"
-#include "../../../src/model/fos/ui/console/console.hpp"
-#include "../../../src/model/terminal.hpp"
-#include "../../../src/process/ptype/native/scheduler.hpp"
+#include "../../../src/model/fos/ui/console.hpp"
+#include "../../../src/model/fos/ui/terminal.hpp"
+#include "../../../src/model/fos/sys/scheduler/fscheduler.hpp"
 #include <thread>
 #include "../../../src/util/ansi.hpp"
 #include "../../../src/util/print_helper.hpp"
@@ -84,11 +84,11 @@ int main(int arg, char **argsv) {
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
       Router::singleton()->loop();
       if(x.find("spawn") != string::npos)
-        std::this_thread::sleep_for(milliseconds(5000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     } catch(std::exception &e) {
-      LOG_EXCEPTION(Scheduler::singleton(), e);
+      LOG_EXCEPTION(fScheduler::singleton(), e);
     }
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   delete[] argsv;
   return 0;

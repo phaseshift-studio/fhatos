@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 import re
 import subprocess
 import sys
@@ -113,11 +114,31 @@ class ProcessingState:
     ] = "👨‍🌾"
     code: list[str] = field(default_factory=list)
     context: dict[str, Any] = field(default_factory=dict)
+    colors: list[str] = field(default_factory=dict)
     skip_code_block: bool = False
     output: list[str] | None = None
     new_lines: list[str] = field(default_factory=list)
     in_table: bool = False,
     backtick_options: dict[str, Any] = field(default_factory=dict)
+
+    def random_color(self, to_color: str):
+        index = random.randint(0, len(self.colors) - 1)
+        color = self.colors[index]
+        self.colors.remove(color)
+        sep = "#" if bool(random.randint(0, 1)) else "*"
+        return "[" + color + "]" + sep + to_color + sep + "​"
+
+    def random_fhat(self):
+        self.colors = ["red", "blue", "lime", "yellow", "fuchsia", "aqua"]
+        text = ""
+        text += self.random_color("f" if bool(random.randint(0, 1)) else "F")
+        text += self.random_color("h" if bool(random.randint(0, 1)) else "H")
+        text += self.random_color("a" if bool(random.randint(0, 1)) else "A")
+        text += self.random_color("t" if bool(random.randint(0, 1)) else "T")
+        text += self.random_color("o" if bool(random.randint(0, 1)) else "O")
+        text += self.random_color("s" if bool(random.randint(0, 1)) else "S")
+        self.colors = []
+        return text
 
     def process_line(self, line: str, *, verbose: bool = False) -> None:
         """Process a line of the Markdown file."""
@@ -143,7 +164,10 @@ class ProcessingState:
                 self.code.append(line)
         ############################################
         if self.section == "👨‍🌾" or self.section == "🐖":
-            self.new_lines.append(line)
+            if -1 != line.find("[fhatos]"):
+                self.new_lines.append(line.replace("[fhatos]", self.random_fhat()))
+            else:
+                self.new_lines.append(line)
         elif self.section == "🐓":
             if line == "<!-- 🐓 -->":
                 self.new_lines.append("")
@@ -198,8 +222,10 @@ class ProcessingState:
         for line in self.code:
             if line.startswith("[HEADER]"):
                 to_header.append(line)
+            elif line.startswith("[HIDDEN]"):
+                to_execute.append(line.replace("[HIDDEN] ", "") + ";'[HIDDEN]'")
             else:
-                to_execute.append(line.replace("[HIDDEN] ","'';"))
+                to_execute.append(line)
         self.output = []
         self.output.extend(to_header)
         x = execute_code(
@@ -210,8 +236,8 @@ class ProcessingState:
             verbose=verbose,
         )
         for line in x:
-            if not line.startswith("'';"):
-               self.output.append(line)
+            if -1 == line.find("[HIDDEN]"):
+                self.output.append(line)
         self.code = []
         self.backtick_options = {}
 
