@@ -26,7 +26,7 @@
 #include "terminal.hpp"
 #include "../../../lang/type.hpp"
 #include "../sys/scheduler/thread/fthread.hpp"
-#include "../../../extern/fmt/include/fmt/core.h"
+#include "../../../../extern/fmt/include/fmt/core.h"
 
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
@@ -197,7 +197,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
-            dynamic_cast<Console *>(console_state.get())->clear();
+            static_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
@@ -207,7 +207,7 @@ namespace fhatos {
             const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            dynamic_cast<Console *>(console_state.get())->process_line(console_obj, code);
+            static_cast<Console *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

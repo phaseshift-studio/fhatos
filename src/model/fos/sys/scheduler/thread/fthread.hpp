@@ -69,6 +69,7 @@ namespace fhatos {
                          threads->lst_add(vri(thread_obj->vid));
                          ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                          while(!thread_obj->get<bool>("halt")) {
+                           FEED_WATCHDOG();
                            this_thread.store(fThread::get_state(thread_obj).get());
                            const BCode_p &code = thread_obj->rec_get("loop");
                            code->apply(thread_obj);

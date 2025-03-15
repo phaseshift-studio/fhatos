@@ -80,10 +80,10 @@ namespace fhatos {
               if(message->target()->matches(*client->pattern) && retained) {
                 client->write_cache(*message->target(), payload);
               }
-          for(const Subscription_p &sub: *client->subscriptions_) {
+        /*  for(const Subscription_p &sub: *client->subscriptions_) {
             if(message->target()->bimatches(*sub->pattern()))
               client->outbox_->push_back(mail_p(sub, message));
-          }
+          }*/
         }
       });
     }
@@ -95,7 +95,7 @@ namespace fhatos {
     if(!h->connected()) {
       LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
       if(!h->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str())) {
-        Process::current_process()->delay(FOS_MQTT_RETRY_WAIT);
+        vTaskDelay(FOS_MQTT_RETRY_WAIT / portTICK_PERIOD_MS);
       }
     }
     if(!h->loop()) {
@@ -151,7 +151,7 @@ namespace fhatos {
             throw fError("__wrapped below__");
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
                         this->rec_get("config/broker")->uri_value().toString()));
-          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT);
+             vTaskDelay(FOS_MQTT_RETRY_WAIT / portTICK_PERIOD_MS);
         }
         if(h->connected())
           break;

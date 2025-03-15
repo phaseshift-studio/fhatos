@@ -121,8 +121,8 @@ namespace fhatos {
 
       while(true) {
         this->router_->loop();
-        std::this_thread::yield();
         this->feed_local_watchdog();
+        std::this_thread::yield();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }

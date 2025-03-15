@@ -55,13 +55,8 @@
 #ifndef FOS_SERIAL_TIMEOUT
 #define FOS_SERIAL_TIMEOUT 10
 #endif
-//#ifndef FOS_EXTERNAL_MEMORY_LIMIT
-//#define FOS_EXTERNAL_MEMORY_LIMIT 128
-//#endif
 #include "util/esp32/psram_allocator.hpp"
 #endif
-//#define FMT_HEADER_ONLY
-//#include <fmt/core.h>
 #include "util/ansi.hpp"
 // C++ standard template library common data structures
 #include <any>
