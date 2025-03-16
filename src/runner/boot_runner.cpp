@@ -19,7 +19,6 @@
 #ifndef fhatos_boot_runner_cpp
 #define fhatos_boot_runner_cpp
 
-#include <chrono>
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
 #include "../../../src/util/ansi.hpp"
@@ -30,18 +29,19 @@ using namespace std;
 
 int main(int, char **) {
   try {
-    char** args = new char*();
-    args[0] = static_cast<char *>("boot_runner");
-    args[1] = static_cast<char *>("--headers=true");
-    args[2] = static_cast<char *>("--log=INFO");
-    args[3] = static_cast<char *>("--ansi=false");
-    args[4] = static_cast<char *>("--boot:config=../../../conf/boot_config.obj");
-    ArgvParser* argv_parser = new ArgvParser();
+    char* args[5];
+    args[0] = "boot_runner";
+    args[1] ="--headers=true";
+    args[2] = "--log=INFO";
+    args[3] = "--ansi=false";
+    args[4] = "--boot:config=../../../conf/boot_config.obj";
+    auto* argv_parser = new ArgvParser();
     argv_parser->init(5,args);
     printer()->ansi_switch(false);
     BootLoader::primary_boot(argv_parser);
     return 0;
   } catch (const std::exception &e) {
+    LOG_EXCEPTION(Router::singleton(),e);
     throw;
   }
 }
