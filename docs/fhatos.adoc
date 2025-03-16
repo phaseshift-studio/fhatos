@@ -428,6 +428,33 @@ fhatos> # -> noobj
 
 [aqua]#F#​[red]#h#​[lime]*a*​[blue]#t#​[yellow]*o*​[fuchsia]#s#​ software can be written in C/C++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
 Every expression in mm-ADT yields an `obj` (object).
+
+An `obj` is composed of a [.h]#type#, a [.h]#value#, a variable [.h]#frame#, and a storage location/[.h]#reference#.
+The abstract syntax of a sugar-free `obj` is
+
+[stem]
+++++
+\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}
+++++
+
+. The [.h]#type# is a fURI referring to an `obj` which determines whether the `obj` is of that type or not (_predicate_).
+. The [.h]#frame# is a collection of fURI referenced `objs` that are accessible to the value of the `obj` (_arguments_).
+. The [.h]#value# is a collection of `objs` denoting the form of the `obj` (_encoding_).
+. The [.h]#reference# is a fURI denoting the durable location of the `obj` with the underlying storage structure (_memory address_).
+
+The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures;
+to uncover the finer grained structures that lie within each.
+
+==== The Type
+
+==== The Frame
+
+==== The Value
+
+==== The Reference
+
+
+
 An `obj` can be any one of
 
 . 5 **mono-types** (`bool`, `int`, `real`, `str`, `uri`, and `noobj`),
@@ -685,7 +712,6 @@ fhatos> [a=>1,b=>'2',c=>3.0]
 <!-- 🐓 -->
 ++++
 
-
 .Controlling Base Value Bit Encoding
 ====
 TIP: The bit-length of `int` and `real` can be specified at boot time via the boot-loader.
@@ -802,7 +828,8 @@ image:trill.png[width=150,float=right,title=trill] In the code example above, th
 
 The line above looks daunting because it contains numerous https://en.wikipedia.org/wiki/Syntactic_sugar[syntactic sugars].
 Specifically, the binary and unary operators `->` (binary), `*` (unary), `_` (unary), `+` (binary), and `\|` (unary).
-Each of these symbols ultimately parse down to an `inst`. Each having that familiar functional form of `f(a,b,c,...)`.
+Each of these symbols ultimately parse down to an `inst`.
+Each having that familiar functional form of `f(a,b,c,...)`.
 For example, the _sugar free_ representation of the expression above is:
 
 [cols="2,2"]
@@ -848,11 +875,11 @@ Syntactically, an `inst` has the form:
 
 Starting with the template above, components will be removed to highlight various `inst` forms and functions.
 
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]@\texttt{ref}]: The complete form is a [.yellow]#referenced `inst`# and is used with coroutines.
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]]: Without a reference location, the `obj` is a [.yellow]#standard `inst`#.
-. latexmath:[\texttt{type}(\texttt{frame})[\]]: Without a reference or value, the `obj` is a [.yellow]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
-. latexmath:[\texttt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.yellow]#zero-arg proto `inst`# and is resolved during compilation or runtime.
-. latexmath:[\texttt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.yellow]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
+. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]@\texttt{ref}]: The complete form is a [.h]#referenced `inst`# and is used with coroutines.
+. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]]: Without a reference location, the `obj` is a [.h]#standard `inst`#.
+. latexmath:[\texttt{type}(\texttt{frame})[\]]: Without a reference or value, the `obj` is a [.h]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
+. latexmath:[\texttt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.h]#zero-arg proto `inst`# and is resolved during compilation or runtime.
+. latexmath:[\texttt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.h]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
 
 [.center]
 [source,mmadt]
@@ -1253,7 +1280,7 @@ fhatos> [a=>1,b=>2].b     // <5>
 
 [.small]
 [.center]
-[cols="1,1,1,1,1,1,1,1,1,1,1", width=75%]
+[cols="1,1,1,1,1,1,1,1,1,1,1",width=75%]
 |===
 |  X   | noobj | bool | int | real | str | uri | lst | rec | inst | bcode
 |noobj |    x  |  y   |    z| a    |  b  |  c  |  d  |  e  |  f   |  g
@@ -1268,7 +1295,6 @@ fhatos> [a=>1,b=>2].b     // <5>
 |bcode |    x  |   y  |  z  |    a |  b  |  c  |   d |  e  |   f  |    g
 
 |===
-
 
 ==== Values
 
@@ -1353,12 +1379,10 @@ fhatos> a -> 12
 
 ==== Types
 
-mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the `obj` [.yellow]#*type*#, [.yellow]#*value*#, a local variable frame [.yellow]#*frame*#, and a storage location/[.yellow]#*reference*#, where type and reference are fURIs.
-
-[stem]
-++++
-\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}
-++++
+Every mmADT `obj` is typed.
+A type is an mmADT `obj`.
+A `obj` can serve as a value in one situation and as a type in another.
+Types can be typed.
 
 The following examples are presented using the generally useful types from the `/mmadt/ext` prefix.
 
@@ -1390,8 +1414,7 @@ fhatos> */mmadt/ext/#/
 <!-- 🐓 -->
 ++++
 
-When an mm-ADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket,
-the type is first resolved to it's `inst` form and then the base value `obj` is applied to it.
+When an mm-ADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket, the type is first resolved to it's `inst` form and then the base value `obj` is applied to it.
 If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
 However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective  latexmath:[\texttt{type}[\]]-bracket.
 The type evaluation can be understood as a predicate, where `false` is `error` or `noobj`, otherwise `true`.
@@ -2234,15 +2257,19 @@ fhatos> *m/+/0      // <3>
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 a🧱
 ++++
+
 <!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
 [4,5,6,7], /
 [8,9,10,11]]
 --- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+
 ++++
 
 [source,mmadt]
@@ -2287,7 +2314,9 @@ fhatos> *m/+/0      // <3>
 ----
 
 ++++
+
 <!-- 🐓 -->
+
 ++++
 
 |===
@@ -2342,11 +2371,9 @@ satisfy the resolution of the respective fURI.
 ----
 
 ++++
-<!-- ########################################################################################################
-#############################################################################################################
-########################################### SCHEDULER #######################################################
-#############################################################################################################
-############################################################################################################# -->
+
+<!-- ######################################################################################################## ############################################################################################################# ########################################### SCHEDULER ####################################################### ############################################################################################################# ############################################################################################################# -->
+
 ++++
 
 === The Scheduler Process
