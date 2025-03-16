@@ -13,6 +13,18 @@ jobs:
       pages: write
       id-token: write
     steps:
+      - name: action information
+        run: |
+          whoami
+          sudo chmod 777 --recursive /usr/local
+      - name: install graphviz
+        run: |
+          sudo apt-get install graphviz
+      - name: install asciidoctor
+        run: |
+          sudo apt-get install asciidoctor
+          sudo gem install asciidoctor-tabs
+          sudo gem install asciidoctor-diagram
       - uses: actions/checkout@v2
       - name: Configure Pages
         uses: actions/configure-pages@v4

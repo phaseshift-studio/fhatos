@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5504]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -150,25 +150,32 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 == FhatOS Architecture
 
 ====
-TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, and dogs that have or are currently living on the FhatFarm.
-Many of the code examples attempt to highlight their unique, individual personalities.
+TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, dogs and cats that have or are currently living on the FhatFarm.
 To learn their names, hover on their image.
 ====
 
-image:cooties.png[width=140,float=left,title=cooties] [yellow]*f*​[red]*h*​[fuchsia]#a#​[aqua]#t#​[blue]*O*​[lime]*S*​ is designed according to the undertsanding that computing is composed of 3 fundamental phenomena: **structure** (space), **process** (time), and **language** (perspective).
-The core [yellow]*f*​[lime]#H#​[blue]*a*​[fuchsia]#t#​[red]*O*​[aqua]*S*​ kernel provides the following resources.
+image:cooties.png[width=140,float=left,title=cooties] [yellow]*f*​[red]*h*​[fuchsia]#a#​[aqua]#t#​[blue]*O*​[lime]*S*​ is designed according to the philosophy that computing is composed of 3 fundamental, interacting phenomena:
+[.h]#structure# (space), [.h]#process# (time), and [h.]#language# (perspective).
+As such,the [yellow]*f*​[lime]#H#​[blue]*a*​[fuchsia]#t#​[red]*O*​[aqua]*S*​ kernel is comprised of the followng resources:
 
-. `/sys/scheduler` (**process**): provides all https://en.wikipedia.org/wiki/Thread_(computing)[thread], fiber, and coroutine processes compute time on the underlying hardware processor.
-. `/sys/router` (**structure**) : maintains a distributed, partitioned https://en.wikipedia.org/wiki/Tuple_space[tuple space] used for storing and retrieving `objs` in the fURI address space.
-. `/mmadt/` (**language**): enables source https://en.wikipedia.org/wiki/Parsing_expression_grammar[parsing], https://en.wikipedia.org/wiki/Type_system[type system] reasoning, and execution of mm-ADT programs.
+. `/sys/scheduler` (**process**): coordinates all processes realized as https://en.wikipedia.org/wiki/Thread_(computing)[threads], fibers, and coroutines.
+. `/sys/router` (**structure**) : manages all structures comprising a distributed, partitioned, read/write https://en.wikipedia.org/wiki/Tuple_space[tuple space].
+. `/mmadt/` (**language**): provides https://en.wikipedia.org/wiki/Parsing_expression_grammar[parsing], https://en.wikipedia.org/wiki/Type_system[type reasoning], and execution of mmADT programs.
 
-The [lime]*F*​[yellow]*h*​[fuchsia]#a#​[red]*t*​[blue]#o#​[aqua]#s#​ scheduler and router are accessed when their respective fURIs are https://en.wikipedia.org/wiki/Reference_(computer_science)[dereferenced] using the `from` instruction (sugar'd `*`).
+These resources are accessible via their respective fURIs.
+The fURI space is a subset of the common URI space, and is the address space through which all resources within [lime]*f*​[aqua]*h*​[fuchsia]#a#​[red]#t#​[blue]#o#​[yellow]#s#​ communicate.
+A fURI is https://en.wikipedia.org/wiki/Reference_(computer_science)[dereferenced] using the mmADT `from` instruction (sugar'd `*`).
+Dereferencing returns the resources pointed to by the fURI.
+In mmADT, these resources are called `obj` (objects).
 
+[tabs]
+====
+/sys/scheduler::
++
+--
+The [.h]#scheduler# controls and provides access to the various *processes* that define the [red]*F*​[lime]*h*​[blue]*a*​[yellow]#t#​[aqua]#o#​[fuchsia]#s#​ process architecture.
 ++++
-<!-- 🐖 ./main_runner.out
-*/sys/scheduler
-*/sys/router
--->
+<!-- 🐖 ./main_runner.out "*/sys/scheduler" -->
 ++++
 
 [source,mmadt]
@@ -182,6 +189,27 @@ fhatos> */sys/scheduler
 ===>def_stack_size=>8096
 =>]
 =>]@/sys/scheduler
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+
+/sys/router::
++
+--
+The [.h]#router# is responsible for storing and retrieving `objs` from a pool of *structures* that define the [fuchsia]*F*​[lime]#H#​[yellow]*a*​[red]#T#​[blue]*O*​[aqua]#S#​ memory architecture.
+++++
+<!-- 🐖 ./main_runner.out
+[HIDDEN] /io/console/config/nest -> 5
+*/sys/router
+-->
+++++
+
+[source,mmadt]
+----
 fhatos> */sys/router
 =>[
 ==>structure=>[
@@ -198,10 +226,40 @@ fhatos> */sys/router
 =>]
 ==>frame=>[rec][_]
 ==>config=>[
-===>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
+===>resolve=>[
+====>namespace=>[
+=====>:=>/mmadt/
+=====>fos:=>/fos/
+===>]
+====>auto_prefix=>[
+=====>
+=====>/mmadt/
+=====>/mmadt/ext/
+=====>/fos/
+=====>/fos/sys/
+=====>/fos/io/
+=====>/fos/sensor/
+=====>/fos/ui/
+=====>/fos/util/
+=====>/sys/
+===>]
+====>query=>[
+=====>write=>[
+======>lock=>to_do
+====>]
+===>]
+====>default_config=>[
+=====>query=>[
+======>write=>[sub=>noobj]
+====>]
+===>]
+==>]
 =>]
 ==>query=>[
-===>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
+===>write=>[
+====>lock=>lock?obj{?}<=obj{?}()[cpp]
+====>sub=>sub?obj{?}<=obj()[cpp]
+==>]
 =>]
 =>]@/sys/router
 ----
@@ -209,14 +267,12 @@ fhatos> */sys/router
 ++++
 <!-- 🐓 -->
 ++++
+--
 
-Likewise, the mmADT language is embedded within the fURI address space. mm-ADT's encoding is large as it includes all mm-ADT types and instructions.
-By dereferencing the `/mmadt` root with the wildcard extension `#`, a https://en.wikipedia.org/wiki/Reflective_programming[reflective] representation of the mm-ADT language is accessed.
-
-+++ <details><summary> +++
-🔗 fURI encoding of the mmADT language
-+++ </summary><div> +++
-
+/mmadt::
++
+--
+The [.h]#mmADT# language is embedded in the fURI address space thus enabling https://en.wikipedia.org/wiki/Reflective_programming[reflective] programming.
 ++++
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
@@ -375,47 +431,18 @@ fhatos> */mmadt/#/
 ++++
 <!-- 🐓 -->
 ++++
-
-+++ </div></details> +++
-
-The wildcard feature of the fURI scheme makes it possible to access instructions associated with a particular type.
-
-++++
-<!-- 🐖 ./main_runner.out
-*/mmadt/int/#
--->
-++++
-
-[source,mmadt]
-----
-fhatos> */mmadt/int/#
-==>[int][[_]]
-==>as?obj<=int(from?obj<=obj(0?type,noobj)[cpp])[cpp]
-==>div?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>gt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>gte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>inspect?rec<=int(from?obj<=obj(0?inspected,_)[cpp])[cpp]
-==>lt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>lte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>minus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>mod?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>mult?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>neg?int<=int(from?obj<=obj(0?self,_)[cpp])[cpp]
-==>plus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-----
-
-++++
-<!-- 🐓 -->
-++++
+--
+====
 
 ====
-IMPORTANT: When an instruction body is displayed as `[cpp]`, it means that the instruction's implementation is written C++ and thus, no further introspection is possible from within mm-ADT.
-When the instruction implementation is written in mm-ADT, the instruction body is displayed as `bcode` (a linear chain of `objs`).
+IMPORTANT: The `[cpp]` representation of an `inst` value means that the instruction's implementation is written C++.
+As such, no further introspection is possible from within mmADT.
+When the instruction implementation is written in mmADT, the instruction value is displayed as `bcode` (a linear chain of `objs`).
 
 [cols="2,2"]
 |===
-
 a|
+An `inst` written in C++.
 ++++
 <!-- 🐖 ./main_runner.out "*int::lt" -->
 ++++
@@ -431,6 +458,7 @@ fhatos> *int::lt
 ++++
 
 a|
+An `inst` written in mmADT.
 ++++
 <!-- 🐖 ./main_runner.out "*nat" -->
 ++++
@@ -446,14 +474,13 @@ fhatos> *nat
 ++++
 
 |===
+
 ====
 
-Shutting down [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ is as simple as writing `noobj` to every `obj` that is fURI accessible to the local processor.
+A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ instance is shutdown by writing `noobj` (_null_) to every fURI address.
 
 ++++
-<!-- 🐖 ./main_runner.out
-# -> noobj
--->
+<!-- 🐖 ./main_runner.out "# -> noobj" -->
 ++++
 
 [source,mmadt]
@@ -475,16 +502,30 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] +/# heap detached
 [INFO]  [/sys/router] /disk/# fs detached
 [INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
 
+This documentation will explore these three kernel resources in-depth starting with the mmADT language and processor.
+
 === The mm-ADT Language
 
-[aqua]#F#​[red]#h#​[lime]*a*​[blue]#t#​[yellow]*o*​[fuchsia]#s#​ software can be written in C/C++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
-Every expression in mm-ADT yields an `obj` (object).
+mmADT is the programming language of [red]#F#​[fuchsia]#H#​[lime]#a#​[aqua]*T*​[yellow]*O*​[blue]#s#​. In mmADT, every expression is an `obj` (object). The language has an
+underlying https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoidal] structure where an `obj` can be applied (`.`) to an `obj` to create an `obj`.
+
+[.center]
+[graphviz,diagrams/mmadt-monoid, svg]
+----
+digraph g {
+ size="2.0!";
+ bgcolor=transparent
+ obj [fontcolor=yellow,color=white];
+ obj -> obj [label=obj,fontcolor=fuchsia,color=white];
+}
+----
 
 An `obj` is composed of a [.h]#type#, a [.h]#value#, a variable [.h]#frame#, and a storage location/[.h]#reference#.
 The abstract syntax of a sugar-free `obj` is
@@ -499,30 +540,11 @@ The abstract syntax of a sugar-free `obj` is
 . The [.h]#value# is a collection of `objs` denoting the form of the `obj` (_encoding_).
 . The [.h]#reference# is a fURI denoting the durable location of the `obj` with the underlying storage structure (_memory address_).
 
-The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures;
-to uncover the finer grained structures that lie within each.
+The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures, where finer grained structures lie within each.
 
 ==== The Type
 
-==== The Frame
-
-==== The Value
-
-==== The Reference
-
-
-
-An `obj` can be any one of
-
-. 5 **mono-types** (`bool`, `int`, `real`, `str`, `uri`, and `noobj`),
-. 2 **poly-types** (`lst` and `rec`), or
-. 2 **code-types** (`inst` and `bcode`).
-
-The mono and poly types are **structural**, while the code-types are **functional**.
-
-==== Structural Types
-
-The 7 structural types (5 mono-types and 2 poly-types) are described below.
+There are 9 base types in mmADT. 6 [.h]#mono-types# and 3 [.h]#poly-types#. The mono-types are:
 
 . `/mmadt/noobj`: A singleton representing `null`.
 . `/mmadt/bool`: The set of binary values `true` and `false`.
@@ -530,19 +552,21 @@ The 7 structural types (5 mono-types and 2 poly-types) are described below.
 . `/mmadt/real`: The set of \$n\$-bit floating point values between `-...` and `....`.
 . `/mmadt/str`: The infinite set of all UTF-8 character sequences.
 . `/mmadt/uri`: The infinite set of all [red]#f#​[lime]#H#​[fuchsia]#A#​[blue]#T#​[yellow]*o*​[aqua]#s#​ UTF-8 Uniform Resource Identifiers (fURIs).
+
+The poly-types are:
+
 . `/mmadt/lst`: An (un)ordered collection of zero or more `objs`.
 . `/mmadt/rec`: An (un)ordered collection of key/value pair `objs`, where keys are unique.
 
-
-===== Base Types
-
-Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
+All other types are defined in terms of these types. Every `obj` has an explicitly declared type.
+However, given frequency of base types usage, specifying the type is not necessary it can be deduced from the value.
 
 [tabs]
 ====
 bool::
 +
 --
+
 ++++
 <!-- 🐖 ./main_runner.out "/mmadt/bool[true]" "bool[true]" "true" -->
 ++++
@@ -727,8 +751,166 @@ fhatos>
 <!-- 🐓 -->
 ++++
 --
+====
+
+When an mmADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket, the type is first resolved to it's `obj` form (typically as an `inst`) and then the `obj` is applied to it.
+If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
+However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective latexmath:[\texttt{type}[\]]-bracket.
+The type can be understood as a predicate, where an `error` or `noobj` is `false`, otherwise `true`.
+Finally, if the `obj` has a latexmath:[\texttt{@}]-reference, then any subsequent mutations to that `obj` must continue to satisfy the constraints of the type.
+If any mutation falls outside the bounds of the type, a type `error` is thrown.
+The `@`-reference ensures that as the `obj` mutates, it's corresponding representation in the underlying fURI structure mutates as well.
+
+These concepts are demonstrated in the examples below using the generally useful types off the `/mmadt/ext` prefix.
+
+++++
+<!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
+++++
+
+[source,mmadt]
+----
+fhatos> */mmadt/ext/#/
+=>[
+==>/mmadt/ext/C=>C()[is(gte(-273.149994))]
+==>/mmadt/ext/Ox=>Ox()[is(true)]
+==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
+==>/mmadt/ext/int16=>[int16][_]
+==>/mmadt/ext/int32=>[int32][_]
+==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
+==>/mmadt/ext/ms=>[int][_]
+==>/mmadt/ext/nat=>nat()[is(gte(0))]
+==>/mmadt/ext/prnt=>prnt()[is(gte(0.000000)).is(lte(100.000000))]
+==>/mmadt/ext/sec=>[int][_]
+==>/mmadt/ext/secret=>[str][_]
+==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
+==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
+=>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+[tabs]
+====
+char::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
+*char
+char['a']@a
+char['b']@b
+@a + @b
+*a
+@a.as(str) + @b
+-->
+++++
+
+.char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
+[source,mmadt]
+----
+fhatos> *char
+==>char?int<=str()[merge(2).count().is(eq(1))]
+fhatos> char['a']@a
+==>char['a']@a
+fhatos> char['b']@b
+==>char['b']@b
+fhatos> @a + @b
+[ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
+	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
+fhatos> *a
+==>char['a']@a
+fhatos> @a.as(str) + @b
+==>'aa'@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+nat::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
+*nat
+nat[12]
+nat[-30]
+nat[12]@a
+@a.minus(11)
+@a.minus(2)
+*a
+-->
+++++
+
+.nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
+[source,mmadt]
+----
+fhatos> *nat
+==>nat?int<=int()[is(gte(0))]
+fhatos> nat[12]
+==>nat[12]
+fhatos> nat[-30]
+[ERROR] [/sys/type] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+fhatos> nat[12]@a
+==>nat[12]@a
+fhatos> @a.minus(11)
+==>nat[1]@a
+fhatos> @a.minus(2)
+[ERROR] [/sys/type] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
+fhatos> *a
+==>nat[1]@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+celsius::
++
+--
+++++
+<!-- 🐖 ./main_runner.out
+[HEADER] .celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
+*C
+C[0.0]
+C[274.0]
+C[-274.0]
+-->
+++++
+
+.celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
+[source,mmadt]
+----
+fhatos> *C
+==>C?real<=real()[is(gte(-273.149994))]
+fhatos> C[0.0]
+==>C[0]
+fhatos> C[274.0]
+==>C[274]
+fhatos> C[-274.0]
+[ERROR] [/sys/type] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))]
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
 
 ====
+
+
+==== The Frame
+
+==== The Value
+
+==== The Reference
+
 
 Examples of the aforementioned types are provided below.
 
@@ -873,6 +1055,36 @@ fhatos> @a + 1                               // <3>
 ====
 
 ==== Functional Types
+
+The wildcard feature of the fURI scheme makes it possible to access instructions associated with a particular type.
+
+++++
+<!-- 🐖 ./main_runner.out
+*/mmadt/int/#
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> */mmadt/int/#
+==>[int][[_]]
+==>as?obj<=int(from?obj<=obj(0?type,noobj)[cpp])[cpp]
+==>div?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>gt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>gte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>inspect?rec<=int(from?obj<=obj(0?inspected,_)[cpp])[cpp]
+==>lt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>lte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>minus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>mod?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>mult?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>neg?int<=int(from?obj<=obj(0?self,_)[cpp])[cpp]
+==>plus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+----
+
+++++
+<!-- 🐓 -->
+++++
 
 ===== Sugar-Less mm-ADT
 
@@ -1441,156 +1653,7 @@ A type is an mmADT `obj`.
 A `obj` can serve as a value in one situation and as a type in another.
 Types can be typed.
 
-The following examples are presented using the generally useful types from the `/mmadt/ext` prefix.
 
-++++
-<!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
-++++
-
-[source,mmadt]
-----
-fhatos> */mmadt/ext/#/
-=>[
-==>/mmadt/ext/C=>C()[is(gte(-273.149994))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[int][_]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.000000)).is(lte(100.000000))]
-==>/mmadt/ext/sec=>[int][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
-=>]
-----
-
-++++
-<!-- 🐓 -->
-++++
-
-When an mm-ADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket, the type is first resolved to it's `inst` form and then the base value `obj` is applied to it.
-If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
-However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective  latexmath:[\texttt{type}[\]]-bracket.
-The type evaluation can be understood as a predicate, where `false` is `error` or `noobj`, otherwise `true`.
-Finally, if the `obj` has a latexmath:[\texttt{@}]-reference, then any subsequent mutations to that `obj` must continue to satisfy the constraints of the type.
-If any mutation falls outside the bounds of the type, a type `error` is thrown.
-The `@`-reference ensures that as the `obj` mutates, it's corresponding representation in the underlying fURI structure legally mutates as well.
-
-[tabs]
-====
-char::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
-*char
-char['a']@a
-char['b']@b
-@a + @b
-*a
-@a.as(str) + @b
--->
-++++
-
-.char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
-[source,mmadt]
-----
-fhatos> *char
-==>char?int<=str()[merge(2).count().is(eq(1))]
-fhatos> char['a']@a
-==>char['a']@a
-fhatos> char['b']@b
-==>char['b']@b
-fhatos> @a + @b
-[ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
-	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
-fhatos> *a
-==>char['a']@a
-fhatos> @a.as(str) + @b
-==>'aa'@a
-----
-
-++++
-<!-- 🐓 -->
-++++
-
---
-nat::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
-*nat
-nat[12]
-nat[-30]
-nat[12]@a
-@a.minus(11)
-@a.minus(2)
-*a
--->
-++++
-
-.nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
-[source,mmadt]
-----
-fhatos> *nat
-==>nat?int<=int()[is(gte(0))]
-fhatos> nat[12]
-==>nat[12]
-fhatos> nat[-30]
-[ERROR] [/sys/type] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-fhatos> nat[12]@a
-==>nat[12]@a
-fhatos> @a.minus(11)
-==>nat[1]@a
-fhatos> @a.minus(2)
-[ERROR] [/sys/type] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
-fhatos> *a
-==>nat[1]@a
-----
-
-++++
-<!-- 🐓 -->
-++++
---
-celsius::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
-*C
-C[0.0]
-C[274.0]
-C[-274.0]
--->
-++++
-
-.celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
-[source,mmadt]
-----
-fhatos> *C
-==>C?real<=real()[is(gte(-273.149994))]
-fhatos> C[0.0]
-==>C[0]
-fhatos> C[274.0]
-==>C[274]
-fhatos> C[-274.0]
-[ERROR] [/sys/type] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))]
-----
-
-++++
-<!-- 🐓 -->
-++++
---
-
-====
 
 ===== Bytecode and Instruction Types
 

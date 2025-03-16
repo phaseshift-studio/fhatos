@@ -41,6 +41,12 @@
     font-weight: bold;
 }
 
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Text styles */
 html {
     font-family: Arial, sans-serif !important;
@@ -192,13 +198,15 @@ mark {
 }
 
 
-.tab, .tabs:not(.is-loading) .tablist li.is-selected::after {
+.tab, .tabs:not(.is-loading) .tablist li.is-selected::after, li.tab p {
     background-color: var(--maincolor) !important;
     border-color: var(--maincolor);
     border-width: thin;
     border-radius: 0.25em;
     border-style: solid;
-    font-size: 0.65em !important;
+    color: #b066cd !important;
+    font-size: 0.875em !important;
+    font-family: monospace, fixed !important;
 }
 
 .tabpanel {

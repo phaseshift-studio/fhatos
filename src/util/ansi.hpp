@@ -258,10 +258,10 @@ namespace fhatos {
     explicit Ansi(string *str) : Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(const PRINTER printer) : printer(printer) {
-      for(int i = 0; i < 10; i++) {
+    explicit Ansi(const PRINTER& printer) : printer(printer) {
+      for(auto & slot : this->slots) {
         uint16_t t[2] = {0, 0};
-        this->slots[i] = t;
+        slot = t;
       }
     }
 
@@ -269,8 +269,8 @@ namespace fhatos {
 
     void printer_switch(bool turn_on = true) { this->printer_on_ = turn_on; }
 
-    bool is_ansi_on() const { return this->ansi_on_; }
-    bool is_printer_on() const { return this->printer_on_; }
+    [[nodiscard]] bool is_ansi_on() const { return this->ansi_on_; }
+    [[nodiscard]] bool is_printer_on() const { return this->printer_on_; }
 
     void print(const char c) {
       if(this->printer_on_)
@@ -292,7 +292,7 @@ namespace fhatos {
 
     PRINTER get_printer() { return this->printer; }
 
-    int read() const {
+    [[nodiscard]] int read() const {
       return this->printer.read();
     }
 
@@ -561,7 +561,7 @@ namespace fhatos {
       return shared_ptr<ProgressBar>(new ProgressBar(ansi, total_counts, meter_icon));
     }
 
-    bool done() const { return this->current_counts_ >= this->total_counts_; }
+    [[nodiscard]] bool done() const { return this->current_counts_ >= this->total_counts_; }
 
     void end(const string &end_message = "done") {
       this->current_counts_ = this->total_counts_;

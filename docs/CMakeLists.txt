@@ -42,6 +42,7 @@ IF(BUILD_DOCS)
     MESSAGE(CHECK_START "${.y}CMaking AsciiDoc Documentation${..}")
     FILE(COPY ${CMAKE_SOURCE_DIR}/docs/src/runner/fhatos-doc-code.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
     FILE(COPY ${CMAKE_SOURCE_DIR}/scripts/colors.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
+    FILE(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/docs/images/diagrams)
     ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner boot_runner)
     SET(FILES ${CMAKE_SOURCE_DIR}/docs/fhatos.adoc)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
@@ -52,7 +53,7 @@ IF(BUILD_DOCS)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/docs
-            COMMAND asciidoctor -v -r asciidoctor-tabs -o index.html ${FILES}
+            COMMAND asciidoctor -v -r asciidoctor-tabs -r asciidoctor-diagram -o index.html ${FILES}
             COMMENT "Evaluating asciidoctor: ${FILES}")
     UNSET(FILES)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")

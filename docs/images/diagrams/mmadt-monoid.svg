@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg height='62pt' preserveAspectRatio='xMidYMid meet' viewBox='0.00 0.00 144.00 62.12' width='144pt' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns='http://www.w3.org/2000/svg'>
+<g class='graph' id='graph0' transform='scale(1.41 1.41) rotate(0) translate(4 40)'>
+<title>g</title>
+
+<g class='node' id='node1'>
+<title>obj</title>
+<ellipse cx='27' cy='-18' fill='none' rx='27' ry='18' stroke='white'/>
+<text fill='yellow' font-family='Times,serif' font-size='14.00' text-anchor='middle' x='27' y='-14.3'>obj</text>
+</g>
+
+<g class='edge' id='edge1'>
+<title>obj&#45;&gt;obj</title>
+<path d='M52.44,-24.69C63.03,-25.15 72,-22.92 72,-18 72,-14.77 68.14,-12.7 62.49,-11.79' fill='none' stroke='white'/>
+<polygon fill='white' points='62.6,-8.29 52.44,-11.31 62.27,-15.28 62.6,-8.29' stroke='white'/>
+<text fill='fuchsia' font-family='Times,serif' font-size='14.00' text-anchor='middle' x='83' y='-14.3'>obj</text>
+</g>
+</g>
+</svg>
