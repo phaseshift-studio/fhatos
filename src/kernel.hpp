@@ -22,8 +22,8 @@
 #include "fhatos.hpp"
 //#include STR(process/ptype/HARDWARE/scheduler.hpp)
 #include STR(structure/stype/fs/HARDWARE/fs.hpp)
-#include "model/fos/sys/scheduler/thread/fthread.hpp"
-#include "model/fos/sys/scheduler/fscheduler.hpp"
+#include "model/fos/sys/scheduler/thread/thread.hpp"
+#include "model/fos/sys/scheduler/scheduler.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "util/memory_helper.hpp"
 #include "util/print_helper.hpp"
@@ -122,7 +122,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_scheduler(const ptr<fScheduler> &scheduler) {
+    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
       return Kernel::build();
     }
 
@@ -156,7 +156,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> process(const Thread_p &process) {
-     fScheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+     Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       // ROUTER_WRITE(process->vid, process,RETAIN);
       //fScheduler::singleton()->spawn(process);
       return Kernel::build();
@@ -168,7 +168,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
-      fScheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
@@ -210,7 +210,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> drop_config(const string &id) {
-      fScheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id, noobj());
       LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot config!! dropped\n", id));
       return Kernel::build();
@@ -218,7 +218,7 @@ namespace fhatos {
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
-      fScheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
+      Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH
       esp_restart();

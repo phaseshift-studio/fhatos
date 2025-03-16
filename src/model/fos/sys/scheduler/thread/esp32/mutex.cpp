@@ -16,32 +16,32 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #ifdef ARDUINO
-#include "../fmutex.hpp"
+#include "../mutex.hpp"
 #include <cstdio>
 #include <FreeRTOS.h>
 #include <semphr.h>
 
 namespace fhatos {
       // mutexes can not be used in ISR context
-       fMutex::fMutex() : handler_(xSemaphoreCreateMutex()) {
+       Mutex::Mutex() : handler_(xSemaphoreCreateMutex()) {
           if (std::any_cast<SemaphoreHandle_t>(this->handler_) == NULL)
             throw fError("unable to construct mutex");
         }
-         void fMutex::lock() {
+         void Mutex::lock() {
           BaseType_t success = xSemaphoreTake(std::any_cast<SemaphoreHandle_t>(this->handler_), portMAX_DELAY);
           if(success != pdTRUE) throw fError("unable to lock mutex");
         }
-         void fMutex::unlock() {
+         void Mutex::unlock() {
           BaseType_t success = xSemaphoreGive(std::any_cast<SemaphoreHandle_t>(this->handler_));
           if(success != pdTRUE) throw fError("unable to unlock mutex");
         }
-         void fMutex::lock_shared() {
+         void Mutex::lock_shared() {
            this->lock();
         }
-        void fMutex::unlock_shared() {
+        void Mutex::unlock_shared() {
            this->unlock();
         }
-         fMutex::~fMutex() {
+         Mutex::~Mutex() {
           vSemaphoreDelete(std::any_cast<SemaphoreHandle_t>(this->handler_));
         }
   }

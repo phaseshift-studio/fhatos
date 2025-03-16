@@ -2,7 +2,7 @@
 #ifndef fhatos_memory_helper_hpp
 #define fhatos_memory_helper_hpp
 #include "../fhatos.hpp"
-#include "../model/fos/sys/scheduler/fscheduler.hpp"
+#include "../model/fos/sys/scheduler/scheduler.hpp"
 #ifdef ESP_ARCH
 #include "semphr.h"
 #include "esp_expression_with_stack.h"

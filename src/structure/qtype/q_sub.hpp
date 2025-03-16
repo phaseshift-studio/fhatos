@@ -23,7 +23,7 @@ FhatOS: A Distributed Operating System
 #include "../q_proc.hpp"
 #include "../../fhatos.hpp"
 #include "../pubsub.hpp"
-#include "../../model/fos/sys/scheduler/thread/fthread.hpp"
+#include "../../model/fos/sys/scheduler/thread/thread.hpp"
 #include "../../util/mutex_deque.hpp"
 
 namespace fhatos {
@@ -60,8 +60,8 @@ namespace fhatos {
         // unsubscribe
         this->subscriptions_->remove_if(
             [this, &furi_no_query](const Subscription_p &sub) {
-              const bool removing = /*sub->source()->equals(source) &&*/ (fThread::current_thread().has_value()
-                                                                            ? fThread::current_thread().value()->
+              const bool removing = /*sub->source()->equals(source) &&*/ (Thread::current_thread().has_value()
+                                                                            ? Thread::current_thread().value()->
                                                                             thread_obj_->vid
                                                                             : SCHEDULER_ID) && (sub->pattern()->matches(
                                                                              furi_no_query));
@@ -77,8 +77,8 @@ namespace fhatos {
             this->subscriptions_->push_back(make_shared<Subscription>(obj));
           } else {
             this->subscriptions_->push_back(Subscription::create(
-            (fThread::current_thread().has_value()
-               ? fThread::current_thread().value()->thread_obj_->vid
+            (Thread::current_thread().has_value()
+               ? Thread::current_thread().value()->thread_obj_->vid
                : SCHEDULER_ID), p_p(furi_no_query), obj));
           }
           LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/

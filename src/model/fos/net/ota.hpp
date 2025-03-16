@@ -23,7 +23,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include <ArduinoOTA.h>
-#include  "../sys/scheduler/thread/fthread.hpp"
+#include  "../sys/scheduler/thread/thread.hpp"
 
 #define DEFAULT_OTA_PORT 3232
 

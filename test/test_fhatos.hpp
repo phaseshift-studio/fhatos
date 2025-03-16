@@ -64,13 +64,13 @@
 #endif
 /////////////////////////////////////////// SCHEDULER ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SCHEDULER
-#include "../src/model/fos/sys/scheduler/fscheduler.hpp"
+#include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #define FOS_STOP_ON_BOOT  \
   Router::singleton()->stop(); \
-  fScheduler::singleton("/sys/scheduler")->stop();
+  Scheduler::singleton("/sys/scheduler")->stop();
 #define FOS_DEPLOY_SCHEDULER_2  \
-  fScheduler::singleton("/sys/scheduler/"); \
-  fScheduler::import();
+  Scheduler::singleton("/sys/scheduler/"); \
+  Scheduler::import();
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #define FOS_STOP_ON_BOOT ;

@@ -59,7 +59,7 @@ namespace fhatos {
     }
 
     static void STD_OUT_DIRECT(const Str_p &str) {
-      static auto mutex_ = fMutex();
+      static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
       printer<>()->print(str->str_value().c_str());
     }

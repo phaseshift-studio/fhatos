@@ -51,7 +51,7 @@ namespace fhatos {
     static std::vector<Mqtt *> MQTT_VIRTUAL_CLIENTS;
     std::any handler_;
     uptr<Map<ID, Obj_p>> cache_ = nullptr;
-    fMutex cache_mutex_;
+    Mutex cache_mutex_;
 
     // +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -61,7 +61,7 @@ namespace fhatos {
 
     void disable_cache() {
       // TODO: need source on write Router::singleton()->unsubscribe(this->vid->extend("cache"), *this->pattern);
-      auto lock = std::lock_guard<fMutex>(this->cache_mutex_);
+      auto lock = std::lock_guard<Mutex>(this->cache_mutex_);
       this->cache_->clear();
       this->cache_ = nullptr;
       LOG_WRITE(INFO, this,L("!ycache!! disabled\n"));
@@ -141,7 +141,7 @@ namespace fhatos {
 
     IdObjPairs read_cache(const fURI &furi) {
       if(this->cache_) {
-        auto lock = std::shared_lock<fMutex>(this->cache_mutex_);
+        auto lock = std::shared_lock<Mutex>(this->cache_mutex_);
         std::vector<std::pair<ID, Obj_p>> pairs;
         if(!furi.is_pattern() && furi.is_node() && (this->cache_->count(furi) > 0)) {
           pairs.emplace_back(furi, this->cache_->at(furi));
@@ -159,7 +159,7 @@ namespace fhatos {
 
     void write_cache(const ID &id, const Obj_p &obj) {
       if(this->cache_) {
-        auto lock = std::lock_guard<fMutex>(this->cache_mutex_);
+        auto lock = std::lock_guard<Mutex>(this->cache_mutex_);
         if(obj->is_noobj()) {
           if(this->cache_->count(id))
             this->cache_->erase(id);

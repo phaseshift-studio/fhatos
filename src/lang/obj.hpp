@@ -644,12 +644,9 @@ namespace fhatos {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const LstList_p l = this->lst_value();
-      auto itty = l->begin();
-      while(itty != l->end()) {
-        if((*itty)->equals(*obj))
-          l->erase(itty);
-        ++itty;
-      }
+      l->erase(std::remove_if(l->begin(), l->end(), [obj](const Obj_p &o) {
+        return obj->equals(*o);
+      }), l->end());
     }
 
     [[nodiscard]] Obj_p deref(const Obj_p &uri, const bool uri_on_fail = true) const {

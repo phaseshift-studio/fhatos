@@ -27,7 +27,7 @@
 #include "../../lang/mmadt/mmadt.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
-#include "sys/scheduler/thread/fthread.hpp"
+#include "sys/scheduler/thread/thread.hpp"
 #include "../../lang/processor/processor.hpp"
 #include "ui/console.hpp"
 #ifdef ARDUINO
@@ -92,7 +92,7 @@ namespace fhatos {
 
     static void *import_sys() {
       Typer::singleton()->start_progress_bar(1);
-      fThread::import();
+      Thread::import();
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
       return nullptr;

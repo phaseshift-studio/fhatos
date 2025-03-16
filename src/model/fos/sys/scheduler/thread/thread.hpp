@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_fthread_hpp
-#define fhatos_fthread_hpp
+#ifndef fhatos_thread_hpp
+#define fhatos_thread_hpp
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/type.hpp"
 #include "../../../../../lang/obj.hpp"
@@ -27,21 +27,18 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   using namespace mmadt;
-  class fThread;
-  using fThread_p = ptr<fThread>;
-  static auto this_thread = atomic<const fThread *>(nullptr);
+  class Thread;
+  static auto this_thread = atomic<const Thread *>(nullptr);
+  static ID_p THREAD_FURI = id_p(FOS_URI "/thread");
+  static ID_p THREAD_FURI_DEFAULT = id_p(FOS_URI "/thread::default");
 
-
-  static ID_p THREADX_FURI = id_p(FOS_URI "/sys/threadx");
-  static ID_p THREADX_FURI_DEFAULT = id_p(FOS_URI "/sys/threadx::default");
-
-  class fThread : public Model<fThread> {
+  class Thread : public Model<Thread> {
   public:
     Obj_p thread_obj_;
     Consumer<Obj_p> thread_function_;
     Any handler_;
 
-    static Option<const fThread *> current_thread() {
+    static Option<const Thread *> current_thread() {
       if(this_thread.load())
         return {this_thread.load()};
       else {
@@ -60,25 +57,22 @@ namespace fhatos {
 
     void halt();
 
-    explicit fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
+    explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                        try {
                          const Obj_p loop_code = thread_obj->rec_get("loop");
                          LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
-                         const ptr<fThread> thread_state = get_state<fThread>(thread_obj);
-                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-                         threads->lst_add(vri(thread_obj->vid));
-                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
+                         const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
                          while(!thread_obj->get<bool>("halt")) {
                            FEED_WATCHDOG();
-                           this_thread.store(fThread::get_state(thread_obj).get());
+                           this_thread.store(Thread::get_state(thread_obj).get());
                            const BCode_p &code = thread_obj->rec_get("loop");
                            code->apply(thread_obj);
                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                             fThread::get_state(thread_obj)->delay(delay);
+                             Thread::get_state(thread_obj)->delay(delay);
                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
                            }
                          }
-                         threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
                          threads->lst_remove(vri(thread_obj->vid));
                          ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                          try {
@@ -95,32 +89,27 @@ namespace fhatos {
                        }
                      });
 
-    static ptr<fThread> create_state(const Obj_p &thread_obj) {
-      return make_shared<fThread>(thread_obj);
-    }
-
-    static Obj_p start_inst(const Obj_p &thread_obj, const InstArgs &args) {
-      fThread::get_state(thread_obj);
-      return thread_obj;
+    static ptr<Thread> create_state(const Obj_p &thread_obj) {
+      return make_shared<Thread>(thread_obj);
     }
 
     static void *import() {
-      Typer::singleton()->save_type(*THREADX_FURI, Obj::to_rec({
+      Typer::singleton()->save_type(*THREAD_FURI, Obj::to_rec({
                                         {"loop", Obj::to_bcode()},
                                         {"delay", Obj::to_type(NAT_FURI)},
                                         {"halt", Obj::to_type(BOOL_FURI)}
                                     }));
-      Typer::singleton()->save_type(*THREADX_FURI_DEFAULT, Obj::to_rec({
+      Typer::singleton()->save_type(*THREAD_FURI_DEFAULT, Obj::to_rec({
                                         {"loop", Obj::to_bcode()},
                                         {"delay", jnt(0, NAT_FURI)},
                                         {"halt", dool(false)}
                                     }));
 
-      InstBuilder::build(THREADX_FURI->add_component("spawn"))
-          ->domain_range(THREADX_FURI, {1, 1}, THREADX_FURI, {1, 1})
+      /*InstBuilder::build(THREAD_FURI->add_component("spawn"))
+          ->domain_range(THREAD_FURI, {1, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-            return fThread::start_inst(thread_obj, args);
-          })->save();
+            return Thread::start_inst(thread_obj, args);
+          })->save();*/
       /* InstBuilder::build(THREADX_FURI->add_component("stop"))
            ->domain_range(THREADX_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
            ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {

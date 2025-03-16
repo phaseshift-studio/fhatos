@@ -86,7 +86,7 @@ int main(int arg, char **argsv) {
       if(x.find("spawn") != string::npos)
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     } catch(std::exception &e) {
-      LOG_EXCEPTION(fScheduler::singleton(), e);
+      LOG_EXCEPTION(Scheduler::singleton(), e);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

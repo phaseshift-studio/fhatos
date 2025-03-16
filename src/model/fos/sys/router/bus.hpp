@@ -23,13 +23,13 @@
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../structure/structure.hpp"
-#include "../scheduler/thread/fmutex.hpp"
+#include "../scheduler/thread/mutex.hpp"
 
 namespace fhatos {
   const static ID BUS_FURI = ID("/sys/lib/bus");
 
   class Bus final : public Structure {
-    fMutex map_mutex;
+    Mutex map_mutex;
 
   public:
     explicit Bus(const Pattern &pattern, const ID_p &value_id = nullptr,

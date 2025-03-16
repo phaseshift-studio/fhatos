@@ -18,7 +18,7 @@
 #ifdef ARDUINO
 #include "../../../../../../fhatos.hpp"
 #include "../../../../../../lang/obj.hpp"
-#include "../fthread.hpp"
+#include "../thread.hpp"
 #include <any>
 
 namespace fhatos {
@@ -56,7 +56,7 @@ namespace fhatos {
     }
   }
 
-  fThread::fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
+  Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
     thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
     int stack_size;
     if(thread_obj->is_rec()) {
@@ -83,15 +83,15 @@ namespace fhatos {
   }
 
 
-  void fThread::halt() {
+  void Thread::halt() {
     vTaskDelete(nullptr);
   }
 
-  void fThread::yield() {
+  void Thread::yield() {
     taskYIELD();
   }
 
-  void fThread::delay(const uint64_t milliseconds) {
+  void Thread::delay(const uint64_t milliseconds) {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 }

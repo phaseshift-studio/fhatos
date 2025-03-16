@@ -25,13 +25,13 @@
 #include "../../model.hpp"
 #include "terminal.hpp"
 #include "../../../lang/type.hpp"
-#include "../sys/scheduler/thread/fthread.hpp"
+#include "../sys/scheduler/thread/thread.hpp"
 #include "../../../../extern/fmt/include/fmt/core.h"
 
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class Console final : public fThread {
+  class Console final : public Thread {
   protected:
     string line_;
     bool new_input_ = true;
@@ -42,7 +42,7 @@ namespace fhatos {
 
   public:
     explicit Console(const Obj_p &console_obj) :
-      fThread(console_obj) {
+      Thread(console_obj) {
     }
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
@@ -51,7 +51,7 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = static_cast<Console *>(get_state<fThread>(console_obj).get());
+                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
                               try {
                                 static bool first = true;
                                 if(first) {
@@ -116,8 +116,8 @@ namespace fhatos {
       return console_obj;
     }
 
-    static ptr<fThread> create_state(const Obj_p &console_obj) {
-      ptr<fThread> console_state = make_shared<Console>(console_obj);
+    static ptr<Thread> create_state(const Obj_p &console_obj) {
+      ptr<Thread> console_state = make_shared<Console>(console_obj);
       //ConsoleX::start_inst(console_obj, Obj::to_inst_args());
       return console_state;
     }
@@ -196,7 +196,7 @@ namespace fhatos {
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
-            const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
+            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             static_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
@@ -204,7 +204,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(rec({{"code", Obj::to_noobj()}}))
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
-            const ptr<fThread> console_state = Model::get_state<fThread>(console_obj);
+            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
             static_cast<Console *>(console_state.get())->process_line(console_obj, code);

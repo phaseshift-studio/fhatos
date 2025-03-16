@@ -285,8 +285,8 @@ namespace fhatos {
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p obj = args->arg(0);
           if(obj->lock().has_value() && !obj->lock().value().equals(
-                 fThread::current_thread().has_value()
-                   ? *fThread::current_thread().value()->thread_obj_->vid
+                 Thread::current_thread().has_value()
+                   ? *Thread::current_thread().value()->thread_obj_->vid
                    : *obj->vid)) {
             throw fError("!runable write obj!! locked by !b%s!!: %s",
                          obj->lock().value().toString().c_str(),

@@ -19,7 +19,7 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_mutex_map_hpp
 #define fhatos_mutex_map_hpp
 
-#include "../model/fos/sys/scheduler/thread/fmutex.hpp"
+#include "../model/fos/sys/scheduler/thread/mutex.hpp"
 #include <shared_mutex>
 
 namespace fhatos {
@@ -29,7 +29,7 @@ namespace fhatos {
   class MutexMap {
   protected:
     std::map<KEY, VALUE, COMPARATOR, ALLOCATOR> map_;
-    fMutex mutex_;
+    Mutex mutex_;
 
   public:
     explicit MutexMap() = default;
@@ -47,18 +47,18 @@ namespace fhatos {
     }
 
     [[nodiscard]] VALUE at(const KEY &key) {
-      auto lock = std::shared_lock<fMutex>(this->mutex_);
+      auto lock = std::shared_lock<Mutex>(this->mutex_);
       return this->map_.at(key);
     }
 
     void erase(const KEY &key) {
-      auto lock = std::lock_guard<fMutex>(this->mutex_);
+      auto lock = std::lock_guard<Mutex>(this->mutex_);
       this->map_.erase(key);
     }
 
 
     [[nodiscard]] size_t count(const KEY &key) {
-      auto lock = std::shared_lock<fMutex>(this->mutex_);
+      auto lock = std::shared_lock<Mutex>(this->mutex_);
       return this->map_.count(key);
     }
 
@@ -67,29 +67,29 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool empty() {
-      auto lock = std::shared_lock<fMutex>(this->mutex_);
+      auto lock = std::shared_lock<Mutex>(this->mutex_);
       return this->map_.empty();
     }
 
     [[nodiscard]] size_t size() {
-      auto lock = std::shared_lock<fMutex>(this->mutex_);
+      auto lock = std::shared_lock<Mutex>(this->mutex_);
       return this->map_.size();
     }
 
     void insert_or_assign(const KEY &key, const VALUE &&value) {
-      auto lock = std::lock_guard<fMutex>(this->mutex_);
+      auto lock = std::lock_guard<Mutex>(this->mutex_);
       this->map_.insert_or_assign(key, value);
     }
 
     std::pair<const KEY, VALUE> pop() {
-      auto lock = std::lock_guard<fMutex>(this->mutex_);
+      auto lock = std::lock_guard<Mutex>(this->mutex_);
       auto pair = std::pair<ID,Obj_p>(*this->map_.begin());
       this->map_.erase(pair.first);
       return pair;
     }
 
     void clear() {
-      auto lock = std::lock_guard<fMutex>(this->mutex_);
+      auto lock = std::lock_guard<Mutex>(this->mutex_);
       this->map_.clear();
     }
   };

@@ -18,19 +18,19 @@
 #ifdef NATIVE
 #include <chrono>
 #include <thread>
-#include "../fthread.hpp"
+#include "../thread.hpp"
 #include "../../../../../../fhatos.hpp"
 #include "../../../../../../lang/obj.hpp"
 
 namespace fhatos {
 
-  fThread::fThread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
+  Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
     thread_obj_(thread_obj),
     thread_function_(thread_function),
     handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {
   }
 
-  void fThread::halt() {
+  void Thread::halt() {
     if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {
       try {
         if(this->get_handler<std::thread *>()->get_id() != std::this_thread::get_id()
@@ -45,11 +45,11 @@ namespace fhatos {
     }
   }
 
-  void fThread::delay(const uint64_t milliseconds) {
+  void Thread::delay(const uint64_t milliseconds) {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
   }
 
-  void fThread::yield() {
+  void Thread::yield() {
     std::this_thread::yield();
   }
 }

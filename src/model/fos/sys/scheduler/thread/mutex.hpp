@@ -15,32 +15,47 @@ FhatOS: A Distributed Operating System
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-#ifdef NATIVE
-#include "../fmutex.hpp"
-#include <shared_mutex>
+
+#pragma once
+#ifndef fhatos_fmutex_hpp
+#define fhatos_fmutex_hpp
+#include "../../../../../fhatos.hpp"
+#include <any>
+
 namespace fhatos {
   using namespace std;
-    // calling lock twice from the same thread will deadlock
-    fMutex::fMutex() : handler_(new std::shared_mutex()) {
+
+  // calling lock twice from the same thread will deadlock
+  class Mutex final {
+  protected:
+    std::any handler_;
+
+  public:
+    Mutex();
+
+    ~Mutex();
+
+    void lock_shared();
+
+    void unlock_shared();
+
+    void lock();
+
+    void unlock();
+  };
+
+  class LockGuard {
+    Mutex *mutex_;
+
+  public:
+    explicit LockGuard(Mutex &m) : mutex_(&m) {
     }
 
-    fMutex::~fMutex() {
-	    const auto m = std::any_cast<std::shared_mutex*>(this->handler_);
-      m->unlock();
-      delete m;
-	  }
+    ~LockGuard() {
+      this->mutex_->unlock();
+    }
 
-    void fMutex::lock_shared() {
-      std::any_cast< std::shared_mutex*>(this->handler_)->lock_shared();
-    }
-    void fMutex::unlock_shared() {
-      std::any_cast< std::shared_mutex*>(this->handler_)->unlock_shared();
-    }
-   void fMutex::lock() {
-      std::any_cast< std::shared_mutex*>(this->handler_)->lock();
-    }
-    void fMutex::unlock()  {
-      std::any_cast<std::shared_mutex*>(this->handler_)->unlock();
-    }
+    LockGuard(const LockGuard &) = delete;
+  };
 }
 #endif

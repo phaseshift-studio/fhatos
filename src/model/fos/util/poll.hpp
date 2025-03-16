@@ -23,16 +23,16 @@
 #include "../../../lang/obj.hpp"
 #include "../../model.hpp"
 #include "../../../lang/type.hpp"
-#include "../sys/scheduler/thread/fthread.hpp"
+#include "../sys/scheduler/thread/thread.hpp"
 
 namespace fhatos {
   const ID_p POLL_FURI = id_p(FOS_URI "/util/poll");
 
-  class Poll final : public fThread {
+  class Poll final : public Thread {
 
   public:
     explicit Poll(const Obj_p &poll_obj, const Consumer<Obj_p> &function) :
-      fThread(poll_obj, function) {
+      Thread(poll_obj, function) {
     }
 
     static ptr<Poll> get_state(const Obj_p &poll_obj) {

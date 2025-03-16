@@ -16,30 +16,30 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_fscheduler_hpp
-#define fhatos_fscheduler_hpp
+#ifndef fhatos_scheduler_hpp
+#define fhatos_scheduler_hpp
 
 #include "../../../../fhatos.hpp"
 //
 #include <atomic>
 #include "../../../../furi.hpp"
-#include "thread/fthread.hpp"
+#include "thread/thread.hpp"
 #include "../../../../structure/router.hpp"
 #include "../../../../util/mutex_deque.hpp"
 
 
 namespace fhatos {
-  using Thread_p = ptr<fThread>;
+  using Thread_p = ptr<Thread>;
 
-  class fScheduler : public Rec {
+  class Scheduler final : public Rec {
   protected:
     const uptr<MutexDeque<Thread_p>> threads_ = std::make_unique<MutexDeque<Thread_p>>();
     bool running_ = true;
     ptr<Router> router_ = nullptr;
 
   public:
-    explicit fScheduler(const ID &id) : Rec(rmap({{"thread", lst()}}),
-                                            OType::REC, REC_FURI, id_p(id)) {
+    explicit Scheduler(const ID &id) : Rec(rmap({{"thread", lst()}}),
+                                           OType::REC, REC_FURI, id_p(id)) {
       SCHEDULER_ID = id_p(id);
       FEED_WATCHDOG = [this] {
         this->feed_local_watchdog();
@@ -55,12 +55,12 @@ namespace fhatos {
         })));*/
     }
 
-    static ptr<fScheduler> singleton(const ID &id = ID("/sys/scheduler")) {
-      static auto scheduler = std::make_shared<fScheduler>(id);
+    static ptr<Scheduler> singleton(const ID &id = ID("/sys/scheduler")) {
+      static auto scheduler = std::make_shared<Scheduler>(id);
       return scheduler;
     }
 
-    ~fScheduler() override {
+    ~Scheduler() override {
       this->threads_->clear();
       FEED_WATCHDOG = []() {
       };
@@ -134,25 +134,13 @@ namespace fhatos {
          LOG_WRITE(ERROR, this, L("!b{} !yprocess!! already running\n",thread_obj->vid->toString()));
          return false;
        }*/
-      Thread_p thread = fThread::create_state(thread_obj);
+      Thread_p thread = Thread::get_state(thread_obj);
       if(thread->thread_obj_->get<bool>("halt")) {
         throw fError::create(this->toString(), "!b{} !yprocess!! failed to spawn",
                              thread->thread_obj_->vid->toString().c_str());
       } else {
         this->threads_->push_back(thread);
-        ROUTER_WRITE(thread_obj->vid->query("sub"),
-                     Subscription::create(this->vid,
-                                          p_p(*thread_obj->vid),
-                                          [thread_obj,thread](const Obj_p &, const InstArgs &args) {
-                                            if(args->arg("payload")->is_noobj()) {
-                                              if(thread.get())
-                                                thread->halt(); // = true;
-                                              ROUTER_WRITE(
-                                                thread_obj->vid->query("sub"), Obj::to_noobj(), true);
-                                            }
-                                            return Obj::to_noobj();
-                                          }), true);
-        LOG_WRITE(INFO, this, L("!b{} !yprocess!! spawned\n", thread_obj->vid->toString()));
+        LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
         this->save();
       }
       return thread;
@@ -169,17 +157,16 @@ namespace fhatos {
     static void *import() {
       if(const Rec_p config = ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID);
         !config->is_noobj())
-        fScheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
-      InstBuilder::build(fScheduler::singleton()->vid->extend(":spawn"))
-          ->type_args(x(0, "obj", Obj::to_bcode()))
+        Scheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
+      Scheduler::singleton()->save();
+      InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
+          ->inst_args(rec({{"thread", Obj::to_bcode()}}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-            const Thread_p thread = fScheduler::singleton()->spawn(obj);
+            const Thread_p thread = Scheduler::singleton()->spawn(args->arg("thread"));
             return thread->thread_obj_;
           })
           ->save();
-      ///// OBJECTS
-      fScheduler::singleton()->save();
       return nullptr;
     }
   };
