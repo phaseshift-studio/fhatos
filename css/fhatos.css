@@ -290,6 +290,11 @@ video {
     color: #d4de68;
 }
 
+.h {
+    color: #d4de68;
+    font-weight: bold !important;
+}
+
 .hljs-mmadt-str {
     color: #d4de68;
     font-style: italic;

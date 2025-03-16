@@ -303,6 +303,11 @@ video {
     color: #d4de68;
 }
 
+.h {
+    color: #d4de68;
+    font-weight: bold !important;
+}
+
 .hljs-mmadt-str {
     color: #d4de68;
     font-style: italic;
@@ -506,6 +511,10 @@ video {
 <ul class="sectlevel2">
 <li><a href="#_the_mm_adt_language">The mm-ADT Language</a>
 <ul class="sectlevel3">
+<li><a href="#_the_type">The Type</a></li>
+<li><a href="#_the_frame">The Frame</a></li>
+<li><a href="#_the_value">The Value</a></li>
+<li><a href="#_the_reference">The Reference</a></li>
 <li><a href="#_structural_types">Structural Types</a>
 <ul class="sectlevel4">
 <li><a href="#_base_types">Base Types</a></li>
@@ -1082,8 +1091,53 @@ When the instruction implementation is written in mm-ADT, the instruction body i
 <h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
 <p><span class="aqua">F</span>​<span class="red">h</span>​<strong class="lime">a</strong>​<span class="blue">t</span>​<strong class="yellow">o</strong>​<span class="fuchsia">s</span>​ software can be written in C/C++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
-Every expression in mm-ADT yields an <code>obj</code> (object).
-An <code>obj</code> can be any one of</p>
+Every expression in mm-ADT yields an <code>obj</code> (object).</p>
+</div>
+<div class="paragraph">
+<p>An <code>obj</code> is composed of a <span class="h">type</span>, a <span class="h">value</span>, a variable <span class="h">frame</span>, and a storage location/<span class="h">reference</span>.
+The abstract syntax of a sugar-free <code>obj</code> is</p>
+</div>
+<div class="stemblock">
+<div class="content">
+\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\]
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <span class="h">type</span> is a fURI referring to an <code>obj</code> which determines whether the <code>obj</code> is of that type or not (<em>predicate</em>).</p>
+</li>
+<li>
+<p>The <span class="h">frame</span> is a collection of fURI referenced <code>objs</code> that are accessible to the value of the <code>obj</code> (<em>arguments</em>).</p>
+</li>
+<li>
+<p>The <span class="h">value</span> is a collection of <code>objs</code> denoting the form of the <code>obj</code> (<em>encoding</em>).</p>
+</li>
+<li>
+<p>The <span class="h">reference</span> is a fURI denoting the durable location of the <code>obj</code> with the underlying storage structure (<em>memory address</em>).</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures;
+to uncover the finer grained structures that lie within each.</p>
+</div>
+<div class="sect3">
+<h4 id="_the_type">The Type</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_the_frame">The Frame</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_the_value">The Value</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_the_reference">The Reference</h4>
+<div class="paragraph">
+<p>An <code>obj</code> can be any one of</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1100,6 +1154,7 @@ An <code>obj</code> can be any one of</p>
 </div>
 <div class="paragraph">
 <p>The mono and poly types are <strong>structural</strong>, while the code-types are <strong>functional</strong>.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_structural_types">Structural Types</h4>
@@ -1463,7 +1518,8 @@ fhatos&gt; @a + 1                               <i class="conum" data-value="3">
 <div class="paragraph">
 <p>The line above looks daunting because it contains numerous <a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugars</a>.
 Specifically, the binary and unary operators <code>&#8594;</code> (binary), <code>*</code> (unary), <code><em></code> (unary), <code>+</code> (binary), and <code>\|</code> (unary).
-Each of these symbols ultimately parse down to an <code>inst</code>. Each having that familiar functional form of <code>f(a,b,c,&#8230;&#8203;)</code>.
+Each of these symbols ultimately parse down to an <code>inst</code>.
+Each having that familiar functional form of <code>f(a,b,c,&#8230;&#8203;)</code>.
 For example, the _sugar free</em> representation of the expression above is:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1541,19 +1597,19 @@ Syntactically, an <code>inst</code> has the form:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\): The complete form is a <span class="yellow">referenced <code>inst</code></span> and is used with coroutines.</p>
+<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\): The complete form is a <span class="h">referenced <code>inst</code></span> and is used with coroutines.</p>
 </li>
 <li>
-<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]\): Without a reference location, the <code>obj</code> is a <span class="yellow">standard <code>inst</code></span>.</p>
+<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]\): Without a reference location, the <code>obj</code> is a <span class="h">standard <code>inst</code></span>.</p>
 </li>
 <li>
-<p>\(\texttt{type}(\texttt{frame})[]\): Without a reference or value, the <code>obj</code> is a <span class="yellow">proto <code>inst</code></span> resolved to a standard <code>inst</code> during compilation or runtime.</p>
+<p>\(\texttt{type}(\texttt{frame})[]\): Without a reference or value, the <code>obj</code> is a <span class="h">proto <code>inst</code></span> resolved to a standard <code>inst</code> during compilation or runtime.</p>
 </li>
 <li>
-<p>\(\texttt{type}()[]\): Without a reference, value, or frame, the <code>obj</code> is a <span class="yellow">zero-arg proto <code>inst</code></span> and is resolved during compilation or runtime.</p>
+<p>\(\texttt{type}()[]\): Without a reference, value, or frame, the <code>obj</code> is a <span class="h">zero-arg proto <code>inst</code></span> and is resolved during compilation or runtime.</p>
 </li>
 <li>
-<p>\(\texttt{type}\): Without a reference, value, frame, or respective tokens, the <code>obj</code> is an <span class="yellow"><code>inst</code> reference</span> which can be dereferenced to yield the corresponding <code>inst</code> implementation.</p>
+<p>\(\texttt{type}\): Without a reference, value, frame, or respective tokens, the <code>obj</code> is an <span class="h"><code>inst</code> reference</span> which can be dereferenced to yield the corresponding <code>inst</code> implementation.</p>
 </li>
 </ol>
 </div>
@@ -2219,12 +2275,10 @@ fhatos&gt; a -&gt; 12
 <div class="sect3">
 <h4 id="_types">Types</h4>
 <div class="paragraph">
-<p>mmADT values can be typed. In fact, a type can be typed. As stated previously, the full sugar-less representation of an mmADT obj contains the <code>obj</code> <span class="yellow"><strong>type</strong></span>, <span class="yellow"><strong>value</strong></span>, a local variable frame <span class="yellow"><strong>frame</strong></span>, and a storage location/<span class="yellow"><strong>reference</strong></span>, where type and reference are fURIs.</p>
-</div>
-<div class="stemblock">
-<div class="content">
-\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\]
-</div>
+<p>Every mmADT <code>obj</code> is typed.
+A type is an mmADT <code>obj</code>.
+A <code>obj</code> can serve as a value in one situation and as a type in another.
+Types can be typed.</p>
 </div>
 <div class="paragraph">
 <p>The following examples are presented using the generally useful types from the <code>/mmadt/ext</code> prefix.</p>
@@ -2252,8 +2306,7 @@ fhatos&gt; a -&gt; 12
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>When an mm-ADT base type is wrapped in a \(\texttt{type}[]\)-bracket,
-the type is first resolved to it&#8217;s <code>inst</code> form and then the base value <code>obj</code> is applied to it.
+<p>When an mm-ADT base type is wrapped in a \(\texttt{type}[]\)-bracket, the type is first resolved to it&#8217;s <code>inst</code> form and then the base value <code>obj</code> is applied to it.
 If the result of the application yields an <code>error</code> or a <code>noobj</code>, then the base value <code>obj</code> is not of that type and a type <code>error</code> is thrown.
 However, should any other <code>obj</code> be returned, then the base value <code>obj</code> is of that type and is returned wrapped in the respective  \(\texttt{type}[]\)-bracket.
 The type evaluation can be understood as a predicate, where <code>false</code> is <code>error</code> or <code>noobj</code>, otherwise <code>true</code>.
@@ -3369,11 +3422,7 @@ satisfy the resolution of the respective fURI.</p>
            x                            x/</code></pre>
 </div>
 </div>
-<!-- ########################################################################################################
-#############################################################################################################
-########################################### SCHEDULER #######################################################
-#############################################################################################################
-############################################################################################################# -->
+<!-- ######################################################################################################## ############################################################################################################# ########################################### SCHEDULER ####################################################### ############################################################################################################# ############################################################################################################# -->
 </div>
 </div>
 </div>
@@ -3742,7 +3791,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-15 15:38:58 -0600
+Last updated 2025-03-16 10:27:54 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
