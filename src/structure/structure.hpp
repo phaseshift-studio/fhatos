@@ -23,7 +23,6 @@
 #include "../fhatos.hpp"
 #include "../lang/obj.hpp"
 #include "pubsub.hpp"
-#include "../util/mutex_deque.hpp"
 #include "q_proc.hpp"
 #include "qtype/q_sub.hpp"
 
@@ -47,8 +46,6 @@ namespace fhatos {
 
   class Structure : public Rec {
   protected:
-   // ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
-   // ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
     Rec_p q_procs_;
     std::atomic_bool available_ = std::atomic_bool(false);
 
@@ -116,70 +113,18 @@ namespace fhatos {
     }
 
     virtual void loop() {
+      if(!this->available_.load())
+        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
       for(const auto &[k,o]: *this->q_procs_->rec_value()) {
         ((QProc *) o.get())->loop();
       }
-
-      if(!this->available_.load())
-        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
-    /*  Option<Mail_p> mail = this->outbox_->pop_front();
-      while(mail.has_value()) {
-        FEED_WATCHDOG();
-        LOG_WRITE(TRACE, this, L("processing message {} for subscription {}\n",
-                                 mail.value()->second->toString(), mail.value()->first->toString()));
-        const Message_p message = mail.value()->second;
-        const Subscription_p subscription = mail.value()->first;
-        subscription->apply(message);
-        mail = this->outbox_->pop_front();
-      }*/
     }
 
     virtual void stop() {
       if(!this->available_.load())
         LOG_WRITE(WARN, this, L("!ystructure!! already stopped\n"));
-   //   this->subscriptions_->clear();
-   //   this->outbox_->get_base().clear();
       this->available_ = false;
     }
-
-    /////////////////////////////////////////////////
-
-    /* virtual void recv_unsubscribe(const ID &source, const fURI &target) {
-       if(!this->available_.load())
-         LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
-       else {
-         this->subscriptions_->remove_if(
-             [this,source, target](const Subscription_p &sub) {
-               const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(target));
-               if(removing)
-                 LOG_WRITE(DEBUG, this,
-                           L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
-               return removing;
-             });
-         this->rec_set("sub", lst(LstList(this->subscriptions_->begin(), this->subscriptions_->end())));
-         this->save();
-       }
-     }
-
-     virtual void recv_subscription(const Subscription_p &subscription) {
-       if(!this->available_.load()) {
-         LOG_WRITE(ERROR, this, L("!yunable to receive!! {}\n", subscription->toString()));
-         return;
-       }
-       LOG_WRITE(DEBUG, this, L("!yreceived!! {}\n", subscription->toString()));
-       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-       this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
-       if(!subscription->on_recv()->is_noobj()) {
-         /////////////// ADD NEW SUBSCRIPTION
-         this->rec_get("sub")->lst_add(subscription);
-         this->save();
-         this->subscriptions_->push_back(subscription);
-         LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
-                                 pattern->toString())            );
-         /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-         this->publish_retained(subscription);
-       }
-     }*/
 
     virtual void publish_retained(const Subscription_p &subscription) {
       const IdObjPairs list = this->read_raw_pairs(*subscription->pattern());
@@ -274,7 +219,7 @@ namespace fhatos {
       /////////////////////////////////////// READ QUERY PROCESSORS ////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       try {
-        Objs_p results = Obj::to_objs();
+        const Objs_p results = Obj::to_objs();
         if(furi.has_query()) {
           auto [on_result, q_obj] = this->process_query_read(QProc::POSITION::PRE, furi, nullptr);
           if(on_result == QProc::ON_RESULT::ONLY_Q)
@@ -468,33 +413,6 @@ namespace fhatos {
       if(!this->available())
         throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
     }
-
-   /* virtual void distribute_to_subscribers(const Message_p &message) {
-      this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
-        if(message->target()->matches(*subscription->pattern()))
-          this->outbox_->push_back(mail_p(subscription, message));
-      });
-    }
-
-    bool has_equal_subscription_pattern(const fURI &topic, const ID &source = "") const {
-      return this->subscriptions_->exists([source,topic](const Subscription_p &sub) {
-        if(source.empty() && !source.equals(*sub->source()))
-          return false;
-        if(topic.equals(*sub->pattern()))
-          return true;
-        return false;
-      });
-    }
-
-    Objs_p get_subscription_objs(const fURI &pattern = "#") const {
-      const Objs_p objs = Obj::to_objs();
-      this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
-        if(subscription->pattern()->bimatches(pattern)) {
-          objs->add_obj(subscription);
-        }
-      });
-      return objs;
-    }*/
   };
 } // namespace fhatos
 

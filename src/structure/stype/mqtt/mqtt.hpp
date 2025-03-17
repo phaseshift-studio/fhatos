@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include <chrono>
 #include "../../../fhatos.hpp"
 #include "../../structure.hpp"
-#include "../../../util/obj_helper.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../router.hpp"
 
@@ -106,28 +105,6 @@ namespace fhatos {
       Structure::stop();
       native_mqtt_disconnect();
     }
-
-    /*void recv_subscription(const Subscription_p &subscription) override {
-      check_availability("subscription");
-      const bool mqtt_sub = !this->has_equal_subscription_pattern(*subscription->pattern());
-      Structure::recv_subscription(subscription);
-      if(mqtt_sub) {
-        LOG_WRITE(TRACE, this, L("subscribing as no existing subscription found: {}\n",
-                                 subscription->toString()));
-        native_mqtt_subscribe(subscription);
-      }
-    }
-
-    void recv_unsubscribe(const ID &source, const fURI &target) override {
-      check_availability("unsubscribe");
-      const bool mqtt_sub = this->has_equal_subscription_pattern(target);
-      Structure::recv_unsubscribe(source, target);
-      if(mqtt_sub && !this->has_equal_subscription_pattern(target)) {
-        LOG_WRITE(TRACE, this, L("unsubscribing from mqtt broker as no existing subscription pattern found: {}\n",
-                                 target.toString()));
-        native_mqtt_unsubscribe(target);
-      }
-    }*/
 
     static void *import(const ID &import_id) {
       Router::import_structure<Mqtt>(import_id, MQTT_FURI);

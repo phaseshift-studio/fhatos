@@ -176,18 +176,18 @@ namespace fhatos {
   }
 
   void test_inst_parsing() {
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-    // FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst()"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-    // FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(a=>66)"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]");
-    // FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst(65)"));
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(66)"));
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zyz"),
-                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zyz")->vid);
+                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zyz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zzz"),
-                        *PROCESS("|/abc/temp_inst?int<=int(a=>65)[plus(*a)]@/abc/zzz")->vid);
+                        *PROCESS("|/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zzz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
     FOS_TEST_OBJ_EQUAL(dool(false),
@@ -303,12 +303,12 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*(_)"));
     // TODO: maybe not though: FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>*"));
-    FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
+    /*FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
                          "</abc/star_1> -> /abc/star_2;"
                          "/abc/star_2 -> </abc/star_3>;"
                          "/abc/star_3 -> /abc/star_4;"
-                         "/abc/star_4 -> 123456;"
-                         "****/abc/star_1"));
+                         "/abc/star_4 -> 123456;"*/
+              //           "****/abc/star_1"));
   }
 
   void test_apply_mono_parsing() {

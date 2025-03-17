@@ -21,7 +21,6 @@
 #define fhatos_dsm_hpp
 
 #include "../../fhatos.hpp"
-#include <shared_mutex>
 #include "../../lang/obj.hpp"
 #include "../structure.hpp"
 #include "../router.hpp"

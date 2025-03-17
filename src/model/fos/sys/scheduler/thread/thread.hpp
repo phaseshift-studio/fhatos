@@ -21,7 +21,6 @@ FhatOS: A Distributed Operating System
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/type.hpp"
 #include "../../../../../lang/obj.hpp"
-#include "../../../../../util/obj_helper.hpp"
 #include "../../../../model.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
 

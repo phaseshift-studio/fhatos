@@ -85,22 +85,25 @@ namespace fhatos {
     }
   }
 
-  bool match_inst_args(const InstArgs& argsA, const InstArgs& argsB) {
-    for(const auto& [k,v] : *argsA->rec_value()) {
+  bool match_inst_args(const InstArgs &argsA, const InstArgs &argsB) {
+    for(const auto &[k,v]: *argsA->rec_value()) {
       //LOG(INFO,"\t%s ~ %s !g=> !y%s!!\n",v->toString().c_str(),v2->toString().c_str(),FOS_BOOL_STR(v->match(v2,false)));
-      if(const Obj_p v2 = argsB->rec_get(k); !v->match(v2,false))
+      if(const Obj_p v2 = argsB->rec_get(k); !v->match(v2, false))
         return false;
     }
     return true;
   }
 
-  Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) {
+  Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) const {
     if(obj->is_noobj())
       return Obj::to_noobj();
     if(obj->is_inst()) {
       //if(stub_inst->inst_args()->rec_size() == obj->inst_args()->rec_size())
       //LOG(INFO,"MATCHING: %s ~ %s\n",stub_inst->toString().c_str(),obj->toString().c_str());
-      return match_inst_args(stub_inst->inst_args(),obj->inst_args()) ? obj : Obj::to_noobj();
+      const bool good = match_inst_args(stub_inst->inst_args(), obj->inst_args());
+      if(dt)
+        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(obj->vid_or_tid()->no_query()), obj);
+      return good ? obj : Obj::to_noobj();
       //return obj;
     }
     //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
@@ -124,43 +127,43 @@ namespace fhatos {
       // inst_vid
       if(inst->vid /*&& !inst->vid->is_relative()*/) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
-        if(dt)
-          dt->emplace_back(id_p(""), inst->vid, inst_obj);
+       // if(dt)
+       //   dt->emplace_back(id_p(""), inst->vid, inst_obj);
       }
       // /obj_vid/::/inst_tid
       if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
-        if(dt)
-          dt->emplace_back(lhs->vid, id_p(inst->tid->no_query()), inst_obj);
+       // if(dt)
+        //  dt->emplace_back(lhs->vid, id_p(inst->tid->no_query()), inst_obj);
       }
       // /obj_vid/::/resolved/inst_tid
       const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
       if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
-        if(dt)
-          dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
+        //if(dt)
+         // dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /obj_tid/::inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
-        if(dt)
-          dt->emplace_back(lhs->tid, id_p(inst->tid->no_query()), inst_obj);
+       // if(dt)
+        //  dt->emplace_back(lhs->tid, id_p(inst->tid->no_query()), inst_obj);
       }
       // /obj_tid/::/resolved/inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
-        if(dt)
-          dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
+      //  if(dt)
+       //   dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /resolved/inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-        if(dt)
-          dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
+     //   if(dt)
+       //   dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
       }
       // obj_tid/obj_tid (recurse)
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
