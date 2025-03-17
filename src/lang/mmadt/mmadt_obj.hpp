@@ -89,8 +89,15 @@ namespace mmadt {
           *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
       Typer::singleton()->save_type(*HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
-      Typer::singleton()->save_type(*MILLISECOND_FURI, Obj::to_type(INT_FURI));
-      Typer::singleton()->save_type(*SECOND_FURI, Obj::to_type(INT_FURI));
+      Typer::singleton()->save_type(*MILLISECOND_FURI, Obj::to_type(REAL_FURI));
+      InstBuilder::build(MILLISECOND_FURI->add_component(MMADT_PREFIX "as"))
+          ->domain_range(MILLISECOND_FURI, {1, 1}, SECOND_FURI, {1, 1})
+          ->inst_args(lst({*__()->is(*__()->eq(vri(SECOND_FURI)))}))
+          ->inst_f([](const Obj_p &millis_obj, const InstArgs &args) {
+            return Obj::to_real(millis_obj->real_value() * 1000.0, SECOND_FURI);
+          })
+          ->save();
+      Typer::singleton()->save_type(*SECOND_FURI, Obj::to_type(REAL_FURI));
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(*SECRET_FURI, Obj::to_type(STR_FURI));
       InstBuilder::build(SECRET_FURI->add_component(MMADT_SCHEME "/as"))
@@ -119,19 +126,28 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/a")
+      InstBuilder::build(MMADT_PREFIX "a")
           ->domain_range(OBJ_FURI, {1, 1}, BOOL_FURI, {1, 1})
-          ->inst_args(rec({{"type", Obj::to_bcode()}}))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-            return dool(obj->match(args->arg("type")));
-            //return dool(Compiler(false, false).type_check(obj, args->arg("type")->uri_value()));
+            return dool(obj->match(args->arg(0)));
+            //return dool(Compiler(false, false).type_check(obj, args->arg(0)->uri_value()));
           })
           ->save();
 
 
+      InstBuilder::build(MMADT_PREFIX "isa")
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(lst({Obj::to_bcode()}))
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            return obj->match(ROUTER_READ(args->arg(0)->uri_value())) ? obj : Obj::to_noobj();
+            //return dool(Compiler(false, false).type_check(obj, args->arg(0)->uri_value()));
+          })
+          ->save();
+
       InstBuilder::build(MMADT_SCHEME "/start")
           ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
-          ->type_args(x(0, "starts"))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
           })
@@ -181,8 +197,8 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/as")
-          ->type_args(x(0, "type"))
+      InstBuilder::build(MMADT_PREFIX "as")
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             return args->arg(0)->is_uri()
@@ -193,7 +209,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/as")
           ->domain_range(BOOL_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             if(args->arg(0)->is_uri()) {
@@ -216,7 +232,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/as")
           ->domain_range(INT_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             if(args->arg(0)->is_uri()) {
@@ -239,7 +255,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/as")
           ->domain_range(REAL_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             if(args->arg(0)->is_uri()) {
@@ -262,7 +278,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/as")
           ->domain_range(STR_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             if(args->arg(0)->is_uri()) {
@@ -286,7 +302,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/as")
           ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             if(args->arg(0)->is_uri()) {
@@ -386,7 +402,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/block")
           // TODO: currently a "special" instruction (see inst->apply() for logic)
-          ->type_args(x(0, "rhs"))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args->arg(0);
@@ -513,9 +529,9 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/eq")
+      InstBuilder::build(MMADT_PREFIX "eq")
           ->domain_range(OBJ_FURI, BOOL_FURI)
-          ->type_args(x(0, "rhs"))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return Obj::to_bool(lhs->equals(*args->arg(0)));
           })->save();
@@ -527,7 +543,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/from")
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->type_args(x(0, "uri", Obj::to_bcode()), x(1, "default", Obj::to_noobj()))
+          ->inst_args(lst({*__()->isa(vri(URI_FURI)), Obj::to_noobj()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
             return result->is_noobj() ? args->arg(1) : result;
@@ -547,7 +563,7 @@ namespace mmadt {
       InstBuilder::build(MMADT_SCHEME "/is")
           // TODO: figure out how to get the opcode in obj insts
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
-          ->type_args(x(0, "rhs"))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return args->arg(0)->bool_value() ? lhs : Obj::to_noobj();
           })
@@ -640,12 +656,13 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/neq")
+      InstBuilder::build(MMADT_PREFIX "neq")
           ->domain_range(OBJ_FURI, BOOL_FURI)
-          ->type_args(x(0, "rhs"))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return Obj::to_bool(!lhs->equals(*args->arg(0)));
           })->save();
+
       InstBuilder::build(MMADT_SCHEME "/repeat")
           ->type_args(x(0, "code"), x(1, "until", dool(true)), x(2, "emit", dool(false)))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
@@ -683,8 +700,8 @@ namespace mmadt {
             return lhs;
           })->save();
 
-      InstBuilder::build(MMADT_SCHEME "/ref")
-          ->type_args(x(0, "id"), x(1, "retain", dool(true)))
+      InstBuilder::build(MMADT_PREFIX "ref")
+          ->inst_args(lst({Obj::to_bcode(),dool(true)}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);
@@ -754,13 +771,13 @@ namespace mmadt {
       for(const auto &i: {"gt", "gte", "lt", "lte"}) {
         InstBuilder::build(MMADT_ID->extend(i))
             ->domain_range(OBJ_FURI, BOOL_FURI)
-            ->type_args(x(0, "rhs"))
+            ->inst_args(lst({Obj::to_bcode()}))
             ->save();
         for(const auto &t: {INT_FURI, REAL_FURI, STR_FURI, URI_FURI}) {
           InstBuilder *builder =
               InstBuilder::build(t->resolve(string(MMADT_INST_SCHEME).append("/").append(i)))
               ->domain_range(t, BOOL_FURI)
-              ->type_args(x(0, "rhs"));
+              ->inst_args(lst({*__()->isa(vri(t))}));
           if(i == "gt") {
             builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
               return Obj::to_bool(*lhs > *args->arg(0));

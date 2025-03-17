@@ -49,11 +49,21 @@ namespace mmadt {
     }
 
     [[nodiscard]] _mmadt_p extend(const fURI &inst_op, const Obj_p &rhs = nullptr, const Obj_p &rhs1 = nullptr) const {
-      const InstArgs args = rhs1
-                              ? Obj::to_inst_args({rhs, rhs1})
-                              : rhs
-                              ? Obj::to_inst_args({rhs})
-                              : Obj::to_inst_args();
+      const Obj_p rhs_final = rhs
+                                ? (rhs->is_bcode() && rhs->bcode_value()->size() == 1
+                                     ? rhs->bcode_value()->front()
+                                     : rhs)
+                                : nullptr;
+      const Obj_p rhs1_final = rhs1
+                                 ? (rhs1->is_bcode() && rhs1->bcode_value()->size() == 1
+                                      ? rhs1->bcode_value()->front()
+                                      : rhs1)
+                                 : nullptr;
+      const InstArgs args = rhs1_final
+                              ? Obj::to_inst_args({rhs_final, rhs1_final})
+                              : (rhs_final
+                                   ? Obj::to_inst_args({rhs_final})
+                                   : Obj::to_inst_args());
       return this->extend(Obj::to_inst(args, id_p(inst_op)));
     }
 
@@ -85,9 +95,25 @@ namespace mmadt {
           ->create();
     }
 
+    static _mmadt_p __() {
+      return make_shared<_mmADT>(*BCODE_FURI, *OBJ_FURI, *OBJ_FURI, Obj::to_bcode());
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
+
+    [[nodiscard]] _mmadt_p isa(const Obj_p &rhs) const {
+      return this->extend("isa", rhs);
+    }
+
+    [[nodiscard]] _mmadt_p isa(const fURI &rhs) const {
+      return this->extend("isa", vri(rhs));
+    }
+
+    [[nodiscard]] _mmadt_p a(const Obj_p &rhs) const {
+      return this->extend("a", rhs);
+    }
 
     [[nodiscard]] _mmadt_p as(const Obj_p &rhs) const {
       return this->extend("as", rhs);

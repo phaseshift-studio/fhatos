@@ -1889,7 +1889,8 @@ namespace fhatos {
           //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
           if(this->inst_op() == "block" ||
              this->inst_op() == "each" ||
-             this->inst_op() == "within") {
+             this->inst_op() == "within" ||
+             this->inst_op() == "isa") {
             remake = inst->inst_args()->clone();
           } else {
             remake = Obj::to_rec();
@@ -1948,13 +1949,17 @@ namespace fhatos {
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
-      if(type_obj->is_empty_bcode())
+      if(type_obj->is_empty_bcode() || this->is_empty_bcode())
         return true;
       if(type_obj->is_type())
         return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
       if(type_obj->is_code() && !this->is_code()) {
-        const Obj_p result = type_obj->apply(this->clone());
-        return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
+        try {
+          const Obj_p result = type_obj->apply(this->clone());
+          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
+        } catch(const std::exception &e) {
+          return false;
+        }
       }
       /* if(!type_obj->value_.has_value() &&
           (type_obj->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid->no_query()) && FURI_OTYPE.at(

@@ -738,7 +738,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5632]
+[INFO]  [/sys/router] main memory [total=&gt;5376]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -780,8 +780,8 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==&gt;//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/io/console] thread spawned: inst()[cpp]
+[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped</code></pre>
 </div>
 </div>
@@ -874,10 +874,12 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 =&gt;[
 ==&gt;thread=&gt;[
-===&gt;/io/console
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;def_stack_size=&gt;8096
+=&gt;]
+==&gt;::=&gt;[
+===&gt;spawn=&gt;spawn?obj&lt;=obj{?}(thread=&gt;_)[cpp]
 =&gt;]
 =&gt;]@/sys/scheduler</code></pre>
 </div>
@@ -1207,7 +1209,7 @@ The abstract syntax of a sugar-free <code>obj</code> is</p>
 </div>
 <div class="stemblock">
 <div class="content">
-\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\]
+\[\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\tt{ref}\]
 </div>
 </div>
 <div class="olist arabic">
@@ -1429,16 +1431,35 @@ fhatos&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>When an mmADT base type is wrapped in a \(\texttt{type}[]\)-bracket, the type is first resolved to it&#8217;s <code>obj</code> form (typically as an <code>inst</code>) and then the <code>obj</code> is applied to it.
+<p>When an mmADT <code>obj</code> is wrapped in a <code>type[]</code>-bracket, the type fURI is first resolved to it&#8217;s <code>obj</code> form (typically as an <code>inst</code>) and then the wrapped <code>obj</code> is applied to it.
 If the result of the application yields an <code>error</code> or a <code>noobj</code>, then the base value <code>obj</code> is not of that type and a type <code>error</code> is thrown.
-However, should any other <code>obj</code> be returned, then the base value <code>obj</code> is of that type and is returned wrapped in the respective \(\texttt{type}[]\)-bracket.
-The type can be understood as a predicate, where an <code>error</code> or <code>noobj</code> is <code>false</code>, otherwise <code>true</code>.
-Finally, if the <code>obj</code> has a \(\texttt{@}\)-reference, then any subsequent mutations to that <code>obj</code> must continue to satisfy the constraints of the type.
-If any mutation falls outside the bounds of the type, a type <code>error</code> is thrown.
-The <code>@</code>-reference ensures that as the <code>obj</code> mutates, it&#8217;s corresponding representation in the underlying fURI structure mutates as well.</p>
+However, should any other <code>obj</code> be returned, then the base value <code>obj</code> is of that type and is returned wrapped in the respective <code>type[]</code>-bracket.</p>
+</div>
+<div class="stemblock center">
+<div class="content">
+\[
+\begin{align*}
+\tt{type}_\tt{furi}[\tt{obj}]          &amp;= \;  \\
+\tt{type}_\tt{furi}[\tt{obj}]          &amp;= \; ^*\tt{type}_\tt{furi} \cdot \tt{obj} \\
+\tt{type}_\tt{furi}[\tt{obj}]          &amp;= \; \tt{type}_\tt{obj}    \cdot \tt{obj}  \\
+\tt{type}_\tt{furi}[\tt{obj}]          &amp;= \; \left\{
+  \begin{array}{lr}
+        \tt{error}                      &amp; \text{if} \; \tt{type}_\tt{obj}(\tt{obj}) \in \{\tt{error}, \tt{noobj}\} \\
+        \tt{type}_\tt{furi}[\tt{obj}]   &amp; \text{otherwise}.
+  \end{array}\right\}
+\end{align*}
+\]
+</div>
 </div>
 <div class="paragraph">
-<p>These concepts are demonstrated in the examples below using the generally useful types off the <code>/mmadt/ext</code> prefix.</p>
+<p>The type can be understood as a <a href="https://en.wikipedia.org/wiki/Boolean-valued_function">predicate</a>, where an <code>error</code> or <code>noobj</code> is <code>false</code>, otherwise <code>true</code>.
+Finally, if the <code>obj</code> has a <code>@</code>-reference, then any subsequent mutations to that <code>obj</code> must continue to satisfy the constraints of the type.
+If any mutation falls outside the bounds of the type, a type <code>error</code> is thrown.
+The <code>@</code>-reference ensures that as the referenced <code>obj</code> mutates, it&#8217;s corresponding representation in the underlying fURI structure mutates as well.
+This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_reference">pass-by-reference</a> vs. <a href="https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_value">pass-by-value</a>.</p>
+</div>
+<div class="paragraph">
+<p>The mechanics of <code>obj</code> typing are exemplified below using the generally useful types provided the <code>/mmadt/ext</code> prefix.</p>
 </div>
 <!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
 <div class="listingblock">
@@ -1478,8 +1499,10 @@ The <code>@</code>-reference ensures that as the <code>obj</code> mutates, it&#8
 </ul>
 </div>
 <div id="_tabs_3_char--panel" class="tabpanel" aria-labelledby="_tabs_3_char">
+<div class="paragraph">
+<p>A <a href="https://en.wikipedia.org/wiki/Character_(computing)">char</a> is a <code>str</code> containing a single character.</p>
+</div>
 <!-- 🐖 ./main_runner.out
-[HEADER] .char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
 *char
 char['a']@a
 char['b']@b
@@ -1488,7 +1511,6 @@ char['b']@b
 @a.as(str) + @b
 -->
 <div class="listingblock">
-<div class="title">char <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Character_(computing)"><i class="fa fa-link"></i></a></span></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *char
 ==&gt;char?int&lt;=str()[merge(2).count().is(eq(1))]
@@ -1508,8 +1530,10 @@ fhatos&gt; @a.as(str) + @b
 <!-- 🐓 -->
 </div>
 <div id="_tabs_3_nat--panel" class="tabpanel" aria-labelledby="_tabs_3_nat">
+<div class="paragraph">
+<p>A <a href="https://en.wikipedia.org/wiki/Natural_number">natural number</a> is an element of the set \(\mathbb{N} = \{0,1,2,\ldots,\infty\}\).</p>
+</div>
 <!-- 🐖 ./main_runner.out
-[HEADER] .nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
 *nat
 nat[12]
 nat[-30]
@@ -1519,7 +1543,6 @@ nat[12]@a
 *a
 -->
 <div class="listingblock">
-<div class="title">nat <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Natural_number"><i class="fa fa-link"></i></a></span></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
 ==&gt;nat?int&lt;=int()[is(gte(0))]
@@ -1541,15 +1564,16 @@ fhatos&gt; *a
 <!-- 🐓 -->
 </div>
 <div id="_tabs_3_celsius--panel" class="tabpanel" aria-labelledby="_tabs_3_celsius">
+<div class="paragraph">
+<p><a href="https://en.wikipedia.org/wiki/Celsius">Celsius</a> is a temperature metric ranging from <a href="https://en.wikipedia.org/wiki/Absolute_zero">absolute zero</a> (-273.15&#176;) to infinity.</p>
+</div>
 <!-- 🐖 ./main_runner.out
-[HEADER] .celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
 *C
 C[0.0]
 C[274.0]
 C[-274.0]
 -->
 <div class="listingblock">
-<div class="title">celsius <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Celsius"><i class="fa fa-link"></i></a></span></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *C
 ==&gt;C?real&lt;=real()[is(gte(-273.149994))]
@@ -3905,7 +3929,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-16 15:59:49 -0600
+Last updated 2025-03-16 21:06:54 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

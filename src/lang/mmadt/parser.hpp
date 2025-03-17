@@ -86,6 +86,8 @@ namespace mmadt {
         brackets--;
       else if(c == '=' && last[0] == '<' && angles > 0) // <=
         angles--;
+      else if(c == '=' && last[0] == '>' && angles < 0) // >=
+        angles++;
       else if(c == '<') {
         if(last[0] != '-' && last[0] != '=' && last[0] != '<') // -< =< <<
           angles++;
@@ -549,7 +551,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(IS_A, EQ, GTE, GT, LTE, LT, NEQ, AT, RSHIFT, LSHIFT,
+      SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT,
                         RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
                         EMPTY_BCODE, FROM, PASS,
                         REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
@@ -565,32 +567,30 @@ namespace mmadt {
       SUGAR_GENERATOR(EACH, "==", MMADT_PREFIX "each");
       SUGAR_GENERATOR(PLUS, "+", MMADT_PREFIX "plus");
       SUGAR_GENERATOR(MULT, "x", MMADT_PREFIX "mult");
+      SUGAR_GENERATOR(EQ, "?=", MMADT_PREFIX "eq");
+      SUGAR_GENERATOR(NEQ, "?!=", MMADT_PREFIX "neq");
       SUGAR_GENERATOR(GT, "?>", MMADT_PREFIX "gt");
       SUGAR_GENERATOR(GTE, "?>=", MMADT_PREFIX "gte");
       SUGAR_GENERATOR(LT, "?<", MMADT_PREFIX "lt");
       SUGAR_GENERATOR(LTE, "?<=", MMADT_PREFIX "lte");
-      IS_A <= seq(lit("?"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "a"),
-                        Obj::to_inst({Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(MMADT_PREFIX "block"))},
-                                     id_p(MMADT_PREFIX "from")));
-      };
+      SUGAR_GENERATOR(IS_A, "?", MMADT_PREFIX "isa");
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "eq"), any_cast<Obj_p>(vs[0]));
+        return *__()->is(*__()->eq(any_cast<Obj_p>(vs[0])));
       };
       NEQ <= seq(lit("?!="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "neq"), any_cast<Obj_p>(vs[0]));
+        return *__()->is(*__()->neq(any_cast<Obj_p>(vs[0])));
       };
       GT <= seq(lit("?>"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "gt"), any_cast<Obj_p>(vs[0]));
+        return *__()->is(*__()->gt(any_cast<Obj_p>(vs[0])));
       };
       GTE <= seq(lit("?>="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "gte"), any_cast<Obj_p>(vs[0]));
+        return*__()->is(*__()->gte(any_cast<Obj_p>(vs[0])));
       };
       LT <= seq(lit("?<"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "lt"), any_cast<Obj_p>(vs[0]));
+        return *__()->is(*__()->lt(any_cast<Obj_p>(vs[0])));
       };
       LTE <= seq(lit("?<="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return is_maker(id_p(MMADT_PREFIX "lte"), any_cast<Obj_p>(vs[0]));
+        return *__()->is(*__()->lte(any_cast<Obj_p>(vs[0])));
       };
       LSHIFT_0 <= lit("<<"), lshift_0_action;
       RSHIFT_0 <= lit(">>"), rshift_0_action;

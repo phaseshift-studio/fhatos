@@ -85,9 +85,24 @@ namespace fhatos {
     }
   }
 
+  bool match_inst_args(const InstArgs& argsA, const InstArgs& argsB) {
+    for(const auto& [k,v] : *argsA->rec_value()) {
+      //LOG(INFO,"\t%s ~ %s !g=> !y%s!!\n",v->toString().c_str(),v2->toString().c_str(),FOS_BOOL_STR(v->match(v2,false)));
+      if(const Obj_p v2 = argsB->rec_get(k); !v->match(v2,false))
+        return false;
+    }
+    return true;
+  }
+
   Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) {
-    if(obj->is_noobj() || obj->is_inst())
-      return obj;
+    if(obj->is_noobj())
+      return Obj::to_noobj();
+    if(obj->is_inst()) {
+      //if(stub_inst->inst_args()->rec_size() == obj->inst_args()->rec_size())
+      //LOG(INFO,"MATCHING: %s ~ %s\n",stub_inst->toString().c_str(),obj->toString().c_str());
+      return match_inst_args(stub_inst->inst_args(),obj->inst_args()) ? obj : Obj::to_noobj();
+      //return obj;
+    }
     //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
     const Inst_p inst = InstBuilder::build("")
         ->inst_args(stub_inst->inst_args())
@@ -109,37 +124,43 @@ namespace fhatos {
       // inst_vid
       if(inst->vid /*&& !inst->vid->is_relative()*/) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
-        if(dt) dt->emplace_back(id_p(""), inst->vid, inst_obj);
+        if(dt)
+          dt->emplace_back(id_p(""), inst->vid, inst_obj);
       }
       // /obj_vid/::/inst_tid
       if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->vid->add_component(*inst->tid)));
-        if(dt) dt->emplace_back(lhs->vid, id_p(inst->tid), inst_obj);
+            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
+        if(dt)
+          dt->emplace_back(lhs->vid, id_p(inst->tid->no_query()), inst_obj);
       }
       // /obj_vid/::/resolved/inst_tid
-      const ID inst_type_id_resolved = Router::singleton()->resolve(*inst->tid);
+      const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
       if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
-        if(dt) dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
+            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
+        if(dt)
+          dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /obj_tid/::inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->tid->add_component(*inst->tid)));
-        if(dt) dt->emplace_back(lhs->tid, inst->tid, inst_obj);
+            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
+        if(dt)
+          dt->emplace_back(lhs->tid, id_p(inst->tid->no_query()), inst_obj);
       }
       // /obj_tid/::/resolved/inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
-        if(dt) dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
+            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
+        if(dt)
+          dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
       }
       // /resolved/inst_tid
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-        if(dt) dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
+        if(dt)
+          dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
       }
       // obj_tid/obj_tid (recurse)
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
@@ -150,11 +171,11 @@ namespace fhatos {
       if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
         if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
           inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
-                                       Router::singleton()->read(
                                          Router::singleton()->read(
-                                           Router::singleton()->resolve(
-                                             lhs->tid->no_query()))->domain()->no_query()),
-                                       inst_obj));
+                                             Router::singleton()->read(
+                                                 Router::singleton()->resolve(
+                                                     lhs->tid->no_query()))->domain()->no_query()),
+                                         inst_obj));
         }
       }
       if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->has_inst_f())) {
@@ -195,24 +216,24 @@ namespace fhatos {
       // TODO: recurse off inst for all inst_arg getter/setters
 
       inst_c = Obj::to_inst(
-        inst_resolved->inst_op(),
-        merged_args,
-        inst_resolved->inst_f(),
-        inst_resolved->inst_seed_supplier(),
-        inst_resolved->tid,
-        inst_resolved->vid);
+          inst_resolved->inst_op(),
+          merged_args,
+          inst_resolved->inst_f(),
+          inst_resolved->inst_seed_supplier(),
+          inst_resolved->tid,
+          inst_resolved->vid);
       /// TODO ^--- inst->vid);
     } else {
       inst_c = Obj::to_inst(
-        inst_provided->inst_op(),
-        inst_provided->inst_args(),
-        InstF(make_shared<Cpp>(
-          [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-            return x->apply(lhs, args);
-          })),
-        inst_provided->inst_seed_supplier(),
-        inst_provided->tid,
-        inst_provided->vid);
+          inst_provided->inst_op(),
+          inst_provided->inst_args(),
+          InstF(make_shared<Cpp>(
+              [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                return x->apply(lhs, args);
+              })),
+          inst_provided->inst_seed_supplier(),
+          inst_provided->tid,
+          inst_provided->vid);
     }
     if(dt)
       this->dt->emplace_back(inst_resolved->tid, inst_c->tid, inst_c);

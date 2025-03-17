@@ -52,8 +52,8 @@ namespace fhatos {
   }
 
 
-  InstBuilder *InstBuilder::inst_args(const Rec_p &args) {
-    this->args_ = args;
+  InstBuilder *InstBuilder::inst_args(const Poly_p &args) {
+    this->args_ = args->is_lst() ? Obj::to_inst_args(*args->lst_value()) : args;
     return this;
   }
 

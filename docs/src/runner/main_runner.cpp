@@ -28,7 +28,7 @@
 #include "../../../src/lang/type.hpp"
 #include "../../../src/model/fos/ui/console.hpp"
 #include "../../../src/model/fos/ui/terminal.hpp"
-#include "../../../src/model/fos/sys/scheduler/fscheduler.hpp"
+#include "../../../src/model/fos/sys/scheduler/scheduler.hpp"
 #include <thread>
 #include "../../../src/util/ansi.hpp"
 #include "../../../src/util/print_helper.hpp"
