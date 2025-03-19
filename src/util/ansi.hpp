@@ -66,7 +66,7 @@ namespace fhatos {
     virtual void teleport(uint16_t column, uint16_t row);
 
     virtual void print(const char *chars) {
-      for(int i = 0; i < strlen(chars); i++) {
+      for(size_t i = 0; i < strlen(chars); i++) {
         this->print(chars[i]);
       }
     }
@@ -83,6 +83,7 @@ namespace fhatos {
       static auto printer = CPrinter();
       return &printer;
     }
+
     ~CPrinter() = default;
 #ifdef NATIVE
     static int print(const char *c_str) {
@@ -252,14 +253,17 @@ namespace fhatos {
     }
 
   public:
-    Ansi() : Ansi(*CPrinter::singleton()) {
+    Ansi() :
+      Ansi(*CPrinter::singleton()) {
     }
 
-    explicit Ansi(string *str) : Ansi(StringPrinter(str)) {
+    explicit Ansi(string *str) :
+      Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(const PRINTER& printer) : printer(printer) {
-      for(auto & slot : this->slots) {
+    explicit Ansi(const PRINTER &printer) :
+      printer(printer) {
+      for(auto &slot: this->slots) {
         uint16_t t[2] = {0, 0};
         slot = t;
       }
@@ -493,14 +497,14 @@ namespace fhatos {
     void location(uint16_t *pos) {
       if(this->ansi_on_) {
         this->print("\033[6n");
-        this->read(); // esc
-        this->read(); // [
-        const char a[] = {(char) this->read()};
+        char c = this->read(); // esc
+        c = this->read(); // [
+        const char a[] = {static_cast<char>(this->read())};
         pos[0] = atoi(a);
-        this->read(); // ;
-        const char b[] = {(char) this->read()};
+        c = this->read(); // ;
+        const char b[] = {static_cast<char>(this->read())};
         pos[1] = atoi(b);
-        this->read(); // R
+        c = this->read(); // R
       }
     }
 
@@ -551,7 +555,8 @@ namespace fhatos {
     uint8_t current_counts_;
     const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
+      ansi_(ansi),
       total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 

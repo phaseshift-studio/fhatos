@@ -53,7 +53,7 @@ namespace fhatos {
       });
     }
 
-    void clear_cache(const int new_size = 0, const Pattern &pattern = "#") const {
+    void clear_cache(const int new_size = 0, const Pattern & = "#") const {
       int to_delete = this->data_->size() - new_size;
       while(to_delete-- > 0) {
         this->data_->pop();

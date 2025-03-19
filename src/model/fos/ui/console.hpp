@@ -193,7 +193,7 @@ namespace fhatos {
           }));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
-          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
+          ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             static_cast<Console *>(console_state.get())->clear();
             return console_obj;

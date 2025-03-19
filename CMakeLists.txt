@@ -164,6 +164,7 @@ OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
 OPTION(USE_CCACHE "use ccache" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
+OPTION(CMAKE_EXPORT_COMPILE_COMMANDS "used with iwyu" ON)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 ######################## CTEST TESTING #############################

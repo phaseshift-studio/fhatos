@@ -2513,7 +2513,7 @@ namespace fhatos {
   };
 
   static void load_logger() {
-    LOG_WRITE = [](const fhatos::LOG_TYPE log_type, const fhatos::Obj *source, const std::function<string()> &message) {
+    LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<string()> &message) {
       LOG_OBJ(log_type, source, message());
     };
   }

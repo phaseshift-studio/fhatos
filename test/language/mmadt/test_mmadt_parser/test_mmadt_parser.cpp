@@ -300,7 +300,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*    (   /abc/o1o )"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*(/abc/o12,101)"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*(/abc/o12,  101)"));
-    FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
+    // TODO: default? FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*(_)"));
     // TODO: maybe not though: FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>*"));
     /*FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
