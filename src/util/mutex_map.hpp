@@ -34,15 +34,15 @@ namespace fhatos {
   public:
     explicit MutexMap() = default;
 
-    std::map<KEY, VALUE> &get_base() const {
-      return this->map_;
+    [[nodiscard]] std::map<KEY, VALUE, COMPARATOR, ALLOCATOR>* get_base()  {
+      return &this->map_;
     }
 
-    auto begin() const {
+    auto begin()  {
       return this->map_.begin();
     }
 
-    auto end() const {
+    auto end()  {
       return this->map_.end();
     }
 
@@ -54,6 +54,11 @@ namespace fhatos {
     void erase(const KEY &key) {
       auto lock = std::lock_guard<Mutex>(this->mutex_);
       this->map_.erase(key);
+    }
+
+    void erase_itty(typename std::map<KEY, VALUE, COMPARATOR, ALLOCATOR>::iterator &iterator) {
+      auto lock = std::lock_guard<Mutex>(this->mutex_);
+      this->map_.erase(iterator);
     }
 
 
@@ -83,7 +88,7 @@ namespace fhatos {
 
     std::pair<const KEY, VALUE> pop() {
       auto lock = std::lock_guard<Mutex>(this->mutex_);
-      auto pair = std::pair<ID,Obj_p>(*this->map_.begin());
+      auto pair = *this->map_.begin();
       this->map_.erase(pair.first);
       return pair;
     }

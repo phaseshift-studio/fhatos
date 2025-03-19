@@ -27,7 +27,7 @@
 #include "../router.hpp"
 #include "../../model/fos/sys/scheduler/thread/mutex.hpp"
 
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
 #include "../../util/esp32/psram_allocator.hpp"
 #endif
 
@@ -117,7 +117,7 @@ namespace fhatos {
     }
   };
 
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
   using HeapPSRAM = Heap<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
 #endif
 } // namespace fhatos

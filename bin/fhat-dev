@@ -285,7 +285,11 @@ test_esp32() {
     shift
     local extra_args=${@:1}
     # platformio run --target clean
-    platformio test -e "${platform}" -vvv "--filter=${filter}"
+    if [[ -z ${filter} ]]; then
+      platformio test -e "${platform}" -vv "--filter=${filter}"
+    else
+      platformio test -e "${platform}" -vv
+    fi
     status_check $? "pio test"
   fi
 }

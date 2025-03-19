@@ -160,7 +160,7 @@ namespace mmadt {
     Definition
         IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
         MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ,
-        SPLIT, EACH;
+        SPLIT, EACH, CHOOSE, CHAIN, LIFT;
 #endif
 
   public:
@@ -416,7 +416,7 @@ namespace mmadt {
 #endif
 
       auto start_action = [](const SemanticValues &vs) {
-        if(vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment")))
+        if(vs.empty() || (vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment"))))
           return Obj::to_noobj();
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
@@ -553,17 +553,20 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
       SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT,
                         RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
-                        EMPTY_BCODE, FROM, PASS,
-                        REF, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
+                        EMPTY_BCODE, FROM, PASS, LIFT,
+                        REF, CHOOSE, CHAIN, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(RSHIFT, ">>", MMADT_PREFIX "rshift");
       SUGAR_GENERATOR(LSHIFT, "<<", MMADT_PREFIX "lshift");
+      SUGAR_GENERATOR(LIFT, "^", MMADT_PREFIX "lift");
       SUGAR_GENERATOR(DROP, "v", MMADT_PREFIX "drop");
       SUGAR_GENERATOR(FROM, "*", MMADT_PREFIX "from");
       SUGAR_GENERATOR(REF, "->", MMADT_PREFIX "ref");
       SUGAR_GENERATOR(BLOCK, "|", MMADT_PREFIX "block");
       SUGAR_GENERATOR(SPLIT, "-<", MMADT_PREFIX "split");
+      SUGAR_GENERATOR(CHOOSE, "-|", MMADT_PREFIX "choose");
+      SUGAR_GENERATOR(CHAIN, "-:", MMADT_PREFIX "chain");
       SUGAR_GENERATOR(EACH, "==", MMADT_PREFIX "each");
       SUGAR_GENERATOR(PLUS, "+", MMADT_PREFIX "plus");
       SUGAR_GENERATOR(MULT, "x", MMADT_PREFIX "mult");
@@ -584,7 +587,7 @@ namespace mmadt {
         return *__()->is(*__()->gt(any_cast<Obj_p>(vs[0])));
       };
       GTE <= seq(lit("?>="), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
-        return*__()->is(*__()->gte(any_cast<Obj_p>(vs[0])));
+        return *__()->is(*__()->gte(any_cast<Obj_p>(vs[0])));
       };
       LT <= seq(lit("?<"), WRAQ("(", OBJ, START, ")")), [&is_maker](const SemanticValues &vs) -> Inst_p {
         return *__()->is(*__()->lt(any_cast<Obj_p>(vs[0])));

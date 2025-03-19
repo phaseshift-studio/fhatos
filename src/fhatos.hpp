@@ -38,15 +38,15 @@
 #endif
 #endif
 
-// define ESP_ARCH as generalized ESPXXXX flag
+// define ESP_PLATFORM as generalized ESPXXXX flag
 #ifdef ESP32
-#define ESP_ARCH
+#define ESP_PLATFORM
 #endif
 #ifdef ESP8266
-#define ESP_ARCH
+#define ESP_PLATFORM
 #endif
 
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
 #include <Arduino.h>
 //#include <esp_heap_caps.h>
 #ifndef FOS_SERIAL_BAUDRATE

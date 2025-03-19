@@ -116,6 +116,7 @@ namespace fhatos {
       if(!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern->toString().c_str());
       for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+        FEED_WATCHDOG();
         ((QProc *) o.get())->loop();
       }
     }
@@ -124,18 +125,6 @@ namespace fhatos {
       if(!this->available_.load())
         LOG_WRITE(WARN, this, L("!ystructure!! already stopped\n"));
       this->available_ = false;
-    }
-
-    virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs list = this->read_raw_pairs(*subscription->pattern());
-      for(const auto &[id, obj]: list) {
-        if(!obj->is_noobj()) {
-          if(id.matches(*subscription->pattern())) {
-            FEED_WATCHDOG();
-            subscription->apply(make_shared<Message>(id_p(id), obj,RETAIN));
-          }
-        }
-      }
     }
 
     virtual bool has(const fURI &furi) {
@@ -273,23 +262,6 @@ namespace fhatos {
       }
     }
 
-    Option<Pair<ID, Poly_p>> locate_base_poly(const fURI &furi) {
-      auto old_furi = fURI(furi);
-      auto pc_furi = make_unique<fURI>(old_furi); // force it to be a node. good or bad?
-      Obj_p obj = Obj::to_noobj();
-      while(pc_furi->path_length() > 0) {
-        obj = this->read(*pc_furi);
-        if(obj->is_poly() || obj->is_objs())
-          break;
-        const fURI new_furi = pc_furi->retract().as_node();
-        auto pc_new_furi = make_unique<fURI>(new_furi);
-        pc_furi.swap(pc_new_furi);
-      }
-      return obj->is_poly() || obj->is_objs()
-               ? Option<Pair<ID, Poly_p>>(Pair<ID, Poly_p>(ID(*pc_furi), obj))
-               : Option<Pair<ID, Poly_p>>();
-    }
-
     virtual void write(const ID &source, const fURI &target, const Obj_p &obj) {
       this->write(target, obj, true);
     }
@@ -378,41 +350,30 @@ namespace fhatos {
       } catch(const std::exception &e) {
         throw fError("unable to write %s to %s\n\t %s", obj->toString().c_str(), furi.toString().c_str(), e.what());
       }
-      /*if(!retain) {
-        // x --> y -< subscribers
-        // non-retained writes 'pass through' (via application) any existing obj at that write furi location
-        const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
-        if(applicable_obj->is_noobj()) {
-          // no obj, pass the written obj through to subscribers (optimization assuming noobj is _ ?? bad??)
-          this->write_raw_pairs(id_p(*furi), obj, retain);
-        } else if(applicable_obj->is_code()) {
-          // code: pass the output of applying the written obj to code to subscribers
-          // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
-          const Obj_p result = applicable_obj->apply(obj);
-          //ObjHelper::replace_from_obj({obj}, applicable_obj)->apply(obj);
-          //ObjHelper::apply_lhs_args(applicable_obj, obj);
-          // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
-          this->write_raw_pairs(id_p(*furi), result, retain);
-        } else
-        // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)
-          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj), retain);
-      }*/
     }
 
     /////////////////////////////////////////////////////////////////////////////
+    Option<Pair<ID, Poly_p>> locate_base_poly(const fURI &furi) {
+      auto old_furi = fURI(furi);
+      auto pc_furi = make_unique<fURI>(old_furi); // force it to be a node. good or bad?
+      Obj_p obj = Obj::to_noobj();
+      while(pc_furi->path_length() > 0) {
+        obj = this->read(*pc_furi);
+        if(obj->is_poly() || obj->is_objs())
+          break;
+        const fURI new_furi = pc_furi->retract().as_node();
+        auto pc_new_furi = make_unique<fURI>(new_furi);
+        pc_furi.swap(pc_new_furi);
+      }
+      return obj->is_poly() || obj->is_objs()
+               ? Option<Pair<ID, Poly_p>>(Pair<ID, Poly_p>(ID(*pc_furi), obj))
+               : Option<Pair<ID, Poly_p>>();
+    }
+
+  protected:
     virtual void write_raw_pairs(const ID &id, const Obj_p &obj, bool retain) = 0;
 
     virtual IdObjPairs read_raw_pairs(const fURI &match) = 0;
-
-  protected:
-    static Obj_p strip_value_id(const Obj_p &obj) {
-      return nullptr == obj->vid ? obj : Obj::create(obj->value_, obj->otype, obj->tid, nullptr);
-    }
-
-    void check_availability(const string &function) const {
-      if(!this->available())
-        throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
-    }
   };
 } // namespace fhatos
 

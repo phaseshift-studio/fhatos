@@ -28,6 +28,7 @@ namespace mmadt {
   using namespace std;
   using namespace fhatos;
 
+
   class _mmADT {
     using _mmadt_p = shared_ptr<_mmADT>;
     //////////////////////////////////////////////////////////////////////////////
@@ -237,12 +238,39 @@ namespace mmadt {
 
     //Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
 
+    class Result {
+      const List_p<Obj_p> results{};
+
+    public:
+      explicit Result(const _mmADT *mmadt):
+        results{BCODE_PROCESSOR(mmadt->bcode_)->objs_value()} {
+      }
+
+      [[nodiscard]] bool exists() const {
+        return !results->empty() && !results->front()->is_noobj();
+      }
+
+      [[nodiscard]] std::vector<Obj_p>::iterator begin() const {
+        return this->results->begin();
+      }
+
+      [[nodiscard]] std::vector<Obj_p>::iterator end() const {
+        return this->results->end();
+      }
+
+      [[nodiscard]] Obj_p next() const {
+        const Obj_p o = this->results->back();
+        this->results->pop_back();
+        return o;
+      }
+    };
+
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// EVALUATE /////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    std::vector<Obj_p>::iterator begin() {
-      return BCODE_PROCESSOR(this->bcode_)->objs_value()->begin();
+    Result compute() {
+      return Result(this);
     }
 
   };

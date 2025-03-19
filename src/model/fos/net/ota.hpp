@@ -17,7 +17,7 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #pragma once
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
 #ifndef fhatos_ota_hpp
 #define fhatos_ota_hpp
 

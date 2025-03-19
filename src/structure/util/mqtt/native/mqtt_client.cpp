@@ -66,7 +66,7 @@ namespace fhatos {
 
   void MqttClient::subscribe(const Subscription_p &subscription) const {
     this->subscriptions_->push_back(subscription);
-    std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1)->wait();
+    std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1);
   }
 
   void MqttClient::unsubscribe(const ID &source, const fURI &pattern) const {
@@ -130,13 +130,13 @@ namespace fhatos {
           .user_name(this->client().toString())
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
-      /* if(!mqtt_obj->Obj::rec_get("config/will")->is_noobj()) {
-         const BObj_p source_payload = mqtt_obj->Obj::rec_get("config/will")->rec_get("payload")->serialize();
+       if(!this->rec_get("config/will")->is_noobj()) {
+         const BObj_p source_payload = this->rec_get("config/will")->rec_get("payload")->serialize();
          pre_connection_options = pre_connection_options.will(
-             message(mqtt_obj->Obj::rec_get("config/will")->rec_get("target")->uri_value().toString(),
+             message(this->rec_get("config/will")->rec_get("target")->uri_value().toString(),
                      source_payload->second,
-                     mqtt_obj->Obj::rec_get("config/will")->rec_get("retain")->bool_value()));
-       }*/
+                     this->rec_get("config/will")->rec_get("retain")->bool_value()));
+       }
       const connect_options connect_options_ = pre_connection_options.finalize();
       int counter = 0;
       while(counter < FOS_MQTT_MAX_RETRIES) {

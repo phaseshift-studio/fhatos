@@ -27,7 +27,7 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   class MqttClient;
-  static auto CLIENTS = Map<fURI,ptr<MqttClient>>();
+  static auto CLIENTS = Map<fURI, ptr<MqttClient>>();
 
   class MqttClient final : Rec {
   public:
@@ -37,15 +37,15 @@ namespace fhatos {
 
     explicit MqttClient(const Rec_p &config);
 
-    ID broker() const {
+    [[nodiscard]] ID broker() const {
       return this->rec_get("broker")->uri_value();
     }
 
-    ID client() const {
+    [[nodiscard]] ID client() const {
       return this->rec_get("client")->uri_value();
     }
 
-    bool is_connected() const;
+    [[nodiscard]] bool is_connected() const;
 
     /* virtual void recv_unsubscribe(const ID &source, const fURI &target) {
           if(!this->available_.load())

@@ -27,12 +27,14 @@
 #include "../../util/mutex_map.hpp"
 #include "../util/mqtt/mqtt_client.hpp"
 
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
 #include "../../util/esp32/psram_allocator.hpp"
 #endif
 
+#define MQTT_WAIT_MS 250
+
 namespace fhatos {
-  const static ID DSM_FURI = ID("/sys/lib/dsm");
+  const static auto DSM_FURI = ID("/sys/lib/dsm");
 
   template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
@@ -40,13 +42,37 @@ namespace fhatos {
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
     int max_size = 100;
-    ptr<MqttClient> mqtt;
+    ptr<MqttClient> mqtt{};
+
+    [[nodiscard]] Subscription_p generate_sync_subscription(const Pattern &pattern) const {
+      return Subscription::create(this->vid, p_p(pattern), [this](const Obj_p &obj, const InstArgs &args) {
+        this->write_raw_raw_pairs(
+            args->arg("target")->uri_value(), obj,
+            args->arg("retain")->bool_value());
+        return Obj::to_noobj();
+      });
+    }
+
+    void clear_cache(const int new_size = 0, const Pattern &pattern = "#") const {
+      int to_delete = this->data_->size() - new_size;
+      while(to_delete-- > 0) {
+        this->data_->pop();
+      }
+    }
+
+    void wait_for_data(const int milliseconds) {
+      this->loop();
+      if(const Option<Thread *> op = Thread::current_thread(); op.has_value()) {
+        op.value()->delay(milliseconds);
+      }
+      this->loop();
+    }
 
   public:
     explicit DSM(const Pattern &pattern, const ID_p &value_id = nullptr,
                  const Rec_p &config = Obj::to_rec()) :
       Structure(pattern, id_p(DSM_FURI), value_id, config),
-      mqtt(nullptr) {
+      mqtt{nullptr} {
       this->max_size = config->rec_get("max_size", jnt(1000))->int_value();
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
@@ -63,7 +89,6 @@ namespace fhatos {
 
     void loop() override {
       Structure::loop();
-      FEED_WATCHDOG();
       this->mqtt->loop();
     }
 
@@ -71,20 +96,12 @@ namespace fhatos {
       this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"),
                                              this->get<fURI>("config/client"));
 
-      if(this->mqtt->connect(*this->vid)) {
-        this->mqtt->subscribe(Subscription::create(this->vid, this->pattern,
-                                                   [this](const Obj_p &obj, const InstArgs &args) {
-                                                     this->write_raw_raw_pairs(
-                                                         args->arg("target")->uri_value(), obj,
-                                                         args->arg("retain")->bool_value());
-                                                     return Obj::to_noobj();
-                                                   }));
-      }
+      if(this->mqtt->connect(*this->vid))
+        this->mqtt->subscribe(generate_sync_subscription(*this->pattern));
       Structure::setup();
     }
 
     void stop() override {
-      this->mqtt->unsubscribe(*this->vid, *this->pattern);
       this->mqtt->disconnect(*this->vid);
       Structure::stop();
       this->data_->clear();
@@ -97,10 +114,9 @@ namespace fhatos {
           if(this->data_->exists(id))
             this->data_->erase(id);
         } else {
+          if(this->data_->size() >= this->max_size)
+            this->clear_cache(this->data_->size() - 1);
           this->data_->insert_or_assign(id, const_pointer_cast<Obj>(obj));
-          while(this->data_->size() >= this->max_size) {
-            this->data_->pop();
-          }
         }
       }
     }
@@ -115,6 +131,15 @@ namespace fhatos {
       if(!match.is_pattern() && match.is_node()) {
         if(this->data_->exists(match)) {
           return {{match, this->data_->at(match)}};
+        } else {
+          this->clear_cache(this->max_size - 1);
+          this->mqtt->subscribe(this->generate_sync_subscription(match));
+          this->wait_for_data(MQTT_WAIT_MS);
+          this->mqtt->unsubscribe(*this->vid, match);
+          if(this->data_->exists(match)) {
+            const IdObjPairs pairs = {{match, this->data_->at(match)}};
+            return pairs;
+          }
         }
         return {};
       } else {
@@ -128,20 +153,19 @@ namespace fhatos {
       }
     }
 
-    /*bool has(const fURI &furi) override {
-      std::shared_lock<fMutex> lock(this->map_mutex);
-      if(!furi.is_pattern() && this->data_->count(furi))
-        return true;
+    bool has(const fURI &furi) override {
+      if(!furi.is_pattern() && furi.is_node())
+        return this->data_->count(furi) > 0;
       for(const auto &[id, obj]: *this->data_) {
         if(id.matches(furi)) {
           return true;
         }
       }
       return false;
-    }*/
+    }
   };
 
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
   using DSM_PSRAM = DSM<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
 #endif
 } // namespace fhatos

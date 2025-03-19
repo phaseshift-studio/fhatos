@@ -10,7 +10,8 @@
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
   client=>fhatos_client,
-  cache=>true],
+  cache=>true,
+  max_size=>50],
  wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
  ota=>[host=>mdns://fhatos_client:3232],
  console=>[
@@ -22,7 +23,8 @@
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,
-  stack_size=>24288
+  stack_size=>24288,
+  stack_trace=>true
  ],
  fs=>[root=><./data/fs>]
 ]@/boot/config

@@ -67,7 +67,7 @@ namespace fhatos {
                                 if(console_obj->has("config/terminal/stdin")) {
                                   //// READ FROM PROMPT
                                   if(const string x = console_state->read_stdin(console_obj, '\n')->str_value();
-                                    x == ":clear") {
+                                    x.find(":clear") == 0) {
                                     console_state->clear();
                                     return noobj();
                                   } else {
@@ -97,16 +97,18 @@ namespace fhatos {
                               } catch(std::exception &e) {
                                 console_state->print_exception(console_obj, e);
 #ifdef NATIVE
-                                console_state->write_stdout(console_obj, str("print stack trace [y/N]? "));
-                                string response = console_state->read_stdin(console_obj, '\0')->str_value();
-                                StringHelper::lower_case(response);
-                                if(response[0] == 'y') {
-                                  const cpptrace::stacktrace st = cpptrace::generate_trace();
-                                  console_state->write_stdout(console_obj, str(st.to_string(true)));
+                                if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
+                                  console_state->write_stdout(console_obj,
+                                                              str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
+                                  string response = console_state->read_stdin(console_obj, '\0')->str_value();
+                                  StringHelper::lower_case(response);
+                                  if(response[0] == 'y') {
+                                    const cpptrace::stacktrace st = cpptrace::generate_trace();
+                                    console_state->write_stdout(console_obj, str(st.to_string(true).append("\n")));
+                                  }
                                 }
 #endif
-                                console_state->line_.clear();
-                                console_state->new_input_ = true;
+                                console_state->clear();
                               }
                               return Obj::to_noobj();
                             })))},
@@ -165,24 +167,20 @@ namespace fhatos {
       LOG_WRITE(DEBUG, console_obj.get(), L("line to parse: {}\n", line));
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
-      try {
-        if(line[0] == '\n')
-          line = line.substr(1);
-        if(line.empty()) {
-          this->write_stdout(console_obj, str("\n"));
-          return;
-        }
-        const Obj_p obj = OBJ_PARSER(line);
-        std::stringbuf to_out;
-        PrintHelper::pretty_print_obj(BCODE_PROCESSOR(obj),
-                                      0,
-                                      console_obj->get<int>("config/nest"),
-                                      false,
-                                      &to_out);
-        this->write_stdout(console_obj, str(to_out.str()));
-      } catch(std::exception &e) {
-        this->print_exception(console_obj, e);
+      if(line[0] == '\n')
+        line = line.substr(1);
+      if(line.empty()) {
+        this->write_stdout(console_obj, str("\n"));
+        return;
       }
+      const Obj_p obj = OBJ_PARSER(line);
+      std::stringbuf to_out;
+      PrintHelper::pretty_print_obj(BCODE_PROCESSOR(obj),
+                                    0,
+                                    console_obj->get<int>("config/nest"),
+                                    false,
+                                    &to_out);
+      this->write_stdout(console_obj, str(to_out.str()));
     }
 
     static void *import() {

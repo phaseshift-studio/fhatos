@@ -34,25 +34,25 @@ namespace fhatos {
         make_unique<OrderedMap<const ID, Obj_p, furi_hash, furi_equal_to>>();
 
   public:
-    ptr<Frame<>> previous;
+    ptr<Frame<>> previous_{};
 
     explicit Frame(const Pattern &pattern,
                    const ptr<Frame> &previous = nullptr,
                    const Rec_p &frame_data = Obj::to_rec()) :
       Structure(pattern,id_p(FRAME_FURI)), //id_p(pattern.retract())),
-      previous{previous} {
+      previous_{previous} {
       for(const auto &[key,value]: *frame_data->rec_value()) {
-        this->data_->insert({key->uri_value(), value});
+        this->data_->insert({key->uri_value().no_query(), value});
       }
     }
 
 
-    size_t depth() const {
-      return this->previous ? this->previous->depth() + 1 : 1;
+    [[nodiscard]] size_t depth() const {
+      return this->previous_ ? this->previous_->depth() + 1 : 1;
     }
 
-    Rec_p full_frame() const {
-      const Rec_p all_frames = this->previous ? this->previous->full_frame() : Obj::to_rec();
+    [[nodiscard]] Rec_p full_frame() const {
+      const Rec_p all_frames = this->previous_ ? this->previous_->full_frame() : Obj::to_rec();
       for(const auto &[key,value]: *this->data_) {
         all_frames->rec_value()->insert({vri(key), value});
       }
@@ -62,24 +62,26 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     Obj_p read(const fURI &furi) override {
-      if(this->previous && StringHelper::is_integer(furi.toString())) { // unnamed args accessed by index
-        const int index = stoi(furi.toString());
-        if(index >= this->previous->data_->size())
+      const fURI furi_no_query = furi.no_query();
+      if(this->previous_ && StringHelper::is_integer(furi_no_query.toString())) { // unnamed args accessed by index
+        const int index = stoi(furi_no_query.toString());
+        if(index >= this->previous_->data_->size())
           return Obj::to_noobj();
-        auto itty = this->previous->data_->begin();
+        auto itty = this->previous_->data_->begin();
         std::advance(itty, index);
         return itty->second;
       }
-      return !furi.matches(*this->pattern) || this->data_->count(furi) == 0
-               ? (nullptr == this->previous ? nullptr : this->previous->read(furi))
-               : this->data_->at(furi);
+      return !furi_no_query.matches(*this->pattern) || this->data_->count(furi_no_query) == 0
+               ? (nullptr == this->previous_ ? nullptr : this->previous_->read(furi_no_query))
+               : this->data_->at(furi_no_query);
     }
 
     void write(const fURI &furi, const Obj_p &obj, const bool retain) override {
-      if(this->data_->count(furi))
+      const fURI furi_no_query = furi.no_query();
+      if(this->data_->count(furi_no_query))
         throw fError("frame structures objs are read-only");
-      if(this->previous)
-        this->previous->write(furi, obj, retain);
+      if(this->previous_)
+        this->previous_->write(furi_no_query, obj, retain);
       else
         ROUTER_WRITE(furi, obj, retain);
     }

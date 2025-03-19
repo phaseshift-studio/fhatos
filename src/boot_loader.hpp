@@ -52,7 +52,7 @@
 #include "model/fos/ui/console.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 ////////////////////////////////////////
-#elif defined(ESP_ARCH)
+#elif defined(ESP_PLATFORM)
 #include "model/fos/ui/rgbled/rgbled.hpp"
 #include "model/fos/sensor/aht10/aht10.hpp"
 #include "model/fos/io/pwm/pwm.hpp"
@@ -153,19 +153,19 @@ namespace fhatos {
             ->mount(FSx::create("/disk/#", id_p("/mnt/disk"),
                                 Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
             ->drop_config("fs")
-#if defined(ESP_ARCH)
+#if defined(ESP_PLATFORM)
             ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
             ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
-            ->install(*__(WIFIx::obj({{"halt", dool(false)},
-                                       {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->begin())}},
+            ->install(*__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
+                                       {"config", __()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->compute().next()}}),
                                      "/io/wifi"))
-              ->inst("connect")->begin())
+              ->inst("connect")->compute().begin())
             ->drop_config("wifi")
             ->mount(Structure::create<Memory>("/soc/memory/#"))
             /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                     {"config", *(__()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->begin())}},
+                                     {"config", __()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->compute().next()}},
                                    "/io/ota"))
-              ->inst("start")->begin())*/
+              ->inst("start")->compute()->begin())*/
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif

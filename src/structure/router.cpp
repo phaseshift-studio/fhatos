@@ -79,7 +79,7 @@ namespace fhatos {
   void Router::pop_frame() {
     if(nullptr == THREAD_FRAME_STACK)
       throw fError("there are no more frames on the stack");
-    THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
+    THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous_;
   }
 
   void Router::load_config(const ID &config_id) {

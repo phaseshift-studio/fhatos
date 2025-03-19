@@ -176,10 +176,6 @@ namespace fhatos {
       native_mqtt_publish(Message::create(id_p(id), obj->clone(), retain));
     }
 
-    void publish_retained(const Subscription_p &) override {
-      // handled by mqtt broker
-    }
-
     static BObj_p make_bobj(const Obj_p &payload, const bool retain) {
       const Lst_p lst = Obj::to_lst({payload, dool(retain)});
       return lst->serialize();

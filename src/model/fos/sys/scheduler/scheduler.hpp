@@ -106,7 +106,7 @@ namespace fhatos {
     }
 
     void feed_local_watchdog() {
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
       vTaskDelay(1); // feeds the watchdog for the task
 #endif
     }

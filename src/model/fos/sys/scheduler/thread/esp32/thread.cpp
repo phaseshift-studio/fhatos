@@ -34,7 +34,7 @@ namespace fhatos {
    }*/
 
   static void THREAD_FUNCTIONXX(void *vptr_thread) {
-    const auto *fthread = static_cast<fThread *>(vptr_thread);
+    const auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
       LOG_EXCEPTION(Obj::to_noobj(), fError("unable to acquire thread state"));
       return;

@@ -65,7 +65,11 @@ namespace fhatos {
     }
 
     static Rec_p obj(const std::initializer_list<Pair<const string, Obj_p>> &map, const ID& value_id) {
-      return rec(map,WIFI_FURI,id_p(value_id));
+      return Obj::to_rec(map,WIFI_FURI,id_p(value_id));
+    }
+
+    static Rec_p obj(const Rec_p& config, const ID& value_id) {
+      return Obj::to_rec(config->rec_value(),WIFI_FURI,id_p(value_id));
     }
 
     static void *import(const Obj_p& wifi_config = nullptr) {

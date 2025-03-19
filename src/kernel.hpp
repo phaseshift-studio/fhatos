@@ -79,7 +79,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> display_reset_reason() {
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
       const esp_reset_reason_t reason = esp_reset_reason();
       string r;
       switch(reason) {
@@ -131,6 +131,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> import(const void *) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // TODO: arg should take a tid
       // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
       return Kernel::build();
@@ -206,21 +207,23 @@ namespace fhatos {
       string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
       StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
       LOG_WRITE(INFO, Router::singleton().get(), L("\n{}\n", boot_str));
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       return Kernel::build();
     }
 
     static ptr<Kernel> drop_config(const string &id) {
-      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id, noobj());
       LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot config!! dropped\n", id));
       return Kernel::build();
     }
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
-#ifdef ESP_ARCH
+#ifdef ESP_PLATFORM
       esp_restart();
 #else
       exit(EXIT_SUCCESS);

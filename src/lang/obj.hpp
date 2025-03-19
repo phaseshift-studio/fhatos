@@ -1890,7 +1890,10 @@ namespace fhatos {
           if(this->inst_op() == "block" ||
              this->inst_op() == "each" ||
              this->inst_op() == "within" ||
-             this->inst_op() == "isa") {
+             this->inst_op() == "isa" ||
+             this->inst_op() == "split" ||
+             this->inst_op() == "choose" ||
+             this->inst_op() == "chain") {
             remake = inst->inst_args()->clone();
           } else {
             remake = Obj::to_rec();

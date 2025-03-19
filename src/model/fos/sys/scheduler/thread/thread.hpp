@@ -27,7 +27,7 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
   class Thread;
-  static auto this_thread = atomic<const Thread *>(nullptr);
+  static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p(FOS_URI "/thread");
   static ID_p THREAD_FURI_DEFAULT = id_p(FOS_URI "/thread::default");
 
@@ -37,7 +37,7 @@ namespace fhatos {
     Consumer<Obj_p> thread_function_;
     Any handler_;
 
-    static Option<const Thread *> current_thread() {
+    static Option<Thread *> current_thread() {
       if(this_thread.load())
         return {this_thread.load()};
       else {

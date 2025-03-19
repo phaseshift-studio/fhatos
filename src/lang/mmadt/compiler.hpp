@@ -61,7 +61,7 @@ namespace fhatos {
       return this;
     }
 
-    Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) const;
+    [[nodiscard]] Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) const;
 
     const Compiler *reset(const bool throw_on_miss, const bool with_derivation) {
       if(dt) dt->clear();
