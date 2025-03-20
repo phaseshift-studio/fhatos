@@ -57,36 +57,41 @@ namespace fhatos {
     void halt();
 
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
-                       try {
-                         const Obj_p loop_code = thread_obj->rec_get("loop");
-                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
-                         const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
-                         while(!thread_obj->get<bool>("halt")) {
-                           FEED_WATCHDOG();
-                           this_thread.store(Thread::get_state(thread_obj).get());
-                           const BCode_p &code = thread_obj->rec_get("loop");
-                           code->apply(thread_obj);
-                           if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                             Thread::get_state(thread_obj)->delay(delay);
-                             thread_obj->rec_set("delay", jnt(0, NAT_FURI));
-                           }
-                         }
-                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-                         threads->lst_remove(vri(thread_obj->vid));
-                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
-                         try {
-                           thread_state->halt();
-                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                         } catch(const std::exception &e) {
-                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                           throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
-                         }
-                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
-                       } catch(std::exception &e) {
-                         MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                         throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
-                       }
-                     });
+                      try {
+                        const Obj_p loop_code = thread_obj->rec_get("loop");
+                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
+                        const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
+                        while(!thread_obj->get<bool>("halt")) {
+                          try {
+                            FEED_WATCHDOG();
+                            this_thread.store(Thread::get_state(thread_obj).get());
+                            const BCode_p &code = thread_obj->rec_get("loop");
+                            code->apply(thread_obj);
+                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
+                              Thread::get_state(thread_obj)->delay(delay);
+                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
+                            }
+                          } catch(const std::exception &e) {
+                            LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
+                            thread_obj->rec_set("halt",dool(true));
+                          }
+                        }
+                        Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+                        threads->lst_remove(vri(thread_obj->vid));
+                        ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
+                        try {
+                          thread_state->halt();
+                          MODEL_STATES::singleton()->remove(*thread_obj->vid);
+                        } catch(const std::exception &e) {
+                          MODEL_STATES::singleton()->remove(*thread_obj->vid);
+                          throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
+                        }
+                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
+                      } catch(std::exception &e) {
+                        MODEL_STATES::singleton()->remove(*thread_obj->vid);
+                        throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
+                      }
+                    });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) {
       return make_shared<Thread>(thread_obj);

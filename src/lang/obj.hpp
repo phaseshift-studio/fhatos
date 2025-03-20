@@ -2304,6 +2304,11 @@ namespace fhatos {
       return a;
     }
 
+    static InstArgs to_inst_args(const std::initializer_list<std::pair<const string, Obj_p>> &args) {
+      const Rec_p a = Obj::to_rec(args);
+      return a;
+    }
+
     static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
                           const ID_p &value_id = nullptr) {
       return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id,

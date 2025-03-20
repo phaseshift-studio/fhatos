@@ -224,6 +224,7 @@ mark {
 
 .MathJax {
     color: #d1dcdd !important;
+    /*font-size: 100% !important;*/
 }
 
 /* Table styles */
@@ -294,6 +295,7 @@ video {
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int,
+.hljs-fhatos-thrown,
 .hljs-fhatos-sys-furi {
     color: #d4de68;
 }

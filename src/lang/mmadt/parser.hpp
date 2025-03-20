@@ -416,7 +416,7 @@ namespace mmadt {
 #endif
 
       auto start_action = [](const SemanticValues &vs) {
-        if(vs.empty() || (vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment"))))
+        if(vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment")))
           return Obj::to_noobj();
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
