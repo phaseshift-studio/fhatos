@@ -30,10 +30,12 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class QSubMqtt final : public QProc {
   protected:
-    ptr<MqttClient> mqtt;
+    ptr<MqttClient> mqtt{};
+    ptr<MutexDeque<Mail>> outbox_ = std::make_shared<MutexDeque<Mail>>();
 
   public:
-    explicit QSubMqtt(const Rec_p &config, const ID_p &value_id = nullptr) : QProc(REC_FURI, value_id) {
+    explicit QSubMqtt(const Rec_p &config, const ID_p &value_id) :
+      QProc(REC_FURI, value_id) {
       this->Obj::rec_set("pattern", vri("sub"));
       this->Obj::rec_set("config", config);
       this->mqtt = MqttClient::get_or_create(config->rec_get("broker")->uri_value(),
@@ -47,39 +49,51 @@ namespace fhatos {
 
     void loop() const override {
       this->mqtt->loop();
+      while(!this->outbox_->empty()) {
+        FEED_WATCHDOG();
+        Option<Mail> mail = this->outbox_->pop_front();
+        LOG_WRITE(TRACE, this,L("!yprocessing mail!! !b{}!! -> {}\n",
+                                mail.value().second->toString(),
+                                mail.value().first->toString())            );
+        mail.value().first->apply(mail.value().second);
+      }
     }
 
     void write(const QProc::POSITION pos, const fURI &furi, const Obj_p &obj, const bool retain) override {
       const fURI furi_no_query = furi.no_query();
       if(retain && POSITION::PRE == pos) {
-        // unsubscribe
-        this->mqtt->unsubscribe(*this->vid, furi);
-        // if obj, subscribe
-        if(!obj->is_noobj()) {
-          if(obj->tid->equals("/fos/q/sub")) {
-            this->mqtt->subscribe(make_shared<Subscription>(obj));
-          } else {
-            this->mqtt->subscribe(Subscription::create(this->vid, p_p(furi_no_query), obj));
-          }
+        this->mqtt->unsubscribe(*this->vid, furi_no_query);  // unsubscribe
+        if(!obj->is_noobj()) {  // if obj, subscribe
+          this->mqtt->subscribe(obj->tid->equals("/fos/q/sub")
+                                  ? make_shared<Subscription>(obj)
+                                  : Subscription::create(this->vid, p_p(furi_no_query), obj));
           LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
-                                  furi_no_query.toString())          );
+                                  furi_no_query.toString())              );
           // NEEDS ACCESS TO STRUCTURE?? this->publish_retained(subscription);
         }
         LOG_WRITE(TRACE, this,L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));
+      } else if(retain && POSITION::Q_LESS == pos) {
+        // publish
+        for(const Subscription_p &sub: *this->mqtt->subscriptions_) {
+          if(furi_no_query.bimatches(*sub->pattern())) {
+            const Message_p msg = Message::create(id_p(furi_no_query), obj, retain);
+            LOG_WRITE(DEBUG, this,L("!ysending mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
+            this->outbox_->push_back(Mail(sub, msg));
+          }
+        }
       }
     }
 
-    Obj_p read(const QProc::POSITION pos, const fURI &furi, const Obj_p &post_read) const override {
+    [[nodiscard]] Obj_p read(const QProc::POSITION pos, const fURI &furi, const Obj_p &post_read) const override {
       /// pre-read
-      Obj_p return_obj = Obj::to_noobj();
       const fURI furi_no_query = furi.no_query();
       Objs_p subs = Obj::to_objs();
       for(const Subscription_p &sub: *this->mqtt->subscriptions_) {
-        if(furi_no_query.matches(*sub->pattern())) {
+        if(furi_no_query.bimatches(*sub->pattern())) {
           subs->add_obj(sub);
         }
       }
-      LOG_WRITE(TRACE, this,L("!ypre-read!! !b{}!! -> {}\n", furi_no_query.toString(), return_obj->toString()));
+      LOG_WRITE(TRACE, this,L("!ypre-read!! !b{}!! -> {}\n", furi_no_query.toString(), subs->toString()));
       return subs;
     }
 

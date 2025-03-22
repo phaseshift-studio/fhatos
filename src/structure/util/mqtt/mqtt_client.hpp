@@ -84,11 +84,11 @@ namespace fhatos {
           }
         }*/
 
-    void subscribe(const Subscription_p &subscription) const;
+    void subscribe(const Subscription_p &subscription, bool async = true) const;
 
-    void unsubscribe(const ID &source, const fURI &pattern) const;
+    void unsubscribe(const ID &source, const fURI &pattern, bool async = true) const;
 
-    void publish(const Message_p &message) const;
+    void publish(const Message_p &message, bool async = true) const;
 
     void receive(const Message_p &message) const {
       LOG_WRITE(DEBUG, this, L("{} received\n", message->toString()));
@@ -104,9 +104,25 @@ namespace fhatos {
       });
     }
 
-    bool connect(const ID &source) const;
+    Obj_p query(const fURI &pattern) {
+      const Objs_p results;
+      const ID_p source = Thread::current_thread().value()->thread_obj_->vid;
+      this->subscribe(Subscription::create(source, p_p(pattern), [&results](const Obj_p &obj, const InstArgs &) {
+        results->add_obj(obj);
+        return Obj::to_noobj();
+      }));
+      this->loop();
+      if(const Option<Thread *> op = Thread::current_thread(); op.has_value()) {
+        op.value()->delay(500);
+      }
+      this->loop();
+      this->unsubscribe(*source, pattern);
+      return results;
+    }
 
-    bool disconnect(const ID &source) const;
+    [[nodiscard]] bool connect(const ID &source) const;
+
+    [[nodiscard]] bool disconnect(const ID &source, bool async = true) const;
 
     void loop();
 

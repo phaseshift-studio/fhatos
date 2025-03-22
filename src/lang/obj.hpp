@@ -377,11 +377,6 @@ namespace fhatos {
     LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
-  inline TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
-      [](const Obj *, const ID_p &type_id, const bool = true) -> bool {
-    LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
-    return true;
-  };
   inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;
@@ -477,7 +472,7 @@ namespace fhatos {
         throw fError("the range of an inst can not be its type: %s", type_id->toString().c_str());
       }
       if(value.has_value()) { // value token
-        TYPE_CHECKER(this, type_id, true);
+        Compiler(true, true).type_check(this, *type_id);
         this->tid = type_id;
         if(value_id) {
           const Obj_p strip = this->clone();
@@ -1317,7 +1312,7 @@ namespace fhatos {
           }
           case OType::REC: {
             if(this->rec_value()->empty())
-              obj_string = "!m[!g=>!m]!!";
+              obj_string = "!m[!y=>!m]!!";
             else {
               obj_string = "!m[!!";
               bool first = true;
@@ -1329,7 +1324,7 @@ namespace fhatos {
                 }
                 obj_string += "!c";
                 obj_string += k->toString(obj_printer->next()); // {ansi=false});
-                obj_string += "!g=>!!";
+                obj_string += "!y=>!!";
                 obj_string += v->toString(obj_printer->next());
               }
               obj_string += "!m]!!";
@@ -1793,6 +1788,7 @@ namespace fhatos {
       for(const auto &[k,v]: *args->rec_value()) {
         remake->rec_value()->emplace(k, v->apply(lhs));
       }
+      // remake->rec_set("_inst",this->clone());
       ROUTER_PUSH_FRAME("#", remake);
       try {
         const Obj_p result = this->apply(lhs);
@@ -1879,11 +1875,10 @@ namespace fhatos {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           auto compiler = Compiler(true, false);
           const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
-          if(!lhs->is_code()) {
-            //TYPE_CHECKER(lhs.get(), inst->domain(), true);
+          /*if(!lhs->is_code() && !(lhs->is_noobj() && inst->range_coefficient().first == 0)) {
             if(compiler.reset(true, true)->type_check(lhs, *inst->domain())) {
             }
-          }
+          }*/
           // compute args
           InstArgs remake;
           //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
@@ -1902,8 +1897,8 @@ namespace fhatos {
               remake->rec_value()->insert({k, v->apply(lhs)});
             }
           }
+          // remake->rec_value()->insert_or_assign(Obj::to_uri("_inst"), Obj::to_inst({}, INST_FURI, nullptr));
           ROUTER_PUSH_FRAME("#", remake);
-          //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           try {
             if(!inst->has_inst_f()) {
@@ -1914,8 +1909,8 @@ namespace fhatos {
             const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(inst->inst_f()))(lhs, remake);
-            if(!result->is_code())
-              compiler.reset(true, true)->type_check(result, *inst->range());
+           // if(!result->is_code() && !(result->is_noobj() && inst->range_coefficient().first == 0))
+           //   compiler.reset(true, true)->type_check(result, *inst->range());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
@@ -1950,9 +1945,9 @@ namespace fhatos {
     [[nodiscard]]
     bool is_base_type() const { return this->tid->equals(*OTYPE_FURI.at(this->otype)); }
 
-    [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
+    [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *fail_reason = nullptr) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
-      if(type_obj->is_empty_bcode() || this->is_empty_bcode())
+      if(type_obj->is_empty_bcode())
         return true;
       if(type_obj->is_type())
         return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
@@ -1960,33 +1955,57 @@ namespace fhatos {
         try {
           const Obj_p result = type_obj->apply(this->clone());
           return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
-        } catch(const std::exception &e) {
+        } catch(std::exception &e) {
+          if(fail_reason)
+            fail_reason->push(e.what());
           return false;
         }
       }
-      /* if(!type_obj->value_.has_value() &&
-          (type_obj->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(type_obj->tid->no_query()) && FURI_OTYPE.at(
-                                                     type_obj->tid->no_query()) == this->otype)))
-         return true;*/
-      if(this->otype != type_obj->otype)
+      if(this->otype != type_obj->otype) {
+        if(fail_reason)
+          fail_reason->push(fmt::format("{} is !rnot!! the same base type as {}",
+                                        OTypes.to_chars(this->otype),
+                                        OTypes.to_chars(type_obj->otype)));
         return false;
-      if(require_same_type_id && (*this->tid != *type_obj->tid))
+      }
+      if(!this->is_base_type() && !type_obj->is_base_type() && *this->tid != *type_obj->tid)
         return false;
+      const string does_not_equal = "{} does !rnot!! equal {}";
       switch(this->otype) {
         case OType::TYPE:
-          return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj);
+          return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj, fail_reason);
         case OType::NOOBJ:
           return true;
-        case OType::BOOL:
-          return this->bool_value() == type_obj->bool_value();
-        case OType::INT:
-          return this->int_value() == type_obj->int_value();
-        case OType::REAL:
-          return this->real_value() == type_obj->real_value();
-        case OType::URI:
-          return this->uri_value().matches(type_obj->uri_value());
-        case OType::STR:
-          return this->str_value() == type_obj->str_value();
+        case OType::BOOL: {
+          const bool match = this->bool_value() == type_obj->bool_value();
+          if(!match && fail_reason)
+            fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
+          return match;
+        }
+        case OType::INT: {
+          const bool match = this->int_value() == type_obj->int_value();
+          if(!match && fail_reason)
+            fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
+          return match;
+        }
+        case OType::REAL: {
+          const bool match = this->real_value() == type_obj->real_value();
+          if(!match && fail_reason)
+            fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
+          return match;
+        }
+        case OType::URI: {
+          const bool match = this->uri_value().matches(type_obj->uri_value());
+          if(!match && fail_reason)
+            fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
+          return match;
+        }
+        case OType::STR: {
+          const bool match = this->str_value() == type_obj->str_value();
+          if(!match && fail_reason)
+            fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
+          return match;
+        }
         case OType::LST: {
           const auto objs_a = this->lst_value();
           const auto objs_b = type_obj->lst_value();
@@ -1994,8 +2013,12 @@ namespace fhatos {
             return false;
           auto b = objs_b->begin();
           for(const auto &a: *objs_a) {
-            if(!a->match(*b))
+            if(!a->match(*b, fail_reason)) {
+              if(fail_reason)
+                fail_reason->push(fmt::format("{} does !rnot!! have matching elements in {}", this->toString(),
+                                              type_obj->toString()));
               return false;
+            }
             ++b;
           }
           return true;
@@ -2012,14 +2035,19 @@ namespace fhatos {
                 break;
               }
             }
-            if(!found)
+            if(!found) {
+              if(fail_reason)
+                fail_reason->push(fmt::format("{} does !rnot!! have a corresponding match in {}",
+                                              Obj::to_rec({{b_key, b_obj}})->toString(),
+                                              this->toString()));
               return false;
+            }
           }
           return true;
         }
         case OType::INST: {
           const auto args_a = this->inst_args();
-          if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b))
+          if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b, fail_reason))
             return false;
           if(this->domain_coefficient() != type_obj->domain_coefficient() ||
              this->range_coefficient() != type_obj->range_coefficient())
@@ -2049,7 +2077,6 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p as(const ID_p &type_id) const {
       return Obj::create(this->value_, this->otype, type_id, this->vid);
-      //return this->as(ROUTER_READ(static_cast<fURI>(*type_id)));
     }
 
     [[nodiscard]] Obj_p as(const Obj_p &type_obj) const {

@@ -41,7 +41,7 @@ namespace fhatos {
   protected:
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
-    int max_size = 100;
+    int cache_size_ = 100;
     ptr<MqttClient> mqtt{};
 
     [[nodiscard]] Subscription_p generate_sync_subscription(const Pattern &pattern) const {
@@ -69,16 +69,15 @@ namespace fhatos {
     }
 
   public:
-    explicit DSM(const Pattern &pattern, const ID_p &value_id = nullptr,
-                 const Rec_p &config = Obj::to_rec()) :
+    explicit DSM(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
       Structure(pattern, id_p(DSM_FURI), value_id, config),
       mqtt{nullptr} {
-      this->max_size = config->rec_get("max_size", jnt(1000))->int_value();
+      this->cache_size_ = config->rec_get("cache_size", jnt(1000))->int_value();
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
-                              const Rec_p &config = Obj::to_rec()) {
+                              const Rec_p &config = Obj::to_rec({{"cache_size", jnt(-1)}, {"async", dool(true)}})) {
       return Structure::create<DSM>(pattern, value_id, config);
     }
 
@@ -97,12 +96,12 @@ namespace fhatos {
                                              this->get<fURI>("config/client"));
 
       if(this->mqtt->connect(*this->vid))
-        this->mqtt->subscribe(generate_sync_subscription(*this->pattern));
+        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), this->get<bool>("config/async"));
       Structure::setup();
     }
 
     void stop() override {
-      this->mqtt->disconnect(*this->vid);
+      this->mqtt->disconnect(*this->vid, this->get<bool>("config/async"));
       Structure::stop();
       this->data_->clear();
     }
@@ -114,7 +113,7 @@ namespace fhatos {
           if(this->data_->exists(id))
             this->data_->erase(id);
         } else {
-          if(this->data_->size() >= this->max_size)
+          if(-1 != this->cache_size_ && this->data_->size() >= this->cache_size_)
             this->clear_cache(this->data_->size() - 1);
           this->data_->insert_or_assign(id, const_pointer_cast<Obj>(obj));
         }
@@ -124,7 +123,7 @@ namespace fhatos {
 
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       this->write_raw_raw_pairs(id, obj, retain);
-      this->mqtt->publish(Message::create(id_p(id), obj, retain));
+      this->mqtt->publish(Message::create(id_p(id), obj, retain), this->get<bool>("config/async"));
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {
@@ -132,10 +131,11 @@ namespace fhatos {
         if(this->data_->exists(match)) {
           return {{match, this->data_->at(match)}};
         } else {
-          this->clear_cache(this->max_size - 1);
+          if(-1 != this->cache_size_)
+            this->clear_cache(this->cache_size_ - 1);
           this->mqtt->subscribe(this->generate_sync_subscription(match));
           this->wait_for_data(MQTT_WAIT_MS);
-          this->mqtt->unsubscribe(*this->vid, match);
+          this->mqtt->unsubscribe(*this->vid, match, this->get<bool>("config/async"));
           if(this->data_->exists(match)) {
             const IdObjPairs pairs = {{match, this->data_->at(match)}};
             return pairs;

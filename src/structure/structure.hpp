@@ -50,7 +50,7 @@ namespace fhatos {
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
-    const Pattern_p pattern;
+    const Pattern_p pattern{};
 
     explicit Structure(const Pattern &pattern,
                        const ID_p &type_id,
@@ -161,8 +161,9 @@ namespace fhatos {
       }
     }
 
-    QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi, const Obj_p &obj,
-                                         const bool retain) const {
+    [[nodiscard]] QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi,
+                                                       const Obj_p &obj,
+                                                       const bool retain) const {
       if(QProc::POSITION::Q_LESS == position) {
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
           auto q = (QProc *) o.get();
@@ -173,7 +174,7 @@ namespace fhatos {
       } else if(furi.has_query()) {
         bool found = false;
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
-          auto q = (QProc *) o.get();
+          const auto q = (QProc *) o.get();
           QProc::ON_RESULT on_result = position == QProc::POSITION::PRE ? q->is_pre_write() : q->is_post_write();
           if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
             found = true;
@@ -219,9 +220,7 @@ namespace fhatos {
         /////////////////////////////////////// READ BRANCH PATTERN/ID ///////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         const fURI furi_no_query = furi.no_query();
-        IdObjPairs matches = this->read_raw_pairs(furi_no_query.is_branch()
-                                                    ? furi_no_query.extend("+")
-                                                    : furi_no_query);
+        IdObjPairs matches = this->read_raw_pairs(furi_no_query.as_node());
         if(furi_no_query.is_branch()) {
           const Rec_p rec = Obj::to_rec();
           // BRANCH ID AND PATTERN
@@ -333,7 +332,7 @@ namespace fhatos {
             if(const auto pair = this->locate_base_poly(new_furi.retract()); pair.has_value()) {
               LOG_WRITE(TRACE, this,L("base poly found at {}: {}\n",
                                       pair->first.toString(), pair->second->toString()));
-              const fURI id_insert = new_furi.remove_subpath(pair->first.as_branch().toString(), true).to_node();
+              const fURI id_insert = new_furi.remove_subpath(pair->first.as_branch().toString(), true).as_node();
               const Poly_p poly_insert = pair->second; //->clone();
               poly_insert->poly_set(vri(id_insert), obj);
               //distribute_to_subscribers(Message::create(id_p(new_furi), obj, retain));

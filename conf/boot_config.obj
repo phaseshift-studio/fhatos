@@ -10,8 +10,8 @@
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
   client=>fhatos_client,
-  cache=>true,
-  max_size=>50],
+  async=>true,
+  cache_size=>50],
  wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
  ota=>[host=>mdns://fhatos_client:3232],
  console=>[

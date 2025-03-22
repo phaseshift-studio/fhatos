@@ -640,22 +640,6 @@ namespace fhatos {
 
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
 
-    [[nodiscard]] fURI to_node() const {
-      if(!this->spostfix_)
-        return *this;
-      auto f = fURI(*this);
-      f.spostfix_ = false;
-      return f;
-    }
-
-    [[nodiscard]] fURI to_branch() const {
-      if(this->spostfix_)
-        return *this;
-      auto f = fURI(*this);
-      f.spostfix_ = true;
-      return f;
-    }
-
     [[nodiscard]] bool is_node() const { return !this->spostfix_; }
 
     [[nodiscard]] bool is_scheme_path() const {

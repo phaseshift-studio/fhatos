@@ -173,6 +173,7 @@ namespace fhatos {
                                                        Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
                                                        or_else(
                                                            Obj::to_rec({
+                                                               {"async", dool(true)},
                                                                {"broker",
                                                                 vri(args_parser->option_string(
                                                                     "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
@@ -182,6 +183,7 @@ namespace fhatos {
                                          QSubMqtt::create(Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
                                                           or_else(
                                                               Obj::to_rec({
+                                                                  {"async", dool(true)},
                                                                   {"broker",
                                                                    vri(args_parser->option_string(
                                                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},

@@ -93,7 +93,7 @@ namespace fhatos {
   }
 
 
-  void Router::loop() {
+  void Router::loop() const {
     bool remove = false;
     for(const Structure_p &s: *this->structures_) {
       if(!s->available())

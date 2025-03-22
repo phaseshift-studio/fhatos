@@ -157,7 +157,7 @@ using namespace fhatos;
       RUN_TEST(x);                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
       LOG(ERROR, "failed test due to %s\n", e.what());                                                                 \
-      throw;                                                                                                           \
+      TEST_FAIL_MESSAGE("failed test");                                                                                \
     }                                                                                                                  \
   }
 

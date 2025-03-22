@@ -83,7 +83,7 @@ namespace fhatos {
     });
   }
 
-  void MqttClient::subscribe(const Subscription_p &subscription) const {
+  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) const {
     this->subscriptions_->push_back(subscription);
     const auto h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     h->subscribe(subscription->pattern()->toString().c_str(), 1);
@@ -91,7 +91,7 @@ namespace fhatos {
     h->loop();
   }
 
-  void MqttClient::unsubscribe(const ID &source, const fURI &pattern) const {
+  void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
 
     this->subscriptions_->remove_if([this,&source,&pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
@@ -106,7 +106,7 @@ namespace fhatos {
     });
   }
 
-  void MqttClient::publish(const Message_p &message) const {
+  void MqttClient::publish(const Message_p &message, const bool async) const {
     const   ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(message->payload()->is_noobj()) {
       h->publish(message->target()->toString().c_str(), nullptr, 0, message->retain());
@@ -119,7 +119,7 @@ namespace fhatos {
     h->loop();
   }
 
-  bool MqttClient::disconnect(const ID &source) const {
+  bool MqttClient::disconnect(const ID &source, const bool async) const {
     this->unsubscribe(source, "#");
     this->clients_->remove(source);
     const   ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);

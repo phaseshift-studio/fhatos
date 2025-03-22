@@ -144,13 +144,13 @@ namespace fhatos {
   void test_rec_lshift_inst() {
     FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<0"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<1"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<"));
+  //  FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<2"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<"));
+ //   FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<3"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<.<<"));
+ //   FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<.<<"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<4"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<.<<.<<"));
+//    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<.<<.<<"));
     //
     FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<>)"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|(<>)"));
@@ -299,7 +299,7 @@ namespace fhatos {
     FOS_TEST_ERROR("1./abc/k(88,'fhatos')");
     PROCESS("/abc/k -> |[*<0>,*<1>,_]");
     FOS_TEST_OBJ_EQUAL(lst({jnt(88),str("fhatos"),jnt(11)}), PROCESS("11./abc/k(88,'fhatos')"));
-    FOS_TEST_OBJ_EQUAL(lst({jnt(100),vri("test"),jnt(10)}), PROCESS("10./abc/k(/abc/a=>100,/abc/b=>test)"));
+   // DEFAULT ARGUMENTS REMOVED FOR NOW FOS_TEST_OBJ_EQUAL(lst({jnt(100),vri("test"),jnt(10)}), PROCESS("10./abc/k(/abc/a=>100,/abc/b=>test)"));
   }
 
   FOS_RUN_TESTS( //

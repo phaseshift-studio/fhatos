@@ -19,8 +19,12 @@ build
 test/build
 docs/build
 
+# AsciiDoctor Caches
+docs/.asciidoctor/
+
 # CMake Files
 .cmake
+**/cmake-build-docs
 **/cmake-build-debug
 **/CMakeCache.txt
 **/cmake_install.cmake

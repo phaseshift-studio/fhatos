@@ -30,6 +30,7 @@ namespace fhatos {
   // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
   // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
   // void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
+  bool Compiler::boot_loading = true;
 
   Compiler::Compiler(const bool throw_on_miss, const bool with_derivation) {
     this->throw_on_miss = throw_on_miss;
@@ -102,7 +103,7 @@ namespace fhatos {
               break;
             }
           } else {
-            found=true;
+            found = true;
             break;
           }
         } else {
@@ -228,7 +229,27 @@ namespace fhatos {
           inst_provided->toString().c_str(),
           "SIGNATURE HERE");
       const auto merged_args = Obj::to_inst_args();
-      int counter = 0;
+      //  const auto merged_args = __(inst_resolved->inst_args())->each(inst_provided->inst_args())->compute().next();
+      int r_counter = 0;
+      for(const auto &[rk,rv]: *inst_resolved->inst_args()->rec_value()) {
+        bool found = false;
+        for(const auto &[lk,lv]: *inst_provided->inst_args()->rec_value()) {
+          if(lk->match(rk)) {
+            found = true;
+            merged_args->rec_set(rk, lv);
+          }
+        }
+        if(!found) {
+          if(inst_provided->is_indexed_args() && r_counter < inst_provided->inst_args()->rec_value()->size())
+            merged_args->rec_set(rk, inst_provided->arg(r_counter));
+          else
+            merged_args->rec_set(rk, rv->apply(Obj::to_noobj()));
+        }
+        r_counter++;
+      }
+      //return ret;
+
+      /* int counter = 0;
       for(const auto &[k,v]: *inst_resolved->inst_args()->rec_value()) {
         if(inst_provided->has_arg(k))
           merged_args->rec_value()->insert({k, inst_provided->arg(k)});
@@ -238,7 +259,7 @@ namespace fhatos {
           merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
         // TODO: hack to get the default from from();
         ++counter;
-      }
+      }*/
       // TODO: recurse off inst for all inst_arg getter/setters
 
       inst_c = Obj::to_inst(
@@ -380,7 +401,61 @@ namespace fhatos {
   }
 
   bool Compiler::type_check(const Obj *value_obj, const ID &type_id) const {
-    if(value_obj->is_noobj() && !type_id.equals(*NOOBJ_FURI))
+    if(Compiler::boot_loading)
+      return true;
+    auto fail_reason = std::stack<string>();
+    if(value_obj->is_noobj()) {
+      if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF);
+        !coef.empty() && stoi(coef.front()) == 0) {
+        return true;
+      }
+    }
+    const fURI type_no_query_id = type_id.no_query();
+    if(type_no_query_id.equals(*OBJ_FURI) || type_no_query_id.equals(*NOOBJ_FURI)) // TODO: hack on noobj
+      return true;
+    // if the type is a base type and the base types match, then type check passes
+    if(type_no_query_id.equals(*OTYPE_FURI.at(value_obj->otype)))
+      return true;
+    // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+    // if(value_obj->tid->equals(type_no_query_id))
+    //   return true;
+    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+    if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype == OType::BCODE)
+      return true;
+    if(type_no_query_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->equals(*OBJ_FURI)))
+      return true;
+    if(const Obj_p type = ROUTER_READ(type_no_query_id); !type->is_noobj()) {
+      ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
+      // if(type->is_type() && !obj->apply(type)->is_noobj())
+      //   return true;
+      if(value_obj->match(type, &fail_reason))
+        return true;
+      if(this->throw_on_miss) {
+        static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
+        p->show_type = false;
+        string fail;
+        int count = 1;
+        while(!fail_reason.empty()) {
+          fail.append("\n\t\t")
+              .append(StringHelper::repeat(count, " "))
+              .append("!m\\")
+              .append(StringHelper::repeat(count, "_"))
+              .append("!!")
+              .append(fail_reason.top());
+          fail_reason.pop();
+          count++;
+        }
+        throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", "/sys/lang/parser",
+                     value_obj->toString(p.get()).c_str(), type_id.toString().c_str(), type->toString().c_str(),
+                     fail.c_str());
+      }
+      return false;
+    }
+    if(this->throw_on_miss)
+      throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", "/sys/lang/parser", type_id.toString().c_str());
+    return false;
+
+    /*if(value_obj->is_noobj() && !type_id.equals(*NOOBJ_FURI))
       return false;
     if(type_id.equals(*OBJ_FURI) || type_id.equals(*NOOBJ_FURI)) // TODO: hack on noobj
       return true;
@@ -415,7 +490,7 @@ namespace fhatos {
     try {
       if(type_obj->is_type() && !type_obj->apply(value_obj->shared_from_this())->is_noobj())
         return true;
-      if(value_obj->match(type_obj, false))
+      if(value_obj->match(type_obj, &fail_reason))
         return true;
     } catch(const fError &) {
       // do nothing (fails below)
@@ -423,11 +498,16 @@ namespace fhatos {
     if(this->throw_on_miss) {
       static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
       p->show_type = false;
-      throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", type_id.toString().c_str(),
+      string fail;
+      while(!fail_reason.empty()) {
+        fail.append("\n").append(fail_reason.top());
+        fail_reason.pop();
+      }
+      throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", type_id.toString().c_str(),
                    value_obj->toString(p.get()).c_str(), type_id.toString().c_str(),
-                   type_obj->toString().c_str());
+                   type_obj->toString().c_str(), fail.c_str());
     }
-    return false;
+    return false;*/
   }
 
 
@@ -454,4 +534,5 @@ namespace fhatos {
   Obj_p Compiler::save_type(const ID_p &type_id, const Obj_p &type_obj) {
     return type_obj;
   }
+
 };

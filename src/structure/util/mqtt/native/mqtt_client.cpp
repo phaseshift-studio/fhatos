@@ -64,39 +64,55 @@ namespace fhatos {
     });
   }
 
-  void MqttClient::subscribe(const Subscription_p &subscription) const {
+  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) const {
     this->subscriptions_->push_back(subscription);
-    std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1);
+    const mqtt::token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->subscribe(
+        subscription->pattern()->toString(), 1);
+    if(!async)
+      result->wait();
   }
 
-  void MqttClient::unsubscribe(const ID &source, const fURI &pattern) const {
-    this->subscriptions_->remove_if([this,&source,&pattern](const Subscription_p &sub) {
+  void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
+    this->subscriptions_->remove_if([this,&source,&pattern,async](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
-      if(remove)
-        std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(sub->pattern()->toString());
+      if(remove) {
+
+        const mqtt::token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)
+            ->unsubscribe(sub->pattern()->toString());
+        if(!async)
+          result->wait();
+      }
       return remove;
     });
   }
 
-  void MqttClient::publish(const Message_p &message) const {
+  void MqttClient::publish(const Message_p &message, const bool async) const {
+    mqtt::token_ptr result;
     if(message->payload()->is_noobj()) {
-      std::any_cast<ptr<async_client>>(this->handler_)->publish(message->target()->toString().c_str(),
-                                                                const_cast<char *>(""), 0, 0,
-                                                                message->retain())->wait();
+      result = std::any_cast<ptr<async_client>>(this->handler_)->publish(
+          message->target()->toString().c_str(),
+          const_cast<char *>(""), 0, 0,
+          message->retain());
+      if(!async)
+        result->wait();
     } else {
       const BObj_p source_payload = make_bobj(message->payload(), message->retain());
-      std::any_cast<ptr<async_client>>(this->handler_)
+      result = std::any_cast<ptr<async_client>>(this->handler_)
           ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0,
-                    message->retain())
-          ->wait();
+                    message->retain());
+
     }
+    if(!async)
+      result->wait();
   }
 
-  bool MqttClient::disconnect(const ID &source) const {
+  bool MqttClient::disconnect(const ID &source, const bool async) const {
     this->clients_->remove(source);
-    this->unsubscribe(source,"#");
+    this->unsubscribe(source, "#", async);
     if(this->clients_->empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
-      std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
+      const token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
+      if(!async)
+        result->wait();
       CLIENTS.erase(this->broker());
     }
     LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n", this->broker().toString()));
@@ -130,13 +146,13 @@ namespace fhatos {
           .user_name(this->client().toString())
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
-       if(!this->rec_get("config/will")->is_noobj()) {
-         const BObj_p source_payload = this->rec_get("config/will")->rec_get("payload")->serialize();
-         pre_connection_options = pre_connection_options.will(
-             message(this->rec_get("config/will")->rec_get("target")->uri_value().toString(),
-                     source_payload->second,
-                     this->rec_get("config/will")->rec_get("retain")->bool_value()));
-       }
+      if(!this->rec_get("config/will")->is_noobj()) {
+        const BObj_p source_payload = this->rec_get("config/will")->rec_get("payload")->serialize();
+        pre_connection_options = pre_connection_options.will(
+            message(this->rec_get("config/will")->rec_get("target")->uri_value().toString(),
+                    source_payload->second,
+                    this->rec_get("config/will")->rec_get("retain")->bool_value()));
+      }
       const connect_options connect_options_ = pre_connection_options.finalize();
       int counter = 0;
       while(counter < FOS_MQTT_MAX_RETRIES) {

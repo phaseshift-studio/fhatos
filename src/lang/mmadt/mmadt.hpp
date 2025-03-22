@@ -80,8 +80,8 @@ namespace mmadt {
   public:
     const BCode_p bcode_;
 
-    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, BCode_p bcode) :
-      tid(tid), domain(domain), range(range), bcode_(std::move(bcode)) {
+    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, const BCode_p &bcode) :
+      tid(tid), domain(domain), range(range), bcode_(bcode) {
     }
 
     [[nodiscard]] string toString() const { return this->bcode_->toString(); }
@@ -242,7 +242,7 @@ namespace mmadt {
       const List_p<Obj_p> results{};
 
     public:
-      explicit Result(const _mmADT *mmadt):
+      explicit Result(const _mmADT *mmadt) :
         results{BCODE_PROCESSOR(mmadt->bcode_)->objs_value()} {
       }
 
@@ -259,8 +259,10 @@ namespace mmadt {
       }
 
       [[nodiscard]] Obj_p next() const {
+        if(this->results->empty())
+          return Obj::to_noobj();
         const Obj_p o = this->results->back();
-        this->results->pop_back();
+        //this->results->pop_back();
         return o;
       }
     };

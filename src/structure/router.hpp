@@ -50,7 +50,7 @@ namespace fhatos {
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
 
-    void loop();
+    void loop() const;
 
     void stop();
 
@@ -81,20 +81,17 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
       Router::singleton()->write(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
       InstBuilder::build(id_p(import_id.extend(":create")))
-          ->inst_args(lst({
-              *__()->is(*__()->a(
-                  Obj::to_rec({
-                      {"pattern", Obj::to_type(URI_FURI)},
-                      {"id", Obj::to_noobj()},
-                      {"config", Obj::to_rec()}})))
-          }))
+          ->inst_args(Obj::to_inst_args({
+              {"pattern", Obj::to_type(URI_FURI)},
+              {"id", Obj::to_noobj()},
+              {"config", Obj::to_rec()}}))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Pattern pattern = args->arg(0)->rec_get("pattern")->uri_value();
-            const ID_p id = args->arg(0)->rec_get("id")->is_noobj()
+            const Pattern pattern = args->arg("pattern")->uri_value();
+            const ID_p id = args->arg("id")->is_noobj()
                               ? nullptr
-                              : id_p(args->arg(0)->rec_get("id")->uri_value());
-            const Rec_p config = args->arg(0)->rec_get("config");
+                              : id_p(args->arg("id")->uri_value());
+            const Rec_p config = args->arg("config");
             const ptr<STRUCTURE> structure = Structure::create<STRUCTURE>(pattern, id, config);
             Router::singleton()->attach(structure);
             return structure;

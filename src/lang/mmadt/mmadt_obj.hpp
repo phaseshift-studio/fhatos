@@ -148,6 +148,31 @@ namespace mmadt {
           })
           ->save();
 
+      InstBuilder::build(MMADT_PREFIX "jump")
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(lst({*__()->isa(*URI_FURI)}))
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            const fURI furi = args->arg(0)->uri_value();
+            if(furi == "none")
+              return obj;
+            else {
+              const Inst_p to_inst = ROUTER_READ(args->arg(0)->uri_value());
+              const Inst_p from_inst = ROUTER_READ("_inst");
+              LOG(INFO, "current inst: %s\n", from_inst->toString().c_str());
+              return to_inst->apply(obj, Obj::to_rec({{"_back", from_inst}}));
+            }
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_PREFIX "back")
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          // ->inst_args(lst({*__()->isa(*URI_FURI)}))
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            const Inst_p inst = ROUTER_READ("_back");
+            ROUTER_PUSH_FRAME("#", Obj::to_rec({{"_back", obj}}));
+            return inst->apply(obj, Obj::to_rec({{"_back", vri("none")}}));
+          })
+          ->save();
 
       InstBuilder::build(MMADT_PREFIX "isa")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
@@ -515,12 +540,34 @@ namespace mmadt {
           ->domain_range(LST_FURI, LST_FURI)
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Lst_p ret = Obj::to_lst();
-            for(uint8_t i = 0; i < args->arg(0)->lst_value()->size(); i++) {
+            const Lst_p rhs = args->arg(0);
+            for(uint8_t i = 0; i < rhs->lst_value()->size(); i++) {
               if(i < lhs->lst_value()->size()) {
-                ret->lst_add(args->arg(0)->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+                ret->lst_add(rhs->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
               } else {
-                ret->lst_add(args->arg(0)->lst_value()->at(i)->apply(Obj::to_noobj()));
+                ret->lst_add(rhs->lst_value()->at(i)->apply(Obj::to_noobj()));
               }
+            }
+            return ret;
+          })
+          ->save();
+
+      InstBuilder::build(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/each")
+          ->inst_args(lst({isa_arg(REC_FURI)}))
+          ->domain_range(REC_FURI, REC_FURI)
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            const Rec_p ret = Obj::to_rec();
+            const Rec_p rhs = args->arg(0);
+            for(const auto &[rk,rv]: *rhs->rec_value()) {
+              bool found = false;
+              for(const auto &[lk,lv]: *lhs->rec_value()) {
+                if(lk->match(rk)) {
+                  found = true;
+                  ret->rec_set(rk->apply(lk), rv->apply(lv));
+                }
+              }
+              if(!found)
+                ret->rec_set(rk, rv->apply(Obj::to_noobj()));
             }
             return ret;
           })
@@ -584,7 +631,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/merge")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
-         // ->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
+          // ->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const int max = args->rec_value()->empty() ? INT32_MAX : args->arg(0)->int_value();
             return max > 0 ? lhs : Obj::to_noobj();
@@ -806,11 +853,11 @@ namespace mmadt {
           })->save();
 
       InstBuilder::build(MMADT_PREFIX "ref")
-          ->inst_args(lst({Obj::to_bcode(), dool(true)}))
+          ->inst_args(lst({Obj::to_bcode(),block(Obj::to_noobj())}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p ret = args->arg(0);
-            ROUTER_WRITE(lhs->uri_value(), ret, args->arg(1)->bool_value());
+            ROUTER_WRITE(lhs->uri_value(), ret, args->arg(1)->is_noobj() ? true : args->arg(1)->bool_value());
             return ret;
           })
           ->save();

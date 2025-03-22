@@ -47,12 +47,12 @@ namespace fhatos {
         try {
           const Obj_p current = ROUTER_READ(type_id);
           if(type_progress_bar_) {
-            ROUTER_WRITE(type_id, type_def,true);
+            ROUTER_WRITE(type_id, type_def, true);
             type_progress_bar_->incr_count(type_id.toString());
             if(type_progress_bar_->done())
-              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),true);
+              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()), true);
           } else {
-            ROUTER_WRITE(type_id, type_def,true);
+            ROUTER_WRITE(type_id, type_def, true);
             if(current->is_noobj()) {
               LOG_WRITE(INFO, this, L("{} !ytype!! defined\n", type_id.toString().c_str()));
             } else {
@@ -67,50 +67,6 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       IS_TYPE_OF = [this](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
         return this->is_type_of(is_type_id, type_of_id, derivations);
-      };
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_CHECKER = [this](const Obj *obj, const ID_p &typex_id, const bool throw_on_fail) -> bool {
-        // TODO: need to get coefficient data in dom/rng ids
-        if(obj->is_noobj()) {
-          if(const vector<string> coef = typex_id->query_values(FOS_RNG_COEF);
-            !coef.empty() && stoi(coef.front()) == 0) {
-            return true;
-          }
-        }
-        const ID_p type_id = id_p(typex_id->no_query());
-        if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI)) // TODO: hack on noobj
-          return true;
-        // if the type is a base type and the base types match, then type check passes
-        if(type_id->equals(*OTYPE_FURI.at(obj->otype)))
-          return true;
-        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-        if(obj->tid->equals(*type_id))
-          return true;
-        // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-        if(obj->otype == OType::TYPE || obj->otype == OType::INST || obj->otype == OType::BCODE)
-          return true;
-        if(type_id->equals(*NOOBJ_FURI) && (obj->otype == OType::NOOBJ || obj->tid->equals(*OBJ_FURI)))
-          return true;
-        // get the type definition and match it to the obj
-        if(const Obj_p type = ROUTER_READ(*type_id); !type->is_noobj()) {
-          ObjHelper::check_coefficients(obj->range_coefficient(), type->domain_coefficient());
-          // if(type->is_type() && !obj->apply(type)->is_noobj())
-          //   return true;
-          if(obj->match(type, false))
-            return true;
-          if(throw_on_fail) {
-            static const auto p = GLOBAL_PRINTERS.at(obj->otype)->clone();
-            p->show_type = false;
-            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid->toString().c_str(),
-                         obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
-          }
-          return false;
-        }
-        if(throw_on_fail)
-          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid->toString().c_str(),
-                       type_id->toString().c_str());
-        return false;
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,6 +211,7 @@ namespace fhatos {
   public:
     static ptr<Typer> singleton(const ID &id = "/sys/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
+      Compiler::boot_loading = false;
       return types_p;
     }
 
@@ -276,12 +233,12 @@ namespace fhatos {
       try {
         const Obj_p current = ROUTER_READ(type_id);
         if(type_progress_bar_) {
-          ROUTER_WRITE(type_id, type_def,true);
+          ROUTER_WRITE(type_id, type_def, true);
           type_progress_bar_->incr_count(type_id.toString());
           if(type_progress_bar_->done())
-            ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()),true);
+            ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()), true);
         } else {
-          ROUTER_WRITE(type_id, type_def,true);
+          ROUTER_WRITE(type_id, type_def, true);
           if(current->is_noobj()) {
             LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString(), type_id.toString()));
           } else {

@@ -39,8 +39,10 @@ namespace fhatos {
   using ID_p = std::shared_ptr<ID>;
 
 
+
   class Compiler {
   public:
+    static bool boot_loading;
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;

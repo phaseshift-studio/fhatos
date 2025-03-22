@@ -68,6 +68,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <stack>
 #ifdef NATIVE
 #include "../extern/fmt/include/fmt/format.h"
 #else
@@ -94,6 +95,7 @@ namespace fhatos {
   using std::fstream;
   using std::ios;
   using std::enable_shared_from_this;
+  using std::stack;
   using fmt::format;
 
 

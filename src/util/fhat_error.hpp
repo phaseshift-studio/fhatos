@@ -25,6 +25,7 @@
 #include <memory>
 #ifdef NATIVE
 #include <cpptrace/cpptrace.hpp>
+#include <fmt/core.h>
 #endif
 
 using std::string;
@@ -32,7 +33,7 @@ using std::unique_ptr;
 using std::make_unique;
 
 namespace fhatos {
-
+ // TODO: put a fail stack in fError (requires obj.hpp and furi.hpp inclusion)
   ///////////////////////
   /// EXCEPTION TYPES ///
   ///////////////////////

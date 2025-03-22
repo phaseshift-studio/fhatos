@@ -120,8 +120,8 @@ namespace fhatos {
         this->router_ = Router::singleton();
 
       while(true) {
-        this->router_->loop();
         this->feed_local_watchdog();
+        this->router_->loop();
         std::this_thread::yield();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));

@@ -317,8 +317,7 @@ void test_bool() {
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
     TEST_ASSERT_EQUAL(OType::STR, strA->otype);
     FOS_TEST_IS_A(OType::STR,strA);
-    TEST_ASSERT_TRUE(strA->match(str("fhat"), false));
-    TEST_ASSERT_FALSE(strA->match(str("fhat"), true));
+    TEST_ASSERT_TRUE(strA->match(str("fhat")));
   }
 
   void test_lst() {
