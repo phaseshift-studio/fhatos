@@ -159,8 +159,8 @@ namespace fhatos {
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
       // /obj_tid/::inst_tid
       if(inst_obj->is_inst_stub()) {
-        LOG(INFO, "searching for %s -- %s\n", lhs->tid->add_component(inst->tid->no_query()).toString().c_str(),
-            Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->toString().c_str());
+       // LOG(INFO, "searching for %s -- %s\n", lhs->tid->add_component(inst->tid->no_query()).toString().c_str(),
+       //     Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->toString().c_str());
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
       }
