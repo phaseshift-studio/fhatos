@@ -809,6 +809,10 @@ namespace fhatos {
       return this->rec_get(uri_key);
     }
 
+    [[nodiscard]] bool is_inst_stub() const {
+      return this->is_noobj() || !this->has_inst_f();
+    }
+
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Obj_p &or_else = nullptr) const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -1813,7 +1817,7 @@ namespace fhatos {
       if(lhs->is_type()) {
         auto next = lhs->type_value();
         if(this->is_inst()) {
-          LOG(INFO, "apply type to inst: %s => %s\n", lhs->toString().c_str(), this->toString().c_str());
+          LOG_WRITE(TRACE, this, L("apply type to inst: {} => {}\n", lhs->toString(), this->toString()));
           if(Compiler(true, false).type_check(lhs, *this->domain())) {
           }
           if(lhs->range_coefficient().first < this->domain_coefficient().first) {
@@ -2354,7 +2358,7 @@ namespace fhatos {
     static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF &function,
                           const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
-      const ID_p fix = type_id != nullptr ? type_id : id_p(ROUTER_RESOLVE(fURI(opcode)));
+      const ID_p fix = type_id != nullptr ? type_id : id_p(opcode.c_str()); // id_p(ROUTER_RESOLVE(fURI(opcode)));
       return to_inst(make_tuple(args, function, seed), fix, value_id);
     }
 
@@ -2476,14 +2480,14 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    BObj_p serialize() const {
-      LOG(DEBUG, "serializing obj %s\n", this->toString().c_str());
+    [[nodiscard]] BObj_p serialize() const {
+      LOG_WRITE(DEBUG,this, L("serializing obj {}\n", this->toString()));
       const string serial = this->toString(SERIALIZER_PRINTER);
       return ptr<BObj>(new BObj(serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))), bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      LOG(DEBUG, "deserializing bytes %s (length %i)\n", bobj->second, bobj->first);
+      //LOG_WRITE(DEBUG, nullptr, L("deserializing bytes {} (length {})\n", bobj->second, bobj->first));
       const Obj_p obj = OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
       return obj;
     }

@@ -118,26 +118,28 @@ namespace fhatos {
 
   }
 
-  Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &obj) const {
-    if(obj->is_noobj())
+  Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &inst_obj) const {
+    if(inst_obj->is_noobj())
       return Obj::to_noobj();
-    if(obj->is_inst()) {
+    if(inst_obj->is_inst()) {
       //if(stub_inst->inst_args()->rec_size() == obj->inst_args()->rec_size())
       //LOG(INFO,"MATCHING: %s ~ %s\n",stub_inst->toString().c_str(),obj->toString().c_str());
-      const bool good = match_inst_args(stub_inst->inst_args(), obj->inst_args());
+      const bool good = match_inst_args(stub_inst->inst_args(), inst_obj->inst_args());
       if(dt)
-        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(obj->vid_or_tid()->no_query()), obj);
-      return good ? obj : Obj::to_noobj();
+        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(inst_obj->vid_or_tid()->no_query()), inst_obj);
+      return good ? inst_obj : Obj::to_noobj();
       //return obj;
+    } else {
+      //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
+      const Inst_p inst = InstBuilder::build("")
+          ->inst_args(stub_inst->inst_args())
+          ->inst_f(inst_obj)
+          ->domain_range(inst_obj->domain(), inst_obj->domain_coefficient(), inst_obj->range(),
+                         inst_obj->range_coefficient())
+          ->create();
+      LOG_WRITE(TRACE, inst_obj.get(), L("converting {} to inst {}\n", inst_obj->toString(), inst->toString()));
+      return inst;
     }
-    //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
-    const Inst_p inst = InstBuilder::build("")
-        ->inst_args(stub_inst->inst_args())
-        ->inst_f(obj)
-        ->domain_range(obj->domain(), obj->domain_coefficient(), obj->range(), obj->range_coefficient())
-        ->create();
-    LOG(TRACE, "converting %s to inst %s\n", obj->toString().c_str(), inst->toString().c_str());
-    return inst;
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
@@ -147,55 +149,40 @@ namespace fhatos {
     if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
-    if(!inst_obj->has_inst_f()) {
+    if(inst_obj->is_inst_stub()) {
       // inst_vid
-      if(inst->vid /*&& !inst->vid->is_relative()*/) {
+      if(inst_obj->vid)
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
-        // if(dt)
-        //   dt->emplace_back(id_p(""), inst->vid, inst_obj);
-      }
       // /obj_vid/::/inst_tid
-      if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
+      if(inst_obj->is_inst_stub() && lhs->vid)
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
-        // if(dt)
-        //  dt->emplace_back(lhs->vid, id_p(inst->tid->no_query()), inst_obj);
+      // /obj_tid/::inst_tid
+      if(inst_obj->is_inst_stub()) {
+        LOG(INFO, "searching for %s -- %s\n", lhs->tid->add_component(inst->tid->no_query()).toString().c_str(),
+            Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->toString().c_str());
+        inst_obj = convert_to_inst(
+            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
       }
       // /obj_vid/::/resolved/inst_tid
       const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
-      if((inst_obj->is_noobj() || !inst_obj->has_inst_f()) && lhs->vid) {
+      if(inst_obj->is_inst_stub() && lhs->vid)
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
-        //if(dt)
-        // dt->emplace_back(lhs->vid, id_p(inst_type_id_resolved), inst_obj);
-      }
-      // /obj_tid/::inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
-        inst_obj = convert_to_inst(
-            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
-        // if(dt)
-        //  dt->emplace_back(lhs->tid, id_p(inst->tid->no_query()), inst_obj);
-      }
       // /obj_tid/::/resolved/inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
+      if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
-        //  if(dt)
-        //   dt->emplace_back(lhs->tid, id_p(inst_type_id_resolved), inst_obj);
-      }
       // /resolved/inst_tid
-      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
+      if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-        //   if(dt)
-        //   dt->emplace_back(id_p(""), id_p(inst_type_id_resolved), inst_obj);
-      }
       // obj_tid/obj_tid (recurse)
-      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
+      if(inst_obj->is_inst_stub()) {
         if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
           inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
         }
       }
-      if(inst_obj->is_noobj() || !inst_obj->has_inst_f()) {
+      if(inst_obj->is_inst_stub()) {
         if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
           inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
                                          Router::singleton()->read(
@@ -205,7 +192,7 @@ namespace fhatos {
                                          inst_obj));
         }
       }
-      if(this->throw_on_miss && (inst_obj->is_noobj() || !inst_obj->has_inst_f())) {
+      if(this->throw_on_miss && inst_obj->is_inst_stub()) {
         string derivation_string;
         if(dt)
           this->print_derivation_tree(&derivation_string);
@@ -304,7 +291,7 @@ namespace fhatos {
     if(rhs->is_type())
       return IS_TYPE_OF(lhs->tid, rhs->tid, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
     if(rhs->is_code() && !lhs->is_code()) {
-      Obj_p result = rhs->apply(lhs->clone());
+      const Obj_p result = rhs->apply(lhs->clone());
       if(result->is_noobj())
         return rhs->range_coefficient().first == 0;
       return !result->is_noobj();

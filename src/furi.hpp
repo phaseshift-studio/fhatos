@@ -673,7 +673,7 @@ namespace fhatos {
           comps.emplace_back("");
         } else {
           fURI x = comps.back();
-          fURI next = x.empty() ? fURI(this->sprefix_ ? "/" : "").extend(this->path_[i]) : x.extend(this->path_[i]);
+          fURI next = x.empty() ? fURI(this->sprefix_ ? "/" : "").append(this->path_[i]) : x.extend(this->path_[i]);
           comps.pop_back();
           comps.push_back(next);
         }

@@ -344,7 +344,7 @@ namespace fhatos {
     if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
       return furi;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
-    if(furi.has_components()) {
+    if(components.empty()) {
       for(const auto &c: furi.components()) {
         components.emplace_back(c);
       }

@@ -263,8 +263,7 @@ namespace mmadt {
       auto inst_action = [](const SemanticValues &vs) -> Inst_p {
         const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
         const InstArgs args = any_cast<InstArgs>(vs[1]);
-        return Obj::to_inst(args, id_p(Router::singleton()->resolve(*op)),
-                            vs.size() == 3 ? id_p(*any_cast<fURI_p>(vs[2])) : nullptr);
+        return Obj::to_inst(args, op, vs.size() == 3 ? id_p(*any_cast<fURI_p>(vs[2])) : nullptr);
       };
       auto furi_action = [](const SemanticValues &vs) {
         string s = vs.token_to_string();
@@ -346,7 +345,7 @@ namespace mmadt {
                                 vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 1: { // a(c)[b]@xyz
-            const ID_p type_id = id_p(Router::singleton()->resolve(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
             const auto args = any_cast<InstArgs>(vs[1]);
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
             const Obj_p body = Obj::create(v, o, type_id);

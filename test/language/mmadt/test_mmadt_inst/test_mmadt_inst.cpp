@@ -271,7 +271,7 @@ namespace fhatos {
 
   void test_drop_inst() {
     FOS_TEST_FURI_EQUAL(fURI(MMADT_SCHEME "/from"), *PROCESS("/abc/drop_1 -> |*/abc/drop_2")->tid);
-    FOS_TEST_FURI_EQUAL(fURI(MMADT_SCHEME "/plus"), *PROCESS("/abc/drop_2 -> |plus(10)")->tid);
+    FOS_TEST_FURI_EQUAL(fURI("plus"), *PROCESS("/abc/drop_2 -> |plus(10)")->tid);
     FOS_TEST_OBJ_EQUAL(jnt(33), PROCESS("23.drop(drop(*/abc/drop_1))"));
     // TODO: implement repeat(drop()).until(not_code)   drop_hard() :)
   }

@@ -48,12 +48,13 @@ namespace fhatos {
       const Lst_p furis = Log::singleton()->rec_get(fURI("config").extend(LOG_TYPES.to_chars(type)));
       if(!furis->is_lst()) {
         printer()->printf("!g[ERROR] !! " OBJ_ID_WRAP" log listing not within schema specification: %s\n",
-                            Log::singleton()->vid_or_tid()->toString().c_str(), Log::singleton()->toString());
+                          Log::singleton()->vid_or_tid()->toString().c_str(), Log::singleton()->toString());
         return;
       }
       bool match = false;
+      const bool source_is_null = nullptr == source;
       for(const auto &a: *furis->lst_value()) {
-        if(source->vid_or_tid()->matches(a->uri_value())) {
+        if(!source_is_null && source->vid_or_tid()->matches(a->uri_value())) {
           match = true;
           break;
         }
@@ -73,11 +74,12 @@ namespace fhatos {
         printer()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer()->print("!r[TRACE]!! ");
-      if(source->vid && source->vid->has_path("sys"))
-        printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString()).c_str());
+      if(source_is_null || (source->vid && source->vid->has_path("sys")))
+        printer()->print(
+            fmt::format(SYS_ID_WRAP, source_is_null ? "<none>" : source->vid_or_tid()->toString()).c_str());
       else
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString()).c_str());
-      printer()->print( message().c_str());
+      printer()->print(message().c_str());
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
@@ -101,7 +103,7 @@ namespace fhatos {
       string log_level_str = args->get<fURI>("level").toString();
       std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
       const LOG_TYPE log_level = LOG_TYPES.to_enum(log_level_str);
-      Log::PRIMARY_LOGGING(log_level,source_obj.get(),L("{}",args->arg("message")->toString()));
+      Log::PRIMARY_LOGGING(log_level, source_obj.get(),L("{}", args->arg("message")->toString()));
       return source_obj;
     }
 
