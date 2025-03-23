@@ -125,7 +125,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
 [INFO]  [/sys/router] fs boot config dropped
 [INFO]  [/mnt/dsm] query processor /mnt/dsm/ attached
-[ERROR] [/mmadt/rec] unable to connect to mqtt://chibi.local:1883: MQTT error [-1]: TCP/TLS connect failure
+[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
 [INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
@@ -400,7 +400,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/rec/::/mmadt/plus=>plus(isa(/mmadt/rec))[cpp]
 ==>/mmadt/rec/::/mmadt/rshift=>rshift(isa(/mmadt/uri))[cpp]
 ==>/mmadt/rec/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/ref=>ref?obj{?}<=obj{?}(_,true)[cpp]
+==>/mmadt/ref=>ref?obj{?}<=obj{?}(_,block(noobj))[cpp]
 ==>/mmadt/repeat=>repeat(from(0?code,noobj)[cpp],from(1?until,true)[cpp],from(2?emit,false)[cpp])[cpp]
 ==>/mmadt/rshift=>rshift()
 ==>/mmadt/split=>split(_)[cpp]
@@ -497,9 +497,23 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 [source,mmadt]
 ----
 fhatos> # -> noobj
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as bool
-	  thrown at inst # => ref?obj{?}<=obj{?}(true)[cpp] [1=>true]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'# -> noobj')[cpp] [code=>'# -> noobj']
+[ERROR] [/sys/router] # crosses multiple structures
+[INFO]  [/sys/router] 1 bus(s) closing
+[INFO]  [/sys/router] 1 dsm(s) closing
+[INFO]  [/sys/router] 1 fs(s) closing
+[INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
+[INFO]  [/sys/router] router /sys/router stopped
+[INFO]  [/sys/router] /sys/# heap detached
+[INFO]  [/sys/router] /mnt/# heap detached
+[INFO]  [/sys/router] /boot/# heap detached
+[INFO]  [/sys/router] /fos/# heap detached
+[INFO]  [/sys/router] /mmadt/# heap detached
+[INFO]  [/sys/router] /io/# heap detached
+[INFO]  [/sys/router] +/# heap detached
+[INFO]  [/sys/router] /disk/# fs detached
+[INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++
@@ -844,8 +858,7 @@ fhatos> char['a']@a
 fhatos> char['b']@b
 ==>char['b']@b
 fhatos> @a + @b
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst 'aa'@a => char()[merge(2).count().is(eq(1))] [0=>char['a']@a]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))] 
 	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a + @b')[cpp] [code=>'@a + @b']
 fhatos> *a
@@ -882,16 +895,14 @@ fhatos> *nat
 fhatos> nat[12]
 ==>nat[12]
 fhatos> nat[-30]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst -30 => nat()[is(gte(0))] [code=>'nat[-30]']
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[-30]')[cpp] [code=>'nat[-30]']
 fhatos> nat[12]@a
 ==>nat[12]@a
 fhatos> @a.minus(11)
 ==>nat[1]@a
 fhatos> @a.minus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst -1@a => nat()[is(gte(0))] [0=>2]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a.minus(2)')[cpp] [code=>'@a.minus(2)']
 fhatos> *a
@@ -924,8 +935,7 @@ fhatos> C[0.0]
 fhatos> C[274.0]
 ==>C[274]
 fhatos> C[-274.0]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/real as defined by [real][_] 
-	  thrown at inst -274.000000 => C()[is(gte(-273.149994))] [code=>'C[-274.0]']
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))] 
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'C[-274.0]')[cpp] [code=>'C[-274.0]']
 ----
 
@@ -1150,8 +1160,7 @@ fhatos> @a + 1
 fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1                               // <3>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst 129@a => uint8()[is(gte(-127)).is(lte(128))] [0=>1]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
 	  thrown at inst int8[128]@a => plus(1)[cpp] [0=>1]
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a + 1                               // <3>')[cpp] [code=>'@a + 1                               // <3>']
 ----
@@ -1788,14 +1797,12 @@ fhatos> /type/int/nat -> |is(gt(0))
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst -6 => nat()[is(gte(0))] [code=>'nat[-6]']
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[-6]')[cpp] [code=>'nat[-6]']
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a /mmadt/int as defined by [int][_] 
-	  thrown at inst -6 => nat()[is(gte(0))] [0=>-2]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 	  thrown at inst nat[3] => mult(-2)[cpp] [0=>-2]
 	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[3].mult(-2)')[cpp] [code=>'nat[3].mult(-2)']
 ----

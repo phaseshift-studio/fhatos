@@ -486,13 +486,19 @@ namespace fhatos {
         new_uri.spostfix_ = true;
         return new_uri;
       }
-      auto new_path = string(this->path());
-      if(!this->spostfix_ && extension[0] != '/')
-        new_path += '/';
-      if(new_path.empty())
-        return this->path(extension);
-      new_path += extension;
-      return this->path(new_path);
+      if(this->path().empty() || this->path() == "/") {
+        fURI new_furi = this->path(extension);
+        new_furi.sprefix_ = true;
+        return new_furi;
+      } else {
+        auto new_path = string(this->path());
+        if(!this->spostfix_ && extension[0] != '/')
+          new_path += '/';
+        if(new_path.empty())
+          return this->path(extension);
+        new_path += extension;
+        return this->path(new_path);
+      }
     }
 
     [[nodiscard]] fURI retract(const int steps = 1) const {
@@ -660,16 +666,16 @@ namespace fhatos {
       return this->extend("::").extend(component);
     }
 
-    [[nodiscard]] List<string> components() const {
-      List<string> comps = {""};
+    [[nodiscard]] List<fURI> components() const {
+      List<fURI> comps = {""};
       for(uint8_t i = 0; i < this->path_length_; i++) {
         if(0 == strcmp("::", this->path_[i])) {
           comps.emplace_back("");
         } else {
-          string x = comps.back();
-          x = x.empty() ? this->path_[i] : x.append("/").append(this->path_[i]);
+          fURI x = comps.back();
+          fURI next = x.empty() ? fURI(this->sprefix_ ? "/" : "").extend(this->path_[i]) : x.extend(this->path_[i]);
           comps.pop_back();
-          comps.push_back(x);
+          comps.push_back(next);
         }
       }
       if(comps.back().empty())
@@ -680,11 +686,11 @@ namespace fhatos {
     [[nodiscard]] fURI remove_subpath(const string &subpath, const bool forward = true) const {
       string new_path = this->toString();
       StringHelper::replace(&new_path, subpath, "", forward);
-      return fURI(new_path);
+      return {new_path};
     }
 
     [[nodiscard]] fURI append(const fURI &other) const {
-      return fURI(this->toString().append(other.toString()));
+      return {this->toString().append(other.toString())};
     }
 
     [[nodiscard]] virtual fURI resolve(const fURI &other) const {
@@ -740,7 +746,7 @@ namespace fhatos {
         if(i == other.path_length_ - 1)
           temp->spostfix_ = other.spostfix_;
       }
-      auto ret = fURI(*temp);
+      const auto ret = fURI(*temp);
       delete temp;
       return ret.query(other.query());
     }
@@ -813,7 +819,22 @@ namespace fhatos {
              path_length();
     }
 
-    bool operator=(const fURI &other) const { return this->equals(other); }
+    fURI &operator=(const fURI &other) {
+      if(&other == this)
+        return *this;
+      this->scheme_ = other.scheme_;
+      this->host_ = other.host_;
+      this->port_ = other.port_;
+      this->user_ = other.user_;
+      this->password_ = other.password_;
+      this->coefficient_ = other.coefficient_;
+      this->query_ = other.query_;
+      this->path_length_ = other.path_length_;
+      this->path_ = other.path_;
+      this->sprefix_ = other.sprefix_;
+      this->spostfix_ = other.spostfix_;
+      return *this;
+    }
 
     [[nodiscard]] bool headless() const {
       const char first = this->toString()[0];
