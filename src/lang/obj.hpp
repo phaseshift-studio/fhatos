@@ -421,7 +421,7 @@ namespace fhatos {
               public BiFunction<Obj_p, InstArgs, Obj_p>,
               public enable_shared_from_this<const Obj> {
   public:
-    const OType otype;
+    OType otype;
     Any value_;
 
     struct objp_hash {
@@ -1666,6 +1666,36 @@ namespace fhatos {
 
     bool operator==(const Obj &other) const {
       return this->equals(other);
+    }
+
+    Obj &operator=(const Obj &other) {
+      if(&other == this)
+        return *this;
+      this->tid = other.tid;
+      this->vid = other.vid;
+      this->otype = other.otype;
+      switch(this->otype) {
+        case OType::BOOL:
+          this->value_ = std::any(std::any_cast<bool>(other.value_));
+        case OType::INT:
+          this->value_ = std::any(std::any_cast<FOS_INT_TYPE>(other.value_));
+        case OType::REAL:
+          this->value_ = std::any(std::any_cast<FOS_REAL_TYPE>(other.value_));
+        case OType::STR:
+          this->value_ = std::any(std::string(std::any_cast<std::string>(other.value_)));
+        case OType::URI:
+          this->value_ = std::any(fURI(std::any_cast<fURI>(other.value_)));
+        case OType::OBJS:
+        case OType::LST:
+          this->value_ = std::any(std::any_cast<List_p<Obj_p>>(other.value_));
+        case OType::REC:
+          this->value_ = std::any(std::any_cast<RecMap_p<>>(other.value_));
+        case OType::BCODE:
+          this->value_ = std::any(std::any_cast<InstList_p>(other.value_));
+        default:
+          throw fError("unknown type during assignment operation: %s", OTypes.to_chars(this->otype));
+      }
+      return *this;
     }
 
     [[nodiscard]] Obj_p operator[](const char *key) const { return this->rec_get(key); }
