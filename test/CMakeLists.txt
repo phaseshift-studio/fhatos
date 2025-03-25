@@ -142,7 +142,7 @@
             FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/test/rec")
             ##################################################
             MAKE_TESTS(language "test_obj" true)
-            MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst" true)
+            MAKE_TESTS(language/mmadt "test_mmadt_compiler;test_mmadt_parser;test_mmadt_inst;test_mmadt_fluent" true)
             MAKE_TESTS(language/processor "test_processor" true)
             MAKE_TESTS(model/fos/util "test_poll" true)
             MAKE_TESTS(process "test_scheduler" true)

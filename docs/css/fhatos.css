@@ -160,16 +160,33 @@ blockquote {
     color: #ba3925;
 }
 
+div.tabpanel:has(.tablecontainer) td.tableblock, table.tableblock  {
+    border-style: none !important;
+    border: 0;
+}
+
+div.content:has(.admonitionblock) {
+    background-color: #461d1766;
+    border-style: solid;
+    border-width: 0.1em;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    border-color: #66662179;
+}
+
 .admonitionblock>table td.content {
     border-color: #0b1c2c;
     border-width: thin;
-    border-radius: 1em;
+    border-radius: 0.5em;
     border-style: solid;
+    background-color: #43454AFF !important;
+
 }
 
 .admonitionblock>table td.icon {
     background-color: transparent;
 }
+
 
 code {
     color: #d1dcdd !important;
@@ -216,10 +233,6 @@ mark {
     border-radius: 0.25em;
     border-style: solid;
     padding: 0.5em !important;
-}
-
-.admonitionblock>table td.content {
-    background-color: #43454AFF !important;
 }
 
 .MathJax {

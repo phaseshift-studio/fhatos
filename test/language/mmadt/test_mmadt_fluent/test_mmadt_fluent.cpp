@@ -20,8 +20,8 @@
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
-#include "../../test_fhatos.hpp"
-#include "../../../src/lang/mmadt/mmadt.hpp"
+#include "../../../test_fhatos.hpp"
+#include "../../../../src/lang/mmadt/mmadt.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -35,16 +35,18 @@ namespace fhatos {
    // FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(*vri("c")).plus("os")._bcode, {{*vri("c"), "fhat"}});
   }
 
-  /*void test_relational_predicates() {
+  void test_relational_predicates() {
     //// INT
-    FOS_CHECK_RESULTS({1}, __(1).is(_.eq(1))._bcode);
-    FOS_CHECK_RESULTS({}, __(1).is(_.neq(1))._bcode);
-    FOS_CHECK_RESULTS({12}, __({1, 2, 3}).plus(10).is(_.eq(12))._bcode);
-    FOS_CHECK_RESULTS({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12))._bcode);
-    FOS_CHECK_RESULTS({13}, __({1, 2, 3}).plus(10).is(_.gt(12))._bcode);
-    FOS_CHECK_RESULTS({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12))._bcode);
-    FOS_CHECK_RESULTS({11}, __({1, 2, 3}).plus(10).is(_.lt(12))._bcode);
-    FOS_CHECK_RESULTS({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12))._bcode);
+    FOS_TEST_OBJ_EQUAL(jnt(1), __(jnt(1))->is(*__()->eq(jnt(1)))->compute().next());
+    //FOS_TEST_OBJ_EQUAL({}, __(1).is(_.neq(1))._bcode);
+    FOS_TEST_OBJ_EQUAL(jnt(12), __(objs({jnt(1), jnt(2), jnt(3)}))->plus(jnt(10))->is(*__()->eq(jnt(12)))->compute().next());
+   // FOS_TEST_OBJ_EQUAL({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12))._bcode);
+   // FOS_TEST_OBJ_EQUAL(jnt(13), __({1, 2, 3}).plus(10).is(_.gt(12))._bcode);
+    //FOS_TEST_OBJ_EQUAL({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12))._bcode);
+   // FOS_TEST_OBJ_EQUAL(jnt(11), __({1, 2, 3}).plus(10).is(_.lt(12))._bcode);
+    //FOS_TEST_OBJ_EQUAL({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12))._bcode);
+    }
+    /*
     //// REAL
     FOS_CHECK_RESULTS({1.0f}, __(1.0f).is(_.eq(1.0f))._bcode);
     FOS_CHECK_RESULTS({}, __(1.0f).is(_.neq(1.0f))._bcode);
@@ -106,7 +108,7 @@ namespace fhatos {
   //    FOS_RUN_TEST(test_plus); //
    //   FOS_RUN_TEST(test_mult); //
    //   FOS_RUN_TEST(test_count); //
-   //   FOS_RUN_TEST(test_relational_predicates); //
+      FOS_RUN_TEST(test_relational_predicates); //
       )
 } // namespace fhatos
 

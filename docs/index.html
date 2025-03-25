@@ -173,16 +173,33 @@ blockquote {
     color: #ba3925;
 }
 
+div.tabpanel:has(.tablecontainer) td.tableblock, table.tableblock  {
+    border-style: none !important;
+    border: 0;
+}
+
+div.content:has(.admonitionblock) {
+    background-color: #461d1766;
+    border-style: solid;
+    border-width: 0.1em;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    border-color: #66662179;
+}
+
 .admonitionblock>table td.content {
     border-color: #0b1c2c;
     border-width: thin;
-    border-radius: 1em;
+    border-radius: 0.5em;
     border-style: solid;
+    background-color: #43454AFF !important;
+
 }
 
 .admonitionblock>table td.icon {
     background-color: transparent;
 }
+
 
 code {
     color: #d1dcdd !important;
@@ -229,10 +246,6 @@ mark {
     border-radius: 0.25em;
     border-style: solid;
     padding: 0.5em !important;
-}
-
-.admonitionblock>table td.content {
-    background-color: #43454AFF !important;
 }
 
 .MathJax {
@@ -744,7 +757,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;7168]
+[INFO]  [/sys/router] main memory [total=&gt;6912]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -786,8 +799,8 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==&gt;//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/io/console] thread spawned: inst()[cpp]
+[INFO]  [/sys/router] /io/console obj loaded
 [INFO]  [/sys/router] console boot config dropped</code></pre>
 </div>
 </div>
@@ -974,12 +987,12 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/back=&gt;back?obj{?}&lt;=obj()[cpp]
 ==&gt;/mmadt/barrier=&gt;barrier?objs{*}&lt;=objs{*}(_)[cpp]
 ==&gt;/mmadt/bcode=&gt;[bcode][_]
-==&gt;/mmadt/bcode/::/mmadt/inspect=&gt;inspect(isa(/mmadt/bool))[cpp]
+==&gt;/mmadt/bcode/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/block=&gt;block?obj&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/bool=&gt;[bool][_]
 ==&gt;/mmadt/bool/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/bool/::/mmadt/div=&gt;div(isa(/mmadt/bool))[cpp]
-==&gt;/mmadt/bool/::/mmadt/inspect=&gt;inspect(isa(/mmadt/bool))[cpp]
+==&gt;/mmadt/bool/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/bool/::/mmadt/minus=&gt;minus(isa(/mmadt/bool))[cpp]
 ==&gt;/mmadt/bool/::/mmadt/mult=&gt;mult(isa(/mmadt/bool))[cpp]
 ==&gt;/mmadt/bool/::/mmadt/neg=&gt;neg(isa(/mmadt/bool))[cpp]
@@ -990,12 +1003,13 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/div=&gt;div(_)
 ==&gt;/mmadt/drop=&gt;drop?obj{?}&lt;=obj{?}(isa(/mmadt/obj))[cpp]
 ==&gt;/mmadt/each=&gt;each(isa(/mmadt/obj))
+==&gt;/mmadt/else=&gt;else?obj{?}&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/embed=&gt;embed()[cpp]
 ==&gt;/mmadt/end=&gt;end?noobj{.}&lt;=obj{*}()[cpp]
 ==&gt;/mmadt/eq=&gt;eq(_)[cpp]
 ==&gt;/mmadt/error=&gt;[error][_]
 ==&gt;/mmadt/explain=&gt;explain()[cpp]
-==&gt;/mmadt/ext/C=&gt;C()[is(gte(-273.149994))]
+==&gt;/mmadt/ext/C=&gt;C()[is(gte(-273.14999))]
 ==&gt;/mmadt/ext/Ox=&gt;Ox()[is(true)]
 ==&gt;/mmadt/ext/char=&gt;char()[merge(2).count().is(eq(1))]
 ==&gt;/mmadt/ext/int16=&gt;[int16][_]
@@ -1004,7 +1018,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/ext/ms=&gt;[real][_]
 ==&gt;/mmadt/ext/ms/::/mmadt/as=&gt;as(is(eq(/mmadt/ext/sec)))[cpp]
 ==&gt;/mmadt/ext/nat=&gt;nat()[is(gte(0))]
-==&gt;/mmadt/ext/prnt=&gt;prnt()[is(gte(0.000000)).is(lte(100.000000))]
+==&gt;/mmadt/ext/prnt=&gt;prnt()[is(gte(0.00000)).is(lte(100.00000))]
 ==&gt;/mmadt/ext/sec=&gt;[real][_]
 ==&gt;/mmadt/ext/secret=&gt;[str][_]
 ==&gt;/mmadt/ext/secret/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
@@ -1016,13 +1030,22 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/gte=&gt;gte(isa(/mmadt/obj))
 ==&gt;/mmadt/inspect=&gt;inspect(isa(/mmadt/obj))
 ==&gt;/mmadt/inst=&gt;[inst][_]
-==&gt;/mmadt/inst/::/mmadt/inspect=&gt;inspect(isa(/mmadt/inst))[cpp]
+==&gt;/mmadt/inst/::/mmadt/inspect=&gt;inspect(_)[cpp]
+==&gt;/mmadt/inst/blockers=&gt;[
+===&gt;block
+===&gt;each
+===&gt;within
+===&gt;isa
+===&gt;split
+===&gt;choose
+===&gt;chain
+=&gt;]
 ==&gt;/mmadt/int=&gt;[int][_]
 ==&gt;/mmadt/int/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/int/::/mmadt/div=&gt;div(isa(/mmadt/int))[cpp]
 ==&gt;/mmadt/int/::/mmadt/gt=&gt;gt(isa(/mmadt/int))[cpp]
 ==&gt;/mmadt/int/::/mmadt/gte=&gt;gte(isa(/mmadt/int))[cpp]
-==&gt;/mmadt/int/::/mmadt/inspect=&gt;inspect(isa(/mmadt/int))[cpp]
+==&gt;/mmadt/int/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/lt=&gt;lt(isa(/mmadt/int))[cpp]
 ==&gt;/mmadt/int/::/mmadt/lte=&gt;lte(isa(/mmadt/int))[cpp]
 ==&gt;/mmadt/int/::/mmadt/minus=&gt;minus(isa(/mmadt/int))[cpp]
@@ -1039,7 +1062,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/lst=&gt;[lst][_]
 ==&gt;/mmadt/lst/::/mmadt/div=&gt;div(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/each=&gt;each(isa(/mmadt/lst))[cpp]
-==&gt;/mmadt/lst/::/mmadt/inspect=&gt;inspect(isa(/mmadt/lst))[cpp]
+==&gt;/mmadt/lst/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/lst/::/mmadt/merge=&gt;merge?objs{*}&lt;=lst()[cpp]
 ==&gt;/mmadt/lst/::/mmadt/minus=&gt;minus(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/mult=&gt;mult(isa(/mmadt/lst))[cpp]
@@ -1056,6 +1079,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/neg=&gt;neg(isa(/mmadt/obj))
 ==&gt;/mmadt/neq=&gt;neq(_)[cpp]
 ==&gt;/mmadt/noobj=&gt;[noobj][_]
+==&gt;/mmadt/not=&gt;not?obj{?}&lt;=obj(_)[cpp]
 ==&gt;/mmadt/obj=&gt;[obj][_]
 ==&gt;/mmadt/objs=&gt;[objs][_]
 ==&gt;/mmadt/plus=&gt;plus(_)
@@ -1066,7 +1090,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/real/::/mmadt/div=&gt;div(isa(/mmadt/real))[cpp]
 ==&gt;/mmadt/real/::/mmadt/gt=&gt;gt(isa(/mmadt/real))[cpp]
 ==&gt;/mmadt/real/::/mmadt/gte=&gt;gte(isa(/mmadt/real))[cpp]
-==&gt;/mmadt/real/::/mmadt/inspect=&gt;inspect(isa(/mmadt/real))[cpp]
+==&gt;/mmadt/real/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/real/::/mmadt/lt=&gt;lt(isa(/mmadt/real))[cpp]
 ==&gt;/mmadt/real/::/mmadt/lte=&gt;lte(isa(/mmadt/real))[cpp]
 ==&gt;/mmadt/real/::/mmadt/minus=&gt;minus(isa(/mmadt/real))[cpp]
@@ -1076,7 +1100,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/rec=&gt;[rec][_]
 ==&gt;/mmadt/rec/::/mmadt/div=&gt;div(isa(/mmadt/rec))[cpp]
 ==&gt;/mmadt/rec/::/mmadt/each=&gt;each(isa(/mmadt/rec))[cpp]
-==&gt;/mmadt/rec/::/mmadt/inspect=&gt;inspect(isa(/mmadt/rec))[cpp]
+==&gt;/mmadt/rec/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/rec/::/mmadt/lshift=&gt;lshift(isa(/mmadt/int))[cpp]
 ==&gt;/mmadt/rec/::/mmadt/merge=&gt;merge?objs{*}&lt;=rec()[cpp]
 ==&gt;/mmadt/rec/::/mmadt/minus=&gt;minus(isa(/mmadt/rec))[cpp]
@@ -1094,7 +1118,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/str/::/mmadt/div=&gt;div(isa(/mmadt/str))[cpp]
 ==&gt;/mmadt/str/::/mmadt/gt=&gt;gt(isa(/mmadt/str))[cpp]
 ==&gt;/mmadt/str/::/mmadt/gte=&gt;gte(isa(/mmadt/str))[cpp]
-==&gt;/mmadt/str/::/mmadt/inspect=&gt;inspect(isa(/mmadt/str))[cpp]
+==&gt;/mmadt/str/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/str/::/mmadt/lt=&gt;lt(isa(/mmadt/str))[cpp]
 ==&gt;/mmadt/str/::/mmadt/lte=&gt;lte(isa(/mmadt/str))[cpp]
 ==&gt;/mmadt/str/::/mmadt/merge=&gt;merge?objs{*}&lt;=str()[cpp]
@@ -1110,15 +1134,15 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/uri/::/mmadt/div=&gt;div(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gt=&gt;gt(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gte=&gt;gte(isa(/mmadt/uri))[cpp]
-==&gt;/mmadt/uri/::/mmadt/inspect=&gt;inspect(isa(/mmadt/uri))[cpp]
-==&gt;/mmadt/uri/::/mmadt/lshift=&gt;lshift(isa(/mmadt/int))[cpp]
+==&gt;/mmadt/uri/::/mmadt/inspect=&gt;inspect(_)[cpp]
+==&gt;/mmadt/uri/::/mmadt/lshift=&gt;lshift(_)[cpp]
 ==&gt;/mmadt/uri/::/mmadt/lt=&gt;lt(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/lte=&gt;lte(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/merge=&gt;merge?objs{*}&lt;=uri()[cpp]
 ==&gt;/mmadt/uri/::/mmadt/minus=&gt;minus(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/mult=&gt;mult(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/plus=&gt;plus(isa(/mmadt/uri))[cpp]
-==&gt;/mmadt/uri/::/mmadt/rshift=&gt;rshift(isa(/mmadt/int))[cpp]
+==&gt;/mmadt/uri/::/mmadt/rshift=&gt;rshift(_)[cpp]
 ==&gt;/mmadt/within=&gt;within(_)
 &gt;]</code></pre>
 </div>
@@ -1210,7 +1234,7 @@ When the instruction implementation is written in mmADT, the instruction value i
 <div class="sect2">
 <h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
-<p><span class="image left title=submarine"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQgAAAD3CAYAAADhRcqHAAAAwXpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHjabVBbDgMhCPznFD2CgA88jtt1k96gxy8KJmvbSRxGICMC/f264DFAGCGmIrnmHBSxxkpNhQRDm4whTjaIK9zzcBVvIE2xRvb+bBFXfhl5xKYq3Yzk6YVjL9To/vJlRBZ4TDT06UbVjZisgG7Q7FshVyn3Lxw97BA7MCjKPvbPvej2zqTvMFFn5KDMnG0AHicBNxWsTKzr0KYyNU1eZrqQf3tagA8111lJke7J7AAAAYRpQ0NQSUNDIHByb2ZpbGUAAHicfZE7SMNQFIb/pooiFQfrA3HIUJ3soiKOtQpFqBBqhVYdTG76giYNSYqLo+BacPCxWHVwcdbVwVUQBB8g7oKToouUeG5SaBHjhcP9+O/9f849FxDqZaZZHTFA020zlYiLmeyq2PWKIAYwRDUoM8uYk6QkfNfXPQJ8v4vyLP97f65eNWcxICASx5hh2sQbxDObtsF5nzjMirJKfE48YVKDxI9cVzx+41xwWeCZYTOdmicOE4uFNlbamBVNjXiaOKJqOuULGY9VzluctXKVNfvkLwzl9JVlrlONIoFFLEGCCAVVlFCGjSjtOikWUnQe9/GPuH6JXAq5SmDkWEAFGmTXD/4Hv2dr5acmvaRQHOh8cZyPMaBrF2jUHOf72HEaJ0DwGbjSW/5KHZj9JL3W0iJHQN82cHHd0pQ94HIHGH4yZFN2pSCVkM8D72f0TVmg/xboWfPm1jzH6QOQplklb4CDQ2C8QNnrPu/ubp/bv3ea8/sBgUByrAOj0RsAAA14aVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/Pgo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA0LjQuMC1FeGl2MiI+CiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiCiAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICB4bWxuczpHSU1QPSJodHRwOi8vd3d3LmdpbXAub3JnL3htcC8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgeG1wTU06RG9jdW1lbnRJRD0iZ2ltcDpkb2NpZDpnaW1wOmE5NzMyYTg2LTQwZDgtNDVkOS1iMjFjLTM1NDVjMjlhNGU1ZCIKICAgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozMjY5ODg3Ni01MGVjLTQwYmYtYjkwMS1kNjdiNGQ5NGYzNzciCiAgIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpiMTAxMTUwZC04ZmMxLTQ2ZDQtYjQ2Yi0xZGQ2NjQxMTNlNDAiCiAgIGRjOkZvcm1hdD0iaW1hZ2UvcG5nIgogICBHSU1QOkFQST0iMi4wIgogICBHSU1QOlBsYXRmb3JtPSJMaW51eCIKICAgR0lNUDpUaW1lU3RhbXA9IjE3NDI1OTkzNDAxMzc5MDkiCiAgIEdJTVA6VmVyc2lvbj0iMi4xMC4zNiIKICAgdGlmZjpPcmllbnRhdGlvbj0iMSIKICAgeG1wOkNyZWF0b3JUb29sPSJHSU1QIDIuMTAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjU6MDM6MjFUMTc6MjI6MjAtMDY6MDAiCiAgIHhtcDpNb2RpZnlEYXRlPSIyMDI1OjAzOjIxVDE3OjIyOjIwLTA2OjAwIj4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MzcyYWRiNDktMDViOC00NTQ3LWI1YzktYWU2OGUzOTQzYzU5IgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKExpbnV4KSIKICAgICAgc3RFdnQ6d2hlbj0iMjAyNS0wMy0yMVQxNzoyMjoyMC0wNjowMCIvPgogICAgPC9yZGY6U2VxPgogICA8L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz59AXKAAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QMVFxYUwtPpyAAABgRJREFUeNrt3V122jAQBtA4J1uERYZFui/1Oa5TYoMtaUa696ltWhUE/qw/ho8PAAAAgPImXXDM9/f3/Oxn9/tdPwIAAM+mEr9NJ2Akn7oAAAAAAAAIqZsTgMvW5P1+n9bblFedcszePgwdEOuLbHuhXX0RZ20fAIAW5tttnm+3YU7aOkkJALwuzeJX6XoM2dsHACCqvUXK0j+vbbhFytL1HtSToCd2MeAF0+MxLXd6vQGEm4YAAAAA9CbMCb7s9RDUi0BAVLrIthdCtpAo9fjVixjbsrOxbLUC/AgJW6AQ9O49Wkg4SQkJQ6IWAQEHjHrEutpih3oObdvn2lFEy4VCi5UQPCRajiSsQYDpBu8OxTPXW1Avou+RRG8FZYwg4ORIwtoDAAAAAEAhl62GqlfQtn/0f5vXsvf+n0p03LajvEnr9I/+bxMO+h9wyA2g2BQDODYFXE9FBAQIh2U9Yv1n4UPi60z6ZUnBXu8++n8M81z2w1nT9PyzHYcDwpuwLf0/8DrA1O7DWT7NCZuRmp0KAeENCgd86QKoM0X8G/6mjmAUBwAAANCvq6te28VIQj0JWnAOIonlQt3WGLhqtb10+8QbHQAHR069hMTVIWIEgXAIcuEf+Xu1v/ZPQCAckoVETQKCocMhyiJs1C8EtovhjjnUTkXkHZrp8ZiWNYRXvn+zZKjYwsLIIehU41lI1PwSX1MMhEMwkaYbAqLDC8HZheeyTKeehUTN0YOAQDgkCIlW4QAAAAAA0JzV0EGoJ4GA4NBFvL2Qrw6JUu0DNAtNfnJQCuEQ7DFFelwCAuHAU+aGDB0O1kcExPB3xCsugl7qSQgHAQHCQUBAf+EQbWvYIiU/3qA9L+AZOQgISBsOvrAIAAAAAGAl3Qm4rPUMtN+2fToPiPWbaPtGylLPQPvt2hc6wKGgcMbgOAelQMAJCKDzNQi46i68/Np6RJKAyF7PQPtt23/1cQgGoPkcPjtrECDgxgmI0h2o/b7bxwiCwe+8mdcf1IsAwrCSSxejgyN3XQAAAJrqZm6mHkLf7Zd6r2R8/ALi5Au/faHVQ+ij/VLhkOnxAwXDwfkBYNiQuzoEnaQEAF6Xrqr1/6iHME49h17ffwAAZUcyQy9SqlfQd/ujX8DZ2MWARO73+/Tbmod6EQAAAABAV0J+DFc9hP7aH0lPHxMPs8253Z65ertG+23bB+DDYTPgzZA4Gx61//2XlxLKTZkBulUt5dRD6Lt9AABKjqQzLVJ+jtbB2h/7AhNAr1EPAiraq+dQ498vQeLVAE6xek2IYfGRux4AAACppftmLfUW2rTf6rXu8aLL9PzSbHOqt9C2fYQfhLmIegw2h7zAxVT0edf+6j31IAg9pQQgqHBVrUvdTdRb6Pv19fwAgLFHWpEWKT9H6+Do7et/zy8S9SAgkL16D0d+vgSZ3gSKsrrKoWH13l1PLwEAALDD3HEzz85aT6Hm41evYRy2OTcXUtZ6CupBCAcIcxGp1wC4mCr3W+2j1HvUg+DUlAaAQQ1zF/B5/bH7x+sPAGfvpBYX4/Z/tEVK9SDw+nv/jRMQEJl6D7jLAgAAAAD8JvpWYLSzAKO9Pmu2OUl38Xx8OB4tIEA4gGlGzcdXenpz1fOKMs1QD2JQre/Ce///6KMEoyQgPCnFP/P7d+9m6i0AAH2PlDIsUkZhm5NLLzCPDwSEgBBiAAAAAAAQkFX4cfrHOQhAQADQeBh9dngd/Sh0tnoOZ6kHwVt8QlP/AAAAQEvZFxlH/06OLducAOQYYdQYpUR4DoALDAAAAADIYrtwWXIh0yLpcc5BkDpIXPwCAhAQjOx/H48u9ZHppV0jjX3qQRAyJErXU1CvwQgCEBCAgAAEBCAgAAEBAAAAAAAAAEOb59s8zzefwqzEOQhAQGDkoRcEBAgJAQGvmabHJCQEBAgJAQFCQkCAkBAQICQEBIQMCQAAAAAAgrKKSzjL1uN6l2H7Z7/9fr11+c5Oxd7/f7b9TGxz0sedbic4zoTDle1n49u96S4k3r27PwuHq9oHLpxmbO/O6987AQkAAAAAMIA/xvrzwOoh8SkAAAAASUVORK5CYII=" alt="punky" width="250"></span> mmADT is the programming language of <span class="red">F</span>​<span class="fuchsia">H</span>​<span class="lime">a</span>​<strong class="aqua">T</strong>​<strong class="yellow">O</strong>​<span class="blue">s</span>​. In mmADT, every expression is an <code>obj</code> (object). The language has an
+<p><span class="image left title=punky"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQgAAAD3CAYAAADhRcqHAAAAwXpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHjabVBbDgMhCPznFD2CgA88jtt1k96gxy8KJmvbSRxGICMC/f264DFAGCGmIrnmHBSxxkpNhQRDm4whTjaIK9zzcBVvIE2xRvb+bBFXfhl5xKYq3Yzk6YVjL9To/vJlRBZ4TDT06UbVjZisgG7Q7FshVyn3Lxw97BA7MCjKPvbPvej2zqTvMFFn5KDMnG0AHicBNxWsTKzr0KYyNU1eZrqQf3tagA8111lJke7J7AAAAYRpQ0NQSUNDIHByb2ZpbGUAAHicfZE7SMNQFIb/pooiFQfrA3HIUJ3soiKOtQpFqBBqhVYdTG76giYNSYqLo+BacPCxWHVwcdbVwVUQBB8g7oKToouUeG5SaBHjhcP9+O/9f849FxDqZaZZHTFA020zlYiLmeyq2PWKIAYwRDUoM8uYk6QkfNfXPQJ8v4vyLP97f65eNWcxICASx5hh2sQbxDObtsF5nzjMirJKfE48YVKDxI9cVzx+41xwWeCZYTOdmicOE4uFNlbamBVNjXiaOKJqOuULGY9VzluctXKVNfvkLwzl9JVlrlONIoFFLEGCCAVVlFCGjSjtOikWUnQe9/GPuH6JXAq5SmDkWEAFGmTXD/4Hv2dr5acmvaRQHOh8cZyPMaBrF2jUHOf72HEaJ0DwGbjSW/5KHZj9JL3W0iJHQN82cHHd0pQ94HIHGH4yZFN2pSCVkM8D72f0TVmg/xboWfPm1jzH6QOQplklb4CDQ2C8QNnrPu/ubp/bv3ea8/sBgUByrAOj0RsAAA14aVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/Pgo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA0LjQuMC1FeGl2MiI+CiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiCiAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICB4bWxuczpHSU1QPSJodHRwOi8vd3d3LmdpbXAub3JnL3htcC8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgeG1wTU06RG9jdW1lbnRJRD0iZ2ltcDpkb2NpZDpnaW1wOmE5NzMyYTg2LTQwZDgtNDVkOS1iMjFjLTM1NDVjMjlhNGU1ZCIKICAgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozMjY5ODg3Ni01MGVjLTQwYmYtYjkwMS1kNjdiNGQ5NGYzNzciCiAgIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpiMTAxMTUwZC04ZmMxLTQ2ZDQtYjQ2Yi0xZGQ2NjQxMTNlNDAiCiAgIGRjOkZvcm1hdD0iaW1hZ2UvcG5nIgogICBHSU1QOkFQST0iMi4wIgogICBHSU1QOlBsYXRmb3JtPSJMaW51eCIKICAgR0lNUDpUaW1lU3RhbXA9IjE3NDI1OTkzNDAxMzc5MDkiCiAgIEdJTVA6VmVyc2lvbj0iMi4xMC4zNiIKICAgdGlmZjpPcmllbnRhdGlvbj0iMSIKICAgeG1wOkNyZWF0b3JUb29sPSJHSU1QIDIuMTAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjU6MDM6MjFUMTc6MjI6MjAtMDY6MDAiCiAgIHhtcDpNb2RpZnlEYXRlPSIyMDI1OjAzOjIxVDE3OjIyOjIwLTA2OjAwIj4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MzcyYWRiNDktMDViOC00NTQ3LWI1YzktYWU2OGUzOTQzYzU5IgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKExpbnV4KSIKICAgICAgc3RFdnQ6d2hlbj0iMjAyNS0wMy0yMVQxNzoyMjoyMC0wNjowMCIvPgogICAgPC9yZGY6U2VxPgogICA8L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz59AXKAAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QMVFxYUwtPpyAAABgRJREFUeNrt3V122jAQBtA4J1uERYZFui/1Oa5TYoMtaUa696ltWhUE/qw/ho8PAAAAgPImXXDM9/f3/Oxn9/tdPwIAAM+mEr9NJ2Akn7oAAAAAAAAIqZsTgMvW5P1+n9bblFedcszePgwdEOuLbHuhXX0RZ20fAIAW5tttnm+3YU7aOkkJALwuzeJX6XoM2dsHACCqvUXK0j+vbbhFytL1HtSToCd2MeAF0+MxLXd6vQGEm4YAAAAA9CbMCb7s9RDUi0BAVLrIthdCtpAo9fjVixjbsrOxbLUC/AgJW6AQ9O49Wkg4SQkJQ6IWAQEHjHrEutpih3oObdvn2lFEy4VCi5UQPCRajiSsQYDpBu8OxTPXW1Avou+RRG8FZYwg4ORIwtoDAAAAAEAhl62GqlfQtn/0f5vXsvf+n0p03LajvEnr9I/+bxMO+h9wyA2g2BQDODYFXE9FBAQIh2U9Yv1n4UPi60z6ZUnBXu8++n8M81z2w1nT9PyzHYcDwpuwLf0/8DrA1O7DWT7NCZuRmp0KAeENCgd86QKoM0X8G/6mjmAUBwAAANCvq6te28VIQj0JWnAOIonlQt3WGLhqtb10+8QbHQAHR069hMTVIWIEgXAIcuEf+Xu1v/ZPQCAckoVETQKCocMhyiJs1C8EtovhjjnUTkXkHZrp8ZiWNYRXvn+zZKjYwsLIIehU41lI1PwSX1MMhEMwkaYbAqLDC8HZheeyTKeehUTN0YOAQDgkCIlW4QAAAAAA0JzV0EGoJ4GA4NBFvL2Qrw6JUu0DNAtNfnJQCuEQ7DFFelwCAuHAU+aGDB0O1kcExPB3xCsugl7qSQgHAQHCQUBAf+EQbWvYIiU/3qA9L+AZOQgISBsOvrAIAAAAAGAl3Qm4rPUMtN+2fToPiPWbaPtGylLPQPvt2hc6wKGgcMbgOAelQMAJCKDzNQi46i68/Np6RJKAyF7PQPtt23/1cQgGoPkcPjtrECDgxgmI0h2o/b7bxwiCwe+8mdcf1IsAwrCSSxejgyN3XQAAAJrqZm6mHkLf7Zd6r2R8/ALi5Au/faHVQ+ij/VLhkOnxAwXDwfkBYNiQuzoEnaQEAF6Xrqr1/6iHME49h17ffwAAZUcyQy9SqlfQd/ujX8DZ2MWARO73+/Tbmod6EQAAAABAV0J+DFc9hP7aH0lPHxMPs8253Z65ertG+23bB+DDYTPgzZA4Gx61//2XlxLKTZkBulUt5dRD6Lt9AABKjqQzLVJ+jtbB2h/7AhNAr1EPAiraq+dQ498vQeLVAE6xek2IYfGRux4AAACppftmLfUW2rTf6rXu8aLL9PzSbHOqt9C2fYQfhLmIegw2h7zAxVT0edf+6j31IAg9pQQgqHBVrUvdTdRb6Pv19fwAgLFHWpEWKT9H6+Do7et/zy8S9SAgkL16D0d+vgSZ3gSKsrrKoWH13l1PLwEAALDD3HEzz85aT6Hm41evYRy2OTcXUtZ6CupBCAcIcxGp1wC4mCr3W+2j1HvUg+DUlAaAQQ1zF/B5/bH7x+sPAGfvpBYX4/Z/tEVK9SDw+nv/jRMQEJl6D7jLAgAAAAD8JvpWYLSzAKO9Pmu2OUl38Xx8OB4tIEA4gGlGzcdXenpz1fOKMs1QD2JQre/Ce///6KMEoyQgPCnFP/P7d+9m6i0AAH2PlDIsUkZhm5NLLzCPDwSEgBBiAAAAAAAQkFX4cfrHOQhAQADQeBh9dngd/Sh0tnoOZ6kHwVt8QlP/AAAAQEvZFxlH/06OLducAOQYYdQYpUR4DoALDAAAAADIYrtwWXIh0yLpcc5BkDpIXPwCAhAQjOx/H48u9ZHppV0jjX3qQRAyJErXU1CvwQgCEBCAgAAEBCAgAAEBAAAAAAAAAEOb59s8zzefwqzEOQhAQGDkoRcEBAgJAQGvmabHJCQEBAgJAQFCQkCAkBAQICQEBIQMCQAAAAAAgrKKSzjL1uN6l2H7Z7/9fr11+c5Oxd7/f7b9TGxz0sedbic4zoTDle1n49u96S4k3r27PwuHq9oHLpxmbO/O6987AQkAAAAAMIA/xvrzwOoh8SkAAAAASUVORK5CYII=" alt="punky" width="250"></span> mmADT is the programming language of <span class="red">F</span>​<span class="fuchsia">H</span>​<span class="lime">a</span>​<strong class="aqua">T</strong>​<strong class="yellow">O</strong>​<span class="blue">s</span>​. In mmADT, every expression is an <code>obj</code> (object). The language has an
 underlying <a href="https://en.wikipedia.org/wiki/Monoid_(category_theory)">monoidal</a> structure where an <code>obj</code> can be applied (<code>.</code>) to an <code>obj</code> to create an <code>obj</code>.</p>
 </div>
 <div class="imageblock center">
@@ -1359,11 +1383,11 @@ fhatos&gt; 6
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/real[6.2]
-==&gt;6.2
+==&gt;6.200000
 fhatos&gt; real[6.2]
-==&gt;6.2
+==&gt;6.200000
 fhatos&gt; 6.2
-==&gt;6.2</code></pre>
+==&gt;6.200000</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1492,7 +1516,7 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/ext/#/
 &gt;[
-==&gt;/mmadt/ext/C=&gt;C()[is(gte(-273.149994))]
+==&gt;/mmadt/ext/C=&gt;C()[is(gte(-273.14999))]
 ==&gt;/mmadt/ext/Ox=&gt;Ox()[is(true)]
 ==&gt;/mmadt/ext/char=&gt;char()[merge(2).count().is(eq(1))]
 ==&gt;/mmadt/ext/int16=&gt;[int16][_]
@@ -1501,7 +1525,7 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 ==&gt;/mmadt/ext/ms=&gt;[real][_]
 ==&gt;/mmadt/ext/ms/::/mmadt/as=&gt;as(is(eq(/mmadt/ext/sec)))[cpp]
 ==&gt;/mmadt/ext/nat=&gt;nat()[is(gte(0))]
-==&gt;/mmadt/ext/prnt=&gt;prnt()[is(gte(0.000000)).is(lte(100.000000))]
+==&gt;/mmadt/ext/prnt=&gt;prnt()[is(gte(0.00000)).is(lte(100.00000))]
 ==&gt;/mmadt/ext/sec=&gt;[real][_]
 ==&gt;/mmadt/ext/secret=&gt;[str][_]
 ==&gt;/mmadt/ext/secret/::/mmadt/as=&gt;as(from(0?type,noobj)[cpp])[cpp]
@@ -1546,9 +1570,8 @@ fhatos&gt; char['a']@a
 fhatos&gt; char['b']@b
 ==&gt;char['b']@b
 fhatos&gt; @a + @b
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
-    thrown at inst char['a']@a =&gt; plus(at(b))[cpp] [0=&gt;char['a']@a]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + @b')[cpp] [code=&gt;'@a + @b']
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + @b')[cpp] [code=&gt;'@a + @b']
 fhatos&gt; *a
 ==&gt;char['a']@a
 fhatos&gt; @a.as(str) + @b
@@ -1578,17 +1601,17 @@ fhatos&gt; nat[12]
 ==&gt;nat[12]
 fhatos&gt; nat[-30]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[-30]')[cpp] [code=&gt;'nat[-30]']
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[-30]')[cpp] [code=&gt;'nat[-30]']
 fhatos&gt; nat[12]@a
 ==&gt;nat[12]@a
 fhatos&gt; @a.minus(11)
-==&gt;nat[1]@a
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a.minus(11)')[cpp] [code=&gt;'@a.minus(11)']
 fhatos&gt; @a.minus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-    thrown at inst nat[1]@a =&gt; minus(2)[cpp] [0=&gt;2]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a.minus(2)')[cpp] [code=&gt;'@a.minus(2)']
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a.minus(2)')[cpp] [code=&gt;'@a.minus(2)']
 fhatos&gt; *a
-==&gt;nat[1]@a</code></pre>
+==&gt;nat[12]@a</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1606,14 +1629,14 @@ C[-274.0]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *C
-==&gt;C?real&lt;=real()[is(gte(-273.149994))]
+==&gt;C?real&lt;=real()[is(gte(-273.14999))]
 fhatos&gt; C[0.0]
-==&gt;C[0]
+==&gt;C[0.000000]
 fhatos&gt; C[274.0]
-==&gt;C[274]
+==&gt;C[274.000000]
 fhatos&gt; C[-274.0]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'C[-274.0]')[cpp] [code=&gt;'C[-274.0]']</code></pre>
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -274.00000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.14999))]
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'C[-274.0]')[cpp] [code=&gt;'C[-274.0]']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1680,7 +1703,7 @@ fhatos&gt; 4 + int(a=&gt;2)[+*a]
 </div>
 </div>
 <div class="paragraph">
-<p>The <span class="h">reference</span> of an <code>obj</code> is a fURI denoting the location of the <code>obj</code> within the underlying structure.
+<p>The <span class="h">reference</span> of an <code>obj</code> is a fURI denoting the location of the <code>obj</code> within the underlying fURI addressable structure.
 The <strong class="aqua">F</strong>​<span class="lime">h</span>​<strong class="yellow">a</strong>​<strong class="red">T</strong>​<strong class="fuchsia">O</strong>​<span class="blue">S</span>​ structure is the storage medium of all persistent <code>objs</code>.
 If an <code>obj</code> does not have a reference, then the <code>obj</code> is transient&#8201;&#8212;&#8201;existing only within the data flow.
 When an <code>obj</code> has a reference, the <code>obj</code> encoding in the data flow (hardware main memory) and
@@ -1690,15 +1713,182 @@ within the structure (<strong class="red">F</strong>​<strong class="aqua">H</s
 <div class="content">
 <div class="ulist tablist">
 <ul>
-<li id="_tabs_4_memory" class="tab">
+<li id="_tabs_4_from" class="tab">
+<p>from *</p>
+</li>
+<li id="_tabs_4_at" class="tab">
+<p>at @</p>
+</li>
+<li id="_tabs_4_pubsub_sub" class="tab">
+<p>pubsub ?sub</p>
+</li>
+</ul>
+</div>
+<div id="_tabs_4_from--panel" class="tabpanel" aria-labelledby="_tabs_4_from">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 45.4545%;">
+<col style="width: 54.5455%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+*y
+*z
+z -> 12
+y -> z
+*y
+**y
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *y
+fhatos&gt; *z
+fhatos&gt; z -&gt; 12
+==&gt;12
+fhatos&gt; y -&gt; z
+==&gt;z
+fhatos&gt; *y
+==&gt;z
+fhatos&gt; **y
+==&gt;12</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                         [■]
+  ╱   ╲                       ╱   ╲
+[■]    [■]                  [■]    [■]
+      ╱   ╲                       ╱   ╲
+   [■]     [z]@y ── **y ─────&gt; [12]@z  [■]
+            │        ⮃         ^
+            └─────── *z ───────┘</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The fURI <code>z</code> references the <code>int</code> <code>12</code>. The fURI <code>y</code> references the <code>uri</code> <code>z</code>. Dereferencing <code>y</code> yields <code>z</code>. A double dereference (i.e. <code>**</code>) of <code>y</code> jumps the monad from <code>y</code> to <code>12</code> as</p>
+</div>
+<div class="stemblock">
+<div class="content">
+\[
+\begin{align*}
+*\tt{y}    &amp; \rightarrow \tt{z} \\
+*\tt{z}    &amp; \rightarrow 12 \\
+**\tt{y}   &amp; \rightarrow 12
+\end{align*}
+\]
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="_tabs_4_at--panel" class="tabpanel" aria-labelledby="_tabs_4_at">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 45.4545%;">
+<col style="width: 54.5455%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+a -> 12
+*a.plus(10)
+*a
+@a
+@a.plus(10)
+*a
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 12
+==&gt;12
+fhatos&gt; *a.plus(10)
+==&gt;22
+fhatos&gt; *a
+==&gt;12
+fhatos&gt; @a
+==&gt;12@a
+fhatos&gt; @a.plus(10)
+==&gt;22@a
+fhatos&gt; *a
+==&gt;22@a</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
+  ╱   ╲                        ╱   ╲
+[■]    [■]                   [■]    [■]
+      ╱   ╲          @a.plus(10)       ╲
+   [■]     [12]@a ───────── ⇆ ────────&gt; [22]@a</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>12</code> is written to <code>a</code>. <code>10</code> is added to <code>a</code> (<strong>pass by value</strong> <code>*</code>). <code>a</code> still stores <code>12</code>. <code>10</code> is added to <code>a</code> (<strong>pass by reference</strong> <code>@</code>). <code>a</code> now stores <code>22</code>.</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="_tabs_4_pubsub_sub--panel" class="tabpanel" aria-labelledby="_tabs_4_pubsub_sub">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 45.4545%;">
+<col style="width: 54.5455%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
+==&gt;to?noobj&lt;=obj(b)[noobj]
+fhatos&gt; *a?sub
+==&gt;a?bool&lt;=obj(_)[cpp]
+fhatos&gt; *b
+fhatos&gt; a-&gt;12
+==&gt;12
+fhatos&gt; *a
+==&gt;12
+fhatos&gt; *b
+==&gt;12</code></pre>
+</div>
+</div>
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
+  ╱   ╲                        ╱   ╲
+[■]    [■]        [sub]     [■]     [■]
+      ╱   ╲      ⋰     ⋱   ╱   ╲
+   [■]     [12]@a       [12]@b  [■]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>subscribes to <code>a</code> with bcode of the form \$f(a) &#8594; b\$. <code>12</code> is written to <code>a</code> which triggers the subscription bcode to write <code>12</code> to <code>b</code>.</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="_tabs_5" class="openblock tabs is-loading">
+<div class="content">
+<div class="ulist tablist">
+<ul>
+<li id="_tabs_5_memory" class="tab">
 <p>memory</p>
 </li>
-<li id="_tabs_4_thread" class="tab">
+<li id="_tabs_5_thread" class="tab">
 <p>thread</p>
 </li>
 </ul>
 </div>
-<div id="_tabs_4_memory--panel" class="tabpanel" aria-labelledby="_tabs_4_memory">
+<div id="_tabs_5_memory--panel" class="tabpanel" aria-labelledby="_tabs_5_memory">
 <!-- 🐖 ./main_runner.out
 a -> 'axel'
 *a
@@ -1725,7 +1915,7 @@ fhatos&gt; *a
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_4_thread--panel" class="tabpanel" aria-labelledby="_tabs_4_thread">
+<div id="_tabs_5_thread--panel" class="tabpanel" aria-labelledby="_tabs_5_thread">
 <!-- 🐖 ./main_runner.out
 thread[[ /
   loop=>from(a,0).plus(1).to(a).is(gt(10)).true.to(/abc/halt), /
@@ -1781,19 +1971,29 @@ real[6.0].inspect()
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; int[6].inspect()
-[ERROR] [/sys/scheduler] [/mmadt/int] /mmadt/inspect inst unresolved
-           lhs id      inst id                        resolve obj
-    -&gt;[/mmadt/int] /mmadt/int/::/mmadt/inspect =&gt; inspect(isa(/mmadt/int))[cpp]
-   --&gt;[/mmadt/int] /mmadt/int/::/mmadt/inspect =&gt; inspect(isa(/mmadt/int))[cpp]
-  ---&gt;[/mmadt/int] /mmadt/inspect              =&gt; inspect(isa(/mmadt/obj))
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'int[6].inspect()')[cpp] [code=&gt;'int[6].inspect()']
+&gt;[
+==&gt;type=&gt;[
+===&gt;id=&gt;/mmadt/noobj
+===&gt;obj=&gt;[noobj][_]
+===&gt;dom=&gt;[id=&gt;/mmadt/obj,coeff=&gt;[1,1]]
+===&gt;rng=&gt;[id=&gt;/mmadt/noobj,coeff=&gt;[1,1]]
+=&gt;]
+==&gt;value=&gt;[
+===&gt;encoding=&gt;int32_t
+=&gt;]
+&gt;]
 fhatos&gt; real[6.0].inspect()
-[ERROR] [/sys/scheduler] [/mmadt/real] /mmadt/inspect inst unresolved
-           lhs id       inst id                         resolve obj
-    -&gt;[/mmadt/real] /mmadt/real/::/mmadt/inspect =&gt; inspect(isa(/mmadt/real))[cpp]
-   --&gt;[/mmadt/real] /mmadt/real/::/mmadt/inspect =&gt; inspect(isa(/mmadt/real))[cpp]
-  ---&gt;[/mmadt/real] /mmadt/inspect               =&gt; inspect(isa(/mmadt/obj))
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'real[6.0].inspect()')[cpp] [code=&gt;'real[6.0].inspect()']</code></pre>
+&gt;[
+==&gt;type=&gt;[
+===&gt;id=&gt;/mmadt/noobj
+===&gt;obj=&gt;[noobj][_]
+===&gt;dom=&gt;[id=&gt;/mmadt/obj,coeff=&gt;[1,1]]
+===&gt;rng=&gt;[id=&gt;/mmadt/noobj,coeff=&gt;[1,1]]
+=&gt;]
+==&gt;value=&gt;[
+===&gt;encoding=&gt;float_t
+=&gt;]
+&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -1810,28 +2010,29 @@ a -> int8[126]                       --- <2>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
           *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
 &gt;[
-==&gt;
-==&gt;/mmadt/
-==&gt;/mmadt/ext/
-==&gt;/fos/
-==&gt;/fos/sys/
-==&gt;/fos/io/
-==&gt;/fos/sensor/
-==&gt;/fos/ui/
-==&gt;/fos/util/
-==&gt;/sys/
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
+==&gt;noobj
 ==&gt;/mmadt/ext/
 &gt;]
 fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;int8[126]
 fhatos&gt; @a + 1
-==&gt;int8[127]@a
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + 1')[cpp] [code=&gt;'@a + 1']
 fhatos&gt; @a + 1
-==&gt;int8[128]@a
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + 1')[cpp] [code=&gt;'@a + 1']
 fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-    thrown at inst int8[128]@a =&gt; plus(1)[cpp] [0=&gt;1]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + 1                               // &lt;3&gt;')[cpp] [code=&gt;'@a + 1                               // &lt;3&gt;']</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a + 1                               // &lt;3&gt;')[cpp] [code=&gt;'@a + 1                               // &lt;3&gt;']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1873,7 +2074,7 @@ fhatos&gt; @a + 1                               <i class="conum" data-value="3">
 ==&gt;div?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
 ==&gt;gt?bool&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
 ==&gt;gte?bool&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
-==&gt;inspect?rec&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
+==&gt;inspect?rec&lt;=int(_)[cpp]
 ==&gt;lt?bool&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
 ==&gt;lte?bool&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
 ==&gt;minus?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
@@ -2114,7 +2315,8 @@ The router supports a chain <code>fos:frame</code> structures and, in this way, 
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 34.make_bigger(a=&gt;plus(10))[plus(*a)]
-==&gt;78</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'34.make_bigger(a=&gt;plus(10))[plus(*a)]')[cpp] [code=&gt;'34.make_bigger(a=&gt;plus(10))[plus(*a)]']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2178,9 +2380,8 @@ However, what makes
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]
-&gt;[
-==&gt;2=&gt;0
-&gt;]</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]')[cpp] [code=&gt;'2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2198,11 +2399,11 @@ For instance, <code>if</code> is implemented with a two entry <code>rec</code>, 
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
-==&gt;[1=&gt;noobj]
-==&gt;[2=&gt;noobj]
-==&gt;[3=&gt;_]
+[ERROR] [/sys/scheduler] only inst currently supported: isa(/mmadt/obj)
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;0,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'{1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          // &lt;2&gt;')[cpp] [code=&gt;'{1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          // &lt;2&gt;']
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
-==&gt;3</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: isa(/mmadt/obj)
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;0,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'{1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        // &lt;3&gt;')[cpp] [code=&gt;'{1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        // &lt;3&gt;']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2232,28 +2433,28 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 <div class="paragraph">
 <p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support the various plays on one of computing&#8217;s most important concepts: <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">the branch</a>.</p>
 </div>
-<div id="_tabs_5" class="openblock tabs is-loading">
+<div id="_tabs_6" class="openblock tabs is-loading">
 <div class="content">
 <div class="ulist tablist">
 <ul>
-<li id="_tabs_5_if_else" class="tab">
+<li id="_tabs_6_if_else" class="tab">
 <p>if-else</p>
 </li>
-<li id="_tabs_5_switch" class="tab">
+<li id="_tabs_6_switch" class="tab">
 <p>switch</p>
 </li>
-<li id="_tabs_5_guard" class="tab">
+<li id="_tabs_6_guard" class="tab">
 <p>guard</p>
 </li>
-<li id="_tabs_5_pattern" class="tab">
+<li id="_tabs_6_pattern" class="tab">
 <p>pattern</p>
 </li>
-<li id="_tabs_5_hash" class="tab">
+<li id="_tabs_6_hash" class="tab">
 <p>hash</p>
 </li>
 </ul>
 </div>
-<div id="_tabs_5_if_else--panel" class="tabpanel" aria-labelledby="_tabs_5_if_else">
+<div id="_tabs_6_if_else--panel" class="tabpanel" aria-labelledby="_tabs_6_if_else">
 <!-- 🐖 ./main_runner.out
 [HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
 {1,2,3}.[                  /
@@ -2266,14 +2467,17 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
           ?&gt;2 =&gt; mult(-1),
           _   =&gt; mult(100)]&gt;-
-==&gt;100
-==&gt;200
-==&gt;-3</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'{1,2,3}.[
+          ?&gt;2 =&gt; mult(-1),
+          _   =&gt; mult(100)]&gt;-')[cpp] [code=&gt;'{1,2,3}.[
+          ?&gt;2 =&gt; mult(-1),
+          _   =&gt; mult(100)]&gt;-']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_5_switch--panel" class="tabpanel" aria-labelledby="_tabs_5_switch">
+<div id="_tabs_6_switch--panel" class="tabpanel" aria-labelledby="_tabs_6_switch">
 <!-- 🐖 ./main_runner.out
 [HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
 {1,2,3}.[             /
@@ -2288,14 +2492,19 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
           ?=1 =&gt; mult(-1),
           ?=2 =&gt; mult(0),
           ?=3 =&gt; _]&gt;-
-==&gt;-1
-==&gt;0
-==&gt;3</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'{1,2,3}.[
+          ?=1 =&gt; mult(-1),
+          ?=2 =&gt; mult(0),
+          ?=3 =&gt; _]&gt;-')[cpp] [code=&gt;'{1,2,3}.[
+          ?=1 =&gt; mult(-1),
+          ?=2 =&gt; mult(0),
+          ?=3 =&gt; _]&gt;-']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_5_guard--panel" class="tabpanel" aria-labelledby="_tabs_5_guard">
+<div id="_tabs_6_guard--panel" class="tabpanel" aria-labelledby="_tabs_6_guard">
 <!-- 🐖 ./main_runner.out
 [HEADER] .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
 {1,2,3}.[
@@ -2311,7 +2520,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_5_pattern--panel" class="tabpanel" aria-labelledby="_tabs_5_pattern">
+<div id="_tabs_6_pattern--panel" class="tabpanel" aria-labelledby="_tabs_6_pattern">
 <!-- 🐖 ./main_runner.out
 [HEADER] .pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
 --- todo
@@ -2324,7 +2533,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_5_hash--panel" class="tabpanel" aria-labelledby="_tabs_5_hash">
+<div id="_tabs_6_hash--panel" class="tabpanel" aria-labelledby="_tabs_6_hash">
 <!-- 🐖 ./main_runner.out
 [HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
 --- todo
@@ -2610,20 +2819,7 @@ a -> age[45]
 ==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj].is?noobj&lt;=obj(lt?noobj&lt;=obj(120)[noobj])[noobj]
 fhatos&gt; a -&gt; age[45]
 ==&gt;age[45]
-fhatos&gt; *a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/bcode] /mmadt/inspect inst unresolved
-           lhs id        inst id                          resolve obj
-    -&gt;[/mmadt/bcode] /mmadt/bcode/::/mmadt/inspect =&gt; inspect(isa(/mmadt/bool))[cpp]
-   --&gt;[/mmadt/bcode] /mmadt/bcode/::/mmadt/inspect =&gt; inspect(isa(/mmadt/bool))[cpp]
-  ---&gt;[/mmadt/bcode] /mmadt/inspect                =&gt; inspect(isa(/mmadt/obj))
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'*a.inspect()')[cpp] [code=&gt;'*a.inspect()']
-fhatos&gt; @a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/bcode] /mmadt/inspect inst unresolved
-           lhs id        inst id                          resolve obj
-    -&gt;[/mmadt/bcode] /mmadt/bcode/::/mmadt/inspect =&gt; inspect(isa(/mmadt/bool))[cpp]
-   --&gt;[/mmadt/bcode] /mmadt/bcode/::/mmadt/inspect =&gt; inspect(isa(/mmadt/bool))[cpp]
-  ---&gt;[/mmadt/bcode] /mmadt/inspect                =&gt; inspect(isa(/mmadt/obj))
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a.inspect()')[cpp] [code=&gt;'@a.inspect()']</code></pre>
+fhatos&gt; *a.inspect()</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -2638,14 +2834,19 @@ fhatos&gt; @a.inspect()
 fhatos&gt; a -&gt; 12
 ==&gt;12
 12fhatos&gt; @a.inspect()
-[ERROR] [/sys/scheduler] [a] /mmadt/inspect inst unresolved
-           lhs id  inst id                        resolve obj
-    -&gt;[a] /mmadt/int/::/mmadt/inspect =&gt; inspect(isa(/mmadt/int))[cpp]
-   --&gt;[a] /mmadt/int/::/mmadt/inspect =&gt; inspect(isa(/mmadt/int))[cpp]
-  ---&gt;[a] /mmadt/inspect              =&gt; inspect(isa(/mmadt/obj))
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'@a.inspect()')[cpp] [code=&gt;'@a.inspect()']
-fhatos&gt; @a.plus(1)
-12@a==&gt;13@a
+&gt;[
+==&gt;type=&gt;[
+===&gt;id=&gt;/mmadt/noobj
+===&gt;obj=&gt;[noobj][_]
+===&gt;dom=&gt;[id=&gt;/mmadt/obj,coeff=&gt;[1,1]]
+===&gt;rng=&gt;[id=&gt;/mmadt/noobj,coeff=&gt;[1,1]]
+=&gt;]
+==&gt;value=&gt;[
+===&gt;encoding=&gt;int32_t
+=&gt;]
+&gt;]
+12@afhatos&gt; @a.plus(1)
+==&gt;13@a
 13@afhatos&gt; @a.plus(1).plus(1)
 ==&gt;15@a</code></pre>
 </div>
@@ -2682,13 +2883,13 @@ fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[-6]')[cpp] [code=&gt;'nat[-6]']
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[-6]')[cpp] [code=&gt;'nat[-6]']
 fhatos&gt; nat[3].plus(2)
-==&gt;nat[5]
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[3].plus(2)')[cpp] [code=&gt;'nat[3].plus(2)']
 fhatos&gt; nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-    thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]
-    thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[3].mult(-2)')[cpp] [code=&gt;'nat[3].mult(-2)']</code></pre>
+[ERROR] [/sys/scheduler] only inst currently supported: _
+	  thrown at inst console[[halt=&gt;false,delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[nest=&gt;2,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;24288,stack_trace=&gt;true]]]@/io/console =&gt; eval?obj{?}&lt;=console(code=&gt;'nat[3].mult(-2)')[cpp] [code=&gt;'nat[3].mult(-2)']</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2872,7 +3073,7 @@ It&#8217;s in the structures where the heavily lifting of the memory operations 
 <div class="sect3">
 <h4 id="_structure_reading_and_writing">Structure Reading and Writing</h4>
 <div class="paragraph">
-<p><span class="image right img-pad"><img src="data:image/png;base64,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" alt="submarine" width="250" title="submarine"></span> Every structure supports 2 primary operations:</p>
+<p><span class="image img-pad"><img src="data:image/png;base64,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" alt="submarine" width="250" title="submarine"></span> Every structure supports 2 primary operations:</p>
 </div>
 <table class="tableblock frame-all grid-all center" style="width: 75%;">
 <colgroup>
@@ -2935,7 +3136,7 @@ An example itemization is provided below:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>id</code>: an unambiguous fURI that references a single address space in the structure.</p>
+<p><code>id</code>: an unambiguous fURI that references a single addressable location in the structure.</p>
 <div class="ulist">
 <ul>
 <li>
@@ -2948,7 +3149,7 @@ An example itemization is provided below:</p>
 </div>
 </li>
 <li>
-<p><code>pattern</code>: a fURI containing one or more wildcard characters (<code>+</code> or <code>#</code>) in it&#8217;s path.</p>
+<p><code>pattern</code>: a fURI containing one or more wildcard path segments (<code>+</code> or <code>#</code>).</p>
 <div class="ulist">
 <ul>
 <li>
@@ -2964,8 +3165,8 @@ An example itemization is provided below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 37.5%;">
-<col style="width: 62.5%;">
+<col style="width: 44.4444%;">
+<col style="width: 55.5556%;">
 </colgroup>
 <tbody>
 <tr>
@@ -3010,10 +3211,12 @@ fhatos&gt; *a/#/           <i class="conum" data-value="6"></i><b>(6)</b>
 </div>
 </div>
 <!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content">TIP: The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
-In fact, it is a single fluent expression. The signature of the `end` `inst` (sugar'd `;`) is `end?obj{0}\<=obj{*}`.
-This barrier step computes all monads up to it before emitting a `noobj` monad.
-With `end`, it's possible to write mm-ADT in the classic statement-oriented, imperative-style where semincolons (effectively) separate atomic operations.
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The first line in the example appears to be 4 <a href="https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators">individual statements</a>.
+In fact, it is a single fluent expression. The signature of the <code>end</code> <code>inst</code> (sugar&#8217;d <code>;</code>) is <code>end?obj{0}&lt;=obj{*}</code>.
+This barrier step computes all monads up to it before emitting a <code>noobj</code> monad.
+With <code>end</code>, it&#8217;s possible to write mm-ADT in the classic statement-oriented, imperative-style where semincolons (effectively) separate atomic operations.</p>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -3134,9 +3337,9 @@ fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            <i class="conum" da
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    <i class="conum" data-value="4"></i><b>(4)</b>
-[ERROR] [/sys/router] [/mnt/cache] no query processor for k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6 on write
 ==&gt;12
 fhatos&gt; *abc
+==&gt;12
 fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   <i class="conum" data-value="5"></i><b>(5)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; *abc
@@ -3175,143 +3378,6 @@ fhatos&gt; *abc
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">1.plus(2)</code></pre>
 </div>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 46.6666%;">
-<col style="width: 53.3334%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
-*a
-*b
-b -> 12
-a -> b
-*a
-**a
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *a
-==&gt;a?bool&lt;=obj(_)[cpp]
-fhatos&gt; *b
-fhatos&gt; b -&gt; 12
-==&gt;12
-fhatos&gt; a -&gt; b
-==&gt;b
-fhatos&gt; *a
-==&gt;b
-fhatos&gt; **a
-==&gt;12</code></pre>
-</div>
-</div>
-<!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                         [■]
-  /   \                       /   \
- /     \                     /     \
-[■]    [■]                  [■]    [■]
-      /   \                       /   \
-     /     \                     /     \
-   [■]     [b]@x ------------&gt; [12]@b  [■]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>b</code> references <code>12</code>. <code>a</code> references <code>b</code>. a double dereferences jumps the monad from <code>a</code> to <code>b</code> to <code>12</code>.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
-a -> 12
-*a.plus(10)
-*a
-@a
-@a.plus(10)
-*a
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 12
-==&gt;12
-fhatos&gt; *a.plus(10)
-==&gt;22
-fhatos&gt; *a
-==&gt;12
-fhatos&gt; @a
-==&gt;12@a
-fhatos&gt; @a.plus(10)
-==&gt;22@a
-fhatos&gt; *a
-==&gt;22@a</code></pre>
-</div>
-</div>
-<!-- 🐓 --></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
-  /   \                        /   \
- /     \                      /     \
-[■]    [■]                   [■]    [■]
-      /   \                           \
-     /     \         @a.plus(10)       \
-   [■]     [12]@a ------------------&gt; [22]@a</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>12</code> is written to <code>a</code>. <code>10</code> is added to <code>a</code> (<strong>pass by value</strong> <code>*</code>). <code>a</code> still stores <code>12</code>. <code>10</code> is added to <code>a</code> (<strong>pass by reference</strong> <code>@</code>). <code>a</code> now stores <code>22</code>.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
-==&gt;to?noobj&lt;=obj(b)[noobj]
-fhatos&gt; *a?sub
-==&gt;a?bool&lt;=obj(_)[cpp]
-fhatos&gt; *b
-fhatos&gt; a-&gt;12
-==&gt;12
-fhatos&gt; *a
-==&gt;12
-fhatos&gt; *b
-==&gt;12</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
-[INFO]  [/mnt/cache] [/sys/scheduler]=subscribe=&gt;[+/#]
-==&gt;to?obj&lt;=obj(b)[noobj]
-fhatos&gt; *a?sub
-fhatos&gt; *b
-fhatos&gt; a-&gt;12
-==&gt;12
-fhatos&gt; *a
-==&gt;12
-fhatos&gt; *b
-==&gt;12</code></pre>
-</div>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
-  /   \                        /   \
- /     \                      /     \
-[■]    [■]        [sub]     [■]     [■]
-      /   \      .     .   /   \
-     /     \    .       . /     \
-   [■]     [12]@a       [12]@b  [■]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>subscribes to <code>a</code> with bcode of the form \$f(a) &#8594; b\$. <code>12</code> is written to <code>a</code> which triggers the subscription bcode to write <code>12</code> to <code>b</code>.</p>
-</div></div></td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="sect3">
@@ -3952,16 +4018,16 @@ fhatos&gt; 'a'.plus('b')
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a=&gt;2].match([a=&gt;3])
 [ERROR] [/mmadt/rec] match inst unresolved
-           lhs id      inst id    resolve obj
-    -&gt;[/mmadt/rec] match =&gt; noobj
-   --&gt;[/mmadt/rec] match =&gt; noobj
-  ---&gt;[          ] match =&gt; noobj
+	         lhs id      inst id    resolve obj
+	  -&gt;[/mmadt/rec] match =&gt; noobj
+	 --&gt;[/mmadt/rec] match =&gt; noobj
+	---&gt;[          ] match =&gt; noobj
 fhatos&gt; [a=&gt;2].match([a=&gt;_])
 [ERROR] [/mmadt/rec] match inst unresolved
-           lhs id      inst id    resolve obj
-    -&gt;[/mmadt/rec] match =&gt; noobj
-   --&gt;[/mmadt/rec] match =&gt; noobj
-  ---&gt;[          ] match =&gt; noobj</code></pre>
+	         lhs id      inst id    resolve obj
+	  -&gt;[/mmadt/rec] match =&gt; noobj
+	 --&gt;[/mmadt/rec] match =&gt; noobj
+	---&gt;[          ] match =&gt; noobj</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4036,7 +4102,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-21 22:18:29 -0600
+Last updated 2025-03-25 00:31:29 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

@@ -33,7 +33,7 @@ namespace fhatos {
                                                                  prefix_(id_p(structure->pattern->retract_pattern())) {
       Router::singleton()->attach(structure);
       Router::singleton()->loop();
-      // TEST_ASSERT_TRUE(structure->available());
+      TEST_ASSERT_TRUE(structure->available());
       // FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
       LOG_WRITE(INFO, structure.get(),L("generic structure test setup for {}", structure->toString()));
     }

@@ -200,7 +200,7 @@ namespace fhatos {
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({{"code", Obj::to_noobj()}}))
+          ->inst_args(rec({{"code", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             string code = args->arg("code")->str_value();
