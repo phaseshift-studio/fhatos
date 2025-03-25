@@ -403,6 +403,15 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("2",result.at(1).second.c_str());
     TEST_ASSERT_EQUAL_STRING("c",result.at(2).first.c_str());
     TEST_ASSERT_EQUAL_STRING("3",result.at(2).second.c_str());
+    result = fURI("nat?int").query_values();
+    TEST_ASSERT_EQUAL_INT(1,result.size());
+    TEST_ASSERT_EQUAL_STRING("int",result.at(0).first.c_str());
+    result = fURI("nat?int{?}").query_values();
+    TEST_ASSERT_EQUAL_INT(1,result.size());
+    TEST_ASSERT_EQUAL_STRING("int{?}",result.at(0).first.c_str());
+   // result = fURI("nat?int{?}<=int(a=>int,b=>str)").query_values();
+   // TEST_ASSERT_EQUAL_INT(1,result.size());
+   // TEST_ASSERT_EQUAL_STRING("int{?}",result.at(0).first.c_str());
     // w/ setting values
     fURI input = fURI("127.0.0.1").query({{"a","1"},{"b","2"},{"c","3"}});
     std::vector<std::pair<string,string>> output = input.query_values();
@@ -412,6 +421,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("2",output.at(1).second.c_str());
     TEST_ASSERT_EQUAL_STRING("c",output.at(2).first.c_str());
     TEST_ASSERT_EQUAL_STRING("3",output.at(2).second.c_str());
+
   }
 
   void test_uri_name() {

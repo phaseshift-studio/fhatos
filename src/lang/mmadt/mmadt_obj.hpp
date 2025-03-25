@@ -23,6 +23,7 @@
 #include "../obj.hpp"
 #include "../type.hpp"
 #include "mmadt.hpp"
+#include "../../structure/qtype/q_type.hpp"
 
 #define MMADT_PREFIX "/mmadt/"
 #define MMADT_URI "/mmadt"
@@ -122,6 +123,14 @@ namespace mmadt {
     }
 
     static void import_base_inst() {
+      ROUTER_WRITE("/mmadt/inst/blockers", Obj::to_lst({
+                       vri("block"),
+                       vri("each"),
+                       vri("within"),
+                       vri("isa"),
+                       vri("split"),
+                       vri("choose"),
+                       vri("chain")}), true);
       Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       InstBuilder::build(MMADT_SCHEME "/embed")
           ->domain_range(OBJ_FURI, {1, 1}, REC_FURI, {1, 1})
@@ -406,7 +415,7 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/lshift")
-          ->inst_args(lst({isa_arg(INT_FURI)}))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             if(args->arg(0)->is_int() || args->arg(0)->is_noobj()) {
@@ -420,7 +429,7 @@ namespace mmadt {
 
 
       InstBuilder::build(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/rshift")
-          ->inst_args(lst({isa_arg(INT_FURI)}))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             if(args->arg(0)->is_int() || args->arg(0)->is_noobj()) {
@@ -446,7 +455,7 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/block")
+      InstBuilder::build(MMADT_PREFIX "block")
           // TODO: currently a "special" instruction (see inst->apply() for logic)
           ->inst_args(lst({Obj::to_bcode()}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
@@ -455,7 +464,7 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/count")
+      InstBuilder::build(MMADT_PREFIX "count")
           ->domain_range(OBJS_FURI, {0,INT_MAX}, INT_FURI, {1, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &) {
             return Obj::to_int(lhs->objs_value()->size());
@@ -593,6 +602,13 @@ namespace mmadt {
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return Obj::to_bool(lhs->equals(*args->arg(0)));
+          })->save();
+
+      InstBuilder::build(MMADT_PREFIX "else")
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(lst({Obj::to_bcode()}))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            return lhs->is_noobj() ? args->arg(0) : lhs;
           })->save();
 
       InstBuilder::build(MMADT_SCHEME "/explain")

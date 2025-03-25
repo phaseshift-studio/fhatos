@@ -39,10 +39,10 @@ namespace fhatos {
   using ID_p = std::shared_ptr<ID>;
 
 
-
   class Compiler {
   public:
     static bool boot_loading;
+
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;
@@ -59,14 +59,14 @@ namespace fhatos {
     void print_derivation_tree(string *derivation_string) const;
 
     [[nodiscard]] const Compiler *reset() const {
-      if(dt) dt->clear();
+      if(dt)
+        dt->clear();
       return this;
     }
 
-    [[nodiscard]] Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &inst_obj) const;
-
     const Compiler *reset(const bool throw_on_miss, const bool with_derivation) {
-      if(dt) dt->clear();
+      if(dt)
+        dt->clear();
       if(!with_derivation)
         this->dt = nullptr;
       this->throw_on_miss = throw_on_miss;
@@ -74,10 +74,6 @@ namespace fhatos {
     }
 
     [[nodiscard]] Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
-
-    [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const;
-
-    Obj_p apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args);
 
     template<typename COEF = IntCoefficient>
     bool coefficient_check(const COEF &lhs, const COEF &rhs) const;
@@ -88,11 +84,12 @@ namespace fhatos {
       return this->type_check(value_obj.get(), type_id);
     }
 
-    bool match(const Obj_p &lhs, const Obj_p &rhs);
-
-    Obj_p save_type(const ID_p &type_id, const Obj_p &type_obj);
-
     [[nodiscard]] Obj_p super_type(const Obj_p &value_obj) const;
+
+  private:
+    [[nodiscard]] Inst_p convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &inst_obj) const;
+
+    [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const;
   };
 }
 #endif

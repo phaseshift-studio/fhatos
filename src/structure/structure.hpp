@@ -59,12 +59,12 @@ namespace fhatos {
       Rec(config->rec_value()->empty()
             ? Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", rec({{"sub", QSub::create()}})},
+                {"q_proc", rec({{"sub", QSub::create()}, {"#", QType::create()}})},
             })->
             rec_value()
             : Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", rec({{"sub", QSub::create()}})},
+                {"q_proc", rec({{"sub", QSub::create()}, {"#", QType::create()}})},
                 {"config", config->clone()}})->rec_value(),
           OType::REC, type_id,
           value_id),
@@ -134,7 +134,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::pair<QProc::ON_RESULT, Obj_p> process_query_read(const QProc::POSITION pos, const fURI &furi,
+    [[nodiscard]] std::pair<QProc::ON_RESULT, Obj_p> process_query_read(const QProc::POSITION pos, const fURI &furi,
                                                           const Obj_p &obj) const {
       if(furi.has_query()) {
         const Objs_p results = Obj::to_objs();
@@ -142,7 +142,8 @@ namespace fhatos {
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
           QProc *q = (QProc *) o.get();
           const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
-          if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
+          if(QProc::ON_RESULT::NO_Q != on_result && (
+               furi.has_query(q->q_key().toString().c_str()) || q->q_key().toString() == "#")) {
             found = true;
             const Obj_p q_obj = q->read(pos, furi, obj);
             if(QProc::ON_RESULT::ONLY_Q == on_result)
@@ -152,9 +153,10 @@ namespace fhatos {
           }
           FEED_WATCHDOG();
         }
-        if(!found)
+        if(!found) {
           throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
                                furi.query());
+        }
         return {QProc::ON_RESULT::INCLUDE_Q, results->none_one_all()};
       } else {
         return {QProc::ON_RESULT::NO_Q, obj};
@@ -176,7 +178,8 @@ namespace fhatos {
         for(const auto &[k,o]: *this->q_procs_->rec_value()) {
           const auto q = (QProc *) o.get();
           QProc::ON_RESULT on_result = position == QProc::POSITION::PRE ? q->is_pre_write() : q->is_post_write();
-          if(QProc::ON_RESULT::NO_Q != on_result && furi.has_query(q->q_key().toString().c_str())) {
+          if(QProc::ON_RESULT::NO_Q != on_result && (
+               furi.has_query(q->q_key().toString().c_str()))) {
             found = true;
             q->write(position, furi, obj, retain);
             if(QProc::ON_RESULT::ONLY_Q == on_result)
@@ -184,9 +187,15 @@ namespace fhatos {
           }
           FEED_WATCHDOG();
         }
-        if(!found)
-          throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on write",
-                               furi.query());
+        if(!found) {
+          if(position == QProc::POSITION::PRE) {
+            const auto q = (QProc *) this->q_procs_->rec_value()->at(vri("#")).get();
+            q->write(position, furi, obj, retain);
+          } /*else {
+            throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on write",
+                                 furi.query());
+          }*/
+        }
       }
       return QProc::ON_RESULT::INCLUDE_Q;
     }

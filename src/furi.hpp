@@ -385,6 +385,20 @@ namespace fhatos {
       return this->query_value(key).has_value();
     }
 
+    static void encode_query(string& query) {
+      if(query.empty())
+        return;
+      //StringHelper::replace(&query, "=>", "%20%50");
+      //StringHelper::replace(&query, "<=", "%20%60");
+    }
+
+    static void decode_query(string& query) {
+      if(query.empty())
+        return;
+      //StringHelper::replace(&query, "%20%50", "=>");
+      //StringHelper::replace(&query, "%20%60", "<=");
+    }
+
     [[nodiscard]] fURI query(const char *query) const {
       auto new_uri = fURI(*this);
       FOS_SAFE_FREE(new_uri.query_);
@@ -400,6 +414,8 @@ namespace fhatos {
     [[nodiscard]] fURI query(const List<Pair<string, string>> &key_values) const {
       string query_string;
       for(const auto &[k,v]: key_values) {
+        //  encode_query(k);
+        //  encode_query(v);
         if(v.empty())
           query_string.append(k).append("&");
         else
@@ -418,6 +434,8 @@ namespace fhatos {
         std::pair<string, string> split_pair = (pair.size() == 1)
                                                  ? std::make_pair(pair.at(0), string(""))
                                                  : std::make_pair(pair.at(0), pair.at(1));
+        //  decode_query(split_pair.first);
+        // decode_query(split_pair.second);
         key_values.emplace_back(split_pair);
       }
       return key_values;
@@ -436,6 +454,7 @@ namespace fhatos {
       List<T> list;
       while(!(token = StringHelper::next_token(',', &ss)).empty()) {
         StringHelper::trim(token);
+        //decode_query(token);
         list.push_back(transformer(token));
       }
       return list;
@@ -464,6 +483,7 @@ namespace fhatos {
         c = index[strlen(key) + counter];
       }
       StringHelper::trim(value);
+      //decode_query(value);
       return {transformer(value)};
     }
 
@@ -525,21 +545,21 @@ namespace fhatos {
 
     [[nodiscard]] fURI head() const {
       if(this->empty())
-        return fURI(*this);
+        return *this;
       return fURI(this->segment(0));
     }
 
-    [[nodiscard]] fURI pretract(const fURI prefix) const {
+    [[nodiscard]] fURI pretract(const fURI& prefix) const {
       if(!this->starts_with(prefix))
-        return fURI(*this);
+        return *this;
       else {
         return this->pretract(prefix.path_length_);
       }
     }
 
-    [[nodiscard]] fURI retract(const fURI prefix) const {
+    [[nodiscard]] fURI retract(const fURI& prefix) const {
       if(!this->ends_with(prefix))
-        return fURI(*this);
+        return *this;
       else {
         return this->retract(prefix.path_length_);
       }
@@ -641,7 +661,7 @@ namespace fhatos {
       if(this->path_length_ > 0 && this->path_[0][0] == '/') {
         return this->path(this->path().substr(1));
       }
-      return fURI(*this);
+      return *this;
     }
 
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
@@ -686,11 +706,11 @@ namespace fhatos {
     [[nodiscard]] fURI remove_subpath(const string &subpath, const bool forward = true) const {
       string new_path = this->toString();
       StringHelper::replace(&new_path, subpath, "", forward);
-      return {new_path};
+      return fURI(new_path);
     }
 
     [[nodiscard]] fURI append(const fURI &other) const {
-      return {this->toString().append(other.toString())};
+      return fURI(this->toString().append(other.toString()));
     }
 
     [[nodiscard]] virtual fURI resolve(const fURI &other) const {
@@ -819,9 +839,11 @@ namespace fhatos {
              path_length();
     }
 
-    fURI &operator=(const fURI &other) {
+
+   /* fURI &operator=(const fURI &other) {
       if(&other == this)
         return *this;
+//return fURI(other);
       this->scheme_ = other.scheme_;
       this->host_ = other.host_;
       this->port_ = other.port_;
@@ -834,7 +856,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       return *this;
-    }
+    }*/
 
     [[nodiscard]] bool headless() const {
       const char first = this->toString()[0];
@@ -856,7 +878,7 @@ namespace fhatos {
         free(path_[i]);
       }
       delete[] path_;
-    };
+    }
 
     fURI(const fURI &other) {
       this->scheme_ = other.scheme_ ? strdup(other.scheme_) : nullptr;

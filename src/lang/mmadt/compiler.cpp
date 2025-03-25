@@ -87,50 +87,30 @@ namespace fhatos {
   }
 
   bool match_inst_args(const InstArgs &argsA, const InstArgs &argsB) {
-    /*for(const auto &[k,v]: *argsA->rec_value()) {
-      //LOG(INFO,"\t%s ~ %s !g=> !y%s!!\n",v->toString().c_str(),v2->toString().c_str(),FOS_BOOL_STR(v->match(v2,false)));
-      if(const Obj_p v2 = argsB->rec_get(k); !v->match(v2, false))
-        return false;
-    }
-    return true;*/
     for(const auto &[kb,vb]: *argsB->rec_value()) {
       bool found = false;
-      for(const auto &[ka,va]: *argsA->rec_value()) {
-        if(kb->is_uri()) {
-          if(kb->uri_value().has_query()) {
-            if(__(va)->isa(kb->uri_value().query())->compute().exists()) {
-              found = true;
-              break;
-            }
-          } else {
+      if(vb->is_noobj()) {
+        for(const auto &[ka,va]: *argsA->rec_value()) {
+          if(ka->match(kb))
             found = true;
-            break;
-          }
-        } else {
-          found = true;
-          break;
         }
-      }
+      } else
+        found = true;
       if(!found)
         return false;
     }
     return true;
-
   }
 
   Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &inst_obj) const {
     if(inst_obj->is_noobj())
       return Obj::to_noobj();
     if(inst_obj->is_inst()) {
-      //if(stub_inst->inst_args()->rec_size() == obj->inst_args()->rec_size())
-      //LOG(INFO,"MATCHING: %s ~ %s\n",stub_inst->toString().c_str(),obj->toString().c_str());
       const bool good = match_inst_args(stub_inst->inst_args(), inst_obj->inst_args());
       if(dt)
         dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(inst_obj->vid_or_tid()->no_query()), inst_obj);
       return good ? inst_obj : Obj::to_noobj();
-      //return obj;
     } else {
-      //  LOG(INFO,"converting %s to inst\n",obj->toString().c_str());
       const Inst_p inst = InstBuilder::build("")
           ->inst_args(stub_inst->inst_args())
           ->inst_f(inst_obj)
@@ -158,12 +138,9 @@ namespace fhatos {
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
       // /obj_tid/::inst_tid
-      if(inst_obj->is_inst_stub()) {
-       // LOG(INFO, "searching for %s -- %s\n", lhs->tid->add_component(inst->tid->no_query()).toString().c_str(),
-       //     Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->toString().c_str());
+      if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
-      }
       // /obj_vid/::/resolved/inst_tid
       const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
       if(inst_obj->is_inst_stub() && lhs->vid)
@@ -208,48 +185,57 @@ namespace fhatos {
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
 
+  bool in_block_list(const string &op) {
+    const std::vector<Uri_p> *blocker_list = ROUTER_READ(MMADT_PREFIX "inst/blockers")->lst_value().get();
+    const bool found = blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
+                                                           [&op](const Uri_p &u) {
+                                                             return u->uri_value().name() == op;
+                                                           });
+    //LOG_WRITE(INFO, str("here").get(), L("blockers {} {}: {}\n", op, dool(found)->toString(),
+    //                                     ROUTER_READ(MMADT_PREFIX "inst/blockers")->toString()));
+    return found;
+
+  }
+
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const {
-    Inst_p inst_c;
+    const auto inst_provided_args = inst_provided->inst_args();
     if(inst_resolved->is_inst()) {
-      LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
-          inst_resolved->toString().c_str(),
-          inst_provided->toString().c_str(),
-          "SIGNATURE HERE");
-      const auto merged_args = Obj::to_inst_args();
-      //  const auto merged_args = __(inst_resolved->inst_args())->each(inst_provided->inst_args())->compute().next();
-      int r_counter = 0;
-      for(const auto &[rk,rv]: *inst_resolved->inst_args()->rec_value()) {
-        bool found = false;
-        for(const auto &[lk,lv]: *inst_provided->inst_args()->rec_value()) {
-          if(lk->match(rk)) {
-            found = true;
-            merged_args->rec_set(rk, lv);
+      LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
+                                    inst_resolved->toString().c_str(),
+                                    inst_provided->toString().c_str())          );
+      Obj_p merged_args = Obj::to_inst_args();
+      const auto inst_resolved_args = inst_resolved->inst_args();
+      if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
+        merged_args = inst_resolved_args->apply(inst_provided_args);
+      } else {
+        int r_counter = 0;
+        for(const auto &[rk,rv]: *inst_resolved_args->rec_value()) {
+          bool found = false;
+          for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
+            if(lk->match(rk)) {
+              found = true;
+              if((lv->is_inst() && in_block_list(lv->inst_op())) ||
+                 in_block_list(inst_provided->inst_op())) {
+                merged_args->rec_set(rk, lv);
+              } else {
+                merged_args->rec_set(rk, rv->apply(lv->apply(lhs)));
+              }
+            }
           }
+          if(!found) {
+            if(inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size())
+              merged_args->rec_set(rk, rv->apply(inst_provided_args->arg(r_counter)->apply(lhs)));
+            else
+              merged_args->rec_set(rk, rv->apply(Obj::to_noobj()->apply(lhs)));
+          }
+          r_counter++;
         }
-        if(!found) {
-          if(inst_provided->is_indexed_args() && r_counter < inst_provided->inst_args()->rec_value()->size())
-            merged_args->rec_set(rk, inst_provided->arg(r_counter));
-          else
-            merged_args->rec_set(rk, rv->apply(Obj::to_noobj()));
-        }
-        r_counter++;
       }
-      //return ret;
-
-      /* int counter = 0;
-      for(const auto &[k,v]: *inst_resolved->inst_args()->rec_value()) {
-        if(inst_provided->has_arg(k))
-          merged_args->rec_value()->insert({k, inst_provided->arg(k)});
-        else if(inst_provided->is_indexed_args() && counter < inst_provided->inst_args()->rec_value()->size())
-          merged_args->rec_value()->insert({k, inst_provided->arg(counter)});
-        else
-          merged_args->rec_value()->insert({k, v->is_inst() ? v->arg(1) : v});
-        // TODO: hack to get the default from from();
-        ++counter;
-      }*/
-      // TODO: recurse off inst for all inst_arg getter/setters
-
-      inst_c = Obj::to_inst(
+      /*LOG(INFO, "inst_resolved: %s\ninst_provided: %s\nnew args: %s\n",
+    inst_resolved_args->toString().c_str(),
+    inst_provided_args->toString().c_str(),
+    merged_args->toString().c_str());*/
+      return Obj::to_inst(
           inst_resolved->inst_op(),
           merged_args,
           inst_resolved->inst_f(),
@@ -258,9 +244,9 @@ namespace fhatos {
           inst_resolved->vid);
       /// TODO ^--- inst->vid);
     } else {
-      inst_c = Obj::to_inst(
+      return Obj::to_inst(
           inst_provided->inst_op(),
-          inst_provided->inst_args(),
+          inst_provided_args,
           InstF(make_shared<Cpp>(
               [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                 return x->apply(lhs, args);
@@ -269,10 +255,6 @@ namespace fhatos {
           inst_provided->tid,
           inst_provided->vid);
     }
-    if(dt)
-      this->dt->emplace_back(inst_resolved->tid, inst_c->tid, inst_c);
-    LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", inst_c->toString().c_str());
-    return inst_c;
   }
 
 
@@ -282,97 +264,6 @@ namespace fhatos {
       return Obj::to_noobj();
     }
     return type_obj;
-  }
-
-  bool Compiler::match(const Obj_p &lhs, const Obj_p &rhs) {
-    // LOG(TRACE, "!ymatching!!: %s ~ %s\n", lhs->toString().c_str(), type->toString().c_str());
-    if(rhs->is_empty_bcode())
-      return true;
-    if(rhs->is_type())
-      return IS_TYPE_OF(lhs->tid, rhs->tid, {}) && !lhs->clone()->apply(rhs->type_value())->is_noobj();
-    if(rhs->is_code() && !lhs->is_code()) {
-      const Obj_p result = rhs->apply(lhs->clone());
-      if(result->is_noobj())
-        return rhs->range_coefficient().first == 0;
-      return !result->is_noobj();
-    }
-    /* if(!rhs->value_.has_value() &&
-        (rhs->tid->equals(*OBJ_FURI) || (FURI_OTYPE.count(rhs->tid->no_query()) && FURI_OTYPE.at(
-                                                   rhs->tid->no_query()) == lhs->otype)))
-       return true;*/
-    if(lhs->otype != rhs->otype)
-      return false;
-    // if(require_same_type_id && (*lhs->tid != *rhs->tid))
-    //  return false;
-    switch(lhs->otype) {
-      case OType::TYPE:
-        return lhs->type_value()->match(rhs->is_type() ? rhs->type_value() : rhs);
-      case OType::NOOBJ:
-        return true;
-      case OType::BOOL:
-        return lhs->bool_value() == rhs->bool_value();
-      case OType::INT:
-        return lhs->int_value() == rhs->int_value();
-      case OType::REAL:
-        return lhs->real_value() == rhs->real_value();
-      case OType::URI:
-        return lhs->uri_value().matches(rhs->uri_value());
-      case OType::STR:
-        return lhs->str_value() == rhs->str_value();
-      case OType::LST: {
-        const auto objs_a = lhs->lst_value();
-        const auto objs_b = rhs->lst_value();
-        if(objs_a->size() != objs_b->size())
-          return false;
-        auto b = objs_b->begin();
-        for(const auto &a: *objs_a) {
-          if(!a->match(*b))
-            return false;
-          ++b;
-        }
-        return true;
-      }
-      case OType::REC: {
-        const auto pairs_a = lhs->rec_value();
-        const auto pairs_b = rhs->rec_value();
-        for(const auto &[b_id, b_obj]: *pairs_b) {
-          bool found = false;
-          for(const auto &[a_id, a_obj]: *pairs_a) {
-            if((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
-                 a_id->match(b_id) && a_obj->match(b_obj))) {
-              found = true;
-              break;
-            }
-          }
-          if(!found)
-            return false;
-        }
-        return true;
-      }
-      case OType::INST: {
-        const auto args_a = lhs->inst_args();
-        if(const auto args_b = rhs->inst_args(); !args_a->match(args_b))
-          return false;
-        if(lhs->domain_coefficient() != rhs->domain_coefficient() ||
-           lhs->range_coefficient() != rhs->range_coefficient())
-          return false;
-        return true;
-      }
-      case OType::BCODE: {
-        /*const auto insts_a = lhs->bcode_value();
-        const auto insts_b = rhs->bcode_value();
-        if (insts_a->size() != insts_b->size())
-          return false;
-        const auto b = insts_b->begin();
-        for (const auto &a: *insts_a) {
-          if (!a->match(*b))
-            return false;
-        }*/
-        return true;
-      }
-      default:
-        throw fError("unknown obj type in match(): %s", OTypes.to_chars(lhs->otype).c_str());
-    }
   }
 
   template<typename COEF>
@@ -395,6 +286,14 @@ namespace fhatos {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF);
         !coef.empty() && stoi(coef.front()) == 0) {
         return true;
+      }
+    }
+    if(value_obj->is_rec()) {
+      for(const auto &[k,v]: *value_obj->rec_value()) {
+        if(k->is_uri() && k->uri_value().has_query()) {
+          if(!this->type_check(v, k->uri_value().query()))
+            return false;
+        }
       }
     }
     const fURI type_no_query_id = type_id.no_query();
@@ -495,31 +394,6 @@ namespace fhatos {
                    type_obj->toString().c_str(), fail.c_str());
     }
     return false;*/
-  }
-
-
-  Obj_p Compiler::apply_obj_to_inst(const Obj_p &source, const Inst_p &inst, const InstArgs &args) {
-    /*if(!type_check(source,ROUTER_READ(inst->domain())))
-      throw fError("type check error");
-    const Obj_p sink = inst->apply(source,args);
-    if(!type_check(sink, ROUTER_READ(inst->range())))
-      throw fError("type check error");
-    return sink;*/
-    return source;
-  }
-
-  template<typename T>
-  Coefficient<T> project_coefficient(const Coefficient<T> &source, const Coefficient<T> &sink) {
-    if(source.first < sink.first)
-      throw fError("out of range");
-    if(source.second > sink.second)
-      throw fError("out of range");
-    return {source.first * sink.first, source.second * sink.second};
-  }
-
-
-  Obj_p Compiler::save_type(const ID_p &type_id, const Obj_p &type_obj) {
-    return type_obj;
   }
 
 };

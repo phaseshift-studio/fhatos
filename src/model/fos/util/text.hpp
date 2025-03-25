@@ -29,6 +29,10 @@ namespace fhatos {
     static Obj_p edit_inst(const Obj_p &text_obj, const InstArgs &) {
       const ID text_state_id = text_obj->uri_value();
       const ptr<Text> text_state = Text::get_state(text_obj);
+      Ansi<>::singleton()->printf(StringHelper::format(
+          "┌{0:─^{2}}┐\n"
+          "│{1: ^{2}}│\n"
+          "└{0:─^{2}}┘\n", "", "fHatOS text", 20).c_str());
       Ansi<>::singleton()->printf("!m[!y:s!g(!bave!g) !y:p!g(!barse!g) !y:q!g(!buit!g)!m]!b %s!!\n",
                                   text_state_id.toString().c_str());
       if(!text_state->body.empty())

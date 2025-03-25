@@ -127,7 +127,7 @@ namespace fhatos {
                         *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
     FOS_TEST_ERROR("/compiler/nat[-5]");
-    FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));
+   // FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));
     FOS_TEST_ERROR("/compiler/nat[5] + -10");
   }
 

@@ -818,9 +818,10 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       Obj_p result;
       if(key->is_uri()) {
-        const auto segment = 0 == key->uri_value().path_length()
-                               ? key->uri_value().toString()
-                               : string(key->uri_value().segment(0));
+        fURI key_no_query = key->uri_value().no_query();
+        const auto segment = 0 == key_no_query.path_length()
+                               ? key_no_query.toString()
+                               : string(key_no_query.segment(0));
         Objs_p segment_value = Obj::to_objs();
         const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
@@ -828,14 +829,14 @@ namespace fhatos {
         for(const auto &[k,v]: *this->rec_value()) {
           if(match_all || k->match(segment_uri)) {
             segment_value->add_obj(v);
-          } else if(k->uri_value().matches(key->uri_value())) {
+          } else if(k->uri_value().matches(key_no_query)) {
             full_match->add_obj(v);
           }
         }
         segment_value = segment_value->none_one_all();
-        const Obj_p temp = key->uri_value().path_length() <= 1
+        const Obj_p temp = key_no_query.path_length() <= 1
                              ? segment_value
-                             : segment_value->deref(to_uri(key->uri_value().subpath(1)), false);
+                             : segment_value->deref(to_uri(key_no_query.subpath(1)), false);
         full_match->add_obj(temp);
         result = full_match->none_one_all();
       } else {
@@ -880,6 +881,9 @@ namespace fhatos {
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
+      if(key->is_uri() && key->uri_value().has_query())
+        Compiler(true, true).type_check(val, key->uri_value().query());
+      ///////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
         const Uri_p current_key = Obj::to_uri(key->uri_value().segment(0));
         Obj_p current_obj = this->rec_get(current_key);
@@ -1286,7 +1290,7 @@ namespace fhatos {
             obj_string = std::to_string(this->int_value());
             break;
           case OType::REAL:
-            obj_string = std::to_string(this->real_value());
+            obj_string = fmt::format("{:.5f}",this->real_value());
             break;
           case OType::URI:
             obj_string = "!_" + (obj_printer->strict
@@ -1790,7 +1794,7 @@ namespace fhatos {
       const Rec_p remake = Obj::to_rec();
       //// apply lhs to args
       for(const auto &[k,v]: *args->rec_value()) {
-        remake->rec_value()->emplace(k, v->apply(lhs));
+        remake->rec_value()->insert_or_assign(k, v->apply(lhs));
       }
       // remake->rec_set("_inst",this->clone());
       ROUTER_PUSH_FRAME("#", remake);
@@ -1857,7 +1861,6 @@ namespace fhatos {
         case OType::ERROR:
           return shared_from_this();
         case OType::URI: {
-
           return lhs->deref(shared_from_this());
         }
         case OType::LST: {
@@ -1870,14 +1873,14 @@ namespace fhatos {
         case OType::REC: {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
-            if(const Obj_p key_apply = key->apply(lhs); !key_apply->is_noobj())
-              new_pairs->insert({key_apply, value/*->apply(key_apply)*/});
+            if(const Obj_p key_apply = key->apply(lhs))
+              new_pairs->insert({key, value->apply(key_apply)});
           }
           return Obj::to_rec(new_pairs, this->tid);
         }
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
-          auto compiler = Compiler(true, false);
+          const auto compiler = Compiler(true, false);
           const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
           /*if(!lhs->is_code() && !(lhs->is_noobj() && inst->range_coefficient().first == 0)) {
             if(compiler.reset(true, true)->type_check(lhs, *inst->domain())) {
@@ -1949,7 +1952,7 @@ namespace fhatos {
     [[nodiscard]]
     bool is_base_type() const { return this->tid->equals(*OTYPE_FURI.at(this->otype)); }
 
-    [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *fail_reason = nullptr) const {
+    [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *  fail_reason  = nullptr) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if(type_obj->is_empty_bcode())
         return true;
@@ -1999,7 +2002,7 @@ namespace fhatos {
           return match;
         }
         case OType::URI: {
-          const bool match = this->uri_value().matches(type_obj->uri_value());
+          const bool match = this->uri_value().no_query().matches(type_obj->uri_value().no_query());
           if(!match && fail_reason)
             fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
           return match;
@@ -2481,7 +2484,7 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] BObj_p serialize() const {
-      LOG_WRITE(DEBUG,this, L("serializing obj {}\n", this->toString()));
+      LOG_WRITE(DEBUG, this, L("serializing obj {}\n", this->toString()));
       const string serial = this->toString(SERIALIZER_PRINTER);
       return ptr<BObj>(new BObj(serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))), bobj_deleter);
     }

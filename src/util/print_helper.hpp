@@ -134,7 +134,6 @@ namespace fhatos {
             obj->is_inst() ||
             !obj->domain_range().is_single() ||
             (obj_printer->show_type && !obj->is_base_type()))) {
-          string typing;
           if(obj->is_type()) {
             ss << "!m[!!";
             type_printed = true;
@@ -198,7 +197,7 @@ namespace fhatos {
             ss << obj->int_value();
             break;
           case OType::REAL:
-            ss << obj->real_value();
+            ss << fmt::format("{:f}",obj->real_value());
             break;
           case OType::URI:
             ss << "!_" + (obj_printer->strict
