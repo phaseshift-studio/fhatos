@@ -253,12 +253,13 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_PREFIX "as")
-          ->inst_args(lst({isa_arg(URI_FURI)}))
+          ->inst_args(rec({{"type?uri", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
-            return args->arg(0)->is_uri()
-                     ? lhs->as(id_p(ROUTER_RESOLVE(args->arg(0)->uri_value())))
-                     : lhs->as(args->arg(0)->tid);
+            const Obj_p type_uri = args->arg("type?uri");
+            return type_uri->is_uri()
+                     ? lhs->as(id_p(ROUTER_RESOLVE(type_uri->uri_value())))
+                     : lhs->as(type_uri->tid);
           })
           ->save();
 
@@ -769,7 +770,7 @@ namespace mmadt {
                   } else if(rhs->is_rec()) {
                     Rec_p record = Obj::to_rec();
                     for(const auto &[rk,rv]: *rhs->rec_value()) {
-                      record->rec_set(rk->apply(lhs), rv);
+                        record->rec_set(rk, lhs->match(rk) ? rv->apply(lhs) : Obj::to_noobj());
                     }
                     return record;
                   } else {
@@ -796,10 +797,10 @@ namespace mmadt {
                     bool done = false;
                     for(const auto &[rk,rv]: *rhs->rec_value()) {
                       if(done)
-                        record->rec_set(Obj::to_noobj(), rv);
+                        record->rec_set(rk, Obj::to_noobj());
                       else {
-                        if(Obj_p result = rk->apply(lhs); !result->is_noobj()) {
-                          record->rec_set(result, rv);
+                        if(lhs->match(rk)) {
+                          record->rec_set(rk, rv->apply(lhs));
                           done = true;
                         }
                       }
@@ -823,17 +824,12 @@ namespace mmadt {
                     return list;
                   } else if(rhs->is_rec()) {
                     Rec_p record = Obj::to_rec();
-                    for(const auto &[k,v]: *rhs->rec_value()) {
-                      try {
-                        if(record->rec_value()->empty()) {
-                          const Obj_p kk = k->apply(lhs);
-                          record->rec_set(kk, v->apply(kk));
-                        } else {
-                          const Obj_p kk = k->apply(record->rec_value()->back().second);
-                          record->rec_set(kk, v->apply(kk));
-                        }
-                      } catch(const std::exception &e) {
-                        record->rec_set(Obj::to_noobj(), Obj::to_noobj());
+                    for(const auto &[rk,rv]: *rhs->rec_value()) {
+                      if(record->rec_value()->empty()) {
+                        record->rec_set(rk, lhs->match(rk) ? rv->apply(lhs) : Obj::to_noobj());
+                      } else {
+                        const Obj_p last_lhs = record->rec_value()->back().second;
+                        record->rec_set(rk, last_lhs->match(rk) ? rv->apply(last_lhs) : Obj::to_noobj());
                       }
                     }
                     return record;
@@ -886,7 +882,7 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/type")
+      InstBuilder::build(MMADT_PREFIX "type")
           ->domain_range(OBJ_FURI, {0, 1}, URI_FURI, {1, 1})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {

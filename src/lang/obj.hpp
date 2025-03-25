@@ -644,19 +644,19 @@ namespace fhatos {
       }), l->end());
     }
 
-    [[nodiscard]] Obj_p deref(const Obj_p &uri, const bool uri_on_fail = true) const {
+    [[nodiscard]] Obj_p deref(const Obj_p &key, const bool obj_on_fail = true) const {
       if(this->is_rec())
-        return this->rec_get(uri);
+        return this->rec_get(key);
       if(this->is_lst())
-        return this->lst_get(uri);
+        return this->lst_get(key);
       if(this->is_objs()) {
         const Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
         for(const auto &o: *this->objs_value()) {
-          transform->add_obj(o->deref(uri, uri_on_fail));
+          transform->add_obj(o->deref(key, obj_on_fail));
         }
         return transform;
       }
-      return uri_on_fail ? uri : Obj::to_noobj();
+      return obj_on_fail ? key : Obj::to_noobj();
     }
 
     [[nodiscard]] Int_p rec_size() const { return Obj::to_int(this->rec_value()->size()); }
@@ -1290,7 +1290,7 @@ namespace fhatos {
             obj_string = std::to_string(this->int_value());
             break;
           case OType::REAL:
-            obj_string = fmt::format("{:.5f}",this->real_value());
+            obj_string = fmt::format("{:.5f}", this->real_value());
             break;
           case OType::URI:
             obj_string = "!_" + (obj_printer->strict
@@ -1874,7 +1874,7 @@ namespace fhatos {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
             if(const Obj_p key_apply = key->apply(lhs))
-              new_pairs->insert({key, value->apply(key_apply)});
+              new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
           }
           return Obj::to_rec(new_pairs, this->tid);
         }
@@ -1916,8 +1916,8 @@ namespace fhatos {
             const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
                                    ? (*const_cast<Obj *>(std::get<Obj_p>(inst->inst_f()).get()))(lhs, remake)
                                    : (*std::get<Cpp_p>(inst->inst_f()))(lhs, remake);
-           // if(!result->is_code() && !(result->is_noobj() && inst->range_coefficient().first == 0))
-           //   compiler.reset(true, true)->type_check(result, *inst->range());
+            // if(!result->is_code() && !(result->is_noobj() && inst->range_coefficient().first == 0))
+            //   compiler.reset(true, true)->type_check(result, *inst->range());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
@@ -1952,7 +1952,7 @@ namespace fhatos {
     [[nodiscard]]
     bool is_base_type() const { return this->tid->equals(*OTYPE_FURI.at(this->otype)); }
 
-    [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *  fail_reason  = nullptr) const {
+    [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *fail_reason = nullptr) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if(type_obj->is_empty_bcode())
         return true;

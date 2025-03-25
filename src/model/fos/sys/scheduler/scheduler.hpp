@@ -160,10 +160,10 @@ namespace fhatos {
         Scheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
       Scheduler::singleton()->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
-          ->inst_args(rec({{"thread", Obj::to_bcode()}}))
+          ->inst_args(lst({Obj::to_bcode()}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-            const Thread_p thread = Scheduler::singleton()->spawn(args->arg("thread"));
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            const Thread_p thread = Scheduler::singleton()->spawn(args->arg(0));
             return thread->thread_obj_;
           })
           ->save();

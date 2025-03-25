@@ -226,7 +226,8 @@ namespace fhatos {
             if(inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size())
               merged_args->rec_set(rk, rv->apply(inst_provided_args->arg(r_counter)->apply(lhs)));
             else
-              merged_args->rec_set(rk, rv->apply(Obj::to_noobj()->apply(lhs)));
+              merged_args->rec_set(rk, rv->apply(lhs));
+              //merged_args->rec_set(rk, rv->apply(lhs));
           }
           r_counter++;
         }

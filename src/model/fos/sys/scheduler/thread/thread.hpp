@@ -73,7 +73,7 @@ namespace fhatos {
                             }
                           } catch(const std::exception &e) {
                             LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
-                            thread_obj->rec_set("halt",dool(true));
+                            thread_obj->rec_set("halt", dool(true));
                           }
                         }
                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
@@ -109,11 +109,19 @@ namespace fhatos {
                                         {"halt", dool(false)}
                                     }));
 
-      /*InstBuilder::build(THREAD_FURI->add_component("spawn"))
+      InstBuilder::build(THREAD_FURI->add_component("create"))
+          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+          ->inst_args(rec({{"loop", Obj::to_bcode()}, {"halt?bool", dool(false)}, {"delay", jnt(0)}}))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            const ptr<Thread> thread_state = Model::get_state<Thread>(args);
+            return thread_state->thread_obj_;
+          })->save();
+      InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-            return Thread::start_inst(thread_obj, args);
-          })->save();*/
+            const ptr<Thread> thread_state = Model::get_state<Thread>(thread_obj);
+            return thread_state->thread_obj_;
+          })->save();
       /* InstBuilder::build(THREADX_FURI->add_component("stop"))
            ->domain_range(THREADX_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
            ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {

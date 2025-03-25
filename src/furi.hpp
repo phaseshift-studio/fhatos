@@ -385,14 +385,14 @@ namespace fhatos {
       return this->query_value(key).has_value();
     }
 
-    static void encode_query(string& query) {
+    static void encode_query(string &query) {
       if(query.empty())
         return;
       //StringHelper::replace(&query, "=>", "%20%50");
       //StringHelper::replace(&query, "<=", "%20%60");
     }
 
-    static void decode_query(string& query) {
+    static void decode_query(string &query) {
       if(query.empty())
         return;
       //StringHelper::replace(&query, "%20%50", "=>");
@@ -549,7 +549,7 @@ namespace fhatos {
       return fURI(this->segment(0));
     }
 
-    [[nodiscard]] fURI pretract(const fURI& prefix) const {
+    [[nodiscard]] fURI pretract(const fURI &prefix) const {
       if(!this->starts_with(prefix))
         return *this;
       else {
@@ -557,7 +557,7 @@ namespace fhatos {
       }
     }
 
-    [[nodiscard]] fURI retract(const fURI& prefix) const {
+    [[nodiscard]] fURI retract(const fURI &prefix) const {
       if(!this->ends_with(prefix))
         return *this;
       else {
@@ -840,23 +840,37 @@ namespace fhatos {
     }
 
 
-   /* fURI &operator=(const fURI &other) {
+    fURI &operator=(const fURI &other) {
       if(&other == this)
         return *this;
-//return fURI(other);
-      this->scheme_ = other.scheme_;
-      this->host_ = other.host_;
+      free((void *) this->scheme_);
+      this->scheme_ = other.scheme_ ? strdup(other.scheme_) : nullptr;
+      free((void *) this->host_);
+      this->host_ = other.host_ ? strdup(other.host_) : nullptr;
       this->port_ = other.port_;
-      this->user_ = other.user_;
-      this->password_ = other.password_;
-      this->coefficient_ = other.coefficient_;
-      this->query_ = other.query_;
+      free((void *) this->user_);
+      this->user_ = other.user_ ? strdup(other.user_) : nullptr;
+      free((void *) this->password_);
+      this->password_ = other.password_ ? strdup(other.password_) : nullptr;
+      free((void *) this->coefficient_);
+      this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
+      free((void *) this->query_);
+      this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       this->path_length_ = other.path_length_;
-      this->path_ = other.path_;
+      for(size_t i = 0; i < this->path_length_; i++) {
+        free(this->path_[i]);
+      }
+      delete[] path_;
+      this->path_ = new char *[other.path_length_]();
+      if(other.path_) {
+        for(uint8_t i = 0; i < other.path_length_; i++) {
+          this->path_[i] = strdup(other.path_[i]);
+        }
+      }
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       return *this;
-    }*/
+    }
 
     [[nodiscard]] bool headless() const {
       const char first = this->toString()[0];
@@ -1146,12 +1160,8 @@ namespace fhatos {
 
     bool operator==(const fURI &other) const {
       return this->equals(other);
-    } // TODO: do field-wise comparisons
+    }
 
-  private:
-
-
-  public:
     [[nodiscard]] bool equals(const fURI &other) const {
       if(this->path_length_ != other.path_length_)
         return false;
