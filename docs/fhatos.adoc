@@ -130,8 +130,8 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/mnt/bus] mapping /bus==>//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] /io/console obj loaded
+[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] console boot config dropped
 ----
 
@@ -998,8 +998,6 @@ fhatos> 4 + int(a=>2)[+*a]
 <!-- 🐓 -->
 ++++
 
-
-
 ==== The Value
 
 [stem]
@@ -1019,10 +1017,9 @@ The [.h]#value# of an `obj` is the datum specifying the __instance__ aspects of 
 The [.h]#reference# of an `obj` is a fURI denoting the location of the `obj` within the underlying fURI addressable structure.
 The [aqua]*F*​[lime]#h#​[yellow]*a*​[red]*T*​[fuchsia]*O*​[blue]#S#​ structure is the storage medium of all persistent `objs`.
 If an `obj` does not have a reference, then the `obj` is transient -- existing only within the data flow.
-When an `obj` has a reference, the `obj` encoding in the data flow (hardware main memory) and
-within the structure ([red]*F*​[aqua]*H*​[blue]*A*​[yellow]#t#​[lime]*O*​[fuchsia]*s*​ persistence) are synchronized.
+When an `obj` has a reference, the `obj` encoding in the data flow (hardware main memory) and within the structure ([red]*F*​[aqua]*H*​[blue]*A*​[yellow]#t#​[lime]*O*​[fuchsia]*s*​ persistence) are synchronized.
 
-[tabs, width=50%]
+[tabs,width=50%]
 ====
 from *::
 +
@@ -1248,7 +1245,6 @@ fhatos> thread[[
 --
 
 ====
-
 
 .Controlling Base Value Bit Encoding
 ====
@@ -2265,8 +2261,8 @@ With `end`, it's possible to write mm-ADT in the classic statement-oriented, imp
 
 ===== Query Processors
 
-Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the
-https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
+image:ansi/nelson.png[width=250,float=left,role=title=nelson]
+Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
 Modules can be added to structures enabling different behaviors on read/write given associated, relevant `?` parameters.
 Example modules that come preloaded with [lime]#f#​[aqua]#h#​[fuchsia]*A*​[blue]*T*​[red]#o#​[yellow]#s#​ are:
 
