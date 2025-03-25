@@ -72,28 +72,28 @@ namespace mmadt {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(
           *CHAR_FURI,
-          *__(*CHAR_FURI, *INT_FURI, *STR_FURI)->merge(jnt(2))->count()->is(*__()->eq(jnt(1))));
-      Typer::singleton()->save_type(*INT8_FURI, *__(*UINT8_FURI, *INT_FURI, *INT_FURI)
-                                    ->is(*__()->gte(jnt(-127)))
-                                    ->is(*__()->lte(jnt(128))));
+          __(*CHAR_FURI, *INT_FURI, *STR_FURI).merge(jnt(2)).count().is(__().eq(jnt(1))));
+      Typer::singleton()->save_type(*INT8_FURI, __(*UINT8_FURI, *INT_FURI, *INT_FURI)
+                                    .is(__().gte(jnt(-127)))
+                                    .is(__().lte(jnt(128))));
       Typer::singleton()->save_type(
           *UINT8_FURI,
-          *__(*UINT8_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0)))->is(*__()->lte(jnt(255))));
+          __(*UINT8_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0))).is(__().lte(jnt(255))));
       Typer::singleton()->save_type(*INT16_FURI, Obj::to_type(INT16_FURI));
       Typer::singleton()->save_type(*INT32_FURI, Obj::to_type(INT32_FURI));
-      Typer::singleton()->save_type(*NAT_FURI, *__(*NAT_FURI, *INT_FURI, *INT_FURI)->is(*__()->gte(jnt(0))));
+      Typer::singleton()->save_type(*NAT_FURI, __(*NAT_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0))));
       Typer::singleton()->save_type(
           *CELSIUS_FURI,
-          *__(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(-273.15))));
+          __(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(-273.15))));
       Typer::singleton()->save_type(
           *PERCENT_FURI,
-          *__(*PERCENT_FURI, *REAL_FURI, *REAL_FURI)->is(*__()->gte(real(0.0)))->is(*__()->lte(real(100.0))));
-      Typer::singleton()->save_type(*HEX_FURI, *__(*HEX_FURI, *URI_FURI, *URI_FURI)->is(dool(true)));
+          __(*PERCENT_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(0.0))).is(__().lte(real(100.0))));
+      Typer::singleton()->save_type(*HEX_FURI, __(*HEX_FURI, *URI_FURI, *URI_FURI).is(dool(true)));
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Typer::singleton()->save_type(*MILLISECOND_FURI, Obj::to_type(REAL_FURI));
       InstBuilder::build(MILLISECOND_FURI->add_component(MMADT_PREFIX "as"))
           ->domain_range(MILLISECOND_FURI, {1, 1}, SECOND_FURI, {1, 1})
-          ->inst_args(lst({*__()->is(*__()->eq(vri(SECOND_FURI)))}))
+          ->inst_args(lst({__().is(__().eq(vri(SECOND_FURI)))}))
           ->inst_f([](const Obj_p &millis_obj, const InstArgs &args) {
             return Obj::to_real(millis_obj->real_value() * 1000.0, SECOND_FURI);
           })
@@ -119,7 +119,7 @@ namespace mmadt {
     }
 
     static Obj_p isa_arg(const ID_p &id) {
-      return *__()->isa(*id);
+      return __().isa(*id);
     }
 
     static void import_base_inst() {
@@ -159,7 +159,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_PREFIX "jump")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(lst({*__()->isa(*URI_FURI)}))
+          ->inst_args(lst({__().isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             const fURI furi = args->arg(0)->uri_value();
             if(furi == "none")
@@ -619,7 +619,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_SCHEME "/from")
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(lst({*__()->isa(vri(URI_FURI)), Obj::to_bcode()}))
+          ->inst_args(lst({__().isa(vri(URI_FURI)), Obj::to_bcode()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
             return result->is_noobj() ? args->arg(1) : result;
@@ -1158,7 +1158,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*INT_FURI)}))
+            ->inst_args(lst({__().isa(*INT_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)
@@ -1175,7 +1175,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(REAL_FURI, {1, 1}, REAL_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*REAL_FURI)}))
+            ->inst_args(lst({__().isa(*REAL_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)
@@ -1192,7 +1192,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(STR_FURI, {1, 1}, STR_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*STR_FURI)}))
+            ->inst_args(lst({__().isa(*STR_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)
@@ -1216,7 +1216,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(BOOL_FURI, {1, 1}, BOOL_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*BOOL_FURI)}))
+            ->inst_args(lst({__().isa(*BOOL_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)
@@ -1233,7 +1233,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*URI_FURI)}))
+            ->inst_args(lst({__().isa(*URI_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   std::vector<std::pair<string, string>> values_a = lhs->uri_value().query_values();
@@ -1253,7 +1253,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(LST_FURI, {1, 1}, LST_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*LST_FURI)}))
+            ->inst_args(lst({__().isa(*LST_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                   if(strcmp(op, "plus") == 0) {
@@ -1283,7 +1283,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})
-            ->inst_args(lst({*__()->isa(*REC_FURI)}))
+            ->inst_args(lst({__().isa(*REC_FURI)}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
                   if(strcmp(op, "plus") == 0) {

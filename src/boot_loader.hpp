@@ -157,13 +157,13 @@ namespace fhatos {
             ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
             ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
             ->install(*__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
-                                       {"config", __()->from(FOS_BOOT_CONFIG_VALUE_ID "/wifi")->compute().next()}}),
+                                       {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/wifi").compute().next()}}),
                                      "/io/wifi"))
               ->inst("connect")->compute().begin())
             ->drop_config("wifi")
             ->mount(Structure::create<Memory>("/soc/memory/#"))
             /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                     {"config", __()->from(FOS_BOOT_CONFIG_VALUE_ID "/ota")->compute().next()}},
+                                     {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
                                    "/io/ota"))
               ->inst("start")->compute()->begin())*/
             ->drop_config("ota")

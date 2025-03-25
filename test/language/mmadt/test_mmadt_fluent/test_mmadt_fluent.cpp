@@ -30,16 +30,16 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_to_from() {
-    FOS_TEST_OBJ_EQUAL(jnt(2), __(jnt(1))->to(vri("a"))->plus(*__()->from(vri("a")))->compute().next());
+    FOS_TEST_OBJ_EQUAL(jnt(2), __(jnt(1)).to(vri("a")).plus(__().from(vri("a"))).compute().next());
    // FOS_CHECK_RESULTS({23}, __(10).to(*vri("b")).plus(3).plus(_.from(*vri("b")))._bcode, {{*vri("b"), 10}});
    // FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(*vri("c")).plus("os")._bcode, {{*vri("c"), "fhat"}});
   }
 
   void test_relational_predicates() {
     //// INT
-    FOS_TEST_OBJ_EQUAL(jnt(1), __(jnt(1))->is(*__()->eq(jnt(1)))->compute().next());
+    FOS_TEST_OBJ_EQUAL(jnt(1), __(jnt(1)).is(__().eq(jnt(1))).compute().next());
     //FOS_TEST_OBJ_EQUAL({}, __(1).is(_.neq(1))._bcode);
-    FOS_TEST_OBJ_EQUAL(jnt(12), __(objs({jnt(1), jnt(2), jnt(3)}))->plus(jnt(10))->is(*__()->eq(jnt(12)))->compute().next());
+    FOS_TEST_OBJ_EQUAL(jnt(12), __(objs({jnt(1), jnt(2), jnt(3)})).plus(jnt(10)).is(__().eq(jnt(12))).compute().next());
    // FOS_TEST_OBJ_EQUAL({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12))._bcode);
    // FOS_TEST_OBJ_EQUAL(jnt(13), __({1, 2, 3}).plus(10).is(_.gt(12))._bcode);
     //FOS_TEST_OBJ_EQUAL({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12))._bcode);

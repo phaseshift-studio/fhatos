@@ -578,22 +578,22 @@ namespace mmadt {
       SUGAR_GENERATOR(IS_A, "?", MMADT_PREFIX "isa");
       //SUGAR_GENERATOR(IS_NOT_A, "?!", MMADT_PREFIX "nota");
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->eq(any_cast<Obj_p>(vs[0])));
+        return __().is(__().eq(any_cast<Obj_p>(vs[0])));
       };
       NEQ <= seq(lit("?!="), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->neq(any_cast<Obj_p>(vs[0])));
+        return __().is(__().neq(any_cast<Obj_p>(vs[0])));
       };
       GT <= seq(lit("?>"), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->gt(any_cast<Obj_p>(vs[0])));
+        return __().is(__().gt(any_cast<Obj_p>(vs[0])));
       };
       GTE <= seq(lit("?>="), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->gte(any_cast<Obj_p>(vs[0])));
+        return __().is(__().gte(any_cast<Obj_p>(vs[0])));
       };
       LT <= seq(lit("?<"), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->lt(any_cast<Obj_p>(vs[0])));
+        return __().is(__().lt(any_cast<Obj_p>(vs[0])));
       };
       LTE <= seq(lit("?<="), WRAQ("(", OBJ, START, ")")), [](const SemanticValues &vs) -> Inst_p {
-        return *__()->is(*__()->lte(any_cast<Obj_p>(vs[0])));
+        return __().is(__().lte(any_cast<Obj_p>(vs[0])));
       };
       LSHIFT_0 <= lit("<<"), lshift_0_action;
       RSHIFT_0 <= lit(">>"), rshift_0_action;

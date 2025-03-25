@@ -30,7 +30,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_to_from() {
-    FOS_TEST_OBJ_EQUAL(jnt(2), __(jnt(1))->to(vri("a"))->plus(*__()->from(vri("a")))->compute().next());
+    FOS_TEST_OBJ_EQUAL(jnt(2), __(jnt(1)).to(vri("a")).plus(__().from(vri("a"))).compute().next());
    // FOS_CHECK_RESULTS({23}, __(10).to(*vri("b")).plus(3).plus(_.from(*vri("b")))._bcode, {{*vri("b"), 10}});
    // FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(*vri("c")).plus("os")._bcode, {{*vri("c"), "fhat"}});
   }
