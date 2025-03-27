@@ -198,7 +198,7 @@ namespace fhatos {
               inst->inst_args(),
               InstF(make_shared<Cpp>(
                   [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                    return x->apply(lhs, args);
+                    return x->apply(lhs);
                   })),
               inst->inst_seed_supplier(),
               inst->tid, inst->vid);

@@ -73,6 +73,8 @@ namespace fhatos {
       return this;
     }
 
+    static bool in_block_list(const string &op);
+
     [[nodiscard]] Inst_p resolve_inst(const Obj_p &lhs, const Inst_p &inst) const;
 
     template<typename COEF = IntCoefficient>

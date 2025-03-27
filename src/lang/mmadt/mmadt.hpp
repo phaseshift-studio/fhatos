@@ -35,7 +35,7 @@ namespace mmadt {
     //////////////////////////////////////////////////////////////////////////////
     fURI tid;
     fURI domain;
-    IntCoefficient dc = {1, 1};
+    IntCoefficient dc = {0, 1};
     fURI range;
     IntCoefficient rc = {1, 1};
 
@@ -109,10 +109,6 @@ namespace mmadt {
 
     [[nodiscard]] _mmADT isa(const fURI &rhs) const {
       return this->extend("isa", vri(rhs));
-    }
-
-    [[nodiscard]] _mmADT a(const Obj_p &rhs) const {
-      return this->extend("a", rhs);
     }
 
     [[nodiscard]] _mmADT as(const Obj_p &rhs) const {
@@ -216,6 +212,10 @@ namespace mmadt {
 
     [[nodiscard]] _mmADT each(const Poly_p &rhs) const {
       return this->extend("each", rhs);
+    }
+
+    [[nodiscard]] _mmADT else_(const Obj_p &rhs) const {
+      return this->extend("else", rhs);
     }
 
     [[nodiscard]] _mmADT ref(const Obj_p &rhs) const {

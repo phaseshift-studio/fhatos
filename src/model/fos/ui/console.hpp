@@ -51,7 +51,7 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
+                              const auto console_state = dynamic_cast<Console *>(get_state<Thread>(console_obj).get());
                               try {
                                 static bool first = true;
                                 if(first) {

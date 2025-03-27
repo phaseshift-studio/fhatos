@@ -35,6 +35,10 @@
 
 namespace fhatos {
   const static auto DSM_FURI = ID("/sys/lib/dsm");
+  const static Rec_p DSM_DEFAULT_CONFIG =
+      Obj::to_rec({{"async", __().else_(dool(true))},
+                   {"broker", __().else_(vri("mqtt://localhost:1883"))},
+                   {"client", __().else_(vri("fhatos_client"))}});
 
   template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
@@ -77,7 +81,7 @@ namespace fhatos {
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
-                              const Rec_p &config = Obj::to_rec({{"cache_size", jnt(-1)}, {"async", dool(true)}})) {
+                              const Rec_p &config = DSM_DEFAULT_CONFIG) {
       return Structure::create<DSM>(pattern, value_id, config);
     }
 

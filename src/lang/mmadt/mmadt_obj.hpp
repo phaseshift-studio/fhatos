@@ -109,7 +109,7 @@ namespace mmadt {
               const size_t length = secret_obj->str_value().length();
               return Obj::to_str(StringHelper::repeat(length, "*"), STR_FURI);
             }
-            return ROUTER_READ(MMADT_SCHEME "/as")->apply(secret_obj, args);
+            return ROUTER_READ(MMADT_SCHEME "/as")->apply(secret_obj);
           })
           ->save();
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,20 +144,19 @@ namespace mmadt {
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return lhs->apply(args->arg(0));
-            //return dool(Compiler(false, false).type_check(obj, args->arg(0)->uri_value()));
           })
           ->save();
 
-      InstBuilder::build(MMADT_PREFIX "a")
+     /* InstBuilder::build(MMADT_PREFIX "a")
           ->domain_range(OBJ_FURI, {1, 1}, BOOL_FURI, {1, 1})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             return dool(obj->match(args->arg(0)));
             //return dool(Compiler(false, false).type_check(obj, args->arg(0)->uri_value()));
           })
-          ->save();
+          ->save();*/
 
-      InstBuilder::build(MMADT_PREFIX "jump")
+      /*InstBuilder::build(MMADT_PREFIX "jump")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(lst({__().isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
@@ -171,9 +170,9 @@ namespace mmadt {
               return to_inst->apply(obj, Obj::to_rec({{"_back", from_inst}}));
             }
           })
-          ->save();
+          ->save();*/
 
-      InstBuilder::build(MMADT_PREFIX "back")
+    /*  InstBuilder::build(MMADT_PREFIX "back")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
           // ->inst_args(lst({*__()->isa(*URI_FURI)}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
@@ -181,7 +180,7 @@ namespace mmadt {
             ROUTER_PUSH_FRAME("#", Obj::to_rec({{"_back", obj}}));
             return inst->apply(obj, Obj::to_rec({{"_back", vri("none")}}));
           })
-          ->save();
+          ->save();*/
 
       InstBuilder::build(MMADT_PREFIX "not")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
@@ -192,15 +191,14 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_PREFIX "isa")
-          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             return obj->match(ROUTER_READ(args->arg(0)->uri_value())) ? obj : Obj::to_noobj();
-            //return dool(Compiler(false, false).type_check(obj, args->arg(0)->uri_value()));
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/start")
+      InstBuilder::build(MMADT_PREFIX "start")
           ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
@@ -208,7 +206,7 @@ namespace mmadt {
           })
           ->save();
 
-      InstBuilder::build(MMADT_SCHEME "/apply")
+      /*InstBuilder::build(MMADT_SCHEME "/apply")
           ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0,INT_MAX})
           ->inst_args(rec({{"rhs", Obj::to_noobj()}, {"args", Obj::to_rec()}}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
@@ -218,7 +216,7 @@ namespace mmadt {
             //  return rhs_temp->apply(lhs, args);
             return lhs->apply(rhs_temp, args_temp->is_rec() ? args_temp : Obj::to_inst_args(*args_temp->lst_value()));
           })
-          ->save();
+          ->save();*/
 
       InstBuilder::build(MMADT_SCHEME "/frame")
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
@@ -606,7 +604,7 @@ namespace mmadt {
           })->save();
 
       InstBuilder::build(MMADT_PREFIX "else")
-          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return lhs->is_noobj() ? args->arg(0) : lhs;

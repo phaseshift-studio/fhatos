@@ -29,7 +29,6 @@ namespace fhatos {
   class Thread;
   static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p(FOS_URI "/thread");
-  static ID_p THREAD_FURI_DEFAULT = id_p(FOS_URI "/thread::default");
 
   class Thread : public Model<Thread> {
   public:
@@ -61,7 +60,7 @@ namespace fhatos {
                         const Obj_p loop_code = thread_obj->rec_get("loop");
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
                         const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
-                        while(!thread_obj->get<bool>("halt")) {
+                        while(!ROUTER_READ(*thread_obj->vid)->get<bool>("halt")) {
                           try {
                             FEED_WATCHDOG();
                             this_thread.store(Thread::get_state(thread_obj).get());
@@ -100,43 +99,23 @@ namespace fhatos {
     static void *import() {
       Typer::singleton()->save_type(*THREAD_FURI, Obj::to_rec({
                                         {"loop", Obj::to_bcode()},
-                                        {"delay", Obj::to_type(NAT_FURI)},
-                                        {"halt", Obj::to_type(BOOL_FURI)}
+                                        {"delay", __().isa(*NAT_FURI).else_(jnt(0, NAT_FURI))},
+                                        {"halt", __().isa(*BOOL_FURI).else_(dool(false))}
                                     }));
-      Typer::singleton()->save_type(*THREAD_FURI_DEFAULT, Obj::to_rec({
-                                        {"loop", Obj::to_bcode()},
-                                        {"delay", jnt(0, NAT_FURI)},
-                                        {"halt", dool(false)}
-                                    }));
-
       InstBuilder::build(THREAD_FURI->add_component("create"))
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
-          ->inst_args(rec({{"loop", Obj::to_bcode()}, {"halt?bool", dool(false)}, {"delay", jnt(0)}}))
+          ->inst_args(Obj::to_inst_args({{"loop", Obj::to_bcode()},
+                                         {"delay", __().isa(*NAT_FURI).else_(jnt(0, NAT_FURI))},
+                                         {"halt", __().isa(*BOOL_FURI).else_(dool(false))}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const ptr<Thread> thread_state = Model::get_state<Thread>(args);
-            return thread_state->thread_obj_;
+            return Obj::to_rec(args->rec_value(), THREAD_FURI);
           })->save();
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, THREAD_FURI, {1, 1})
-          ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
+          ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
             const ptr<Thread> thread_state = Model::get_state<Thread>(thread_obj);
             return thread_state->thread_obj_;
           })->save();
-      /* InstBuilder::build(THREADX_FURI->add_component("stop"))
-           ->domain_range(THREADX_FURI, {1, 1}, NOOBJ_FURI, {0, 0})
-           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-             return ThreadX::stop_inst(thread_obj, args);
-           })->save();
-       InstBuilder::build(THREADX_FURI->add_component("yield"))
-           ->domain_range(THREADX_FURI, {1, 1}, THREADX_FURI, {1, 1})
-           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-             return ThreadX::yield_inst(thread_obj, args);
-           })->save();
-       InstBuilder::build(THREADX_FURI->add_component("delay"))
-           ->domain_range(THREADX_FURI, {1, 1}, THREADX_FURI, {1, 1})
-           ->inst_f([](const Obj_p &thread_obj, const InstArgs &args) {
-             return ThreadX::delay_inst(thread_obj, args);
-           })->save();*/
       return nullptr;
     }
   };

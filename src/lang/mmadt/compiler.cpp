@@ -185,7 +185,7 @@ namespace fhatos {
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
 
-  bool in_block_list(const string &op) {
+    bool Compiler::in_block_list(const string &op) {
     const std::vector<Uri_p> *blocker_list = ROUTER_READ(MMADT_PREFIX "inst/blockers")->lst_value().get();
     const bool found = blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
                                                            [&op](const Uri_p &u) {
@@ -206,7 +206,7 @@ namespace fhatos {
       Obj_p merged_args = Obj::to_inst_args();
       const auto inst_resolved_args = inst_resolved->inst_args();
       if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
-        merged_args = inst_resolved_args->apply(inst_provided_args);
+        merged_args = inst_resolved_args->apply(inst_provided_args->apply(lhs));
       } else {
         int r_counter = 0;
         for(const auto &[rk,rv]: *inst_resolved_args->rec_value()) {
@@ -214,8 +214,7 @@ namespace fhatos {
           for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
             if(lk->match(rk)) {
               found = true;
-              if((lv->is_inst() && in_block_list(lv->inst_op())) ||
-                 in_block_list(inst_provided->inst_op())) {
+              if((lhs->is_inst() && in_block_list(lhs->inst_op())) || in_block_list(inst_provided->inst_op())) {
                 merged_args->rec_set(rk, lv);
               } else {
                 merged_args->rec_set(rk, rv->apply(lv->apply(lhs)));
@@ -249,8 +248,8 @@ namespace fhatos {
           inst_provided->inst_op(),
           inst_provided_args,
           InstF(make_shared<Cpp>(
-              [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                return x->apply(lhs, args);
+              [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
+                return x->apply(lhs);
               })),
           inst_provided->inst_seed_supplier(),
           inst_provided->tid,

@@ -818,7 +818,7 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       Obj_p result;
       if(key->is_uri()) {
-        fURI key_no_query = key->uri_value().no_query();
+        const fURI key_no_query = key->uri_value().no_query();
         const auto segment = 0 == key_no_query.path_length()
                                ? key_no_query.toString()
                                : string(key_no_query.segment(0));
@@ -878,6 +878,33 @@ namespace fhatos {
       this->rec_set(Obj::to_uri(uri_key), val, nest);
     }
 
+    template<typename A>
+    static void drop_if(const RecMap_p<> &m, const Predicate<A> pred) {
+      for(auto it = m->begin(); it != m->end();) {
+        if(pred(*it)) {
+          it = m->erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+
+    virtual void rec_drop(const Obj_p &key) const {
+      if(key->is_uri()) {
+        drop_if<std::pair<const Obj_p, Obj_p>>(this->rec_value(),
+                                               [&key](const std::pair<const Obj_p, Obj_p> &pair) {
+                                                 if(pair.first->is_uri() &&
+                                                    pair.first->uri_value().no_query().
+                                                    matches(key->uri_value().no_query())) {
+                                                   return true;
+                                                 }
+                                                 return pair.first->match(key);
+                                               });
+      } else {
+        this->rec_value()->erase(key);
+      }
+    }
+
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
@@ -885,6 +912,7 @@ namespace fhatos {
         Compiler(true, true).type_check(val, key->uri_value().query());
       ///////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
+        // const fURI key_no_query = key->uri_value().no_query();
         const Uri_p current_key = Obj::to_uri(key->uri_value().segment(0));
         Obj_p current_obj = this->rec_get(current_key);
         const bool is_lst = StringHelper::is_integer(key->uri_value().segment(1));
@@ -894,9 +922,8 @@ namespace fhatos {
         }
         current_obj->poly_set(Obj::to_uri(key->uri_value().pretract()), val);
       } else {
-        if(val->is_noobj())
-          this->rec_value()->erase(key);
-        else
+        this->rec_drop(key);
+        if(!val->is_noobj())
           this->rec_value()->insert_or_assign(key, val);
       }
       ////////////////////////////////////////
@@ -1225,7 +1252,7 @@ namespace fhatos {
     [[nodiscard]] BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) const {
       if(!this->is_bcode() || !bcode->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      InstList_p insts = make_shared<InstList>();
+      const InstList_p insts = make_shared<InstList>();
       for(const auto &inst: *bcode->bcode_value()) {
         insts->push_back(inst);
       }
@@ -1264,14 +1291,9 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
-
-    [[nodiscard]] Obj_p inst_apply(const Inst_p &inst, const List<Obj_p> &args = {}) const {
-      return inst->apply(this->shared_from_this(), Obj::to_inst_args(args));
-    }
-
     [[nodiscard]] Obj_p inst_apply(const ID &inst_id, const List<Obj_p> &args = {}) const {
-      return this->inst_apply(Obj::to_inst(InstValue(Obj::to_inst_args(args), InstF(Obj::to_noobj()), Obj::to_noobj()),
-                                           id_p(inst_id)), args);
+      return Obj::to_inst(InstValue(Obj::to_inst_args(args), InstF(Obj::to_noobj()), Obj::to_noobj()),
+                          id_p(inst_id))->apply(this->shared_from_this());
     }
 
     // TODO: make obj.cpp/hpp and then reference PrinterHelper for printing
@@ -1816,83 +1838,17 @@ namespace fhatos {
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
 
-    auto operator()(const Obj_p &obj, const InstArgs &args) const {
-      return this->apply(obj, args);
-    }
-
-    Obj_p apply(const Obj_p &lhs, const InstArgs &args) const {
-      const Rec_p remake = Obj::to_rec();
-      //// apply lhs to args
-      for(const auto &[k,v]: *args->rec_value()) {
-        remake->rec_value()->insert_or_assign(k, v->apply(lhs));
-      }
-      // remake->rec_set("_inst",this->clone());
-      ROUTER_PUSH_FRAME("#", remake);
-      try {
-        const Obj_p result = this->apply(lhs);
-        ROUTER_POP_FRAME();
-        return result;
-      } catch(const std::exception &) {
-        //  LOG_EXCEPTION(this, e);
-        ROUTER_POP_FRAME();
-        throw;
-      }
-    }
-
     Obj_p apply(const Obj_p &lhs) const {
-      if(lhs->is_error())
-        return lhs;
-      //  if(!lhs->is_bcode() || !this->is_bcode()) {
-      //   return shared_from_this()->apply(lhs->apply(shared_from_this()));
-      //}
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////// TYPE (type -> obj) ////////////////////////////////////////////////////
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if(lhs->is_type()) {
-        auto next = lhs->type_value();
-        if(this->is_inst()) {
-          LOG_WRITE(TRACE, this, L("apply type to inst: {} => {}\n", lhs->toString(), this->toString()));
-          if(Compiler(true, false).type_check(lhs, *this->domain())) {
-          }
-          if(lhs->range_coefficient().first < this->domain_coefficient().first) {
-            throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
-                         lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
-                         this->toString().c_str(), this->domain_coefficient().first, this->domain_coefficient().second);
-          }
-          if(lhs->range_coefficient().second > this->domain_coefficient().second) {
-            throw fError("%s range coefficient outside the boundaries of %s domain coefficient: {%i,%1} / {%i,%i}",
-                         lhs->toString().c_str(), lhs->range_coefficient().first, lhs->range_coefficient().second,
-                         this->toString().c_str(), this->domain_coefficient().first, this->domain_coefficient().second);
-          }
-          //   const Inst_p resolved = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          const Inst_p resolved = Compiler(true, true).resolve_inst(lhs, this->shared_from_this());
-          next = next->add_inst(resolved);
-        } else {
-          throw fError("only inst currently supported: %s", this->toString().c_str());
-        } /*else if(this->is_bcode()) {
-          next = next->add_bcode(this->shared_from_this(), false);
-        } else {
-          next = next->add_inst(this->shared_from_this(), false);
-        }*/
-        // TYPE_CHECKER(this, lhs->tid, true);
-        return Obj::to_type(this->range(), next, lhs->vid);
-      }
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       switch(this->otype) {
-        case OType::TYPE:
-          return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid);
         case OType::BOOL:
         case OType::INT:
         case OType::REAL:
         case OType::STR:
         case OType::NOOBJ:
         case OType::ERROR:
-          return shared_from_this();
-        case OType::URI: {
-          return lhs->deref(shared_from_this());
-        }
+          return this->shared_from_this();
+        case OType::URI:
+          return lhs->deref(this->shared_from_this());
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
@@ -1903,40 +1859,14 @@ namespace fhatos {
         case OType::REC: {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
-            if(const Obj_p key_apply = key->apply(lhs))
-              new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
+            const Obj_p key_apply = key->apply(lhs);
+            new_pairs->insert({key, value->apply(lhs)});
           }
           return Obj::to_rec(new_pairs, this->tid);
         }
         case OType::INST: {
-          //// dynamically fetch inst implementation if no function body exists (stub inst)
-          const auto compiler = Compiler(true, false);
-          const Inst_p inst = compiler.resolve_inst(lhs, this->shared_from_this());
-          /*if(!lhs->is_code() && !(lhs->is_noobj() && inst->range_coefficient().first == 0)) {
-            if(compiler.reset(true, true)->type_check(lhs, *inst->domain())) {
-            }
-          }*/
-          // compute args
-          InstArgs remake;
-          //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
-          if(this->inst_op() == "block" ||
-             this->inst_op() == "each" ||
-             this->inst_op() == "within" ||
-             this->inst_op() == "isa" ||
-             this->inst_op() == "split" ||
-             this->inst_op() == "choose" ||
-             this->inst_op() == "chain") {
-            remake = inst->inst_args()->clone();
-          } else {
-            remake = Obj::to_rec();
-            //// apply lhs to args
-            for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
-              remake->rec_value()->insert({k, v->apply(lhs)});
-            }
-          }
-          // remake->rec_value()->insert_or_assign(Obj::to_uri("_inst"), Obj::to_inst({}, INST_FURI, nullptr));
-          ROUTER_PUSH_FRAME("#", remake);
-          //// TODO: don't evaluate inst for type objs for purpose of compilation
+          const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
+          ROUTER_PUSH_FRAME("#", inst->inst_args());
           try {
             if(!inst->has_inst_f()) {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
@@ -1944,10 +1874,8 @@ namespace fhatos {
                            lhs->toString().c_str());
             }
             const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
-                                   ? (*const_cast<Obj *>(std::get<Obj_p>(inst->inst_f()).get()))(lhs, remake)
-                                   : (*std::get<Cpp_p>(inst->inst_f()))(lhs, remake);
-            // if(!result->is_code() && !(result->is_noobj() && inst->range_coefficient().first == 0))
-            //   compiler.reset(true, true)->type_check(result, *inst->range());
+                                   ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+                                   : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {

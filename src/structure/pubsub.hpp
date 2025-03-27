@@ -173,10 +173,13 @@ namespace fhatos {
       const Obj_p payload_obj = message->payload();
       const Bool_p retain_obj = dool(message->retain());
       const bool is_no = payload_obj->is_noobj();
-      this->on_recv()->apply(payload_obj, to_rec({
-                                 {"target", is_no && false ? target_obj : block(target_obj)},
-                                 {"payload", is_no ? payload_obj : block(payload_obj)},
-                                 {"retain", is_no ? retain_obj : block(retain_obj)}}));
+      InstBuilder::build("pubsub")
+          ->inst_args(to_rec({
+              {"target", is_no && false ? target_obj : block(target_obj)},
+              {"payload", is_no ? payload_obj : block(payload_obj)},
+              {"retain", is_no ? retain_obj : block(retain_obj)}}))
+          ->inst_f(this->on_recv())
+          ->create()->apply(payload_obj);
     }
   };
 } // namespace fhatos

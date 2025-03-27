@@ -773,7 +773,7 @@ namespace fhatos {
 
     [[nodiscard]] virtual bool is_pattern() const {
       const string temp = this->toString();
-      bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
+     const bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
       return result;
     }
 

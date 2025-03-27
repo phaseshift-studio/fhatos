@@ -77,14 +77,14 @@ namespace fhatos {
     static void *import();
 
     template<typename STRUCTURE>
-    static void *import_structure(const ID &import_id, const ID &type_id) {
+    static void *import_structure(const ID &import_id, const ID &type_id, const Rec_p& config = Obj::to_rec()) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      Router::singleton()->write(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-      InstBuilder::build(id_p(import_id.extend(":create")))
+      Router::singleton()->write(type_id, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
+      InstBuilder::build(import_id.extend("mount"))
           ->inst_args(Obj::to_inst_args({
-              {"pattern", Obj::to_type(URI_FURI)},
-              {"id", Obj::to_noobj()},
-              {"config", Obj::to_rec()}}))
+              {"pattern", Obj::to_bcode()},
+              {"id", Obj::to_bcode()},
+              {"config",config}}))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Pattern pattern = args->arg("pattern")->uri_value();
@@ -94,6 +94,7 @@ namespace fhatos {
             const Rec_p config = args->arg("config");
             const ptr<STRUCTURE> structure = Structure::create<STRUCTURE>(pattern, id, config);
             Router::singleton()->attach(structure);
+            Router::singleton()->save();
             return structure;
           })->save();
       LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !ytype!! imported\n", type_id.toString()));
