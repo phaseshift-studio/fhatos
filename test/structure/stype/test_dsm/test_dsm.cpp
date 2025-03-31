@@ -56,7 +56,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
-      //FOS_RUN_TEST(test_generic_rec_embedding); //
+      FOS_RUN_TEST(test_generic_rec_embedding); //
       //FOS_RUN_TEST(test_generic_q_doc); //
       );
 
