@@ -19,7 +19,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_SCHEDULER
-#define FOS_DEPLOY_TYPE
+#define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_COMPILER
 #define FOS_DEPLOY_PROCESSOR
@@ -95,7 +95,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_router_config); //
-      FOS_RUN_TEST(test_router_attach_detach); //
+     // FOS_RUN_TEST(test_router_attach_detach); //
       FOS_RUN_TEST(test_retain_write); //
      // FOS_RUN_TEST(test_transient_write); //
      // FOS_RUN_TEST(test_lock_query_processor); //

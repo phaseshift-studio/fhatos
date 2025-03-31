@@ -86,11 +86,11 @@ namespace fhatos {
     }
   }
 
-  bool match_inst_args(const InstArgs &argsA, const InstArgs &argsB) {
-    for(const auto &[kb,vb]: *argsB->rec_value()) {
+  bool match_inst_args(const InstArgs &provided_inst, const InstArgs &resolved_inst) {
+    for(const auto &[kb,vb]: *resolved_inst->rec_value()) {
       bool found = false;
       if(vb->is_noobj()) {
-        for(const auto &[ka,va]: *argsA->rec_value()) {
+        for(const auto &[ka,va]: *provided_inst->rec_value()) {
           if(ka->match(kb))
             found = true;
         }
@@ -102,22 +102,24 @@ namespace fhatos {
     return true;
   }
 
-  Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &stub_inst, const Obj_p &inst_obj) const {
-    if(inst_obj->is_noobj())
+  Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Obj_p &resolved_inst) const {
+    if(resolved_inst->is_noobj())
       return Obj::to_noobj();
-    if(inst_obj->is_inst()) {
-      const bool good = match_inst_args(stub_inst->inst_args(), inst_obj->inst_args());
+    if(resolved_inst->is_inst()) {
+      const bool good = match_inst_args(provided_inst->inst_args(), resolved_inst->inst_args());
       if(dt)
-        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(inst_obj->vid_or_tid()->no_query()), inst_obj);
-      return good ? inst_obj : Obj::to_noobj();
+        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved_inst->vid_or_tid()->no_query()),
+                         resolved_inst);
+      return good ? resolved_inst : Obj::to_noobj();
     } else {
       const Inst_p inst = InstBuilder::build("")
-          ->inst_args(stub_inst->inst_args())
-          ->inst_f(inst_obj)
-          ->domain_range(inst_obj->domain(), inst_obj->domain_coefficient(), inst_obj->range(),
-                         inst_obj->range_coefficient())
+          ->inst_args(provided_inst->inst_args())
+          ->inst_f(resolved_inst)
+          ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(), resolved_inst->range(),
+                         resolved_inst->range_coefficient())
           ->create();
-      LOG_WRITE(TRACE, inst_obj.get(), L("converting {} to inst {}\n", inst_obj->toString(), inst->toString()));
+      LOG_WRITE(TRACE, resolved_inst.get(),
+                L("converting {} to inst {}\n", resolved_inst->toString(), inst->toString()));
       return inst;
     }
   }
@@ -185,7 +187,7 @@ namespace fhatos {
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
 
-    bool Compiler::in_block_list(const string &op) {
+  bool Compiler::in_block_list(const string &op) {
     const std::vector<Uri_p> *blocker_list = ROUTER_READ(MMADT_PREFIX "inst/blockers")->lst_value().get();
     const bool found = blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
                                                            [&op](const Uri_p &u) {
@@ -197,14 +199,14 @@ namespace fhatos {
 
   }
 
-  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const {
-    const auto inst_provided_args = inst_provided->inst_args();
-    if(inst_resolved->is_inst()) {
+  Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
+    const auto inst_provided_args = provided_inst->inst_args();
+    if(resolved_inst->is_inst()) {
       LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
-                                    inst_resolved->toString().c_str(),
-                                    inst_provided->toString().c_str())          );
+                                    resolved_inst->toString().c_str(),
+                                    provided_inst->toString().c_str())          );
       Obj_p merged_args = Obj::to_inst_args();
-      const auto inst_resolved_args = inst_resolved->inst_args();
+      const auto inst_resolved_args = resolved_inst->inst_args();
       if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
         merged_args = inst_resolved_args->apply(inst_provided_args->apply(lhs));
       } else {
@@ -214,46 +216,47 @@ namespace fhatos {
           for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
             if(lk->match(rk)) {
               found = true;
-              if((lhs->is_inst() && in_block_list(lhs->inst_op())) || in_block_list(inst_provided->inst_op())) {
-                merged_args->rec_set(rk, lv);
-              } else {
-                merged_args->rec_set(rk, rv->apply(lv->apply(lhs)));
-              }
+              merged_args->rec_set(
+                  rk, in_block_list(provided_inst->inst_op())
+                        ? (lhs->is_noobj() && provided_inst->inst_op() == "block" ? provided_inst : lv)
+                        : rv->apply(lv->apply(lhs)));
             }
           }
-          if(!found) {
-            if(inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size())
-              merged_args->rec_set(rk, rv->apply(inst_provided_args->arg(r_counter)->apply(lhs)));
-            else
-              merged_args->rec_set(rk, rv->apply(lhs));
-              //merged_args->rec_set(rk, rv->apply(lhs));
-          }
+          if(!found)
+            merged_args->rec_set(
+                rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
+                      ? in_block_list(provided_inst->inst_op())
+                          ? lhs->is_noobj() && provided_inst->inst_op() == "block"
+                              ? provided_inst
+                              : inst_provided_args->arg(r_counter)
+                          : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
+                      : rv->apply(lhs)); // default arg
           r_counter++;
         }
       }
-      /*LOG(INFO, "inst_resolved: %s\ninst_provided: %s\nnew args: %s\n",
-    inst_resolved_args->toString().c_str(),
-    inst_provided_args->toString().c_str(),
-    merged_args->toString().c_str());*/
+      LOG(TRACE, "**** %s ****\ninst_resolved args: %s\ninst_provided args: %s\ninst_merged args: %s\n",
+          inst_resolved_args->vid_or_tid()->toString().c_str(),
+          inst_resolved_args->toString().c_str(),
+          inst_provided_args->toString().c_str(),
+          merged_args->toString().c_str());
       return Obj::to_inst(
-          inst_resolved->inst_op(),
+          resolved_inst->inst_op(),
           merged_args,
-          inst_resolved->inst_f(),
-          inst_resolved->inst_seed_supplier(),
-          inst_resolved->tid,
-          inst_resolved->vid);
-      /// TODO ^--- inst->vid);
+          resolved_inst->inst_f(),
+          resolved_inst->inst_seed_supplier(),
+          resolved_inst->tid,
+          provided_inst->vid);
     } else {
       return Obj::to_inst(
-          inst_provided->inst_op(),
+          provided_inst->inst_op(),
           inst_provided_args,
           InstF(make_shared<Cpp>(
-              [x = inst_resolved->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
+              [x = resolved_inst->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
                 return x->apply(lhs);
               })),
-          inst_provided->inst_seed_supplier(),
-          inst_provided->tid,
-          inst_provided->vid);
+          provided_inst->inst_seed_supplier(),
+          provided_inst->tid,
+          provided_inst->vid);
     }
   }
 
@@ -268,7 +271,7 @@ namespace fhatos {
 
   template<typename COEF>
   bool Compiler::coefficient_check(const COEF &lhs, const COEF &rhs) const {
-    if((lhs.first < rhs.first || lhs.second < rhs.first) || (lhs.first > rhs.second || lhs.second > rhs.second)) {
+    if((lhs.first < rhs.first && lhs.second < rhs.first) || lhs.second > rhs.second) {
       if(this->throw_on_miss)
         throw fError("lhs coefficient not within rhs coefficient: {%i,%i} <> {%i,%i}", lhs.first, lhs.second, rhs.first,
                      rhs.second);
@@ -281,6 +284,8 @@ namespace fhatos {
   bool Compiler::type_check(const Obj *value_obj, const ID &type_id) const {
     if(Compiler::boot_loading)
       return true;
+    /* if(value_obj->is_inst())
+       return this->type_check(ROUTER_READ(*value_obj->range()),type_id);*/
     auto fail_reason = std::stack<string>();
     if(value_obj->is_noobj()) {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF);
@@ -311,7 +316,8 @@ namespace fhatos {
     if(type_no_query_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->equals(*OBJ_FURI)))
       return true;
     if(const Obj_p type = ROUTER_READ(type_no_query_id); !type->is_noobj()) {
-      ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
+      Compiler::coefficient_check(value_obj->range_coefficient(), type->domain_coefficient());
+   //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
       // if(type->is_type() && !obj->apply(type)->is_noobj())
       //   return true;
       if(value_obj->match(type, &fail_reason))
@@ -340,60 +346,6 @@ namespace fhatos {
     if(this->throw_on_miss)
       throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", "/sys/lang/parser", type_id.toString().c_str());
     return false;
-
-    /*if(value_obj->is_noobj() && !type_id.equals(*NOOBJ_FURI))
-      return false;
-    if(type_id.equals(*OBJ_FURI) || type_id.equals(*NOOBJ_FURI)) // TODO: hack on noobj
-      return true;
-    // if the type is a base type and the base types match, then type check passes
-    if(type_id.equals(*OTYPE_FURI.at(value_obj->otype)))
-      return true;
-    // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-    //if(value_obj->tid->equals(*inst_type_id))
-    //  return true;
-    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-    if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype ==
-       OType::BCODE)
-      return true;
-    if(type_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->
-                                       equals(*OBJ_FURI)))
-      return true;
-    // get the type definition and match it to the obj
-    Obj_p type_obj;
-    try {
-      type_obj = Router::singleton()->read(type_id);
-    } catch(const fError &) {
-      type_obj = Obj::to_noobj();
-    }
-    if(type_obj->is_noobj()) {
-      if(this->throw_on_miss)
-        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", value_obj->vid_or_tid()->toString().c_str(),
-                     type_id.toString().c_str());
-      return false;
-    }
-    if(!this->coefficient_check(value_obj->range_coefficient(), type_obj->domain_coefficient()))
-      return false;
-    try {
-      if(type_obj->is_type() && !type_obj->apply(value_obj->shared_from_this())->is_noobj())
-        return true;
-      if(value_obj->match(type_obj, &fail_reason))
-        return true;
-    } catch(const fError &) {
-      // do nothing (fails below)
-    }
-    if(this->throw_on_miss) {
-      static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
-      p->show_type = false;
-      string fail;
-      while(!fail_reason.empty()) {
-        fail.append("\n").append(fail_reason.top());
-        fail_reason.pop();
-      }
-      throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", type_id.toString().c_str(),
-                   value_obj->toString(p.get()).c_str(), type_id.toString().c_str(),
-                   type_obj->toString().c_str(), fail.c_str());
-    }
-    return false;*/
   }
 
 };

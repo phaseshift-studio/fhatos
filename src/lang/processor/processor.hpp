@@ -167,7 +167,7 @@ namespace fhatos {
     static Objs_p compute(const string &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
       const Obj_p objs = Processor(OBJ_PARSER(bcode)).to_objs();
-      return std::move(objs);
+      return objs;
     }
 
     static ptr<Processor> create(const BCode_p &bcode) {
@@ -269,8 +269,8 @@ namespace fhatos {
           LOG_WRITE(TRACE, this->processor_, L("monad {} scattering [{}]\n",
                                                this->toString().c_str(),
                                                "SIGNATURE HERE"));
-          for(const Obj_p &barrier_next_obj: *next_obj->objs_value()) {
-            const Monad_p m = this->processor_->M(barrier_next_obj, next_inst);
+          for(const Obj_p &o: *next_obj->objs_value()) {
+            const Monad_p m = this->processor_->M(o, next_inst);
             LOG_WRITE(TRACE, this->processor_, L("monad %s !r==!gmigrating!r==>!! %s\n",
                                                  this->toString(),
                                                  m->toString())                );

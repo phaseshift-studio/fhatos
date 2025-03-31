@@ -165,9 +165,9 @@ namespace fhatos {
 
 
   void Router::save() const {
-    const Lst_p strc = Obj::to_lst();
-    this->structures_->forEach([strc](const Structure_p &structure) { strc->lst_add(vri(structure->pattern)); });
-    this->rec_set(FOS_ROUTER_STRUCTURE, strc);
+    const Lst_p structures = Obj::to_lst();
+    this->structures_->forEach([structures](const Structure_p &structure) { structures->lst_add(vri(structure->pattern)); });
+    this->rec_set(FOS_ROUTER_STRUCTURE, structures);
     Obj::save();
   }
 

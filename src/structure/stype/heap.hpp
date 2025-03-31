@@ -32,7 +32,7 @@
 #endif
 
 namespace fhatos {
-  const static ID HEAP_FURI = ID("/sys/lib/heap");
+  const static auto HEAP_FURI = ID("/sys/lib/heap");
 
   template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class Heap final : public Structure {

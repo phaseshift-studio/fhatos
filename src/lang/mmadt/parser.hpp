@@ -28,6 +28,7 @@ using namespace std;
 
 #define WRAP(LEFT,DEFINITION,RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))),(DEFINITION))
 #define WRAQ(LEFT,DEF_NOWRAP,DEF_WRAP,RIGHT) cho(seq(ign(lit((LEFT))), seq((DEF_WRAP), zom(seq(lit(","),(DEF_WRAP)))), ign(lit((RIGHT)))),(DEF_NOWRAP))
+#define COMMENT_TOKEN "dummy_comment"
 
 namespace mmadt {
   class Tracker {
@@ -415,14 +416,16 @@ namespace mmadt {
 #endif
 
       auto start_action = [](const SemanticValues &vs) {
-        if(vs.size() == 1 && any_cast<Obj_p>(vs[0])->equals(*str("comment")))
+        if(vs.size() == 1 &&
+           any_cast<Obj_p>(vs[0])->is_str() &&
+           any_cast<Obj_p>(vs[0])->value_equals(*str(COMMENT_TOKEN)))
           return Obj::to_noobj();
         if(vs.size() == 1 && !any_cast<Obj_p>(vs[0])->is_code()) // is_bcode?
           return any_cast<Obj_p>(vs[0]);
         const auto insts = make_shared<List<Inst_p>>();
         Inst_p prev = nullptr;
         for(const auto &obj: vs.transform<Obj_p>()) {
-          if(obj->is_str() && obj->str_value() == "comment") {
+          if(obj->is_str() && obj->str_value() == COMMENT_TOKEN) {
             // do nothing on comments
           } else if(!obj->is_code()) {
             const bool as_start = nullptr == prev || /*is_terminal(prev->itype()) ||*/ prev->inst_op() == "end";

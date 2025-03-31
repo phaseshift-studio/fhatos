@@ -83,11 +83,11 @@
   Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
   Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
   Heap<>::import("/sys/lib/heap");                                                                                     \
-  boot_config_obj_copy_len = boot_config_obj_len; 						                                                         \
-  boot_config_obj_copy = boot_config_obj; 								                                                             \
-  mmadt::Parser::load_boot_config(); 									                                                                 \
-  Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID); 			                                                   \
-  Router::singleton()->import(); 							                                                                  			 \
+  boot_config_obj_copy_len = boot_config_obj_len;                                                                      \
+  boot_config_obj_copy = boot_config_obj;                                                                              \
+  mmadt::Parser::load_boot_config();                                                                                   \
+  Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);                                                          \
+  Router::singleton()->import();                                                                                       \
   Router::singleton()->attach(Heap<>::create("/fos/#"));                                                               \
   fOS::import_types();                                                                                                 \
   fOS::import_q_procs();                                                                                               \
@@ -113,23 +113,42 @@
 #define FOS_DEPLOY_COMPILER_2 ;
 #endif
 ////////////////////////////////////////// TYPE ////////////////////////////////////////////////////////////////
-#ifdef FOS_DEPLOY_TYPE
+#ifdef FOS_DEPLOY_MMADT_TYPE
 #include "../src/lang/type.hpp"
 #include "../src/lang/mmadt/mmadt_obj.hpp"
 #include "../src/structure/stype/heap.hpp"
-#define FOS_DEPLOY_TYPE_2 \
+#define FOS_DEPLOY_MMADT_TYPE_2 \
   Router::singleton()->attach(Heap<>::create("/mmadt/#")); \
   Router::singleton()->write("/mmadt/",Typer::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
-#define FOS_DEPLOY_TYPE_2 ;
+#define FOS_DEPLOY_MMADT_TYPE_2 ;
+#endif
+////////////////////////////////////////// EXT ////////////////////////////////////////////////////////////////
+#ifdef FOS_DEPLOY_MMADT_EXT_TYPE
+#include "../src/lang/type.hpp"
+#include "../src/lang/mmadt/mmadt_obj.hpp"
+#define FOS_DEPLOY_MMADT_EXT_TYPE_2 \
+mmadt::mmADT::import_ext_types();
+#else
+#define FOS_DEPLOY_MMADT_EXT_TYPE_2 ;
+#endif
+////////////////////////////////////////// FOS ////////////////////////////////////////////////////////////////
+#ifdef FOS_DEPLOY_FOS_TYPE
+#include "../src/lang/type.hpp"
+#include "../src/model/fos/fos_obj.hpp"
+#define FOS_DEPLOY_FOS_TYPE_2 \
+fhatos::fOS::import_types();  \
+fhatos::fOS::import_sys();
+#else
+#define FOS_DEPLOY_FOS_TYPE_2 ;
 #endif
 ///////////////////////////////////////// HEAP ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
   Router::singleton()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY)) ? \
-  "+" : \
+  "+/#" : \
   STR(FOS_DEPLOY_SHARED_MEMORY)))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
@@ -166,16 +185,16 @@ using namespace fhatos;
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
-	    FOS_DEPLOY_ROUTER_2        																					   \
-	    FOS_DEPLOY_SCHEDULER_2                                                                                           \
+      FOS_DEPLOY_ROUTER_2                                                                                              \
+      FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_PARSER_2                                                                                              \
-      FOS_DEPLOY_TYPE_2                                                                                                \
+      FOS_DEPLOY_MMADT_TYPE_2                                                                                          \
+      FOS_DEPLOY_MMADT_EXT_TYPE_2                                                                                      \
+      FOS_DEPLOY_FOS_TYPE_2                                                                                            \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
-      FOS_DEPLOY_COMPILER_2																							   \
-      FOS_DEPLOY_FILE_SYSTEM_2  																					   \
+      FOS_DEPLOY_COMPILER_2                                                                                            \
+      FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
-      /*uint32_t __test_freeSketch;                                                                                    \
-      uint32_t __test_freeHeap;  */                                                                                    \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \

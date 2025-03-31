@@ -93,20 +93,26 @@ namespace fhatos {
                     });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) {
+      Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+      if(threads->is_noobj())
+        threads = Obj::to_lst();
+      threads->lst_add(vri(thread_obj->vid));
+      ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
       return make_shared<Thread>(thread_obj);
     }
 
     static void *import() {
-      Typer::singleton()->save_type(*THREAD_FURI, Obj::to_rec({
-                                        {"loop", Obj::to_bcode()},
-                                        {"delay", __().isa(*NAT_FURI).else_(jnt(0, NAT_FURI))},
-                                        {"halt", __().isa(*BOOL_FURI).else_(dool(false))}
-                                    }));
+      const Rec_p thread_t = Obj::to_rec({
+          {"loop", Obj::to_bcode()},
+          {"delay", __().isa(*NAT_FURI)},
+          {"halt", __().isa(*BOOL_FURI)}
+      });
+      Typer::singleton()->save_type(*THREAD_FURI, thread_t);
       InstBuilder::build(THREAD_FURI->add_component("create"))
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_args(Obj::to_inst_args({{"loop", Obj::to_bcode()},
                                          {"delay", __().isa(*NAT_FURI).else_(jnt(0, NAT_FURI))},
-                                         {"halt", __().isa(*BOOL_FURI).else_(dool(false))}}))
+                                         {"halt", __().isa(*BOOL_FURI).else_(dool(true))}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return Obj::to_rec(args->rec_value(), THREAD_FURI);
           })->save();
@@ -114,10 +120,12 @@ namespace fhatos {
           ->domain_range(THREAD_FURI, {1, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
             const ptr<Thread> thread_state = Model::get_state<Thread>(thread_obj);
+            thread_state->thread_obj_->rec_set("halt", dool(false));
             return thread_state->thread_obj_;
           })->save();
       return nullptr;
     }
   };
+
 } // namespace fhatos
 #endif

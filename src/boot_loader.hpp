@@ -58,7 +58,7 @@
 #include "model/fos/io/pwm/pwm.hpp"
 #include "model/fos/ui/oled/oled.hpp"
 #include "model/fos/ui/rgbled/rgbled.hpp"
-#include "model/fos/net/ota.hpp"
+// #include "model/fos/net/ota.hpp"
 #include "model/fos/net/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #ifdef CONFIG_SPIRAM_USE
@@ -158,14 +158,12 @@ namespace fhatos {
             ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
             ->install(*__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
                                        {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/wifi").compute().next()}}),
-                                     "/io/wifi"))
-              ->inst("connect")->compute().begin())
+                                     "/io/wifi")).inst("connect").compute().begin())
             ->drop_config("wifi")
             ->mount(Structure::create<Memory>("/soc/memory/#"))
             /*->install(*__(OTA::obj({{"halt", dool(false)},
                                      {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
-                                   "/io/ota"))
-              ->inst("start")->compute()->begin())*/
+                                   "/io/ota")).inst("start").compute().begin())*/
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif

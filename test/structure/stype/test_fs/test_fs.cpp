@@ -18,7 +18,7 @@ FhatOS: A Distributed Operating System
 
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_TYPE
+#define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_ROUTER

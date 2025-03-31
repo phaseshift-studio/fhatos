@@ -51,7 +51,7 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = dynamic_cast<Console *>(get_state<Thread>(console_obj).get());
+                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
                               try {
                                 static bool first = true;
                                 if(first) {
@@ -187,9 +187,9 @@ namespace fhatos {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI, Obj::to_rec({
-              {"delay", Obj::to_type(NAT_FURI)},
-              {"loop", Obj::to_bcode()},
-              {"halt", Obj::to_type(BOOL_FURI)}
+              {"delay", __()},
+              {"loop", __()},
+              {"halt", __()}
           }));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})

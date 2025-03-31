@@ -49,9 +49,9 @@ namespace fhatos {
       ArduinoOTA.onStart([ota_obj]() {
         ota_obj->rec_get("config/on_start")->apply(Obj::to_noobj());
       });
-      ArduinoOTA.onProgress([ota_obj](const unsigned int a, const unsigned int b) {
+     /* ArduinoOTA.onProgress([ota_obj](const unsigned int a, const unsigned int b) {
         ota_obj->rec_get("config/on_progress")->apply(Obj::to_noobj(), rec({{"a", jnt(a)}, {"b", jnt(b)}}));
-      });
+      }); TODO: */
       ArduinoOTA.onError([ota_obj](const ota_error_t error) {
         ota_obj->rec_get("config/on_error")->apply(Obj::to_noobj());
       });

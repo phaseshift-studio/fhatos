@@ -76,7 +76,7 @@ namespace fhatos {
     explicit DSM(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
       Structure(pattern, id_p(DSM_FURI), value_id, config),
       mqtt{nullptr} {
-      this->cache_size_ = config->rec_get("cache_size", jnt(1000))->int_value();
+      this->cache_size_ = config->rec_get("cache_size", jnt(100))->int_value();
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 

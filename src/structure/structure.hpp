@@ -106,7 +106,8 @@ namespace fhatos {
 
     virtual void setup() {
       if(this->available_.load()) {
-        LOG_WRITE(WARN, this, L("!ystructure!! already available\n"));
+        LOG_WRITE(WARN, this, L("!ystructure!! !b{}!! spanning !b{}!! already mounted\n",
+                                this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
         return;
       }
       this->available_.store(true);
@@ -123,7 +124,8 @@ namespace fhatos {
 
     virtual void stop() {
       if(!this->available_.load())
-        LOG_WRITE(WARN, this, L("!ystructure!! already stopped\n"));
+        LOG_WRITE(WARN, this, L("!ystructure!! !b{}!! spanning !b{}!! already stopped\n",
+                                this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
       this->available_ = false;
     }
 
@@ -135,7 +137,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] std::pair<QProc::ON_RESULT, Obj_p> process_query_read(const QProc::POSITION pos, const fURI &furi,
-                                                          const Obj_p &obj) const {
+                                                                        const Obj_p &obj) const {
       if(furi.has_query()) {
         const Objs_p results = Obj::to_objs();
         bool found = false;

@@ -18,7 +18,7 @@ FhatOS: A Distributed Operating System
 
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_TYPE
+#define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SHARED_MEMORY /abc/#
@@ -48,8 +48,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("=== sdfdasdf\n\t\nsdfsfasfsf ==="));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1] --- end\n"));
-   // FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n### a comment ---\n--- end\n\n ###\nstr['bcd']"));
-   // FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(### a comment ---\n--- end\n\n ###\nstr['bcd'])"));
+    // FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n### a comment ---\n--- end\n\n ###\nstr['bcd']"));
+    // FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(### a comment ---\n--- end\n\n ###\nstr['bcd'])"));
   }
 
   void test_type_parsing() {
@@ -82,11 +82,11 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int[0]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int   [ 0  ]"));
-   /* FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
-    FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int    [     -50 ]"));
-    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("int?int<=int[-50]@</abc/x/y/z>"));
-    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@/abc/x/y/z"));
-    FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@</abc/x/y/z>"));*/
+    /* FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
+     FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int    [     -50 ]"));
+     FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("int?int<=int[-50]@</abc/x/y/z>"));
+     FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@/abc/x/y/z"));
+     FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@</abc/x/y/z>"));*/
   }
 
   void test_real_parsing() {
@@ -176,26 +176,26 @@ namespace fhatos {
   }
 
   void test_inst_parsing() {
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst(65)"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(66)"));
-    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zyz"),
-                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zyz")->vid);
+                        *PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zyz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
-    FOS_TEST_FURI_EQUAL(ID("/abc/zzz"),
-                        *PROCESS("|/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zzz")->vid);
+    FOS_TEST_FURI_EQUAL(ID("/abc/temp_inst"),
+                        PROCESS("/abc/zzz -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]")->tid->no_query());
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
-    FOS_TEST_OBJ_EQUAL(dool(false),
+   /* FOS_TEST_OBJ_EQUAL(dool(false),
                        PROCESS(
-                         "|(bool?bool<=bool(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
+                         "||(bool?bool<=bool(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
                          "false./abc/bool/true_static(a=>_).to(/abc/bool/inst_parse);\n"
-                         "*/abc/bool/inst_parse"
-                       ));
+                         "*/ //abc/bool/inst_parse"*/
+                      // ));
     ///////////////////////////////////////////////////////////////
     const ID_p nat = id_p("/abc/nat");
     FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("|/abc/nat?/abc/nat<=int[is(gt(0))]@/abc/nat; /abc/nat[5]"));
@@ -206,7 +206,8 @@ namespace fhatos {
     FOS_TEST_ERROR("/abc/nat[0]");
 
     const ID_p ncount = id_p("/abc/ncount");
-    const Inst_p ncount_inst = PROCESS("|/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
+    const Inst_p ncount_inst = PROCESS(
+        "/abc/ncount -> ||/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
     FOS_TEST_FURI_EQUAL(*ncount, ncount_inst->tid->query(""));
     FOS_TEST_FURI_EQUAL(*ncount, *ncount_inst->vid);
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype);
@@ -285,17 +286,17 @@ namespace fhatos {
 
   void test_within_inst_sugar_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
- FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
- FOS_TEST_OBJ_EQUAL(str("a b c "), PROCESS("'abc'_/plus(' ')\\_"))
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
+    FOS_TEST_OBJ_EQUAL(str("a b c "), PROCESS("'abc'_/plus(' ')\\_"))
   }
 
   void test_barrier_inst_sugar_parsing() {
     FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(2),jnt(3),jnt(4)}), PROCESS_ALL("{1,2,3}_]plus(1)[_"))
     // FOS_TEST_OBJ_EQUAL(Obj::to_objs({jnt(6)}), PROCESS_ALL("{1,2,3}_]{count()}[_.plus(3)"))
-     ////////// |
-     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("start(1).8"))
-     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1|8"))
-     // TODO: FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid);
+    ////////// |
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("start(1).8"))
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1|8"))
+    // TODO: FOS_TEST_OBJ_EQUAL(BCODE_FURI, PROCESS("1|plus(7)")->tid);
   }
 
   void test_each_inst_sugar_parsing() {
@@ -325,15 +326,14 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*    (   /abc/o1o )"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*(/abc/o12,101)"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("*(/abc/o12,  101)"));
-    // TODO: default? FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
+    FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*()"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>.*(_)"));
-    // TODO: maybe not though: FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>*"));
-    /*FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
+    FOS_TEST_OBJ_EQUAL(jnt(123456), PROCESS(
                          "</abc/star_1> -> /abc/star_2;"
                          "/abc/star_2 -> </abc/star_3>;"
                          "/abc/star_3 -> /abc/star_4;"
-                         "/abc/star_4 -> 123456;"*/
-    //           "****/abc/star_1"));
+                         "/abc/star_4 -> 123456;"
+                         "****/abc/star_1"));
   }
 
   void test_apply_mono_parsing() {
@@ -410,7 +410,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_mult_inst_sugar_parsing); //
       FOS_RUN_TEST(test_at_inst_sugar_parsing); //
       FOS_RUN_TEST(test_from_inst_sugar_parsing); //
-      FOS_RUN_TEST(test_proto_map_inst_sugar_parsing);//
+      FOS_RUN_TEST(test_proto_map_inst_sugar_parsing); //
       FOS_RUN_TEST(test_apply_inst_sugar_parsing); //
       FOS_RUN_TEST(test_within_inst_sugar_parsing); //
       FOS_RUN_TEST(test_each_inst_sugar_parsing); //

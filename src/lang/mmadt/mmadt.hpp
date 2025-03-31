@@ -35,7 +35,7 @@ namespace mmadt {
     //////////////////////////////////////////////////////////////////////////////
     fURI tid;
     fURI domain;
-    IntCoefficient dc = {0, 1};
+    IntCoefficient dc = {1, 1};
     fURI range;
     IntCoefficient rc = {1, 1};
 
@@ -79,8 +79,8 @@ namespace mmadt {
   public:
     const BCode_p bcode_;
 
-    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, const BCode_p &bcode) :
-      tid(tid), domain(domain), range(range), bcode_(bcode) {
+    explicit _mmADT(const fURI &tid, const fURI &domain, const fURI &range, BCode_p bcode) :
+      tid(tid), domain(domain), range(range), bcode_(std::move(bcode)) {
     }
 
     [[nodiscard]] string toString() const { return this->bcode_->toString(); }

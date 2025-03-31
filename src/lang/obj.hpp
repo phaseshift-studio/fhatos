@@ -649,13 +649,13 @@ namespace fhatos {
         return this->rec_get(key);
       if(this->is_lst())
         return this->lst_get(key);
-      if(this->is_objs()) {
+      /*if(this->is_objs()) {
         const Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
         for(const auto &o: *this->objs_value()) {
           transform->add_obj(o->deref(key, obj_on_fail));
         }
         return transform;
-      }
+      }*/
       return obj_on_fail ? key : Obj::to_noobj();
     }
 
@@ -1539,9 +1539,9 @@ namespace fhatos {
       }
     }
 
-    bool operator<=(const Obj &rhs) const { return *this == rhs || *this < rhs; }
+    bool operator<=(const Obj &rhs) const { return this->value_equals(rhs) || *this < rhs; }
 
-    bool operator>=(const Obj &rhs) const { return *this == rhs || *this > rhs; }
+    bool operator>=(const Obj &rhs) const { return this->value_equals(rhs) || *this > rhs; }
 
     Obj operator/(const Obj &rhs) const {
       switch(this->otype) {
@@ -1593,9 +1593,7 @@ namespace fhatos {
       }
     }
 
-    [[nodiscard]] bool equals(const Obj &other) const {
-      if(this->otype != other.otype || !this->tid->no_query().equals(other.tid->no_query()))
-        return false;
+    [[nodiscard]] bool value_equals(const Obj &other) const {
       switch(this->otype) {
         case OType::NOOBJ:
           return true;
@@ -1683,8 +1681,13 @@ namespace fhatos {
       }
     }
 
+    [[nodiscard]] bool equals(const Obj &other) const {
+      return this->otype == other.otype && this->tid->no_query().equals(other.tid->no_query()) && this->
+             value_equals(other);
+    }
 
-    bool operator!=(const Obj &other) const { return !(*this == other); }
+
+    bool operator!=(const Obj &other) const { return !this->equals(other); }
 
     bool operator==(const Obj &other) const {
       return this->equals(other);
@@ -1848,7 +1851,9 @@ namespace fhatos {
         case OType::ERROR:
           return this->shared_from_this();
         case OType::URI:
-          return lhs->deref(this->shared_from_this());
+          return lhs->deref(this->shared_from_this(), true);
+        case OType::TYPE:
+          return this->type_value()->apply(lhs);
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
@@ -1860,7 +1865,7 @@ namespace fhatos {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
             const Obj_p key_apply = key->apply(lhs);
-            new_pairs->insert({key, value->apply(lhs)});
+            new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
           }
           return Obj::to_rec(new_pairs, this->tid);
         }
@@ -1893,7 +1898,8 @@ namespace fhatos {
             return lhs;
           if(!lhs->is_objs() && 1 == this->bcode_value()->size()) // TODO: this is because barriers
             return this->bcode_value()->front()->apply(lhs);
-          return BCODE_PROCESSOR(this->bcode_starts(to_objs({lhs})))->none_one_all();
+          return BCODE_PROCESSOR(this->bcode_starts(lhs->is_noobj() || lhs->is_objs() ? lhs : to_objs({lhs})))->
+              none_one_all();
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -1914,8 +1920,15 @@ namespace fhatos {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if(type_obj->is_empty_bcode())
         return true;
-      if(type_obj->is_type())
-        return IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
+      if(type_obj->is_type()) {
+        const bool result = IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->
+                            is_noobj();
+        if(!result && fail_reason) {
+          fail_reason->push(fmt::format("{} is !rnot!! a subtype of {}", this->tid->toString(),
+                                        type_obj->tid->toString()));
+        }
+        return result;
+      }
       if(type_obj->is_code() && !this->is_code()) {
         try {
           const Obj_p result = type_obj->apply(this->clone());
@@ -1926,6 +1939,10 @@ namespace fhatos {
           return false;
         }
       }
+      /* if(type_obj->is_code())
+         return true;
+       if(this->is_code())
+         return true;*/
       if(this->otype != type_obj->otype) {
         if(fail_reason)
           fail_reason->push(fmt::format("{} is !rnot!! the same base type as {}",
