@@ -40,6 +40,8 @@ namespace fhatos {
 
   void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
 
+  void test_generic_delete() { GenericStructureTest(test_structure).test_delete(); }
+
   void test_generic_subscribe() { GenericStructureTest(test_structure).test_subscribe(); }
 
   void test_generic_lst_embedding() { GenericStructureTest(test_structure).test_lst_embedding(); }
@@ -50,6 +52,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_generic_write); //
+      FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
       FOS_RUN_TEST(test_generic_rec_embedding); //

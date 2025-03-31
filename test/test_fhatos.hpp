@@ -80,8 +80,8 @@
 #include "../src/structure/router.hpp"
 #include "../src/lang/mmadt/parser.hpp"
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
-  Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
   Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
+  Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
   Heap<>::import("/sys/lib/heap");                                                                                     \
   boot_config_obj_copy_len = boot_config_obj_len;                                                                      \
   boot_config_obj_copy = boot_config_obj;                                                                              \
@@ -326,17 +326,17 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   }
 #endif
 
-#define FOS_TEST_REC_KEYS(recA,list_of_keys)	       															 	   \
-{ 																													   \
-  for(const Obj_p& e : list_of_keys) { 		 		 															 	   \
-		bool found = false; 	      																			       \
-		for(const auto& [k,v] : *recA->rec_value())  {																   \
-    	if(e->equals(*k)) 																							   \
-				found = true; 																						   \
-    } 																												   \
-    if(!found) 																										   \
-     TEST_FAIL_MESSAGE((string("key:") + e->toString() + " not found in " + recA->toString()).c_str()); 			   \
-}																													   \
+#define FOS_TEST_REC_KEYS(recA,list_of_keys)                                                                           \
+{                                                                                                                      \
+  for(const Obj_p& e : list_of_keys) {                                                                                 \
+    bool found = false;                                                                                                \
+    for(const auto& [k,v] : *recA->rec_value())  {                                                                     \
+      if(e->equals(*k))                                                                                                \
+        found = true;                                                                                                  \
+    }                                                                                                                  \
+    if(!found)                                                                                                         \
+     TEST_FAIL_MESSAGE((string("key:") + e->toString() + " not found in " + recA->toString()).c_str());                \
+}                                                                                                                      \
 }
 
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
@@ -399,91 +399,5 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     TEST_ASSERT_TRUE(true);
   }
 }
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef FOS_DEPLOY_ROUTER
-/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
-  const List<Obj> &expected, const BCode_p &bcode,
-  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-  [[maybe_unused]] const bool clearRouter = true) {
-   ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(bcode, true);
-  TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
-  for(const Obj &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p &element) {
-      if(obj.is_real()) {
-        return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
-      } else
-        return obj == *element;
-    });
-    if(result->end() == x) {
-      TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
-    }
-  }
-  if(!expectedReferences.empty()) {
-    /* TEST_ASSERT_EQUAL_INT_MESSAGE(
-         expectedReferences.size(), Router::singleton()->retainSize(),
-         (string("Router retain message count: ") + Router::singleton()->pattern()->toString()).c_str());*/
-/*    for(const auto &[key, value]: expectedReferences) {
-      const Obj temp = value;
-      ROUTER_SUBSCRIBE(
-        Subscription::create(ID("fhatty"),
-                             key.uri_value(),
-                             InstBuilder::build()->inst_f([temp](const ptr<Rec> &message, const InstArgs &args) {
-                               TEST_ASSERT_TRUE_MESSAGE(temp == *args->arg(0),
-                                                        (string("Router retain message payload equality: ") +
-                                                          Router::singleton()->vid->toString() + " " + temp.toString() +
-                                                          " != " + message->rec_get("payload")->toString())
-                                                        .c_str());
-                               return noobj();
-                             })->create()));
-    }
-  }
-  // if (clearRouter)
-  //  Options::singleton()->router<Router>()->clear(false, true);
-}*/
-#endif
-
-#ifdef FOS_DEPLOY_PARSER
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
-  const List<Obj> &expected, const List<string> &monoids,
-  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-  const bool clearRouter = true) {
-  const string &finalString = monoids.back();
-  for (size_t i = 0; i < monoids.size() - 1; i++) {
-    LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
-    Fluent(Parser::singleton()->try_parse_obj(monoids.at(i)).value()).iterate();
-  }
-  LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
-  return FOS_CHECK_RESULTS(expected, Parser::singleton()->try_parse_obj(finalString).value(),
-                           expectedReferences, clearRouter);
-}*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
-  const List<Obj> &expected, const string &monoid,
-  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-  const bool clearRouter = false) {
-  Option<Obj_p> parse = {OBJ_PARSER(monoid)};
-  if (!parse.has_value())
-    throw fError("Unable to parse: %s\n", monoid.c_str());
-  return FOS_CHECK_RESULTS(expected, parse.value(), expectedReferences, clearRouter);
-}*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*[[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
-  const Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
-  if (!parse.has_value())
-    throw fError("Unable to parse monoid: %s\n", monoid.c_str());
-  auto expectedResults = List<Obj>();
-  for (const auto &result: expected) {
-    Option<Obj_p> parse2 = Parser::singleton()->try_parse_obj(result);
-    if (!parse2.has_value())
-      throw fError("Unable to parse expected result: %s\n", result.c_str());
-    expectedResults.push_back(*parse2.value());
-  }
-  return FOS_CHECK_RESULTS(expectedResults, parse.value());
-}*/
 #endif
 #endif

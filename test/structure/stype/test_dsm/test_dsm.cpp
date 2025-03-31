@@ -31,15 +31,17 @@ namespace fhatos {
   using namespace mmadt;
 
   const Structure_p test_structure = DSM<>::create("/xyz/#", id_p("/sys/test"),
-                                                 Obj::to_rec({{"broker", vri("mqtt://localhost:1883")},
-                                                              {"client", vri("test_dsm")},
-                                                              {"async",dool(true)},
-                                                              {"cache_size", jnt(1000)}}));
+                                                   Obj::to_rec({{"broker", vri("mqtt://localhost:1883")},
+                                                                {"client", vri("test_dsm")},
+                                                                {"async", dool(true)},
+                                                                {"cache_size", jnt(1000)}}));
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
 
   void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
+
+  void test_generic_delete() { GenericStructureTest(test_structure).test_delete(); }
 
   void test_generic_subscribe() { GenericStructureTest(test_structure).test_subscribe(); }
 
@@ -51,6 +53,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_generic_write); //
+      FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
       //FOS_RUN_TEST(test_generic_rec_embedding); //

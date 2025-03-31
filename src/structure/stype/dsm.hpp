@@ -137,8 +137,9 @@ namespace fhatos {
         } else {
           if(-1 != this->cache_size_)
             this->clear_cache(this->cache_size_ - 1);
-          this->mqtt->subscribe(this->generate_sync_subscription(match));
+          this->mqtt->subscribe(this->generate_sync_subscription(match), this->get<bool>("config/async"));
           this->wait_for_data(MQTT_WAIT_MS);
+          this->loop();
           this->mqtt->unsubscribe(*this->vid, match, this->get<bool>("config/async"));
           if(this->data_->exists(match)) {
             const IdObjPairs pairs = {{match, this->data_->at(match)}};
