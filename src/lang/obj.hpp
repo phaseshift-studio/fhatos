@@ -1870,6 +1870,12 @@ namespace fhatos {
           return Obj::to_rec(new_pairs, this->tid);
         }
         case OType::INST: {
+          if(lhs->is_type()) {
+            const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
+            BCode_p body = lhs->type_value()->clone();
+            body->add_inst(inst);
+            return Obj::create(body,OType::TYPE,inst->range(),lhs->vid);
+          }
           const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
           ROUTER_PUSH_FRAME("#", inst->inst_args());
           try {

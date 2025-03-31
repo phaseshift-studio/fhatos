@@ -200,7 +200,7 @@ namespace mmadt {
             Obj_p result = obj->match(ROUTER_READ(args->arg(0)->uri_value()), &fail_reason) ? obj : Obj::to_noobj();
             if(result->is_noobj())
               LOG_WRITE(DEBUG, obj.get(), L("isa({}) mismatch {}\n", args->arg(0)->toString(),
-                                            PrintHelper::print_fail_reason(&fail_reason)));
+                                            PrintHelper::print_fail_reason(&fail_reason))                  );
             return result;
           })
           ->save();
@@ -259,6 +259,7 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_PREFIX "as")
           ->inst_args(rec({{"type?uri", Obj::to_bcode()}}))
+      //->domain_range()
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             // uri or obj (for type obj)
             const Obj_p type_uri = args->arg("type?uri");
@@ -1162,7 +1163,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
-            ->inst_args(lst({__().isa(*INT_FURI)}))
+            ->inst_args(rec({{"0?int", isa_arg(INT_FURI)}}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)

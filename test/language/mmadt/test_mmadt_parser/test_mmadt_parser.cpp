@@ -29,7 +29,21 @@ namespace fhatos {
   using namespace mmadt;
 
   void test_tracker() {
-    Tracker tracker = Tracker();
+    auto tracker = Tracker();
+    // relational predicates
+    TEST_ASSERT_TRUE(tracker.track("1 ?= 2")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("1 ?>= 2")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("1 ?<= 2")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("1 ?> 2")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("1 ?< 2")->closed());
+    tracker.clear();
+    TEST_ASSERT_TRUE(tracker.track("1 ?!= 2")->closed());
+    tracker.clear();
+    // instructions
     TEST_ASSERT_TRUE(tracker.track("a.plus(b)")->closed());
     tracker.clear();
     TEST_ASSERT_FALSE(tracker.track("a.plus(b")->closed());

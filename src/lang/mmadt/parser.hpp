@@ -90,12 +90,12 @@ namespace mmadt {
       else if(c == '=' && last[0] == '>' && angles < 0) // >=
         angles++;
       else if(c == '<') {
-        if(last[0] != '-' && last[0] != '=' && last[0] != '<') // -< =< <<
+        if(last[0] != '-' && last[0] != '=' && last[0] != '<' && last[0] != '?') // -< =< << ?<
           angles++;
         if(last[0] == '<')
           angles--;
       } else if(c == '>') {
-        if(last[0] != '-' && last[0] != '=' && last[0] != '>') // -> => >>
+        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?') // -> => >> ?>
           angles--;
         if(last[0] == '>')
           angles++;

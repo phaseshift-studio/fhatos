@@ -773,7 +773,7 @@ namespace fhatos {
 
     [[nodiscard]] virtual bool is_pattern() const {
       const string temp = this->toString();
-     const bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
+      const bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
       return result;
     }
 
@@ -1225,6 +1225,8 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
+    ID(const ID &id) = default;
+
     ID(const fURI &id) :
       fURI(id.toString()) {
     }
@@ -1247,9 +1249,7 @@ namespace fhatos {
 
   class Pattern final : public fURI {
   public:
-    Pattern(const Pattern &uri) :
-      fURI(uri) {
-    }
+    Pattern(const Pattern &uri) = default;
 
     Pattern(const fURI &uri) :
       fURI(uri) {
@@ -1266,10 +1266,7 @@ namespace fhatos {
 
   using fURI_p = ptr<fURI>;
   using ID_p = ptr<ID>;
-  using ID_wp = weak_ptr<ID>;
   using Pattern_p = ptr<Pattern>;
-  using SourceID = ID;
-  using TargetID = ID;
 
   ///////////////////////////////////////////////////
   ///////////////// TYPED FURI OBJ /////////////////
