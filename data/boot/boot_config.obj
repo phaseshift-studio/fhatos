@@ -20,6 +20,7 @@
    stdin=>/io/terminal/:stdin
   ],
   nest=>2,
+  ellipsis=>125,
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,

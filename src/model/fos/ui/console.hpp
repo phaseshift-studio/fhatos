@@ -133,7 +133,7 @@ namespace fhatos {
     ///// printers
     void write_stdout(const Obj_p &console_obj, const Str_p &s) const {
       if(this->direct_stdin_out)
-        Terminal::STD_OUT_DIRECT(s);
+        Terminal::STD_OUT_DIRECT(s,console_obj->rec_get("config/ellipsis")->or_else(jnt(-1)));
       else
         Router::singleton()->write(console_obj->get<fURI>("config/terminal/stdout"), s, TRANSIENT);
     }

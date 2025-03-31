@@ -90,6 +90,15 @@ namespace fhatos {
       return temp;
     }
 
+    static void truncate(std::string &str, const size_t width, const bool show_ellipsis = true) {
+      if(str.length() > width) {
+        str.resize(width);
+        if(show_ellipsis)
+          str.append("...");
+      }
+    }
+
+
     static void trim(const std::string &s) {
       if(s.empty())
         return;

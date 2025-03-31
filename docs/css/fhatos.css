@@ -216,14 +216,22 @@ mark {
 
 
 .tab, .tabs:not(.is-loading) .tablist li.is-selected::after, li.tab p {
+    color: #b066cd !important;
     background-color: var(--maincolor) !important;
     border-color: var(--maincolor);
     border-width: thin;
     border-radius: 0.25em;
     border-style: solid;
-    color: #b066cd !important;
     font-size: 0.875em !important;
     font-family: monospace, fixed !important;
+}
+
+li.tab[aria-selected="true"] p {
+    color: #b4b413 !important;
+}
+
+li.tab[aria-selected="false"] p {
+    color: #b066cd !important;
 }
 
 .tabpanel {

@@ -92,7 +92,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 797 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 814 bytes)
 [INFO]  [/sys/router] 
   [
     router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
@@ -100,7 +100,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,async=>true,cache_size=>50]
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
     ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]
+    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,ellipsis=>125,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]
     fs=>[root=>./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
@@ -185,12 +185,7 @@ fhatos> */sys/scheduler
 ==>config=>[
 ===>def_stack_size=>8096
 =>]
-==>thread=>[
-=>]
-==>::=>[
-===>spawn=>spawn?obj<=obj{?}(_)[cpp]
-=>]
->]@/sys/scheduler
+==>thread=>[...
 ----
 
 ++++
@@ -216,54 +211,7 @@ fhatos> */sys/router
 >[
 ==>frame=>[rec][_]
 ==>config=>[
-===>resolve=>[
-====>namespace=>[
-=====>:=>/mmadt/
-=====>fos:=>/fos/
-===>]
-====>auto_prefix=>[
-=====>
-=====>/mmadt/
-=====>/mmadt/ext/
-=====>/fos/
-=====>/fos/sys/
-=====>/fos/io/
-=====>/fos/sensor/
-=====>/fos/ui/
-=====>/fos/util/
-=====>/sys/
-===>]
-====>query=>[
-=====>write=>[
-======>lock=>to_do
-====>]
-===>]
-====>default_config=>[
-=====>query=>[
-======>write=>[sub=>noobj]
-====>]
-===>]
-==>]
-=>]
-==>query=>[
-===>write=>[
-====>lock=>lock?obj{?}<=obj{?}()[cpp]
-====>sub=>sub?obj{?}<=obj()[cpp]
-==>]
-=>]
-==>structure=>[
-===>/sys/#
-===>/mnt/#
-===>/boot/#
-===>/fos/#
-===>/mmadt/#
-===>/io/#
-===>+/#
-===>/disk/#
-===>/shared/#
-===>/bus/#
-=>]
->]@/sys/router
+===>resolve=>!...
 ----
 
 ++++
@@ -284,166 +232,7 @@ The [.h]#mmADT# language is embedded in the fURI address space thus enabling htt
 fhatos> */mmadt/#/
 >[
 ==>/mmadt/as=>as(type?uri=>_)[cpp]
-==>/mmadt/at=>at?obj{?}<=obj{?}(isa(/mmadt/uri))[cpp]
-==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(_)[cpp]
-==>/mmadt/bcode=>[bcode][_]
-==>/mmadt/bcode/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/block=>block?obj<=obj{?}(_)[cpp]
-==>/mmadt/bool=>[bool][_]
-==>/mmadt/bool/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/bool/::/mmadt/div=>div(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/bool/::/mmadt/minus=>minus(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/mult=>mult(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/neg=>neg(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/plus=>plus(isa(/mmadt/bool))[cpp]
-==>/mmadt/chain=>chain(_)[cpp]
-==>/mmadt/choose=>choose(_)[cpp]
-==>/mmadt/count=>count?int<=objs{*}()[cpp]
-==>/mmadt/div=>div(_)
-==>/mmadt/drop=>drop?obj{?}<=obj{?}(isa(/mmadt/obj))[cpp]
-==>/mmadt/each=>each(isa(/mmadt/obj))
-==>/mmadt/else=>else?obj<=obj{?}(_)[cpp]
-==>/mmadt/embed=>embed()[cpp]
-==>/mmadt/end=>end?noobj{.}<=obj{*}()[cpp]
-==>/mmadt/eq=>eq(_)[cpp]
-==>/mmadt/error=>[error][_]
-==>/mmadt/explain=>explain()[cpp]
-==>/mmadt/ext/C=>C()[is(gte(-273.14999))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[real][_]
-==>/mmadt/ext/ms/::/mmadt/as=>as(is(eq(/mmadt/ext/sec)))[cpp]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.00000)).is(lte(100.00000))]
-==>/mmadt/ext/sec=>[real][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
-==>/mmadt/flip=>flip(_)[cpp]
-==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
-==>/mmadt/from=>from?obj{?}<=obj{?}(_,else(noobj))[cpp]
-==>/mmadt/gt=>gt()
-==>/mmadt/gte=>gte()
-==>/mmadt/inspect=>inspect(_)
-==>/mmadt/inst=>[inst][_]
-==>/mmadt/inst/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/inst/blockers=>[
-===>block
-===>each
-===>within
-===>isa
-===>split
-===>choose
-===>chain
-=>]
-==>/mmadt/int=>[int][_]
-==>/mmadt/int/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/int/::/mmadt/div=>div(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/int/::/mmadt/gte=>gte(_)[cpp]
-==>/mmadt/int/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/int/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/int/::/mmadt/lte=>lte(_)[cpp]
-==>/mmadt/int/::/mmadt/minus=>minus(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/mod=>mod(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/mult=>mult(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/neg=>neg(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/plus=>plus(isa(/mmadt/int))[cpp]
-==>/mmadt/is=>is?obj{?}<=obj(_)[cpp]
-==>/mmadt/isa=>isa?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/lift=>lift(_)[cpp]
-==>/mmadt/lock=>lock(user=>_)[cpp]
-==>/mmadt/lshift=>lshift()
-==>/mmadt/lst=>[lst][_]
-==>/mmadt/lst/::/mmadt/div=>div(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/each=>each(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/lst/::/mmadt/merge=>merge?objs{*}<=lst()[cpp]
-==>/mmadt/lst/::/mmadt/minus=>minus(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/mult=>mult(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/plus=>plus(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/split=>split(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/lt=>lt()
-==>/mmadt/lte=>lte()
-==>/mmadt/map=>map?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/merge=>merge?obj{?}<=obj()[cpp]
-==>/mmadt/minus=>minus(_)
-==>/mmadt/mod=>mod(from(0?rhs,noobj)[cpp])
-==>/mmadt/mult=>mult(_)
-==>/mmadt/neg=>neg(isa(/mmadt/obj))
-==>/mmadt/neq=>neq(_)[cpp]
-==>/mmadt/noobj=>[noobj][_]
-==>/mmadt/not=>not?obj{?}<=obj(_)[cpp]
-==>/mmadt/obj=>[obj][_]
-==>/mmadt/objs=>[objs][_]
-==>/mmadt/plus=>plus(_)
-==>/mmadt/print=>print?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
-==>/mmadt/real=>[real][_]
-==>/mmadt/real/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/real/::/mmadt/div=>div(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/real/::/mmadt/gte=>gte(_)[cpp]
-==>/mmadt/real/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/real/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/real/::/mmadt/lte=>lte(_)[cpp]
-==>/mmadt/real/::/mmadt/minus=>minus(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/mult=>mult(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/neg=>neg(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/plus=>plus(isa(/mmadt/real))[cpp]
-==>/mmadt/rec=>[rec][_]
-==>/mmadt/rec/::/mmadt/div=>div(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/each=>each(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/rec/::/mmadt/lshift=>lshift(isa(/mmadt/int))[cpp]
-==>/mmadt/rec/::/mmadt/merge=>merge?objs{*}<=rec()[cpp]
-==>/mmadt/rec/::/mmadt/minus=>minus(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/mult=>mult(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/plus=>plus(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/rshift=>rshift(isa(/mmadt/uri))[cpp]
-==>/mmadt/rec/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/ref=>ref?obj{?}<=obj{?}(_,block(noobj))[cpp]
-==>/mmadt/repeat=>repeat(from(0?code,noobj)[cpp],from(1?until,true)[cpp],from(2?emit,false)[cpp])[cpp]
-==>/mmadt/rshift=>rshift()
-==>/mmadt/split=>split(_)[cpp]
-==>/mmadt/start=>start?objs{*}<=noobj{.}(_)[cpp]
-==>/mmadt/str=>[str][_]
-==>/mmadt/str/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/str/::/mmadt/div=>div(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/str/::/mmadt/gte=>gte(_)[cpp]
-==>/mmadt/str/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/str/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/str/::/mmadt/lte=>lte(_)[cpp]
-==>/mmadt/str/::/mmadt/merge=>merge?objs{*}<=str()[cpp]
-==>/mmadt/str/::/mmadt/minus=>minus(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/mult=>mult(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/plus=>plus(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/sum=>sum?obj<=objs{*}()[cpp]
-==>/mmadt/to=>to(_,true)[cpp]
-==>/mmadt/type=>type?uri<=obj{?}(_)[cpp]
-==>/mmadt/uri=>[uri][_]
-==>/mmadt/uri/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/div=>div(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/uri/::/mmadt/gte=>gte(_)[cpp]
-==>/mmadt/uri/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/uri/::/mmadt/lshift=>lshift(_)[cpp]
-==>/mmadt/uri/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/uri/::/mmadt/lte=>lte(_)[cpp]
-==>/mmadt/uri/::/mmadt/merge=>merge?objs{*}<=uri()[cpp]
-==>/mmadt/uri/::/mmadt/minus=>minus(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/mult=>mult(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/plus=>plus(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/rshift=>rshift(_)[cpp]
-==>/mmadt/within=>within(_)
->]
+==>/mmadt/at=>!...
 ----
 
 ++++
@@ -819,20 +608,7 @@ The mechanics of `obj` typing are exemplified below using the generally useful t
 fhatos> */mmadt/ext/#/
 >[
 ==>/mmadt/ext/C=>C()[is(gte(-273.14999))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[real][_]
-==>/mmadt/ext/ms/::/mmadt/as=>as(is(eq(/mmadt/ext/sec)))[cpp]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.00000)).is(lte(100.00000))]
-==>/mmadt/ext/sec=>[real][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
->]
+==>/...
 ----
 
 ++++
@@ -859,15 +635,14 @@ char['b']@b
 [source,mmadt]
 ----
 fhatos> *char
-==>char?int<=str()[merge(2).count().is(eq(1))]
+==>char?int<=str()[merge(2).count().is(eq(1))...
 fhatos> char['a']@a
 ==>char['a']@a
 fhatos> char['b']@b
 ==>char['b']@b
 fhatos> @a + @b
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))] 
-	  thrown at inst char['a']@a => plus(char['a']@a)[cpp] [0=>char['a']@a]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a + @b')[cpp] [code=>'@a + @b']
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as str
+	  thrown at inst char['a']@a => plus()[cpp] [code=>'@a + @b']
 fhatos> *a
 ==>char['a']@a
 fhatos> @a.as(str) + @b
@@ -903,15 +678,13 @@ fhatos> nat[12]
 ==>nat[12]
 fhatos> nat[-30]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[-30]')[cpp] [code=>'nat[-30]']
 fhatos> nat[12]@a
 ==>nat[12]@a
 fhatos> @a.minus(11)
 ==>nat[1]@a
 fhatos> @a.minus(2)
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a.minus(2)')[cpp] [code=>'@a.minus(2)']
+	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0=>2]
 fhatos> *a
 ==>nat[1]@a
 ----
@@ -943,7 +716,6 @@ fhatos> C[274.0]
 ==>C[274.000000]
 fhatos> C[-274.0]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -274.00000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.14999))] 
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'C[-274.0]')[cpp] [code=>'C[-274.0]']
 ----
 
 ++++
@@ -970,6 +742,183 @@ f(\tt{obj}_\tt{in},a_1,a_2,\ldots,a_n) \mapsto \tt{obj}_\tt{out},
 ++++
 
 where latexmath:[\tt{obj}_\tt{in}] is the _left hand side_ `obj` (input) and latexmath:[a_m] are the variables of the `obj` frame (arguments).
+To demonstrate how frames work, the `inst` `band` is defined. This function takes two `int` arguments. If the incoming
+`obj` is within the bounds of the two `ints`, it is emitted, else `noobj` is returned. The arguments are stored in an
+`inst`-specific frame mounted in the router. When the `inst` completes it's execution, the frame is unmounted. If an `inst`
+calls another `inst`, then a stack of frames is realized and arguments declared in the parent `inst` are accessible
+in the child `inst`.
+
+[tabs]
+====
+named args::
++
+--
+
+++++
+A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI that references an `obj` in the router's current frame structure.
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+3.band(2,8)                           --- <1>
+3.band(max=>8,min=>2)                 --- <2>
+10.band(2,max=>8)                     --- <3>
+'abc'.band(2,8)                       --- <4>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+==>band?int{?}<=int(min=>_,max=>_)[band?int{?}<...
+fhatos> 3.band(2,8)                           // <1>
+==>3
+fhatos> 3.band(max=>8,min=>2)                 // <2>
+==>3
+fhatos> 10.band(2,max=>8)                     // <3>
+==>band
+fhatos> 'abc'.band(2,8)                       // <4>
+[ERROR] [/sys/scheduler] [/mmadt/int] 2 accessed as str
+	  thrown at inst 'abc' => gte(from(min)) [min=>2,max=>8,0=>2]
+	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [min=>2,max=>8]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> If the argument name isn't provided, then it's position in the argument list determines its nane,
+<2> When arguments are named, they can be written in any order.
+<3> Named arguments and unnamed arguments can be used together.
+<4> The domain of `band` is `int`. Note where the error is thrown when `str['abc']` is provided.
+
+--
+
+default args::
++
+--
+If the incoming `obj` to `else` is `noobj`, the `else` emits it's argument, else it emits the incoming `obj`.
+This makes `else` useful for expressing https://en.wikipedia.org/wiki/Default_argument[default arguments].
+++++
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+1.band(min=>1)                        --- <1>
+10.band()                             --- <2>
+{2,3,4,5}.band(min=>3,max=>4)         --- <3>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],...
+fhatos> 1.band(min=>1)                        // <1>
+==>1
+fhatos> 10.band()                             // <2>
+==>10
+fhatos> {2,3,4,5}.band(min=>3,max=>4)         // <3>
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/lte?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id       resolve obj      
+	  ->[/mmadt/obj] /mmadt/lte => lte()
+	  thrown at inst 2 => band?int{?}<=int(min=>3,max=>4)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [min=>3,max=>4]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> No `max` is provided, so the default value of `8` is used.
+<2> No `min` nor `max` is provided, so the defaults `2` and `8`, respectively are used.
+<3> When arguments are provided, the default values are not used.
+
+--
+
+typed args::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>_)[is_divisble[mod(from(by...
+fhatos> 10.is_divisible(2)
+==>true
+fhatos> 10.is_divisible('abc')
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+
+dynamic args::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>_)[is_divisble[mod(from(by...
+fhatos> 10.is_divisible(2)
+==>true
+fhatos> 10.is_divisible('abc')
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+
+refined type::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=!...
+fhatos> 10.is_divisible(2)
+error==>true
+fhatos> 10.is_divisible('abc')
+error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+====
+
 
 For instance:
 
@@ -994,6 +943,9 @@ fhatos> 4 + int(a=>2)[+*a]
 ++++
 <!-- 🐓 -->
 ++++
+
+
+
 
 ==== The Value
 
@@ -1147,8 +1099,7 @@ fhatos> *a?sub
 >sub[
 ==>source=>/io/console
 ==>pattern=>a
-==>on_recv=>a?sub
->]
+==>on_recv=>a?sub!...
 fhatos> *b
 ==>a?sub
 fhatos> a->12
@@ -1235,10 +1186,7 @@ fhatos> thread[[
           halt=>false,
           delay=>nat[0]]]@abc
 >thread[
-==>loop=>from(a,0).plus(1).to(a).is(gt(10)).map(true).to(/abc/halt)
-==>halt=>false
-==>delay=>nat[0]
->]@abc
+==>loop=>from(a,0).plus(1).to(a).!...
 ----
 
 ++++
@@ -1272,28 +1220,12 @@ fhatos> int[6].inspect()
 >[
 ==>type=>[
 ===>id=>/mmadt/int
-===>obj=>[int][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/int,coeff=>[1,1]]
-=>]
-==>value=>[
-===>obj=>6
-===>encoding=>int32_t
-=>]
->]
+===>obj=>[int][_...
 fhatos> real[6.0].inspect()
 >[
 ==>type=>[
 ===>id=>/mmadt/real
-===>obj=>[real][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/real,coeff=>[1,1]]
-=>]
-==>value=>[
-===>obj=>6.00000
-===>encoding=>float_t
-=>]
->]
+===>obj=>[real][!...
 ----
 
 ++++
@@ -1323,12 +1255,7 @@ fhatos> /sys/router/config/resolve/auto_prefix ->
 ==>noobj
 ==>noobj
 ==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
->]
+...
 fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
@@ -1337,8 +1264,7 @@ fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1                               // <3>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
-	  thrown at inst int8[128]@a => plus(1)[cpp] [0=>1]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a + 1                               // <3>')[cpp] [code=>'@a + 1                               // <3>']
+	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>1]
 ----
 
 ++++
@@ -1366,18 +1292,7 @@ The wildcard feature of the fURI scheme makes it possible to access instructions
 ----
 fhatos> */mmadt/int/#
 ==>[int][[_]]
-==>as?obj<=int(isa?noobj<=obj(/mmadt/uri)[noobj])[cpp]
-==>div?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>gt?bool<=int(_)[cpp]
-==>gte?bool<=int(_)[cpp]
-==>inspect?rec<=int(_)[cpp]
-==>lt?bool<=int(_)[cpp]
-==>lte?bool<=int(_)[cpp]
-==>minus?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>mod?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>mult?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>neg?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>plus?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
+==>as?obj<=int(isa?noobj<=obj(/mm...
 ----
 
 ++++
@@ -1624,7 +1539,6 @@ fhatos> 2.rec[[is(gt(2)) => plus(2), _ => 0]]
 [ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj     
 	  ->[/mmadt/obj] /mmadt/gt => gt()
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'2.rec[[is(gt(2)) => plus(2), _ => 0]]')[cpp] [code=>'2.rec[[is(gt(2)) => plus(2), _ => 0]]']
 ----
 
 ++++
@@ -1650,12 +1564,10 @@ fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
 [ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj     
 	  ->[/mmadt/obj] /mmadt/gt => gt()
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true,nest=>0]]]@/io/console => eval?obj{?}<=console(code=>'{1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>')[cpp] [code=>'{1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>']
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
 [ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj     
 	  ->[/mmadt/obj] /mmadt/gt => gt()
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true,nest=>0]]]@/io/console => eval?obj{?}<=console(code=>'{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>')[cpp] [code=>'{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>']
 ----
 
 ++++
@@ -1901,20 +1813,16 @@ a -> age[45]
 fhatos> age -> \|(is(gt(0)).is(lt(120)))
 [ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
 	  thrown at inst age => gt(0) [0=>0]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'age -> \|(is(gt(0)).is(lt(120)))')[cpp] [code=>'age -> \|(is(gt(0)).is(lt(120)))']
 fhatos> a -> age[45]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] age is an undefined type
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'a -> age[45]')[cpp] [code=>'a -> age[45]']
 fhatos> *a.inspect()
 [ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
 	         lhs id      inst id           resolve obj           
 	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'*a.inspect()')[cpp] [code=>'*a.inspect()']
 fhatos> @a.inspect()
 [ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
 	         lhs id      inst id           resolve obj           
 	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'@a.inspect()')[cpp] [code=>'@a.inspect()']
 ----
 
 ++++
@@ -1930,7 +1838,6 @@ fhatos> @a.inspect()
 [source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 a?suba?sub==>a?sub
 fhatos> a -> 12
 ==>12
@@ -1938,21 +1845,7 @@ fhatos> @a.inspect()
 >[
 ==>type=>[
 ===>id=>/mmadt/int
-===>obj=>[int][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/int,coeff=>[1,1]]
-=>]
-==>value=>[
-===>id=>a
-===>obj=>12
-===>encoding=>int32_t
-=>]
-==>sub=>[
-===>source=>/io/console
-===>pattern=>a
-===>on_recv=>a?sub
-=>]
->]
+===>obj=>[int][_...
 fhatos> @a.plus(1)
 ==>13@a
 fhatos> @a.plus(1).plus(1)
@@ -1987,18 +1880,15 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 fhatos> /type/int/nat -> |is(gt(0))
 [ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
 	  thrown at inst /type/int/nat => gt(0) [0=>0]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'/type/int/nat -> |is(gt(0))')[cpp] [code=>'/type/int/nat -> |is(gt(0))']
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[-6]')[cpp] [code=>'nat[-6]']
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[3] => mult(-2)[cpp] [0=>-2]
-	  thrown at inst console[[halt=>false,delay=>nat[0],loop=>inst()[cpp],config=>[nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]]]@/io/console => eval?obj{?}<=console(code=>'nat[3].mult(-2)')[cpp] [code=>'nat[3].mult(-2)']
+	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0=>-2]
 ----
 
 ++++
@@ -2055,26 +1945,7 @@ fhatos> */sys/router/#/
 >[
 ==>/sys/router=>[
 ===>frame=>[rec][_]
-===>config=>[
-====>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
-==>]
-===>query=>[
-====>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
-==>]
-===>structure=>[
-====>/sys/#
-====>/mnt/#
-====>/boot/#
-====>/fos/#
-====>/mmadt/#
-====>/io/#
-====>+/#
-====>/disk/#
-====>/shared/#
-====>/bus/#
-==>]
-=>]@/sys/router
->]
+===>config...
 ----
 
 ++++
@@ -2121,8 +1992,7 @@ fhatos> *a?sub                     // <4>
 >sub[
 ==>source=>/io/console
 ==>pattern=>a
-==>on_recv=>a?sub
->]
+==>on_recv=>a?sub!...
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
 fhatos> *b                         // <6>
@@ -2263,7 +2133,7 @@ fhatos> *a/#/           // <6>
 ==>a/b=>2
 ==>a/b/c=>3
 ==>a/b/d=>4
->]
+>!...
 ----
 
 ++++

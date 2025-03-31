@@ -24,7 +24,6 @@ FhatOS: A Distributed Operating System
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 #include "../../../../src/structure/stype/dsm.hpp"
-#include "../../../../src/structure/util/mqtt/mqtt_client.hpp"
 #include "../generic_structure_test.hpp"
 
 namespace fhatos {
