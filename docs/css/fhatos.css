@@ -27,7 +27,7 @@
 :root {
     --maincolor: #2b2d30;
     --primarycolor: #bfbfbf;
-    --secondarycolor: #d70000;
+    --secondarycolor: #ff0000;
     --tertiarycolor: #bdbdbd;
     --sidebarbackground: #303235;
     --linkcolor: #b066cd;
@@ -333,6 +333,11 @@ video {
 .hljs-mmadt-str {
     color: #d4de68;
     font-style: italic;
+}
+
+.hljs-mmadt-furi-query {
+    color: #d4de68;
+    font-weight: bold;
 }
 
 .hljs-mmadt-rec-key {
