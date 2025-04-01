@@ -280,11 +280,17 @@ namespace fhatos {
             }
             ss << "!g)";
             if(obj->has_inst_f()) {
-              ss << "[" << (std::holds_alternative<Obj_p>(obj->inst_f())
-                              ? std::get<Obj_p>(obj->inst_f())->toString()
-                              : "!ycpp!!") << "!g]!!";
+              if(std::holds_alternative<Obj_p>(obj->inst_f())) {
+                const string inst_f_str = std::get<Obj_p>(obj->inst_f())->toString();
+                if(Ansi<>::strip(inst_f_str).length() > 20) // TODO: this is arbitrary
+                  ss << "\n\t";
+                ss << "!m[!!" << inst_f_str;
+              } else {
+                ss << "!m[!ycpp!!";
+              }
+              ss << "!m]!!";
             } else
-              ss << "[!rnoobj!g]!!";
+              ss << "!m[!rnoobj!m]!!";
             break;
           }
           case OType::BCODE: {

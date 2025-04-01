@@ -60,7 +60,9 @@ namespace fhatos {
     static void STD_OUT_DIRECT(const Str_p &str,const Int_p &ellipsis=jnt(-1)) {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
-      printer<>()->print(str->str_value().c_str(),ellipsis->int_value());
+      string output = str->str_value();
+      StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
+      printer<>()->print(output.c_str());
     }
 
     static Int_p STD_IN_DIRECT() {

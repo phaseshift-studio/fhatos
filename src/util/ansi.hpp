@@ -281,19 +281,9 @@ namespace fhatos {
         this->parse(&c, 1);
     }
 
-    void print(const char *c, const int ellipsis_length = -1) {
-      if(this->printer_on_) {
-        if(ellipsis_length == -1)
-          this->parse(c, strlen(c));
-        else {
-          auto output = string(c);
-          const bool new_line = output[output.length()-1] == '\n';
-          StringHelper::truncate(output,ellipsis_length,true);
-          if(new_line && output[output.length()-1] != '\n')
-            output.append("\n");
-          this->parse(output.c_str(),output.length());
-        }
-      }
+    void print(const char *c) {
+      if(this->printer_on_)
+        this->parse(c, strlen(c));
     }
 
     void println(const char *c = "") {

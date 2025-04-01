@@ -90,12 +90,20 @@ namespace fhatos {
       return temp;
     }
 
-    static void truncate(std::string &str, const size_t width, const bool show_ellipsis = true) {
-      if(str.length() > width) {
-        str.resize(width);
-        if(show_ellipsis)
-          str.append("...");
+    static void truncate(std::string &input, const size_t width, const string &ellipsis = "!y.!g.!r.!!") {
+      const std::vector<string> lines = StringHelper::tokenize('\n', input);
+      string new_string;
+      for(int i = 0; i < lines.size(); i++) {
+        string line = lines.at(i);
+        if(line.length() > width) {
+          line.resize(width);
+          line.append(ellipsis);
+        }
+        if(i < lines.size() - 1)
+          line.append("\n");
+        new_string.append(line);
       }
+      input = new_string;
     }
 
 

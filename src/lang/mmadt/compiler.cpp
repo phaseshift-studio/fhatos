@@ -200,63 +200,84 @@ namespace fhatos {
   }
 
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
-    const auto inst_provided_args = provided_inst->inst_args();
+
     if(resolved_inst->is_inst()) {
       LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
                                     resolved_inst->toString().c_str(),
                                     provided_inst->toString().c_str())          );
-      Obj_p merged_args = Obj::to_inst_args();
-      const auto inst_resolved_args = resolved_inst->inst_args();
-      if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
-        merged_args = inst_resolved_args->apply(inst_provided_args->apply(lhs));
-      } else {
-        int r_counter = 0;
-        for(const auto &[rk,rv]: *inst_resolved_args->rec_value()) {
-          bool found = false;
-          for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
-            if(lk->match(rk)) {
-              found = true;
-              merged_args->rec_set(
-                  rk, in_block_list(provided_inst->inst_op())
-                        ? (lhs->is_noobj() && provided_inst->inst_op() == "block" ? provided_inst : lv)
-                        : rv->apply(lv->apply(lhs)));
+
+      try {
+        const auto inst_provided_args = provided_inst->inst_args();
+        const auto inst_resolved_args = resolved_inst->inst_args();
+        Obj_p merged_args = Obj::to_inst_args();
+        merged_args->rec_add(provided_inst->inst_args());
+        ROUTER_PUSH_FRAME("#", merged_args);
+        if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
+          merged_args = inst_resolved_args->apply(inst_provided_args->apply(lhs));
+        } else {
+          int r_counter = 0;
+          for(const auto &[rk,rv]: *inst_resolved_args->rec_value()) {
+            bool found = false;
+            for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
+              if(lk->match(rk)) {
+                found = true;
+                merged_args->rec_set(
+                    rk, in_block_list(provided_inst->inst_op())
+                          ? (lhs->is_noobj() && provided_inst->inst_op() == "block" ? provided_inst : lv)
+                          : rv->apply(lv->apply(lhs)));
+              }
             }
+            if(!found)
+              merged_args->rec_set(
+                  rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
+                        ? in_block_list(provided_inst->inst_op())
+                            ? lhs->is_noobj() && provided_inst->inst_op() == "block"
+                                ? provided_inst
+                                : inst_provided_args->arg(r_counter)
+                            : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
+                        : rv->apply(lhs)); // default arg
+            r_counter++;
           }
-          if(!found)
-            merged_args->rec_set(
-                rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
-                      ? in_block_list(provided_inst->inst_op())
-                          ? lhs->is_noobj() && provided_inst->inst_op() == "block"
-                              ? provided_inst
-                              : inst_provided_args->arg(r_counter)
-                          : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
-                      : rv->apply(lhs)); // default arg
-          r_counter++;
         }
+
+
+        LOG(TRACE, "**** %s ****\ninst_resolved args: %s\ninst_provided args: %s\ninst_merged args: %s\n",
+            inst_resolved_args->vid_or_tid()->toString().c_str(),
+            inst_resolved_args->toString().c_str(),
+            inst_provided_args->toString().c_str(),
+            merged_args->toString().c_str());
+        const Inst_p &return_inst = Obj::to_inst(
+            resolved_inst->inst_op(),
+            merged_args,
+            resolved_inst->inst_f(),
+            resolved_inst->inst_seed_supplier(),
+            resolved_inst->tid,
+            provided_inst->vid);
+        ROUTER_POP_FRAME();
+        return return_inst;
+      } catch(const std::exception &) {
+        ROUTER_POP_FRAME();
+        throw;
       }
-      LOG(TRACE, "**** %s ****\ninst_resolved args: %s\ninst_provided args: %s\ninst_merged args: %s\n",
-          inst_resolved_args->vid_or_tid()->toString().c_str(),
-          inst_resolved_args->toString().c_str(),
-          inst_provided_args->toString().c_str(),
-          merged_args->toString().c_str());
-      return Obj::to_inst(
-          resolved_inst->inst_op(),
-          merged_args,
-          resolved_inst->inst_f(),
-          resolved_inst->inst_seed_supplier(),
-          resolved_inst->tid,
-          provided_inst->vid);
     } else {
-      return Obj::to_inst(
-          provided_inst->inst_op(),
-          inst_provided_args,
-          InstF(make_shared<Cpp>(
-              [x = resolved_inst->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
-                return x->apply(lhs);
-              })),
-          provided_inst->inst_seed_supplier(),
-          provided_inst->tid,
-          provided_inst->vid);
+      try {
+        ROUTER_PUSH_FRAME("#", provided_inst->inst_args());
+        const Inst_p &return_inst = Obj::to_inst(
+            provided_inst->inst_op(),
+            provided_inst->inst_args(),
+            InstF(make_shared<Cpp>(
+                [x = resolved_inst->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
+                  return x->apply(lhs);
+                })),
+            provided_inst->inst_seed_supplier(),
+            provided_inst->tid,
+            provided_inst->vid);
+        ROUTER_POP_FRAME();
+        return return_inst;
+      } catch(const std::exception &) {
+        ROUTER_POP_FRAME();
+        throw;
+      }
     }
   }
 
@@ -317,7 +338,7 @@ namespace fhatos {
       return true;
     if(const Obj_p type = ROUTER_READ(type_no_query_id); !type->is_noobj()) {
       Compiler::coefficient_check(value_obj->range_coefficient(), type->domain_coefficient());
-   //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
+      //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
       // if(type->is_type() && !obj->apply(type)->is_noobj())
       //   return true;
       if(value_obj->match(type, &fail_reason))
