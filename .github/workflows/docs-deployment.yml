@@ -23,7 +23,6 @@ jobs:
       - name: install asciidoctor
         run: |
           sudo apt-get install asciidoctor
-          sudo gem install asciidoctor-tabs
           sudo gem install asciidoctor-diagram
       - uses: actions/checkout@v2
       - name: Configure Pages
