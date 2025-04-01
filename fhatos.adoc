@@ -4,7 +4,6 @@
 :author: 💩 Dogturd Stynx
 :email: dogturd.stynx@fhatos.org
 :revnumber: 0.1
-:tabsize: 2
 :icons: font
 :icon-set: fas
 :stem: latexmath
@@ -12,6 +11,7 @@
 :highlightjsdir: ./highlight
 :highlightjs-languages: mmadt, bash
 :stylesheet: ./css/fhatos.css
+// :linkcss:
 :data-uri:
 :toc-title: 🐖 FhatOS
 :toc: left
@@ -88,19 +88,19 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5504]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 758 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 814 bytes)
 [INFO]  [/sys/router] 
   [
     router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
     scheduler=>[def_stack_size=>8096]
-    mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,cache=>true]
+    mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,async=>true,cache_size=>50]
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
     ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288]
+    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,ellipsis=>125,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]
     fs=>[root=>./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
@@ -150,73 +150,79 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 == FhatOS Architecture
 
 ====
-TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, and dogs that have or are currently living on the FhatFarm.
-Many of the code examples attempt to highlight their unique, individual personalities.
+TIP: The "animal sticker" images used throughout the documentation are of the chickens, ducks, dogs and cats that have or are currently living on the FhatFarm.
 To learn their names, hover on their image.
 ====
 
-image:cooties.png[width=140,float=left,title=cooties] [yellow]*f*​[red]*h*​[fuchsia]#a#​[aqua]#t#​[blue]*O*​[lime]*S*​ is designed according to the undertsanding that computing is composed of 3 fundamental phenomena: **structure** (space), **process** (time), and **language** (perspective).
-The core [yellow]*f*​[lime]#H#​[blue]*a*​[fuchsia]#t#​[red]*O*​[aqua]*S*​ kernel provides the following resources.
+image:cooties.png[width=140,float=left,title=cooties] [yellow]*f*​[red]*h*​[fuchsia]#a#​[aqua]#t#​[blue]*O*​[lime]*S*​ is designed according to the philosophy that computing is composed of 3 fundamental, interacting phenomena:
+[.h]#structure# (space), [.h]#process# (time), and [h.]#language# (perspective).
+As such,the [yellow]*f*​[lime]#H#​[blue]*a*​[fuchsia]#t#​[red]*O*​[aqua]*S*​ kernel is comprised of the followng resources:
 
-. `/sys/scheduler` (**process**): provides all https://en.wikipedia.org/wiki/Thread_(computing)[thread], fiber, and coroutine processes compute time on the underlying hardware processor.
-. `/sys/router` (**structure**) : maintains a distributed, partitioned https://en.wikipedia.org/wiki/Tuple_space[tuple space] used for storing and retrieving `objs` in the fURI address space.
-. `/mmadt/` (**language**): enables source https://en.wikipedia.org/wiki/Parsing_expression_grammar[parsing], https://en.wikipedia.org/wiki/Type_system[type system] reasoning, and execution of mm-ADT programs.
+. `/sys/scheduler` (**process**): coordinates all processes realized as https://en.wikipedia.org/wiki/Thread_(computing)[threads], fibers, and coroutines.
+. `/sys/router` (**structure**) : manages all structures comprising a distributed, partitioned, read/write https://en.wikipedia.org/wiki/Tuple_space[tuple space].
+. `/mmadt/` (**language**): provides https://en.wikipedia.org/wiki/Parsing_expression_grammar[parsing], https://en.wikipedia.org/wiki/Type_system[type reasoning], and execution of mmADT programs.
 
-The [lime]*F*​[yellow]*h*​[fuchsia]#a#​[red]*t*​[blue]#o#​[aqua]#s#​ scheduler and router are accessed when their respective fURIs are https://en.wikipedia.org/wiki/Reference_(computer_science)[dereferenced] using the `from` instruction (sugar'd `*`).
+These resources are accessible via their respective fURIs.
+The fURI space is a subset of the common URI space, and is the address space through which all resources within [lime]*f*​[aqua]*h*​[fuchsia]#a#​[red]#t#​[blue]#o#​[yellow]#s#​ communicate.
+A fURI is https://en.wikipedia.org/wiki/Reference_(computer_science)[dereferenced] using the mmADT `from` instruction (sugar'd `*`).
+Dereferencing returns the resources pointed to by the fURI.
+In mmADT, these resources are called `obj` (objects).
 
+[tabs]
+====
+/sys/scheduler::
++
+--
+The [.h]#scheduler# controls and provides access to the various *processes* that define the [red]*F*​[lime]*h*​[blue]*a*​[yellow]#t#​[aqua]#o#​[fuchsia]#s#​ process architecture.
 ++++
-<!-- 🐖 ./main_runner.out
-*/sys/scheduler
-*/sys/router
--->
+<!-- 🐖 ./main_runner.out "*/sys/scheduler" -->
 ++++
 
 [source,mmadt]
 ----
 fhatos> */sys/scheduler
-=>[
-==>thread=>[
-===>/io/console
-=>]
+>[
 ==>config=>[
 ===>def_stack_size=>8096
 =>]
-=>]@/sys/scheduler
-fhatos> */sys/router
-=>[
-==>structure=>[
-===>/sys/#
-===>/mnt/#
-===>/boot/#
-===>/fos/#
-===>/mmadt/#
-===>/io/#
-===>+/#
-===>/disk/#
-===>/shared/#
-===>/bus/#
-=>]
-==>frame=>[rec][_]
-==>config=>[
-===>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
-=>]
-==>query=>[
-===>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
-=>]
-=>]@/sys/router
+==>thread=>[...
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
 
-Likewise, the mmADT language is embedded within the fURI address space. mm-ADT's encoding is large as it includes all mm-ADT types and instructions.
-By dereferencing the `/mmadt` root with the wildcard extension `#`, a https://en.wikipedia.org/wiki/Reflective_programming[reflective] representation of the mm-ADT language is accessed.
+--
 
-+++ <details><summary> +++
-🔗 fURI encoding of the mmADT language
-+++ </summary><div> +++
+/sys/router::
++
+--
+The [.h]#router# is responsible for storing and retrieving `objs` from a pool of *structures* that define the [fuchsia]*F*​[lime]#H#​[yellow]*a*​[red]#T#​[blue]*O*​[aqua]#S#​ memory architecture.
+++++
+<!-- 🐖 ./main_runner.out
+[HIDDEN] /io/console/config/nest -> 5
+*/sys/router
+-->
+++++
 
+[source,mmadt]
+----
+fhatos> */sys/router
+>[
+==>frame=>[rec][_]
+==>config=>[
+===>resolve=>!...
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+
+/mmadt::
++
+--
+The [.h]#mmADT# language is embedded in the fURI address space thus enabling https://en.wikipedia.org/wiki/Reflective_programming[reflective] programming.
 ++++
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 ++++
@@ -224,198 +230,26 @@ By dereferencing the `/mmadt` root with the wildcard extension `#`, a https://en
 [source,mmadt]
 ----
 fhatos> */mmadt/#/
-=>[
-==>/mmadt/a=>a(type=>_)[cpp]
-==>/mmadt/apply=>apply?obj{*}<=obj(rhs=>noobj,args=>[=>])[cpp]
-==>/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/at=>at?obj{?}<=obj{?}(from(0?var,noobj)[cpp])[cpp]
-==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(from(0?barrier_op,_)[cpp])[cpp]
-==>/mmadt/bcode=>[bcode][_]
-==>/mmadt/bcode/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/block=>block?obj<=obj{?}(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/bool=>[bool][_]
-==>/mmadt/bool/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/neg=>neg(from(0?self,_)[cpp])[cpp]
-==>/mmadt/bool/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/count=>count?int<=objs{*}()[cpp]
-==>/mmadt/div=>div(from(0?rhs,noobj)[cpp])
-==>/mmadt/drop=>drop?obj{?}<=obj{?}(from(0?obj,_)[cpp])[cpp]
-==>/mmadt/each=>each(from(0?poly,noobj)[cpp])
-==>/mmadt/embed=>embed()[cpp]
-==>/mmadt/end=>end?noobj{.}<=obj{*}()[cpp]
-==>/mmadt/eq=>eq(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/error=>[error][_]
-==>/mmadt/explain=>explain()[cpp]
-==>/mmadt/ext/C=>C()[is(gte(-273.149994))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[int][_]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.000000)).is(lte(100.000000))]
-==>/mmadt/ext/sec=>[int][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
-==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
-==>/mmadt/from=>from?obj{?}<=obj{?}(from(0?uri,_)[cpp],from(1?default,noobj)[cpp])[cpp]
-==>/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])
-==>/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])
-==>/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])
-==>/mmadt/inst=>[inst][_]
-==>/mmadt/inst/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/int=>[int][_]
-==>/mmadt/int/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/mod=>mod(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/neg=>neg(from(0?self,_)[cpp])[cpp]
-==>/mmadt/int/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/is=>is?obj{?}<=obj(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lock=>lock(user=>_)[cpp]
-==>/mmadt/lshift=>lshift()
-==>/mmadt/lst=>[lst][_]
-==>/mmadt/lst/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/each=>each(from(0?lst,_)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/merge=>merge?objs{*}<=lst(from(0?count,2147483647)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/split=>split(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/lst/::/mmadt/within=>within(from(0?code,noobj)[cpp])[cpp]
-==>/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])
-==>/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])
-==>/mmadt/map=>map?obj{?}<=obj{?}(from(0?mapping,noobj)[cpp])[cpp]
-==>/mmadt/merge=>merge?obj{?}<=obj(from(0?count,2147483647)[cpp])[cpp]
-==>/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])
-==>/mmadt/mod=>mod(from(0?rhs,noobj)[cpp])
-==>/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])
-==>/mmadt/neg=>neg(from(0?self,_)[cpp])
-==>/mmadt/neq=>neq(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/noobj=>[noobj][_]
-==>/mmadt/obj=>[obj][_]
-==>/mmadt/objs=>[objs][_]
-==>/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])
-==>/mmadt/print=>print?obj{?}<=obj{?}(from(0?to_print,_)[cpp])[cpp]
-==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
-==>/mmadt/real=>[real][_]
-==>/mmadt/real/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/neg=>neg(from(0?self,_)[cpp])[cpp]
-==>/mmadt/real/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/rec=>[rec][_]
-==>/mmadt/rec/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/lshift=>lshift(level=>1)[cpp]
-==>/mmadt/rec/::/mmadt/merge=>merge?objs{*}<=rec(from(0?count,2147483647)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/rshift=>rshift(from(0?prefix,noobj)[cpp])[cpp]
-==>/mmadt/rec/::/mmadt/within=>within(from(0?code,noobj)[cpp])[cpp]
-==>/mmadt/ref=>ref?obj{?}<=obj{?}(from(0?id,noobj)[cpp],from(1?retain,true)[cpp])[cpp]
-==>/mmadt/repeat=>repeat(from(0?code,noobj)[cpp],from(1?until,true)[cpp],from(2?emit,false)[cpp])[cpp]
-==>/mmadt/rshift=>rshift()
-==>/mmadt/split=>split(from(0?poly,noobj)[cpp])[cpp]
-==>/mmadt/start=>start?objs{*}<=noobj{.}(from(0?starts,noobj)[cpp])[cpp]
-==>/mmadt/str=>[str][_]
-==>/mmadt/str/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/merge=>merge?objs{*}<=str(from(0?count,2147483647)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/str/::/mmadt/within=>within(from(0?code,noobj)[cpp])[cpp]
-==>/mmadt/sum=>sum?obj<=objs{*}()[cpp]
-==>/mmadt/to=>to(from(0?uri,noobj)[cpp],from(1?retain,true)[cpp])[cpp]
-==>/mmadt/type=>type?uri<=obj{?}(from(0?obj,_)[cpp])[cpp]
-==>/mmadt/uri=>[uri][_]
-==>/mmadt/uri/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/div=>div(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/gt=>gt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/gte=>gte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/inspect=>inspect(from(0?inspected,_)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/lshift=>lshift(level=>1)[cpp]
-==>/mmadt/uri/::/mmadt/lt=>lt(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/lte=>lte(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/merge=>merge?objs{*}<=uri(from(0?count,2147483647)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/minus=>minus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/mult=>mult(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/plus=>plus(from(0?rhs,noobj)[cpp])[cpp]
-==>/mmadt/uri/::/mmadt/rshift=>rshift(level=>1)[cpp]
-==>/mmadt/within=>within(from(0?code,noobj)[cpp])
-=>]
+>[
+==>/mmadt/as=>as(type?uri=>_)[cpp]
+==>/mmadt/at=>!...
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
-
-+++ </div></details> +++
-
-The wildcard feature of the fURI scheme makes it possible to access instructions associated with a particular type.
-
-++++
-<!-- 🐖 ./main_runner.out
-*/mmadt/int/#
--->
-++++
-
-[source,mmadt]
-----
-fhatos> */mmadt/int/#
-==>[int][[_]]
-==>as?obj<=int(from?obj<=obj(0?type,noobj)[cpp])[cpp]
-==>div?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>gt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>gte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>inspect?rec<=int(from?obj<=obj(0?inspected,_)[cpp])[cpp]
-==>lt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>lte?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>minus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>mod?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>mult?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-==>neg?int<=int(from?obj<=obj(0?self,_)[cpp])[cpp]
-==>plus?int<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
-----
-
-++++
-<!-- 🐓 -->
-++++
+--
+====
 
 ====
-IMPORTANT: When an instruction body is displayed as `[cpp]`, it means that the instruction's implementation is written C++ and thus, no further introspection is possible from within mm-ADT.
-When the instruction implementation is written in mm-ADT, the instruction body is displayed as `bcode` (a linear chain of `objs`).
+IMPORTANT: The `[cpp]` representation of an `inst` value means that the instruction's implementation is written C++.
+As such, no further introspection is possible from within mmADT.
+When the instruction implementation is written in mmADT, the instruction value is displayed as `bcode` (a linear chain of `objs`).
 
 [cols="2,2"]
 |===
-
 a|
+An `inst` written in C++.
 ++++
 <!-- 🐖 ./main_runner.out "*int::lt" -->
 ++++
@@ -423,7 +257,7 @@ a|
 [source,mmadt]
 ----
 fhatos> *int::lt
-==>lt?bool<=int(from?obj<=obj(0?rhs,noobj)[cpp])[cpp]
+==>lt?bool<=int(_)[cpp]
 ----
 
 ++++
@@ -431,6 +265,7 @@ fhatos> *int::lt
 ++++
 
 a|
+An `inst` written in mmADT.
 ++++
 <!-- 🐖 ./main_runner.out "*nat" -->
 ++++
@@ -446,14 +281,13 @@ fhatos> *nat
 ++++
 
 |===
+
 ====
 
-Shutting down [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ is as simple as writing `noobj` to every `obj` that is fURI accessible to the local processor.
+A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ instance is shutdown by writing `noobj` (_null_) to every fURI address.
 
 ++++
-<!-- 🐖 ./main_runner.out
-# -> noobj
--->
+<!-- 🐖 ./main_runner.out "# -> noobj" -->
 ++++
 
 [source,mmadt]
@@ -475,23 +309,37 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] +/# heap detached
 [INFO]  [/sys/router] /disk/# fs detached
 [INFO]  [/sys/router] /shared/# dsm detached
+[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
 
+This documentation will explore these three kernel resources in-depth starting with the mmADT language and processor.
+
 === The mm-ADT Language
 
-[aqua]#F#​[red]#h#​[lime]*a*​[blue]#t#​[yellow]*o*​[fuchsia]#s#​ software can be written in C/C++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a reflective, cluster-oriented programming language with a fluent syntax and an an underlying monoidal structure.
-Every expression in mm-ADT yields an `obj` (object).
+image:ansi/punky.png[width=250,float=left,role=title=punky] mmADT is the programming language of [red]#F#​[fuchsia]#H#​[lime]#a#​[aqua]*T*​[yellow]*O*​[blue]#s#​. In mmADT, every expression is an `obj` (object). The language has an
+underlying https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoidal] structure where an `obj` can be applied (`.`) to an `obj` to create an `obj`.
 
+[.center]
+[graphviz,diagrams/mmadt-monoid, svg]
+----
+digraph g {
+ size="2.0!";
+ bgcolor=transparent
+ obj [fontcolor=yellow,color=white];
+ obj -> obj [label=obj,fontcolor=fuchsia,color=white];
+}
+----
+⠀⠀
 An `obj` is composed of a [.h]#type#, a [.h]#value#, a variable [.h]#frame#, and a storage location/[.h]#reference#.
 The abstract syntax of a sugar-free `obj` is
 
 [stem]
 ++++
-\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}
+\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\tt{ref}
 ++++
 
 . The [.h]#type# is a fURI referring to an `obj` which determines whether the `obj` is of that type or not (_predicate_).
@@ -499,30 +347,16 @@ The abstract syntax of a sugar-free `obj` is
 . The [.h]#value# is a collection of `objs` denoting the form of the `obj` (_encoding_).
 . The [.h]#reference# is a fURI denoting the durable location of the `obj` with the underlying storage structure (_memory address_).
 
-The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures;
-to uncover the finer grained structures that lie within each.
+The mmADT language and its evaluation by a processor will be explained via an exploration of these substructures, where finer grained structures lie within each.
 
 ==== The Type
 
-==== The Frame
+[stem]
+++++
+\tt{obj} := \color{yellow}{\underline{\tt{type}}}(\tt{frame})[\tt{value}]@\tt{ref}
+++++
 
-==== The Value
-
-==== The Reference
-
-
-
-An `obj` can be any one of
-
-. 5 **mono-types** (`bool`, `int`, `real`, `str`, `uri`, and `noobj`),
-. 2 **poly-types** (`lst` and `rec`), or
-. 2 **code-types** (`inst` and `bcode`).
-
-The mono and poly types are **structural**, while the code-types are **functional**.
-
-==== Structural Types
-
-The 7 structural types (5 mono-types and 2 poly-types) are described below.
+There are 9 base types in mmADT. 6 [.h]#mono-types# and 3 [.h]#poly-types#. The mono-types are:
 
 . `/mmadt/noobj`: A singleton representing `null`.
 . `/mmadt/bool`: The set of binary values `true` and `false`.
@@ -530,19 +364,21 @@ The 7 structural types (5 mono-types and 2 poly-types) are described below.
 . `/mmadt/real`: The set of \$n\$-bit floating point values between `-...` and `....`.
 . `/mmadt/str`: The infinite set of all UTF-8 character sequences.
 . `/mmadt/uri`: The infinite set of all [red]#f#​[lime]#H#​[fuchsia]#A#​[blue]#T#​[yellow]*o*​[aqua]#s#​ UTF-8 Uniform Resource Identifiers (fURIs).
+
+The poly-types are:
+
 . `/mmadt/lst`: An (un)ordered collection of zero or more `objs`.
 . `/mmadt/rec`: An (un)ordered collection of key/value pair `objs`, where keys are unique.
 
-
-===== Base Types
-
-Given the frequency of use of base types, specifying the type is not necessary as, given the value, the base type can be deduced.
+All other types are defined in terms of these types. Every `obj` has an explicitly declared type.
+However, given frequency of base types usage, specifying the type is not necessary it can be deduced from the value.
 
 [tabs]
 ====
 bool::
 +
 --
+
 ++++
 <!-- 🐖 ./main_runner.out "/mmadt/bool[true]" "bool[true]" "true" -->
 ++++
@@ -594,11 +430,11 @@ real::
 [source,mmadt]
 ----
 fhatos> /mmadt/real[6.2]
-==>6.2
+==>6.200000
 fhatos> real[6.2]
-==>6.2
+==>6.200000
 fhatos> 6.2
-==>6.2
+==>6.200000
 ----
 
 ++++
@@ -711,6 +547,8 @@ noobj::
 <!-- 🐖 ./main_runner.out
 /mmadt/noobj[]
 noobj[]
+noobj
+
 
 -->
 ++++
@@ -719,8 +557,165 @@ noobj[]
 ----
 fhatos> /mmadt/noobj[]
 fhatos> noobj[]
+fhatos> noobj
 fhatos> 
 
+fhatos> 
+
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+====
+
+When an mmADT `obj` is wrapped in a `type[]`-bracket, the type fURI is first resolved to it's `obj` form (typically as an `inst`) and then the wrapped `obj` is applied to it.
+If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
+However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective `type[]`-bracket.
+
+[.center]
+[stem]
+++++
+\[
+\begin{align*}
+\tt{type}_\tt{furi}[\tt{obj}]          &= \;  \\
+\tt{type}_\tt{furi}[\tt{obj}]          &= \; ^*\tt{type}_\tt{furi} \cdot \tt{obj} \\
+\tt{type}_\tt{furi}[\tt{obj}]          &= \; \tt{type}_\tt{obj}    \cdot \tt{obj}  \\
+\tt{type}_\tt{furi}[\tt{obj}]          &= \; \left\{
+  \begin{array}{lr}
+        \tt{error}                      & \text{if} \; \tt{type}_\tt{obj}(\tt{obj}) \in \{\tt{error}, \tt{noobj}\} \\
+        \tt{type}_\tt{furi}[\tt{obj}]   & \text{otherwise}.
+  \end{array}\right\}
+\end{align*}
+\]
+++++
+
+The type can be understood as a https://en.wikipedia.org/wiki/Boolean-valued_function[predicate], where an `error` or `noobj` is `false`, otherwise `true`.
+Finally, if the `obj` has a `@`-reference, then any subsequent mutations to that `obj` must continue to satisfy the constraints of the type.
+If any mutation falls outside the bounds of the type, a type `error` is thrown.
+The `@`-reference ensures that as the referenced `obj` mutates, it's corresponding representation in the underlying fURI structure mutates as well.
+This captures the notion of https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_reference[pass-by-reference] vs. https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_value[pass-by-value].
+
+The mechanics of `obj` typing are exemplified below using the generally useful types provided by the `/mmadt/ext` prefix.
+
+++++
+<!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
+++++
+
+[source,mmadt]
+----
+fhatos> */mmadt/ext/#/
+>[
+==>/mmadt/ext/C=>C()[is(gte(-273.14999))]
+==>/...
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+[tabs]
+====
+char::
++
+--
+A https://en.wikipedia.org/wiki/Character_(computing)[char] is a `str` containing a single character.
+++++
+<!-- 🐖 ./main_runner.out
+*char
+char['a']@a
+char['b']@b
+@a + @b
+*a
+@a.as(str) + @b
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> *char
+==>char?int<=str()[merge(2).count().is(eq(1))...
+fhatos> char['a']@a
+==>char['a']@a
+fhatos> char['b']@b
+==>char['b']@b
+fhatos> @a + @b
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as str
+	  thrown at inst char['a']@a => plus()[cpp] [code=>'@a + @b']
+fhatos> *a
+==>char['a']@a
+fhatos> @a.as(str) + @b
+==>'aa'@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+nat::
++
+--
+A https://en.wikipedia.org/wiki/Natural_number[natural number] is an element of the set latexmath:[\mathbb{N} = \{0,1,2,\ldots,\infty\}].
+++++
+<!-- 🐖 ./main_runner.out
+*nat
+nat[12]
+nat[-30]
+nat[12]@a
+@a.minus(11)
+@a.minus(2)
+*a
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> *nat
+==>nat?int<=int()[is(gte(0))]
+fhatos> nat[12]
+==>nat[12]
+fhatos> nat[-30]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+fhatos> nat[12]@a
+==>nat[12]@a
+fhatos> @a.minus(11)
+==>nat[1]@a
+fhatos> @a.minus(2)
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0=>2]
+fhatos> *a
+==>nat[1]@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+celsius::
++
+--
+https://en.wikipedia.org/wiki/Celsius[Celsius] is a temperature metric ranging from https://en.wikipedia.org/wiki/Absolute_zero[absolute zero] (-273.15&#176;) to infinity.
+++++
+<!-- 🐖 ./main_runner.out
+*C
+C[0.0]
+C[274.0]
+C[-274.0]
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> *C
+==>C?real<=real()[is(gte(-273.14999))]
+fhatos> C[0.0]
+==>C[0.000000]
+fhatos> C[274.0]
+==>C[274.000000]
+fhatos> C[-274.0]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -274.00000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.14999))] 
 ----
 
 ++++
@@ -730,44 +725,531 @@ fhatos>
 
 ====
 
-Examples of the aforementioned types are provided below.
+==== The Frame
+
+[stem]
+++++
+\tt{obj} := \tt{type}(\color{yellow}{\underline{\tt{frame}}})[\tt{value}]@\tt{ref}
+++++
+
+The [.h]#frame# of an `obj` is a set of fURI named variables that are dereferenceably accessible within the value of the `obj`.
+If an `obj` has a specified frame, the `obj` is called an `inst` (instruction).
+An `inst` is a function
+
+[stem]
+++++
+f(\tt{obj}_\tt{in},a_1,a_2,\ldots,a_n) \mapsto \tt{obj}_\tt{out},
+++++
+
+where latexmath:[\tt{obj}_\tt{in}] is the _left hand side_ `obj` (input) and latexmath:[a_m] are the variables of the `obj` frame (arguments).
+To demonstrate how frames work, the `inst` `band` is defined. This function takes two `int` arguments. If the incoming
+`obj` is within the bounds of the two `ints`, it is emitted, else `noobj` is returned. The arguments are stored in an
+`inst`-specific frame mounted in the router. When the `inst` completes it's execution, the frame is unmounted. If an `inst`
+calls another `inst`, then a stack of frames is realized and arguments declared in the parent `inst` are accessible
+in the child `inst`.
+
+[tabs]
+====
+
+positional args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(\color{yellow}{\_}, \color{yellow}{\_},\ldots,\__n) \mapsto \tt{obj}_\tt{out}
+++++
+
+An `inst` frame is defined by the `inst` https://en.wikipedia.org/wiki/Parameter_(computer_programming)[arguments].
+These arguments can be accessed within the `inst` via their `lst` position as a fURI.
+For example, `*<0>` references the first argument, `*<1>` the second argument, so on and so forth.
 
 ++++
-<!-- 🐖 ./main_runner.out "true" "42" "-64.02567" "'the fhatty'" "mmadt://a/furi" "[-1,'fhat',[0,1]]" "[a=>1,b=>'2',c=>3.0]" -->
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+3.band(2,8)                           --- <1>
+10.band(2,8)                          --- <3>
+-->
 ++++
 
 [source,mmadt]
 ----
-fhatos> true
-==>true
-fhatos> 42
-==>42
-fhatos> -64.02567
-==>-64.0257
-fhatos> 'the fhatty'
-==>'the fhatty'
-fhatos> mmadt://a/furi
-==>mmadt://a/furi
-fhatos> [-1,'fhat',[0,1]]
-=>[
-===>-1
-===>'fhat'
-=>[
-===>0
-===>1
-=>]
-=>]
-fhatos> [a=>1,b=>'2',c=>3.0]
-=>[
-==>a=>1
-==>b=>'2'
-==>c=>3.000000
-=>]
+fhatos> band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+==>band?int{?}<=int(_,_)[band?int{?}<=int[is(gte!...
+fhatos> 3.band(2,8)                           // <1>
+==>3
+fhatos> 10.band(2,8)                          // <3>
 ----
 
 ++++
 <!-- 🐓 -->
 ++++
+
+<1> ...
+<2> ...
+
+--
+
+named args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(\color{yellow}{a_1} \Rightarrow x, \color{yellow}{a_2} \Rightarrow y,\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI that references an `obj` in the router's frame structure.
+
+++++
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+3.band(2,8)                           --- <1>
+3.band(max=>8,min=>2)                 --- <2>
+10.band(2,max=>8)                     --- <3>
+'abc'.band(2,8)                       --- <4>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+==>band?int{?}<=int(min=>_,max=>_)[band?int{?}<...
+fhatos> 3.band(2,8)                           // <1>
+==>3
+fhatos> 3.band(max=>8,min=>2)                 // <2>
+==>3
+fhatos> 10.band(2,max=>8)                     // <3>
+==>band
+fhatos> 'abc'.band(2,8)                       // <4>
+[ERROR] [/sys/scheduler] [/mmadt/int] 2 accessed as str
+	  thrown at inst 'abc' => gte(from(min)) [min=>2,max=>8,0=>2]
+	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [min=>2,max=>8]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> If the argument name isn't provided, then it's position in the argument list determines its nane,
+<2> When arguments are named, they can be written in any order.
+<3> Named arguments and unnamed arguments can be used together.
+<4> The domain of `band` is `int`. Note where the error is thrown when `str['abc']` is provided.
+
+--
+
+default args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(a_1 \Rightarrow \color{yellow}{else(x)},a_2 \Rightarrow \color{yellow}{else(y)},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+If the incoming `obj` to `else` is `noobj`, the `else` emits it's argument, else it emits the incoming `obj`.
+This makes `else` useful for expressing https://en.wikipedia.org/wiki/Default_argument[default arguments].
+
+++++
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+1.band(min=>1)                        --- <1>
+10.band()                             --- <2>
+{2,3,4,5}.band(min=>3,max=>4)         --- <3>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],...
+fhatos> 1.band(min=>1)                        // <1>
+==>1
+fhatos> 10.band()                             // <2>
+==>10
+fhatos> {2,3,4,5}.band(min=>3,max=>4)         // <3>
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/lte?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id       resolve obj      
+	  ->[/mmadt/obj] /mmadt/lte => lte()
+	  thrown at inst 2 => band?int{?}<=int(min=>3,max=>4)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [min=>3,max=>4]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> No `max` is provided, so the default value of `8` is used.
+<2> No `min` nor `max` is provided, so the defaults `2` and `8`, respectively are used.
+<3> When arguments are provided, the default values are not used.
+
+--
+
+typed args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(a_1\color{yellow}{?type_1}, a_2\color{yellow}{?type_2},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+If an argument is defined with a query https://en.wikipedia.org/wiki/Data_type[type], then the argument's value must satisfy that type's specification. This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>_)[is_divisble[mod(from(by...
+fhatos> 10.is_divisible(2)
+==>true
+fhatos> 10.is_divisible('abc')
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+
+dynamic args::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>_)[is_divisble[mod(from(by...
+fhatos> 10.is_divisible(2)
+==>true
+fhatos> 10.is_divisible('abc')
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+
+refined type::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+10.is_divisible(2)
+10.is_divisible('abc')
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=!...
+fhatos> 10.is_divisible(2)
+error==>true
+fhatos> 10.is_divisible('abc')
+error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+		 \_/mmadt/str is not a subtype of /mmadt/int
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+--
+====
+
+
+For instance:
+
+++++
+<!-- 🐖 ./main_runner.out
+int(a=>2)[*a]
+4 + int(a=>2)[*a]
+4 + int(a=>2)[+*a]
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> int(a=>2)[*a]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+
+
+
+==== The Value
+
+[stem]
+++++
+\tt{obj} := \tt{type}(\tt{frame})[\color{yellow}{\underline{\tt{value}}}]@\tt{ref}
+++++
+
+The [.h]#value# of an `obj` is the datum specifying the __instance__ aspects of the `obj` within the boundaries of the __type__ aspects of the `obj`.
+
+==== The Reference
+
+[stem]
+++++
+\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\color{yellow}{\underline{\tt{ref}}}
+++++
+
+The [.h]#reference# of an `obj` is a fURI denoting the location of the `obj` within the underlying fURI addressable structure.
+The [aqua]*F*​[lime]#h#​[yellow]*a*​[red]*T*​[fuchsia]*O*​[blue]#S#​ structure is the storage medium of all persistent `objs`.
+If an `obj` does not have a reference, then the `obj` is transient -- existing only within the data flow.
+When an `obj` has a reference, the `obj` encoding in the data flow (hardware main memory) and within the structure ([red]*F*​[aqua]*H*​[blue]*A*​[yellow]#t#​[lime]*O*​[fuchsia]*s*​ persistence) are synchronized.
+
+[tabs,width=50%]
+====
+from *::
++
+--
+[cols="5,6"]
+|===
+a|
+++++
+<!-- 🐖 ./main_runner.out
+*y
+*z
+z -> 12
+y -> z
+*y
+**y
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> *y
+fhatos> *z
+fhatos> z -> 12
+==>12
+fhatos> y -> z
+==>z
+fhatos> *y
+==>z
+fhatos> **y
+==>12
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+[source,mmadt]
+----
+   [■]                         [■]
+  ╱   ╲                       ╱   ╲
+[■]    [■]                  [■]    [■]
+      ╱   ╲                       ╱   ╲
+   [■]     [z]@y ── **y ─────> [12]@z  [■]
+            │        ⮃         ^
+            └─────── *z ───────┘
+----
+The fURI `z` references the `int` `12`. The fURI `y` references the `uri` `z`. Dereferencing `y` yields `z`. A double dereference (i.e. `**`) of `y` jumps the monad from `y` to `12` as
+[stem]
+++++
+\[
+\begin{align*}
+*\tt{y}    & \rightarrow \tt{z} \\
+*\tt{z}    & \rightarrow 12 \\
+**\tt{y}   & \rightarrow 12
+\end{align*}
+\]
+++++
+|===
+--
+at @::
++
+--
+[cols="5,6"]
+|===
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+a -> 12
+*a.plus(10)
+*a
+@a
+@a.plus(10)
+*a
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a -> 12
+==>12
+fhatos> *a.plus(10)
+==>22
+fhatos> *a
+==>12
+fhatos> @a
+==>12@a
+fhatos> @a.plus(10)
+==>22@a
+fhatos> *a
+==>22@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+[source,mmadt]
+----
+   [■]                          [■]
+  ╱   ╲                        ╱   ╲
+[■]    [■]                   [■]    [■]
+      ╱   ╲          @a.plus(10)       ╲
+   [■]     [12]@a ───────── ⇆ ────────> [22]@a
+----
+`12` is written to `a`. `10` is added to `a` (*pass by value* `*`). `a` still stores `12`. `10` is added to `a` (**pass by reference** `@`). `a` now stores `22`.
+|===
+--
+
+pubsub ?sub::
++
+--
+
+[cols="5,6"]
+|===
+a|
+++++
+<!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
+++++
+
+[source,mmadt]
+----
+fhatos> a?sub -> \|to(b)
+==>a?sub
+fhatos> *a?sub
+>sub[
+==>source=>/io/console
+==>pattern=>a
+==>on_recv=>a?sub!...
+fhatos> *b
+==>a?sub
+fhatos> a->12
+==>12
+fhatos> *a
+==>12
+fhatos> *b
+==>a?sub
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+[source,mmadt]
+----
+   [■]                          [■]
+  ╱   ╲                        ╱   ╲
+[■]    [■]        [sub]     [■]     [■]
+      ╱   ╲      ⋰     ⋱   ╱   ╲
+   [■]     [12]@a       [12]@b  [■]
+----
+subscribes to `a` with bcode of the form \$f(a) -> b\$. `12` is written to `a` which triggers the subscription bcode to write `12` to `b`.
+|===
+--
+====
+
+[tabs]
+====
+memory::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+a -> 'axel'
+*a
+*a + ' fantaxel'
+*a
+@a + ' fantaxel'
+*a
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a -> 'axel'
+==>'axel'
+fhatos> *a
+==>'axel'
+fhatos> *a + ' fantaxel'
+==>'axel fantaxel'
+fhatos> *a
+==>'axel'
+fhatos> @a + ' fantaxel'
+==>'axel fantaxel'@a
+fhatos> *a
+==>'axel fantaxel'@a
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+
+thread::
++
+--
+
+++++
+<!-- 🐖 ./main_runner.out
+thread[[ /
+  loop=>from(a,0).plus(1).to(a).is(gt(10)).true.to(/abc/halt), /
+  halt=>false, /
+  delay=>nat[0]]]@abc
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> thread[[
+          loop=>from(a,0).plus(1).to(a).is(gt(10)).true.to(/abc/halt),
+          halt=>false,
+          delay=>nat[0]]]@abc
+>thread[
+==>loop=>from(a,0).plus(1).to(a).!...
+----
+
+++++
+<!-- 🐓 -->
+++++
+--
+
+====
 
 .Controlling Base Value Bit Encoding
 ====
@@ -790,31 +1272,15 @@ real[6.0].inspect()
 [source,mmadt]
 ----
 fhatos> int[6].inspect()
-=>[
+>[
 ==>type=>[
 ===>id=>/mmadt/int
-===>obj=>[int][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/int,coeff=>[1,1]]
-=>]
-==>value=>[
-===>obj=>6
-===>encoding=>int32_t
-=>]
-=>]
+===>obj=>[int][_...
 fhatos> real[6.0].inspect()
-=>[
+>[
 ==>type=>[
 ===>id=>/mmadt/real
-===>obj=>[real][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/real,coeff=>[1,1]]
-=>]
-==>value=>[
-===>obj=>6.000000
-===>encoding=>float_t
-=>]
-=>]
+===>obj=>[real][!...
 ----
 
 ++++
@@ -837,19 +1303,14 @@ a -> int8[126]                       --- <2>
 ----
 fhatos> /sys/router/config/resolve/auto_prefix ->
           *(_) + \|[/mmadt/ext/]             // <1>
-=>[
-===>
-===>/mmadt/
-===>/mmadt/ext/
-===>/fos/
-===>/fos/sys/
-===>/fos/io/
-===>/fos/sensor/
-===>/fos/ui/
-===>/fos/util/
-===>/sys/
-===>/mmadt/ext/
-=>]
+>[
+==>noobj
+==>noobj
+==>noobj
+==>noobj
+==>noobj
+==>noobj
+...
 fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
@@ -857,8 +1318,8 @@ fhatos> @a + 1
 fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1                               // <3>
-[ERROR] [/sys/type] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-	  thrown at inst int8[128]@a => plus(1)[cpp] [0=>1]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
+	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>1]
 ----
 
 ++++
@@ -873,6 +1334,25 @@ fhatos> @a + 1                               // <3>
 ====
 
 ==== Functional Types
+
+The wildcard feature of the fURI scheme makes it possible to access instructions associated with a particular type.
+
+++++
+<!-- 🐖 ./main_runner.out
+*/mmadt/int/#
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> */mmadt/int/#
+==>[int][[_]]
+==>as?obj<=int(isa?noobj<=obj(/mm...
+----
+
+++++
+<!-- 🐓 -->
+++++
 
 ===== Sugar-Less mm-ADT
 
@@ -927,16 +1407,16 @@ Syntactically, an `inst` has the form:
 
 [stem]
 ++++
-\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}.
+\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\tt{ref}.
 ++++
 
 Starting with the template above, components will be removed to highlight various `inst` forms and functions.
 
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]@\texttt{ref}]: The complete form is a [.h]#referenced `inst`# and is used with coroutines.
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]]: Without a reference location, the `obj` is a [.h]#standard `inst`#.
-. latexmath:[\texttt{type}(\texttt{frame})[\]]: Without a reference or value, the `obj` is a [.h]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
-. latexmath:[\texttt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.h]#zero-arg proto `inst`# and is resolved during compilation or runtime.
-. latexmath:[\texttt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.h]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
+. latexmath:[\tt{type}(\tt{frame})[\tt{value}\]@\tt{ref}]: The complete form is a [.h]#referenced `inst`# and is used with coroutines.
+. latexmath:[\tt{type}(\tt{frame})[\tt{value}\]]: Without a reference location, the `obj` is a [.h]#standard `inst`#.
+. latexmath:[\tt{type}(\tt{frame})[\]]: Without a reference or value, the `obj` is a [.h]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
+. latexmath:[\tt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.h]#zero-arg proto `inst`# and is resolved during compilation or runtime.
+. latexmath:[\tt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.h]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
 
 [.center]
 [source,mmadt]
@@ -962,7 +1442,7 @@ type(arg1, arg2, ...) [bcode]
 [.center]
 [stem]
 ++++
-f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\texttt{rng}}
+f(\mathcal{Obj}_{\tt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\tt{rng}}
 ++++
 
 In order to evaluate an `inst` an `obj` must be _applied_ to it.
@@ -1040,7 +1520,7 @@ The router supports a chain `fos:frame` structures and, in this way, `fos:frame`
 [source,mmadt]
 ----
 fhatos> 34.make_bigger(a=>plus(10))[plus(*a)]
-==>78
+==>88
 ----
 
 ++++
@@ -1066,12 +1546,12 @@ For example, see how the internal `objs` if a `lst` are effected by the applicat
 [source,mmadt]
 ----
 fhatos> 2.lst[[1,plus(2),mult(plus(3)),'a']]
-=>[
-===>1
-===>4
-===>10
-===>'a'
-=>]
+>[
+==>1
+==>4
+==>10
+==>'a'
+>]
 ----
 
 ++++
@@ -1111,9 +1591,9 @@ However, what makes
 [source,mmadt]
 ----
 fhatos> 2.rec[[is(gt(2)) => plus(2), _ => 0]]
-=>[
-==>2=>0
-=>]
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj     
+	  ->[/mmadt/obj] /mmadt/gt => gt()
 ----
 
 ++++
@@ -1136,11 +1616,13 @@ For instance, `if` is implemented with a two entry `rec`, where one entry maps t
 fhatos> /io/console/config/nest -> 0                  // <1>
 ==>0
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
-==>[1=>noobj]
-==>[2=>noobj]
-==>[3=>_]
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj     
+	  ->[/mmadt/obj] /mmadt/gt => gt()
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
-==>3
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj     
+	  ->[/mmadt/obj] /mmadt/gt => gt()
 ----
 
 ++++
@@ -1167,18 +1649,18 @@ if-else::
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
-{1,2,3}.[                  /
-  ?>2 => mult(-1),   /
-  _   => mult(100)]>-
+{1,2,3}-|[                 /
+  is(gt(2)) => mult(-1),   /
+  _         => mult(100)]>-
 -->
 ++++
 
 .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
 [source,mmadt]
 ----
-fhatos> {1,2,3}.[                 
-          ?>2 => mult(-1),  
-          _   => mult(100)]>-
+fhatos> {1,2,3}-|[                
+          is(gt(2)) => mult(-1),  
+          _         => mult(100)]>-
 ==>100
 ==>200
 ==>-3
@@ -1195,20 +1677,20 @@ switch::
 ++++
 <!-- 🐖 ./main_runner.out
 [HEADER] .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
-{1,2,3}.[             /
-  ?=1 => mult(-1),    /
-  ?=2 => mult(0),     /
-  ?=3 => _]>-
+{1,2,3}-<[             /
+  is(eq(1)) => mult(-1),    /
+  is(eq(2)) => mult(0),     /
+  is(eq(3)) => _]>-
 -->
 ++++
 
 .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
 [source,mmadt]
 ----
-fhatos> {1,2,3}.[            
-          ?=1 => mult(-1),   
-          ?=2 => mult(0),    
-          ?=3 => _]>-
+fhatos> {1,2,3}-<[            
+          is(eq(1)) => mult(-1),   
+          is(eq(2)) => mult(0),    
+          is(eq(3)) => _]>-
 ==>-1
 ==>0
 ==>3
@@ -1384,13 +1866,18 @@ a -> age[45]
 [source,mmadt]
 ----
 fhatos> age -> \|(is(gt(0)).is(lt(120)))
-==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
+[ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
+	  thrown at inst age => gt(0) [0=>0]
 fhatos> a -> age[45]
-==>age[45]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] age is an undefined type
 fhatos> *a.inspect()
-[ERROR] [/mmadt/bcode] 45 is not a /mmadt/bcode as defined by [bcode][_]
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
+	         lhs id      inst id           resolve obj           
+	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
 fhatos> @a.inspect()
-[ERROR] [/mmadt/bcode] 45@a is not a /mmadt/bcode as defined by [bcode][_]
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
+	         lhs id      inst id           resolve obj           
+	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
 ----
 
 ++++
@@ -1406,27 +1893,17 @@ fhatos> @a.inspect()
 [source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
-==>print?noobj<=obj(_)[noobj]
+a?suba?sub==>a?sub
 fhatos> a -> 12
 ==>12
-12fhatos> @a.inspect()
-=>[
+fhatos> @a.inspect()
+>[
 ==>type=>[
 ===>id=>/mmadt/int
-===>obj=>[int][_]
-===>dom=>[id=>/mmadt/obj,coeff=>[1,1]]
-===>rng=>[id=>/mmadt/int,coeff=>[1,1]]
-=>]
-==>value=>[
-===>id=>a
-===>obj=>12
-===>encoding=>int32_t
-=>]
-==>sub=>a(type=>_)[cpp]
-=>]
-12@afhatos> @a.plus(1)
+===>obj=>[int][_...
+fhatos> @a.plus(1)
 ==>13@a
-13@afhatos> @a.plus(1).plus(1)
+fhatos> @a.plus(1).plus(1)
 ==>15@a
 ----
 
@@ -1440,157 +1917,6 @@ Every mmADT `obj` is typed.
 A type is an mmADT `obj`.
 A `obj` can serve as a value in one situation and as a type in another.
 Types can be typed.
-
-The following examples are presented using the generally useful types from the `/mmadt/ext` prefix.
-
-++++
-<!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
-++++
-
-[source,mmadt]
-----
-fhatos> */mmadt/ext/#/
-=>[
-==>/mmadt/ext/C=>C()[is(gte(-273.149994))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[int][_]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.000000)).is(lte(100.000000))]
-==>/mmadt/ext/sec=>[int][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
-=>]
-----
-
-++++
-<!-- 🐓 -->
-++++
-
-When an mm-ADT base type is wrapped in a latexmath:[\texttt{type}[\]]-bracket, the type is first resolved to it's `inst` form and then the base value `obj` is applied to it.
-If the result of the application yields an `error` or a `noobj`, then the base value `obj` is not of that type and a type `error` is thrown.
-However, should any other `obj` be returned, then the base value `obj` is of that type and is returned wrapped in the respective  latexmath:[\texttt{type}[\]]-bracket.
-The type evaluation can be understood as a predicate, where `false` is `error` or `noobj`, otherwise `true`.
-Finally, if the `obj` has a latexmath:[\texttt{@}]-reference, then any subsequent mutations to that `obj` must continue to satisfy the constraints of the type.
-If any mutation falls outside the bounds of the type, a type `error` is thrown.
-The `@`-reference ensures that as the `obj` mutates, it's corresponding representation in the underlying fURI structure legally mutates as well.
-
-[tabs]
-====
-char::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
-*char
-char['a']@a
-char['b']@b
-@a + @b
-*a
-@a.as(str) + @b
--->
-++++
-
-.char icon:link[link=https://en.wikipedia.org/wiki/Character_(computing),2x,role=blue]
-[source,mmadt]
-----
-fhatos> *char
-==>char?int<=str()[merge(2).count().is(eq(1))]
-fhatos> char['a']@a
-==>char['a']@a
-fhatos> char['b']@b
-==>char['b']@b
-fhatos> @a + @b
-[ERROR] [/sys/type] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
-	  thrown at inst char['a']@a => plus(at(b))[cpp] [0=>char['a']@a]
-fhatos> *a
-==>char['a']@a
-fhatos> @a.as(str) + @b
-==>'aa'@a
-----
-
-++++
-<!-- 🐓 -->
-++++
-
---
-nat::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
-*nat
-nat[12]
-nat[-30]
-nat[12]@a
-@a.minus(11)
-@a.minus(2)
-*a
--->
-++++
-
-.nat icon:link[link=https://en.wikipedia.org/wiki/Natural_number,2x,role=blue]
-[source,mmadt]
-----
-fhatos> *nat
-==>nat?int<=int()[is(gte(0))]
-fhatos> nat[12]
-==>nat[12]
-fhatos> nat[-30]
-[ERROR] [/sys/type] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-fhatos> nat[12]@a
-==>nat[12]@a
-fhatos> @a.minus(11)
-==>nat[1]@a
-fhatos> @a.minus(2)
-[ERROR] [/sys/type] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-	  thrown at inst nat[1]@a => minus(2)[cpp] [0=>2]
-fhatos> *a
-==>nat[1]@a
-----
-
-++++
-<!-- 🐓 -->
-++++
---
-celsius::
-+
---
-++++
-<!-- 🐖 ./main_runner.out
-[HEADER] .celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
-*C
-C[0.0]
-C[274.0]
-C[-274.0]
--->
-++++
-
-.celsius icon:link[link=https://en.wikipedia.org/wiki/Celsius,2x,role=blue]
-[source,mmadt]
-----
-fhatos> *C
-==>C?real<=real()[is(gte(-273.149994))]
-fhatos> C[0.0]
-==>C[0]
-fhatos> C[274.0]
-==>C[274]
-fhatos> C[-274.0]
-[ERROR] [/sys/type] -274.000000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.149994))]
-----
-
-++++
-<!-- 🐓 -->
-++++
---
-
-====
 
 ===== Bytecode and Instruction Types
 
@@ -1607,17 +1933,17 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
-[ERROR] [/sys/router] no mounted structure for /type/int/nat  
-==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
+[ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
+	  thrown at inst /type/int/nat => gt(0) [0=>0]
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
-[ERROR] [/sys/type] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/type] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-	  thrown at inst nat[3] => mult(-2)[cpp] [0=>-2]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0=>-2]
 ----
 
 ++++
@@ -1671,29 +1997,10 @@ The function of the router is to:
 fhatos> /io/console/config/nest->3
 ==>3
 fhatos> */sys/router/#/
-=>[
+>[
 ==>/sys/router=>[
-===>structure=>[
-====>/sys/#
-====>/mnt/#
-====>/boot/#
-====>/fos/#
-====>/mmadt/#
-====>/io/#
-====>+/#
-====>/disk/#
-====>/shared/#
-====>/bus/#
-==>]
 ===>frame=>[rec][_]
-===>config=>[
-====>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
-==>]
-===>query=>[
-====>write=>[lock=>lock?obj{?}<=obj{?}()[cpp],sub=>sub?obj{?}<=obj()[cpp]]
-==>]
-=>]@/sys/router
-=>]
+===>config...
 ----
 
 ++++
@@ -1735,13 +2042,16 @@ fhatos> a -> 'snowbutt'            // <1>
 fhatos> *a                         // <2>
 ==>'snowbutt'
 fhatos> a?sub -> |to(b)            // <3>
-==>to?noobj<=obj(b)[noobj]
+==>a?sub
 fhatos> *a?sub                     // <4>
-==>a?bool<=obj(type=>_)[cpp]
+>sub[
+==>source=>/io/console
+==>pattern=>a
+==>on_recv=>a?sub!...
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
 fhatos> *b                         // <6>
-==>'meangirl'
+==>a?sub
 ----
 
 ++++
@@ -1762,7 +2072,7 @@ It's in the structures where the heavily lifting of the memory operations takes 
 
 ==== Structure Reading and Writing
 
-Every structure supports 2 primary operations:
+image:ansi/submarine.png[width=250,role=img-pad,title=submarine] Every structure supports 2 primary operations:
 
 [.center]
 [cols="2,2",width=75%]
@@ -1827,14 +2137,14 @@ A read accepts a direct fURI (called an `id`) or a match fURI (called a `pattern
 Within the category of `id` and `pattern`, there are `node` fURIs and `branch` fURIs.
 An example itemization is provided below:
 
-* `id`: an unambiguous fURI that references a single address space in the structure.
+* `id`: an unambiguous fURI that references a single addressable location in the structure.
 ** `node`: the address of a specific `obj`.
 ** `branch`: the root address of a collection of `objs`.
-* `pattern`: a fURI containing one or more wildcard characters (`+` or `#`) in it's path.
+* `pattern`: a fURI containing one or more wildcard path segments (`+` or `#`).
 ** `node`: a pattern referencing zero or more `objs`.
 ** `branch`: a pattern referencing zero or more collections of `objs`.
 
-[cols="3,5"]
+[cols="4,5"]
 |===
 
 a|
@@ -1856,30 +2166,29 @@ fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 fhatos> *a/b            // <1>
 ==>2
 fhatos> *a/b/           // <2>
-=>[
-==>a/b/c=>3
-==>a/b/d=>4
-=>]
+>[
+==>a/b=>2
+>]
 fhatos> *a/+            // <3>
 ==>1
 ==>2
 fhatos> *a/+/           // <4>
-=>[
-==>a/b/c=>3
-==>a/b/d=>4
-=>]
+>[
+==>a/a=>1
+==>a/b=>2
+>]
 fhatos> *a/#            // <5>
 ==>1
 ==>2
 ==>3
 ==>4
 fhatos> *a/#/           // <6>
-=>[
+>[
 ==>a/a=>1
 ==>a/b=>2
 ==>a/b/c=>3
 ==>a/b/d=>4
-=>]
+>!...
 ----
 
 ++++
@@ -1888,12 +2197,10 @@ fhatos> *a/#/           // <6>
 
 a|
 
-++++
-TIP: The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
+The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
 In fact, it is a single fluent expression. The signature of the `end` `inst` (sugar'd `;`) is `end?obj{0}\<=obj{*}`.
 This barrier step computes all monads up to it before emitting a `noobj` monad.
 With `end`, it's possible to write mm-ADT in the classic statement-oriented, imperative-style where semincolons (effectively) separate atomic operations.
-++++
 
 <1> Dereferencing an `id`-node fURI to access a single `obj`.
 <2> Dereferencing an `id`-branch fURI to access a collection of `objs`.
@@ -1904,8 +2211,8 @@ With `end`, it's possible to write mm-ADT in the classic statement-oriented, imp
 
 ===== Query Processors
 
-Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the
-https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
+image:ansi/nelson.png[width=250,float=left,role=title=nelson]
+Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
 Modules can be added to structures enabling different behaviors on read/write given associated, relevant `?` parameters.
 Example modules that come preloaded with [lime]#f#​[aqua]#h#​[fuchsia]*A*​[blue]*T*​[red]#o#​[yellow]#s#​ are:
 
@@ -1951,9 +2258,9 @@ fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
 fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          // <3>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    // <4>
-[ERROR] [/sys/router] [/mnt/cache] no query processor for k1=v1,v2&k2=v3&k3=v4,v5,v6 on write
 ==>12
 fhatos> *abc
+==>12
 fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   // <5>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
 fhatos> *abc
@@ -1976,150 +2283,6 @@ fhatos> *abc
 ----
 1.plus(2)
 ----
-
-[cols="7,8"]
-|===
-a|
-++++
-<!-- 🐖 ./main_runner.out
-*a
-*b
-b -> 12
-a -> b
-*a
-**a
--->
-++++
-
-[source,mmadt]
-----
-fhatos> *a
-==>a?bool<=obj(type=>_)[cpp]
-fhatos> *b
-fhatos> b -> 12
-==>12
-fhatos> a -> b
-==>b
-fhatos> *a
-==>b
-fhatos> **a
-==>12
-----
-
-++++
-<!-- 🐓 -->
-++++
-
-a|
-[source,mmadt]
-----
-   [■]                         [■]
-  /   \                       /   \
- /     \                     /     \
-[■]    [■]                  [■]    [■]
-      /   \                       /   \
-     /     \                     /     \
-   [■]     [b]@x ------------> [12]@b  [■]
-----
-`b` references `12`. `a` references `b`. a double dereferences jumps the monad from `a` to `b` to `12`.
-a|
-++++
-<!-- 🐖 ./main_runner.out
-a -> 12
-*a.plus(10)
-*a
-@a
-@a.plus(10)
-*a
--->
-++++
-
-[source,mmadt]
-----
-fhatos> a -> 12
-==>12
-fhatos> *a.plus(10)
-==>22
-fhatos> *a
-==>12
-fhatos> @a
-==>12@a
-fhatos> @a.plus(10)
-==>22@a
-fhatos> *a
-==>22@a
-----
-
-++++
-<!-- 🐓 -->
-++++
-
-a|
-[source,mmadt]
-----
-   [■]                          [■]
-  /   \                        /   \
- /     \                      /     \
-[■]    [■]                   [■]    [■]
-      /   \                           \
-     /     \         @a.plus(10)       \
-   [■]     [12]@a ------------------> [22]@a
-----
-`12` is written to `a`. `10` is added to `a` (*pass by value* `*`). `a` still stores `12`. `10` is added to `a` (**pass by reference** `@`). `a` now stores `22`.
-a|
-++++
-<!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
-++++
-
-[source,mmadt]
-----
-fhatos> a?sub -> \|to(b)
-==>to?noobj<=obj(b)[noobj]
-fhatos> *a?sub
-==>a?bool<=obj(type=>_)[cpp]
-fhatos> *b
-fhatos> a->12
-==>12
-fhatos> *a
-==>12
-fhatos> *b
-==>12
-----
-
-++++
-<!-- 🐓 -->
-++++
-
-
-[source,mmadt]
-----
-fhatos> a?sub -> \|to(b)
-[INFO]  [/mnt/cache] [/sys/scheduler]=subscribe=>[+/#]
-==>to?obj<=obj(b)[noobj]
-fhatos> *a?sub
-fhatos> *b
-fhatos> a->12
-==>12
-fhatos> *a
-==>12
-fhatos> *b
-==>12
-
-----
-
-a|
-[source,mmadt]
-----
-   [■]                          [■]
-  /   \                        /   \
- /     \                      /     \
-[■]    [■]        [sub]     [■]     [■]
-      /   \      .     .   /   \
-     /     \    .       . /     \
-   [■]     [12]@a       [12]@b  [■]
-----
-subscribes to `a` with bcode of the form \$f(a) -> b\$. `12` is written to `a` which triggers the subscription bcode to write `12` to `b`.
-|===
 
 ==== Embedding
 

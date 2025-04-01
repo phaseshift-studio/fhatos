@@ -41,6 +41,12 @@
     font-weight: bold;
 }
 
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Text styles */
 html {
     font-family: Arial, sans-serif !important;
@@ -154,16 +160,33 @@ blockquote {
     color: #ba3925;
 }
 
+div.tabpanel:has(.tablecontainer) td.tableblock, table.tableblock  {
+    border-style: none !important;
+    border: 0;
+}
+
+div.content:has(.admonitionblock) {
+    background-color: #461d1766;
+    border-style: solid;
+    border-width: 0.1em;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    border-color: #66662179;
+}
+
 .admonitionblock>table td.content {
     border-color: #0b1c2c;
     border-width: thin;
-    border-radius: 1em;
+    border-radius: 0.5em;
     border-style: solid;
+    background-color: #43454AFF !important;
+
 }
 
 .admonitionblock>table td.icon {
     background-color: transparent;
 }
+
 
 code {
     color: #d1dcdd !important;
@@ -192,13 +215,23 @@ mark {
 }
 
 
-.tab, .tabs:not(.is-loading) .tablist li.is-selected::after {
+.tab, .tabs:not(.is-loading) .tablist li.is-selected::after, li.tab p {
+    color: #b066cd !important;
     background-color: var(--maincolor) !important;
     border-color: var(--maincolor);
     border-width: thin;
     border-radius: 0.25em;
     border-style: solid;
-    font-size: 0.65em !important;
+    font-size: 0.875em !important;
+    font-family: monospace, fixed !important;
+}
+
+li.tab[aria-selected="true"] p {
+    color: #b4b413 !important;
+}
+
+li.tab[aria-selected="false"] p {
+    color: #b066cd !important;
 }
 
 .tabpanel {
@@ -210,12 +243,9 @@ mark {
     padding: 0.5em !important;
 }
 
-.admonitionblock>table td.content {
-    background-color: #43454AFF !important;
-}
-
 .MathJax {
     color: #d1dcdd !important;
+    /*font-size: 100% !important;*/
 }
 
 /* Table styles */
@@ -270,6 +300,10 @@ video {
     }
 }
 
+.img-pad {
+    padding: 50px;
+}
+
 /******************************************************************/
 
 .hljs {
@@ -286,6 +320,7 @@ video {
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int,
+.hljs-fhatos-thrown,
 .hljs-fhatos-sys-furi {
     color: #d4de68;
 }

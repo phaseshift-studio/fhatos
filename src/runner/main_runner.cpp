@@ -28,7 +28,7 @@
 #include "../../../src/lang/type.hpp"
 #include "../../../src/model/fos/ui/console.hpp"
 #include "../../../src/model/fos/ui/terminal.hpp"
-#include "../../../src/model/fos/sys/scheduler/fscheduler.hpp"
+#include "../../../src/model/fos/sys/scheduler/scheduler.hpp"
 #include <thread>
 #include "../../../src/util/ansi.hpp"
 #include "../../../src/util/print_helper.hpp"
@@ -53,12 +53,12 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 int main(int arg, char **argsv) {
   Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());
   try {
-    const auto args = new char *();
-    args[0] = static_cast<char *>("main_runner");
-    args[1] = static_cast<char *>("--headers=false");
-    args[2] = static_cast<char *>("--log=INFO");
-    args[3] = static_cast<char *>("--ansi=false");
-    args[4] = static_cast<char *>("--boot:config=../../../conf/boot_config.obj");
+    char* args[5];
+    args[0] = "main_runner";
+    args[1] = "--headers=false";
+    args[2] = "--log=INFO";
+    args[3] = "--ansi=false";
+    args[4] = "--boot:config=../../../conf/boot_config.obj";
     ArgvParser *argv_parser = new ArgvParser();
     argv_parser->init(5, args);
     printer()->printer_switch(false);
@@ -86,7 +86,7 @@ int main(int arg, char **argsv) {
       if(x.find("spawn") != string::npos)
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     } catch(std::exception &e) {
-      LOG_EXCEPTION(fScheduler::singleton(), e);
+      LOG_EXCEPTION(Scheduler::singleton(), e);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

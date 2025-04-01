@@ -175,7 +175,9 @@ class ProcessingState:
                 self.new_lines.append("<!-- 🐓 -->")
                 self.section = "👨‍🌾"
 
-    def _post_process_output(self, c: str, in_table: bool = True) -> str:
+    def _post_process_output(self, c: str, in_table: bool = True) -> str | None:
+        if c.count("thrown at inst console") != 0:
+            return None
         if (not in_table):
             # escape table separator character
             c = c.replace("\\|", "|").replace("|", "\\|")
@@ -198,7 +200,9 @@ class ProcessingState:
             if c.startswith("[HEADER] "):
                 new_header.append(c.removeprefix("[HEADER] "))
             else:
-                new_output.append(self._post_process_output(c, self.in_table))
+                o = self._post_process_output(c, self.in_table)
+                if o is not None:
+                    new_output.append(o)
         ###################################################################
         if not self.in_table:
             new_line = line.replace("\\|", "|").replace("|", "\\|")
