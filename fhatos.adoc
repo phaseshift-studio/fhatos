@@ -484,8 +484,7 @@ An `inst` written in mmADT.
 [source,mmadt]
 ----
 fhatos> *nat
-==>nat?int<=int()[
-	is(gte(0))]
+==>nat?int<=int()[is(gte(0))]
 ----
 
 ++++
@@ -860,8 +859,8 @@ char['b']@b
 [source,mmadt]
 ----
 fhatos> *char
-==>char?int<=str()[
-	merge(2).count().is(eq(1))]
+==>char?int<=str()
+	[merge(2).count().is(eq(1))]
 fhatos> char['a']@a
 ==>char['a']@a
 fhatos> char['b']@b
@@ -899,8 +898,7 @@ nat[12]@a
 [source,mmadt]
 ----
 fhatos> *nat
-==>nat?int<=int()[
-	is(gte(0))]
+==>nat?int<=int()[is(gte(0))]
 fhatos> nat[12]
 ==>nat[12]
 fhatos> nat[-30]
@@ -936,8 +934,7 @@ C[-274.0]
 [source,mmadt]
 ----
 fhatos> *C
-==>C?real<=real()[
-	is(gte(-273.14999))]
+==>C?real<=real()[is(gte(-273.14999))]
 fhatos> C[0.0]
 ==>C[0.000000]
 fhatos> C[274.0]
@@ -1003,8 +1000,8 @@ band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
 [source,mmadt]
 ----
 fhatos> band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
-==>band?int{?}<=int(_,_)[
-	band?int{?}<=int[is(gte(from(0))).is(lte(from(1)))]]
+==>band?int{?}<=int(_,_)
+	[band?int{?}<=int[is(gte(from(0))).is(lte(from(1)))]]
 fhatos> 3.band(2,8)                           // <1>
 [ERROR] [/sys/scheduler] [/mmadt/bcode] from(0) accessed as int
 	  thrown at inst 3 => gte(from(0)) [0=>'3.band(2,8)                           // <1>',1=>8]
@@ -1048,8 +1045,8 @@ band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
 [source,mmadt]
 ----
 fhatos> band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
-==>band?int{?}<=int(min=>_,max=>_)[
-	band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+==>band?int{?}<=int(min=>_,max=>_)
+	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 3.band(2,8)                           // <1>
 ==>3
 fhatos> 3.band(max=>8,min=>2)                 // <2>
@@ -1097,8 +1094,8 @@ band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max)
 [source,mmadt]
 ----
 fhatos> band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
-==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],max=>else?noobj<=obj(8)[noobj])[
-	band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],max=>else?noobj<=obj(8)[noobj])
+	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 1.band(min=>1)                        // <1>
 ==>1
 fhatos> 10.band()                             // <2>
@@ -1142,8 +1139,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 [source,mmadt]
 ----
 fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>_)[
-	is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>_)
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
 ==>true
 fhatos> 10.is_divisible('abc')
@@ -1172,8 +1169,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 [source,mmadt]
 ----
 fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>_)[
-	is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>_)
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
 ==>true
 fhatos> 10.is_divisible('abc')
@@ -1208,8 +1205,8 @@ band -> ||band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*
 [source,mmadt]
 ----
 fhatos> band -> ||band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
-==>band?int{?}<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[n...
-	band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+==>band?int{?}<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj...
+	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
 ==>2
 ----
@@ -1237,8 +1234,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').m
 [source,mmadt]
 ----
 fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj...
-	is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=...
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
 error==>true
 fhatos> 10.is_divisible('abc')
@@ -1344,11 +1341,12 @@ a|
 ----
    [■]                         [■]
   ╱   ╲                       ╱   ╲
-[■]    [■]                  [■]    [■]
-      ╱   ╲                       ╱   ╲
-   [■]     [z]@y ── **y ─────> [12]@z  [■]
-            │        ⮃         ^
-            └─────── *z ───────┘
+[■]    [■]  ┌*y┐           [■]    [■]
+      ╱   ╲ ⮟  │                 ╱   ╲
+   [■]     [z]@y ── **y ──────⮞[12]@z [■]
+            │        ││         ⮝
+            └─────── *z ────────┘
+
 ----
 The fURI `z` references the `int` `12`. The fURI `y` references the `uri` `z`. Dereferencing `y` yields `z`. A double dereference (i.e. `**`) of `y` jumps the monad from `y` to `12` as
 [stem]
@@ -1407,8 +1405,8 @@ a|
    [■]                          [■]
   ╱   ╲                        ╱   ╲
 [■]    [■]                   [■]    [■]
-      ╱   ╲          @a.plus(10)       ╲
-   [■]     [12]@a ───────── ⇆ ────────> [22]@a
+      ╱   ╲                            ╲
+   [■]     [12]@a ──── @a.plus(10) ────⮞[22]@a
 ----
 `12` is written to `a`. `10` is added to `a` (*pass by value* `*`). `a` still stores `12`. `10` is added to `a` (**pass by reference** `@`). `a` now stores `22`.
 |===

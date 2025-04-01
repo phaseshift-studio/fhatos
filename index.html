@@ -348,6 +348,11 @@ video {
     font-style: italic;
 }
 
+.hljs-mmadt-furi-query {
+    color: #d4de68;
+    font-weight: bold;
+}
+
 .hljs-mmadt-rec-key {
     color: cyan;
 }
@@ -1196,8 +1201,7 @@ When the instruction implementation is written in mmADT, the instruction value i
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
-==&gt;nat?int&lt;=int()[
-	is(gte(0))]</code></pre>
+==&gt;nat?int&lt;=int()[is(gte(0))]</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -1569,8 +1573,8 @@ char['b']@b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *char
-==&gt;char?int&lt;=str()[
-	merge(2).count().is(eq(1))]
+==&gt;char?int&lt;=str()
+	[merge(2).count().is(eq(1))]
 fhatos&gt; char['a']@a
 ==&gt;char['a']@a
 fhatos&gt; char['b']@b
@@ -1602,8 +1606,7 @@ nat[12]@a
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
-==&gt;nat?int&lt;=int()[
-	is(gte(0))]
+==&gt;nat?int&lt;=int()[is(gte(0))]
 fhatos&gt; nat[12]
 ==&gt;nat[12]
 fhatos&gt; nat[-30]
@@ -1634,8 +1637,7 @@ C[-274.0]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *C
-==&gt;C?real&lt;=real()[
-	is(gte(-273.14999))]
+==&gt;C?real&lt;=real()[is(gte(-273.14999))]
 fhatos&gt; C[0.0]
 ==&gt;C[0.000000]
 fhatos&gt; C[274.0]
@@ -1720,8 +1722,8 @@ band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; ||band?int{?}&lt;=int(_,_)[is(gte(*&lt;0&gt;)).is(lte(*&lt;1&gt;))]
-==&gt;band?int{?}&lt;=int(_,_)[
-	band?int{?}&lt;=int[is(gte(from(0))).is(lte(from(1)))]]
+==&gt;band?int{?}&lt;=int(_,_)
+	[band?int{?}&lt;=int[is(gte(from(0))).is(lte(from(1)))]]
 fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
 [ERROR] [/sys/scheduler] [/mmadt/bcode] from(0) accessed as int
 	  thrown at inst 3 =&gt; gte(from(0)) [0=&gt;'3.band(2,8)                           // &lt;1&gt;',1=&gt;8]
@@ -1765,8 +1767,8 @@ band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; ||band?int{?}&lt;=int(min=&gt;_,max=&gt;_)[is(gte(*min)).is(lte(*max))]
-==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;_)[
-	band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
+==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;_)
+	[band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;3
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1820,8 +1822,8 @@ band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max)
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; ||band?int{?}&lt;=int(min=&gt;else(2),max=&gt;else(8))[is(gte(*min)).is(lte(*max))]
-==&gt;band?int{?}&lt;=int(min=&gt;else?noobj&lt;=obj(2)[noobj],max=&gt;else?noobj&lt;=obj(8)[noobj])[
-	band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
+==&gt;band?int{?}&lt;=int(min=&gt;else?noobj&lt;=obj(2)[noobj],max=&gt;else?noobj&lt;=obj(8)[noobj])
+	[band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos&gt; 1.band(min=&gt;1)                        <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;1
 fhatos&gt; 10.band()                             <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1868,8 +1870,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; ||is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
-==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)[
-	is_divisble[mod(from(by)).eq(0)]]
+==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
 ==&gt;true
 fhatos&gt; 10.is_divisible('abc')
@@ -1888,8 +1890,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; ||is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
-==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)[
-	is_divisble[mod(from(by)).eq(0)]]
+==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
 ==&gt;true
 fhatos&gt; 10.is_divisible('abc')
@@ -1915,8 +1917,8 @@ band -> ||band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; ||band?int{?}&lt;=int(min=&gt;_,max=&gt;is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
-==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[n...
-	band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
+==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj...
+	[band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;2</code></pre>
 </div>
@@ -1940,8 +1942,8 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').m
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; ||is_divisble?bool&lt;=int(by?int=&gt;is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj...
-	is_divisble[mod(from(by)).eq(0)]]
+==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj&lt;=...
+	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
 error==&gt;true
 fhatos&gt; 10.is_divisible('abc')
@@ -2047,11 +2049,11 @@ fhatos&gt; **y
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                         [■]
   ╱   ╲                       ╱   ╲
-[■]    [■]                  [■]    [■]
-      ╱   ╲                       ╱   ╲
-   [■]     [z]@y ── **y ─────&gt; [12]@z  [■]
-            │        ⮃         ^
-            └─────── *z ───────┘</code></pre>
+[■]    [■]  ┌*y┐           [■]    [■]
+      ╱   ╲ ⮟  │                 ╱   ╲
+   [■]     [z]@y ── **y ──────⮞[12]@z [■]
+            │        ││         ⮝
+            └─────── *z ────────┘</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2110,8 +2112,8 @@ fhatos&gt; *a
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
   ╱   ╲                        ╱   ╲
 [■]    [■]                   [■]    [■]
-      ╱   ╲          @a.plus(10)       ╲
-   [■]     [12]@a ───────── ⇆ ────────&gt; [22]@a</code></pre>
+      ╱   ╲                            ╲
+   [■]     [12]@a ──── @a.plus(10) ────⮞[22]@a</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4442,7 +4444,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-01 01:25:08 -0600
+Last updated 2025-04-01 02:30:10 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
