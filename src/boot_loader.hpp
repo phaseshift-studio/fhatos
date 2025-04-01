@@ -31,7 +31,7 @@
 #include "model/fos/util/log.hpp"
 #include "model/fos/sys/scheduler/thread/thread.hpp"
 #include "structure/stype/heap.hpp"
-#include "structure/stype/dsm.hpp"
+// #include "structure/stype/dsm.hpp"
 #include "model/fos/sys/router/bus.hpp"
 #include "structure/qtype/q_doc.hpp"
 #include "structure/qtype/q_sub.hpp"
@@ -58,7 +58,7 @@
 #include "model/fos/io/pwm/pwm.hpp"
 #include "model/fos/ui/oled/oled.hpp"
 #include "model/fos/ui/rgbled/rgbled.hpp"
-// #include "model/fos/net/ota.hpp"
+#include "model/fos/net/ota.hpp"
 #include "model/fos/net/wifi.hpp"
 #include "model/soc/memory/esp32/memory.hpp"
 #ifdef CONFIG_SPIRAM_USE
@@ -118,7 +118,7 @@ namespace fhatos {
         ////////////////////////////////////////////////////////////
         return kp
             ->import(Heap<>::import("/mnt/lib/heap"))
-            ->import(DSM<>::import("/mnt/lib/dsm"))
+            //->import(DSM<>::import("/mnt/lib/dsm"))
             ->import(Bus::import("/mnt/lib/bus"))
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
@@ -167,7 +167,7 @@ namespace fhatos {
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            ->mount(Structure::add_qproc(DSM<>::create("/shared/#", id_p("/mnt/dsm"),
+           /* ->mount(Structure::add_qproc(DSM<>::create("/shared/#", id_p("/mnt/dsm"),
                                                        Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
                                                        or_else(
                                                            Obj::to_rec({
@@ -191,7 +191,7 @@ namespace fhatos {
                                                           id_p("/mnt/dsm/"))))
             ->drop_config("mqtt")
             ->mount(
-                Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
+                Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}}))) */
             ->install(Console::create("/io/console",
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
             ->drop_config("console")

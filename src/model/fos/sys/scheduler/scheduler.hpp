@@ -26,6 +26,9 @@
 #include "thread/thread.hpp"
 #include "../../../../structure/router.hpp"
 #include "../../../../util/mutex_deque.hpp"
+#ifdef ESP_PLATFORM
+#include "esp_task_wdt.h"
+#endif
 
 
 namespace fhatos {
@@ -107,6 +110,7 @@ namespace fhatos {
 
     void feed_local_watchdog() {
 #ifdef ESP_PLATFORM
+      esp_task_wdt_reset();
       vTaskDelay(1); // feeds the watchdog for the task
 #endif
     }
@@ -122,7 +126,7 @@ namespace fhatos {
       while(true) {
         this->feed_local_watchdog();
         this->router_->loop();
-        std::this_thread::yield();
+        Thread::yield_current_thread();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }

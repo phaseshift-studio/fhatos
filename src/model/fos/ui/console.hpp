@@ -173,8 +173,10 @@ namespace fhatos {
         this->write_stdout(console_obj, str("\n"));
         return;
       }
+      FEED_WATCHDOG();
       const Obj_p obj = OBJ_PARSER(line);
       std::stringbuf to_out;
+      FEED_WATCHDOG();
       PrintHelper::pretty_print_obj(BCODE_PROCESSOR(obj),
                                     0,
                                     console_obj->get<int>("config/nest"),

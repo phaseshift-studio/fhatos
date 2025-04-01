@@ -49,7 +49,7 @@ namespace fhatos {
           while(!poll_obj->get<bool>("halt")) {
             const Obj_p code = poll_obj->rec_get("loop");
             const Obj_p result = BCODE_PROCESSOR(code);
-            std::this_thread::sleep_for(std::chrono::milliseconds(poll_obj->get<int>("delay")));
+            Thread::delay_current_thread(poll_obj->get<int>("delay"));
           }
           const std::chrono::duration<double, milli> duration = std::chrono::high_resolution_clock::now() - start_time;
           LOG_WRITE(INFO, poll_obj.get(), L("!ypolling !b{} !ystopped!! [runtime:{} sec]\n",

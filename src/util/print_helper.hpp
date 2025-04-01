@@ -131,6 +131,7 @@ namespace fhatos {
     }
 
     static string print_obj(const Obj_p &obj, const ObjPrinter *obj_printer = nullptr) {
+      FEED_WATCHDOG();
       std::stringbuf sb;
       print_obj(obj, &sb, obj_printer);
       return sb.str();

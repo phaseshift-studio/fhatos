@@ -51,14 +51,32 @@ namespace fhatos {
 
     void delay(uint64_t milliseconds);
 
+    static void delay_current_thread(uint64_t milliseconds) {
+      if(current_thread().has_value()) {
+        FEED_WATCHDOG();
+        current_thread().value()->delay(milliseconds);
+      }
+    }
+
     void yield();
+
+    static void yield_current_thread() {
+      if(current_thread().has_value()) {
+        FEED_WATCHDOG();
+        current_thread().value()->yield();
+      }
+    }
 
     void halt();
 
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
                         const Obj_p loop_code = thread_obj->rec_get("loop");
-                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {}\n", loop_code->toString()));
+                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                                                            loop_code->toString(),
+                                                            thread_obj->rec_get("config/stack_size",
+                                                              ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
+                                                            )->toString())                            );
                         const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
                         while(!ROUTER_READ(*thread_obj->vid)->get<bool>("halt")) {
                           try {

@@ -235,7 +235,7 @@ namespace fhatos {
     }
   };
 
-  static const Map<const OType, shared_ptr<ID>, std::less<const OType>> OTYPE_FURI = {{
+  static const std::map<OType, ID_p> OTYPE_FURI = {{
       {OType::NOOBJ, NOOBJ_FURI},
       {OType::OBJ, OBJ_FURI},
       {OType::TYPE, TYPE_FURI},
@@ -1874,7 +1874,7 @@ namespace fhatos {
             const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
             BCode_p body = lhs->type_value()->clone();
             body->add_inst(inst);
-            return Obj::create(body,OType::TYPE,inst->range(),lhs->vid);
+            return Obj::create(body, OType::TYPE, inst->range(), lhs->vid);
           }
           const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
           ROUTER_PUSH_FRAME("#", inst->inst_args());

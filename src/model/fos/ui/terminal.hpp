@@ -30,7 +30,7 @@ namespace fhatos {
                  ->type_args(x(0, Obj::to_bcode()))
                  ->inst_f([](const Str_p &obj, const InstArgs &args) {
                    FEED_WATCHDOG();
-                   STD_OUT_DIRECT(obj,args->arg(0)->or_else(jnt(-1)));
+                   STD_OUT_DIRECT(obj, args->arg(0)->or_else(jnt(-1)));
                    return noobj();
                  })->create()},
                 {":stdin", InstBuilder::build(":stdin")
@@ -57,7 +57,7 @@ namespace fhatos {
       return terminal_p;
     }
 
-    static void STD_OUT_DIRECT(const Str_p &str,const Int_p &ellipsis=jnt(-1)) {
+    static void STD_OUT_DIRECT(const Str_p &str, const Int_p &ellipsis = jnt(-1)) {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
       string output = str->str_value();
@@ -68,7 +68,7 @@ namespace fhatos {
     static Int_p STD_IN_DIRECT() {
       int c;
       while(-1 == (c = printer<>()->read())) {
-        std::this_thread::yield();
+        Thread::yield_current_thread();
       }
       return jnt(c);
     }
@@ -78,7 +78,7 @@ namespace fhatos {
       int c = EOF;
       while(c != until) {
         while(-1 == (c = printer<>()->read())) {
-          std::this_thread::yield();
+          Thread::yield_current_thread();
         }
         line += static_cast<char>(c);
         if(until == '\0')
