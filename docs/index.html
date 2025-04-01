@@ -765,7 +765,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5760]
+[INFO]  [/sys/router] main memory [total=&gt;5632]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -1450,6 +1450,9 @@ in the child <code>inst</code>.</p>
 <div class="content">
 <div class="ulist tablist">
 <ul>
+<li id="_tabs_4_positional_args" class="tab">
+<p>positional args</p>
+</li>
 <li id="_tabs_4_named_args" class="tab">
 <p>named args</p>
 </li>
@@ -1467,8 +1470,54 @@ in the child <code>inst</code>.</p>
 </li>
 </ul>
 </div>
+<div id="_tabs_4_positional_args--panel" class="tabpanel" aria-labelledby="_tabs_4_positional_args">
+<div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in}.f(\color{yellow}{\_}, \color{yellow}{\_},\ldots,\__n) \mapsto \tt{obj}_\tt{out}\]
+</div>
+</div>
+<div class="paragraph">
+<p>An <code>inst</code> frame is defined by the <code>inst</code> <a href="https://en.wikipedia.org/wiki/Parameter_(computer_programming)">arguments</a>.
+These arguments can be accessed within the <code>inst</code> via their <code>lst</code> position as a fURI.
+For example, <code><strong>&lt;0&gt;</code> references the first argument, <code></strong>&lt;1&gt;</code> the second argument, so on and so forth.</p>
+</div>
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+3.band(2,8)                           --- <1>
+10.band(2,8)                          --- <3>
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; ||band?int{?}&lt;=int(_,_)[is(gte(*&lt;0&gt;)).is(lte(*&lt;1&gt;))]
+==&gt;band?int{?}&lt;=int(_,_)[band?int{?}&lt;=int[is(gte!...
+fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;3
+fhatos&gt; 10.band(2,8)                          <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>&#8230;&#8203;</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>&#8230;&#8203;</td>
+</tr>
+</table>
+</div>
+</div>
 <div id="_tabs_4_named_args--panel" class="tabpanel" aria-labelledby="_tabs_4_named_args">
-A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI that references an `obj` in the router's current frame structure.
+<div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in}.f(\color{yellow}{a_1} \Rightarrow x, \color{yellow}{a_2} \Rightarrow y,\ldots,a_n) \mapsto \tt{obj}_\tt{out}\]
+</div>
+</div>
+<div class="paragraph">
+<p>A <a href="https://en.wikipedia.org/wiki/Named_parameter">named argument</a> denotes a fURI that references an <code>obj</code> in the router&#8217;s frame structure.</p>
+</div>
 <!-- 🐖 ./main_runner.out
 band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
 3.band(2,8)                           --- <1>
@@ -1515,6 +1564,11 @@ fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="4"
 </div>
 </div>
 <div id="_tabs_4_default_args--panel" class="tabpanel" aria-labelledby="_tabs_4_default_args">
+<div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in}.f(a_1 \Rightarrow \color{yellow}{else(x)},a_2 \Rightarrow \color{yellow}{else(y)},\ldots,a_n) \mapsto \tt{obj}_\tt{out}\]
+</div>
+</div>
 <div class="paragraph">
 <p>If the incoming <code>obj</code> to <code>else</code> is <code>noobj</code>, the <code>else</code> emits it&#8217;s argument, else it emits the incoming <code>obj</code>.
 This makes <code>else</code> useful for expressing <a href="https://en.wikipedia.org/wiki/Default_argument">default arguments</a>.</p>
@@ -1559,6 +1613,14 @@ fhatos&gt; {2,3,4,5}.band(min=&gt;3,max=&gt;4)         <i class="conum" data-val
 </div>
 </div>
 <div id="_tabs_4_typed_args--panel" class="tabpanel" aria-labelledby="_tabs_4_typed_args">
+<div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in}.f(a_1\color{yellow}{?type_1}, a_2\color{yellow}{?type_2},\ldots,a_n) \mapsto \tt{obj}_\tt{out}\]
+</div>
+</div>
+<div class="paragraph">
+<p>If an argument is defined with a query <a href="https://en.wikipedia.org/wiki/Data_type">type</a>, then the argument&#8217;s value must satisfy that type&#8217;s specification. This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.</p>
+</div>
 <!-- 🐖 ./main_runner.out
 is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 10.is_divisible(2)
@@ -1627,12 +1689,7 @@ int(a=>2)[*a]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; int(a=&gt;2)[*a]
-==&gt;2
-fhatos&gt; 4 + int(a=&gt;2)[*a]
-==&gt;6
-fhatos&gt; 4 + int(a=&gt;2)[+*a]
-==&gt;10</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; int(a=&gt;2)[*a]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2089,7 +2146,7 @@ Syntactically, an <code>inst</code> has the form:</p>
 </div>
 <div class="stemblock">
 <div class="content">
-\[\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}.\]
+\[\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\tt{ref}.\]
 </div>
 </div>
 <div class="paragraph">
@@ -2098,19 +2155,19 @@ Syntactically, an <code>inst</code> has the form:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}\): The complete form is a <span class="h">referenced <code>inst</code></span> and is used with coroutines.</p>
+<p>\(\tt{type}(\tt{frame})[\tt{value}]@\tt{ref}\): The complete form is a <span class="h">referenced <code>inst</code></span> and is used with coroutines.</p>
 </li>
 <li>
-<p>\(\texttt{type}(\texttt{frame})[\texttt{value}]\): Without a reference location, the <code>obj</code> is a <span class="h">standard <code>inst</code></span>.</p>
+<p>\(\tt{type}(\tt{frame})[\tt{value}]\): Without a reference location, the <code>obj</code> is a <span class="h">standard <code>inst</code></span>.</p>
 </li>
 <li>
-<p>\(\texttt{type}(\texttt{frame})[]\): Without a reference or value, the <code>obj</code> is a <span class="h">proto <code>inst</code></span> resolved to a standard <code>inst</code> during compilation or runtime.</p>
+<p>\(\tt{type}(\tt{frame})[]\): Without a reference or value, the <code>obj</code> is a <span class="h">proto <code>inst</code></span> resolved to a standard <code>inst</code> during compilation or runtime.</p>
 </li>
 <li>
-<p>\(\texttt{type}()[]\): Without a reference, value, or frame, the <code>obj</code> is a <span class="h">zero-arg proto <code>inst</code></span> and is resolved during compilation or runtime.</p>
+<p>\(\tt{type}()[]\): Without a reference, value, or frame, the <code>obj</code> is a <span class="h">zero-arg proto <code>inst</code></span> and is resolved during compilation or runtime.</p>
 </li>
 <li>
-<p>\(\texttt{type}\): Without a reference, value, frame, or respective tokens, the <code>obj</code> is an <span class="h"><code>inst</code> reference</span> which can be dereferenced to yield the corresponding <code>inst</code> implementation.</p>
+<p>\(\tt{type}\): Without a reference, value, frame, or respective tokens, the <code>obj</code> is an <span class="h"><code>inst</code> reference</span> which can be dereferenced to yield the corresponding <code>inst</code> implementation.</p>
 </li>
 </ol>
 </div>
@@ -2135,7 +2192,7 @@ As such, for now, realize an <code>inst</code> to have the form:</p>
 </div>
 <div class="stemblock center">
 <div class="content">
-\[f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\texttt{rng}}\]
+\[f(\mathcal{Obj}_{\tt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\tt{rng}}\]
 </div>
 </div>
 <div class="paragraph">
@@ -4000,7 +4057,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-03-31 17:38:46 -0600
+Last updated 2025-03-31 20:47:11 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

@@ -11,7 +11,7 @@
 :highlightjsdir: ./highlight
 :highlightjs-languages: mmadt, bash
 :stylesheet: ./css/fhatos.css
-//:linkcss:
+// :linkcss:
 :data-uri:
 :toc-title: 🐖 FhatOS
 :toc: left
@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5760]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -750,12 +750,58 @@ in the child `inst`.
 
 [tabs]
 ====
+
+positional args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(\color{yellow}{\_}, \color{yellow}{\_},\ldots,\__n) \mapsto \tt{obj}_\tt{out}
+++++
+
+An `inst` frame is defined by the `inst` https://en.wikipedia.org/wiki/Parameter_(computer_programming)[arguments].
+These arguments can be accessed within the `inst` via their `lst` position as a fURI.
+For example, `*<0>` references the first argument, `*<1>` the second argument, so on and so forth.
+
+++++
+<!-- 🐖 ./main_runner.out
+band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+3.band(2,8)                           --- <1>
+10.band(2,8)                          --- <3>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+==>band?int{?}<=int(_,_)[band?int{?}<=int[is(gte!...
+fhatos> 3.band(2,8)                           // <1>
+==>3
+fhatos> 10.band(2,8)                          // <3>
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> ...
+<2> ...
+
+--
+
 named args::
 +
 --
 
+[stem]
 ++++
-A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI that references an `obj` in the router's current frame structure.
+\tt{obj}_\tt{in}.f(\color{yellow}{a_1} \Rightarrow x, \color{yellow}{a_2} \Rightarrow y,\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI that references an `obj` in the router's frame structure.
+
+++++
 <!-- 🐖 ./main_runner.out
 band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
 3.band(2,8)                           --- <1>
@@ -795,8 +841,15 @@ fhatos> 'abc'.band(2,8)                       // <4>
 default args::
 +
 --
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(a_1 \Rightarrow \color{yellow}{else(x)},a_2 \Rightarrow \color{yellow}{else(y)},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
 If the incoming `obj` to `else` is `noobj`, the `else` emits it's argument, else it emits the incoming `obj`.
 This makes `else` useful for expressing https://en.wikipedia.org/wiki/Default_argument[default arguments].
+
 ++++
 <!-- 🐖 ./main_runner.out
 band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
@@ -834,6 +887,13 @@ fhatos> {2,3,4,5}.band(min=>3,max=>4)         // <3>
 typed args::
 +
 --
+
+[stem]
+++++
+\tt{obj}_\tt{in}.f(a_1\color{yellow}{?type_1}, a_2\color{yellow}{?type_2},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+If an argument is defined with a query https://en.wikipedia.org/wiki/Data_type[type], then the argument's value must satisfy that type's specification. This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -933,11 +993,6 @@ int(a=>2)[*a]
 [source,mmadt]
 ----
 fhatos> int(a=>2)[*a]
-==>2
-fhatos> 4 + int(a=>2)[*a]
-==>6
-fhatos> 4 + int(a=>2)[+*a]
-==>10
 ----
 
 ++++
@@ -1352,16 +1407,16 @@ Syntactically, an `inst` has the form:
 
 [stem]
 ++++
-\texttt{obj} := \texttt{type}(\texttt{frame})[\texttt{value}]@\texttt{ref}.
+\tt{obj} := \tt{type}(\tt{frame})[\tt{value}]@\tt{ref}.
 ++++
 
 Starting with the template above, components will be removed to highlight various `inst` forms and functions.
 
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]@\texttt{ref}]: The complete form is a [.h]#referenced `inst`# and is used with coroutines.
-. latexmath:[\texttt{type}(\texttt{frame})[\texttt{value}\]]: Without a reference location, the `obj` is a [.h]#standard `inst`#.
-. latexmath:[\texttt{type}(\texttt{frame})[\]]: Without a reference or value, the `obj` is a [.h]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
-. latexmath:[\texttt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.h]#zero-arg proto `inst`# and is resolved during compilation or runtime.
-. latexmath:[\texttt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.h]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
+. latexmath:[\tt{type}(\tt{frame})[\tt{value}\]@\tt{ref}]: The complete form is a [.h]#referenced `inst`# and is used with coroutines.
+. latexmath:[\tt{type}(\tt{frame})[\tt{value}\]]: Without a reference location, the `obj` is a [.h]#standard `inst`#.
+. latexmath:[\tt{type}(\tt{frame})[\]]: Without a reference or value, the `obj` is a [.h]#proto `inst`# resolved to a standard `inst` during compilation or runtime.
+. latexmath:[\tt{type}()[\]]: Without a reference, value, or frame, the `obj` is a [.h]#zero-arg proto `inst`# and is resolved during compilation or runtime.
+. latexmath:[\tt{type}]: Without a reference, value, frame, or respective tokens, the `obj` is an [.h]#`inst` reference# which can be dereferenced to yield the corresponding `inst` implementation.
 
 [.center]
 [source,mmadt]
@@ -1387,7 +1442,7 @@ type(arg1, arg2, ...) [bcode]
 [.center]
 [stem]
 ++++
-f(\mathcal{Obj}_{\texttt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\texttt{rng}}
+f(\mathcal{Obj}_{\tt{dom}} \times A_1 \times A_2 \times \ldots) \rightarrow \mathcal{Obj}_{\tt{rng}}
 ++++
 
 In order to evaluate an `inst` an `obj` must be _applied_ to it.
