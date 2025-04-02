@@ -57,11 +57,12 @@ namespace fhatos {
       return terminal_p;
     }
 
-    static void STD_OUT_DIRECT(const Str_p &str, const Int_p &ellipsis = jnt(-1)) {
+    static void STD_OUT_DIRECT(const Str_p &str, const Int_p &ellipsis = Obj::to_noobj()) {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
       string output = str->str_value();
-      StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
+      if(!ellipsis->is_noobj())
+        StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
       printer<>()->print(output.c_str());
     }
 

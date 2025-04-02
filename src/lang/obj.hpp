@@ -2646,10 +2646,6 @@ namespace fhatos {
     return from(Obj::to_uri(uri), default_arg);
   }
 
-  [[maybe_unused]] static Inst_p block(const Obj_p &arg) {
-    return Obj::to_inst({arg}, id_p("block"));
-  }
-
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(to_string(arg_num)), default_arg);
   }

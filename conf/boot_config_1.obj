@@ -2,16 +2,16 @@
 /boot/config -> [router=>[
  resolve=>[
   namespace=>[:=>/mmadt/,fos:=>/fos/],
-  auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
+  auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
   query=>[write=>[lock=>to_do]],
   default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[
-  def_stack_size=>8096],
+  def_stack_size=>16192],
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
-  client=>fhatos_native,
-  cache_size=>2,
-  async=>true],
+  client=>fhatos_client_1,
+  async=>true,
+  cache_size=>50],
  wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
  ota=>[host=>mdns://fhatos_client:3232],
  console=>[
@@ -20,10 +20,12 @@
    stdin=>/io/terminal/:stdin
   ],
   nest=>2,
+  ellipsis=>50,
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,
-  stack_size=>24288
+  stack_size=>24288,
+  stack_trace=>true
  ],
  fs=>[root=><./data/fs>]
 ]@/boot/config

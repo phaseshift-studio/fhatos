@@ -47,43 +47,6 @@ namespace fhatos {
 
     [[nodiscard]] bool is_connected() const;
 
-    /* virtual void recv_unsubscribe(const ID &source, const fURI &target) {
-          if(!this->available_.load())
-            LOG_WRITE(ERROR, this, L("!yunable to unsubscribe!! {} from {}\n", source.toString(), target.toString()));
-          else {
-            this->subscriptions_->remove_if(
-                [this,source, target](const Subscription_p &sub) {
-                  const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(target));
-                  if(removing)
-                    LOG_WRITE(DEBUG, this,
-                              L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", source.toString(), target.toString()));
-                  return removing;
-                });
-            this->rec_set("sub", lst(LstList(this->subscriptions_->begin(), this->subscriptions_->end())));
-            this->save();
-          }
-        }
-
-        virtual void recv_subscription(const Subscription_p &subscription) {
-          if(!this->available_.load()) {
-            LOG_WRITE(ERROR, this, L("!yunable to receive!! {}\n", subscription->toString()));
-            return;
-          }
-          LOG_WRITE(DEBUG, this, L("!yreceived!! {}\n", subscription->toString()));
-          /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-          this->recv_unsubscribe(*subscription->source(), *subscription->pattern());
-          if(!subscription->on_recv()->is_noobj()) {
-            /////////////// ADD NEW SUBSCRIPTION
-            this->rec_get("sub")->lst_add(subscription);
-            this->save();
-            this->subscriptions_->push_back(subscription);
-            LOG_WRITE(DEBUG, this,L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", subscription->source()->toString(),
-                                    pattern->toString())            );
-            /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-            this->publish_retained(subscription);
-          }
-        }*/
-
     void subscribe(const Subscription_p &subscription, bool async = true) const;
 
     void unsubscribe(const ID &source, const fURI &pattern, bool async = true) const;
@@ -146,6 +109,5 @@ namespace fhatos {
       return mqtt;
     }
   };
-
 } // namespace fhatos
 #endif

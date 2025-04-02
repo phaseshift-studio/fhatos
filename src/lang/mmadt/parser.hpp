@@ -21,16 +21,16 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
+#include "../../util/memory_helper.hpp"
 #include "../util/peglib.h"
-
-using namespace peg;
-using namespace std;
 
 #define WRAP(LEFT,DEFINITION,RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))),(DEFINITION))
 #define WRAQ(LEFT,DEF_NOWRAP,DEF_WRAP,RIGHT) cho(seq(ign(lit((LEFT))), seq((DEF_WRAP), zom(seq(lit(","),(DEF_WRAP)))), ign(lit((RIGHT)))),(DEF_NOWRAP))
 #define COMMENT_TOKEN "dummy_comment"
 
 namespace mmadt {
+  using namespace peg;
+  using namespace std;
   class Tracker {
     int8_t parens = 0;
     int8_t brackets = 0;
@@ -128,10 +128,11 @@ namespace mmadt {
     }
   };
 
-  class Parser final : public Obj {
+  class Parser final : public Rec {
   public:
-    static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
-      static auto parser_p = ptr<Parser>(new Parser(id));
+    static ptr<Parser> singleton(const ID &id = "/io/parser",
+                                 const Rec_p &config = rec({{"stack_size", Obj::to_noobj()}})) {
+      static auto parser_p = ptr<Parser>(new Parser(id, config));
       return parser_p;
     }
 
@@ -204,14 +205,27 @@ namespace mmadt {
     }
 
   protected:
-    explicit Parser(const ID &id) :
-      Obj(make_shared<RecMap<>>(),
+    explicit Parser(const ID &id, const Rec_p &config) :
+      Obj(rmap({{"config", config}}),
           OType::REC,
           REC_FURI,
           id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
-        return Parser::singleton()->parse(obj_string.c_str());
+        Int_p stack_size = ROUTER_READ(Parser::singleton()->vid->extend("config/stack_size"));
+        if(stack_size->is_noobj()) {
+          return Parser::singleton()->parse(obj_string.c_str());
+        } else {
+          static string PARSE_INPUT;
+          PARSE_INPUT.clear();
+          PARSE_INPUT.append(obj_string);
+          static Obj_p PARSE_OUTPUT;
+          MemoryHelper::use_custom_stack([] {
+            PARSE_OUTPUT = std::move(Parser::singleton()->parse(PARSE_INPUT.c_str()));
+            PARSE_INPUT.clear();
+          }, stack_size->int_value());
+          return PARSE_OUTPUT->clone();
+        }
       };
     }
 

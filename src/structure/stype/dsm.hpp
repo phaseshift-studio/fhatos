@@ -24,28 +24,26 @@
 #include "../../lang/obj.hpp"
 #include "../structure.hpp"
 #include "../router.hpp"
+#include "../../lang/mmadt/mmadt_obj.hpp"
 #include "../../util/mutex_map.hpp"
 #include "../util/mqtt/mqtt_client.hpp"
 
+/*
 #ifdef ESP_PLATFORM
 #include "../../util/esp32/psram_allocator.hpp"
-#endif
+#endif*/
 
 #define MQTT_WAIT_MS 250
 
 namespace fhatos {
   const static auto DSM_FURI = ID("/sys/lib/dsm");
-  const static Rec_p DSM_DEFAULT_CONFIG =
-      Obj::to_rec({{"async", __().else_(dool(true))},
-                   {"broker", __().else_(vri("mqtt://localhost:1883"))},
-                   {"client", __().else_(vri("fhatos_client"))}});
 
-  template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
+  //template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
   protected:
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
-    int cache_size_ = 100;
+    size_t cache_size_ = 100;
     ptr<MqttClient> mqtt{};
 
     [[nodiscard]] Subscription_p generate_sync_subscription(const Pattern &pattern) const {
@@ -57,19 +55,13 @@ namespace fhatos {
       });
     }
 
-    void clear_cache(const int new_size = 0, const Pattern & = "#") const {
-      int to_delete = this->data_->size() - new_size;
+    void clear_cache(const size_t new_size = 0, const Pattern & = "#") const {
+      size_t to_delete = this->data_->size() - new_size;
       while(to_delete-- > 0) {
+        if(this->data_->empty())
+          break;
         this->data_->pop();
       }
-    }
-
-    void wait_for_data(const int milliseconds) {
-      this->loop();
-      if(const Option<Thread *> op = Thread::current_thread(); op.has_value()) {
-        op.value()->delay(milliseconds);
-      }
-      this->loop();
     }
 
   public:
@@ -81,7 +73,9 @@ namespace fhatos {
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
-                              const Rec_p &config = DSM_DEFAULT_CONFIG) {
+                              const Rec_p &config = Obj::to_rec({{"async", __().else_(dool(true))},
+                                                                 {"broker", __().else_(vri("mqtt://localhost:1883"))},
+                                                                 {"client", __().else_(vri("fhatos_client"))}})) {
       return Structure::create<DSM>(pattern, value_id, config);
     }
 
@@ -105,7 +99,7 @@ namespace fhatos {
     }
 
     void stop() override {
-      this->mqtt->disconnect(*this->vid, this->get<bool>("config/async"));
+      assert(this->mqtt->disconnect(*this->vid, this->get<bool>("config/async")));
       Structure::stop();
       this->data_->clear();
     }
@@ -135,10 +129,11 @@ namespace fhatos {
         if(this->data_->exists(match)) {
           return {{match, this->data_->at(match)}};
         } else {
-          if(-1 != this->cache_size_)
-            this->clear_cache(this->cache_size_ - 1);
+          if(-1 != this->cache_size_ && this->data_->size() >= this->cache_size_)
+            this->clear_cache(this->data_->size() - 1);
           this->mqtt->subscribe(this->generate_sync_subscription(match), this->get<bool>("config/async"));
-          this->wait_for_data(MQTT_WAIT_MS);
+          this->loop();
+          Thread::delay_current_thread(MQTT_WAIT_MS);
           this->loop();
           this->mqtt->unsubscribe(*this->vid, match, this->get<bool>("config/async"));
           if(this->data_->exists(match)) {
@@ -161,17 +156,14 @@ namespace fhatos {
     bool has(const fURI &furi) override {
       if(!furi.is_pattern() && furi.is_node())
         return this->data_->count(furi) > 0;
-      for(const auto &[id, obj]: *this->data_) {
-        if(id.matches(furi)) {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(this->data_->begin(), this->data_->end(), [&furi](const auto &pair) {
+        return pair.first.matches(furi);
+      });
     }
   };
 
-#ifdef ESP_PLATFORM
-  using DSM_PSRAM = DSM<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
-#endif
+  /*#ifdef ESP_PLATFORM
+    using DSM_PSRAM = DSM<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
+  #endif*/
 } // namespace fhatos
 #endif

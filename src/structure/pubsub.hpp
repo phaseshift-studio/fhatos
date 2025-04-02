@@ -22,8 +22,10 @@
 #include "../fhatos.hpp"
 #include  "../lang/obj.hpp"
 #include "../util/obj_helper.hpp"
+#include "../lang/mmadt/mmadt_obj.hpp"
 
 namespace fhatos {
+  using namespace mmadt;
 #define RETAIN true
 #define TRANSIENT false
 
@@ -161,7 +163,7 @@ namespace fhatos {
 
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Cpp &on_recv) {
       return Subscription::create(source, pattern, InstBuilder::build(INST_FURI)
-                                  ->inst_args(rec({
+                                  ->inst_args(Obj::to_inst_args({
                                       {"target", from("target", noobj())},
                                       {"payload", from("payload", noobj())},
                                       {"retain", from("retain", noobj())}}))
@@ -173,13 +175,13 @@ namespace fhatos {
       const Obj_p payload_obj = message->payload();
       const Bool_p retain_obj = dool(message->retain());
       const bool is_no = payload_obj->is_noobj();
-      InstBuilder::build("pubsub")
-          ->inst_args(to_rec({
-              {"target", is_no && false ? target_obj : block(target_obj)},
-              {"payload", is_no ? payload_obj : block(payload_obj)},
-              {"retain", is_no ? retain_obj : block(retain_obj)}}))
+      const Inst_p pubsub_inst = InstBuilder::build("pubsub")->inst_args(to_rec({
+              {"target", is_no && false ? target_obj : __().block(target_obj)},
+              {"payload", is_no ? payload_obj : __().block(payload_obj)},
+              {"retain", is_no ? retain_obj : __().block(retain_obj)}}))
           ->inst_f(this->on_recv())
-          ->create()->apply(payload_obj);
+          ->create();
+      pubsub_inst->apply(payload_obj);
     }
   };
 } // namespace fhatos

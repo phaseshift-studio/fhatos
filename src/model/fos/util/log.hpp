@@ -45,10 +45,11 @@ namespace fhatos {
     }
 
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
-      const Lst_p furis = Log::singleton()->rec_get(fURI("config").extend(LOG_TYPES.to_chars(type)));
+      const Lst_p furis = Log::singleton()->rec_get("config/" + LOG_TYPES.to_chars(type));
       if(!furis->is_lst()) {
-        printer()->printf("!g[ERROR] !! " OBJ_ID_WRAP" log listing not within schema specification: %s\n",
-                          Log::singleton()->vid_or_tid()->toString().c_str(), Log::singleton()->toString());
+        printer<>()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP " log listing not within schema specification: !b{}!!\n",
+                                       LOG_FURI->toString(),
+                                       Log::singleton()->toString()).c_str());
         return;
       }
       bool match = false;

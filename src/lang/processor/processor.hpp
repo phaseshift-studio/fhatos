@@ -45,9 +45,10 @@ namespace fhatos {
     unique_ptr<Deque<Obj_p>> halted_ = make_unique<Deque<Obj_p>>();
     //unique_ptr<ObjsSet> halted_ = make_unique<ObjsSet>();
 
+  public:
     explicit Processor(const BCode_p &bcode) :
       Obj(Any(), OType::OBJ, REC_FURI,
-          id_p(to_string(rand()).insert(0, "/sys/processor/").c_str())),
+          id_p(to_string(rand()).insert(0, "/sys/vm/processor/").c_str())),
       compiler_(make_unique<Compiler>(true, false)), bcode_(bcode) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {
@@ -160,21 +161,23 @@ namespace fhatos {
 
     static Objs_p compute(const BCode_p &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      const Obj_p objs = Processor(bcode).to_objs();
-      return objs;
+      if(const Int_p stack_size = ROUTER_READ("/sys/vm/config/stack_size"); stack_size->is_noobj()) {
+        const Obj_p objs = Processor(bcode).to_objs();
+        return objs;
+      } else {
+        static ptr<Processor> processor;
+        processor = make_shared<Processor>(bcode);
+        static Obj_p PROCESSOR_OUTPUT;
+        MemoryHelper::use_custom_stack([] {
+          PROCESSOR_OUTPUT = std::move(processor->to_objs());
+        }, stack_size->int_value());
+        return PROCESSOR_OUTPUT;
+      }
     }
 
     static Objs_p compute(const string &bcode) {
-      //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      const Obj_p objs = Processor(OBJ_PARSER(bcode)).to_objs();
-      return objs;
+      return Processor::compute(OBJ_PARSER(bcode));
     }
-
-    static ptr<Processor> create(const BCode_p &bcode) {
-      const auto proc = ptr<Processor>(new Processor(bcode));
-      return proc;
-    }
-
 
     ///////////////////////////////////////////////////////////////////////////
    ///////////////////////////////// MONAD ///////////////////////////////////
@@ -216,10 +219,10 @@ namespace fhatos {
           //const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj, this->inst);
           const Inst_p current_inst_resolved = this->processor_->compiler_->resolve_inst(this->obj, this->inst);
           LOG_WRITE(TRACE, this->processor_, L("monad {} applying to resolved inst {} !m=>!! {} [!m{}!!]\n",
-                  this->toString(),
-                  this->inst->toString(),
-                  current_inst_resolved->toString(),
-                  "SIGNATURE HERE"));
+                                               this->toString(),
+                                               this->inst->toString(),
+                                               current_inst_resolved->toString(),
+                                               "SIGNATURE HERE"));
           this->domain_loop(current_inst_resolved);
         }
       }
@@ -255,9 +258,9 @@ namespace fhatos {
 
       void range_loop(const Obj_p &next_obj, const Inst_p &current_inst_resolved) const {
         LOG_WRITE(TRACE, this->processor_, L(FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
-                this->processor_->M(next_obj,this->inst)->toString(),
-                current_inst_resolved->toString(),
-                "SIGNATURE HERE"));
+                                             this->processor_->M(next_obj,this->inst)->toString(),
+                                             current_inst_resolved->toString(),
+                                             "SIGNATURE HERE"));
         next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst);
         if(next_inst->is_generative()) {

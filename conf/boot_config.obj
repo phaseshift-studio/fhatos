@@ -7,6 +7,12 @@
   default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[
   def_stack_size=>16192],
+ parser=>[
+  stack_size=>64768
+ ],
+ vm=>[
+  stack_size=>64768
+ ],
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
   client=>fhatos_client,
@@ -24,7 +30,7 @@
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,
-  stack_size=>24288,
+  stack_size=>32384,
   stack_trace=>true
  ],
  fs=>[root=><./data/fs>]

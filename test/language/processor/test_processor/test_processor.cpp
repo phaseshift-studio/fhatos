@@ -34,7 +34,7 @@ using P = fhatos::Processor;
 
 void test_monad_set() {
   LOG(INFO,"creating processor\n");
-  ptr<Processor> processor = Processor::create(jnt(14));
+  ptr<Processor> processor = make_shared<Processor>(__(jnt(14)));
   LOG(INFO,"processor created\n");
   P::MonadSet mset = processor->make_monad_set();
  //  LOG(INFO,"monad set created\n");

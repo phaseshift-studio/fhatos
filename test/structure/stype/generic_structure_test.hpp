@@ -35,7 +35,7 @@ namespace fhatos {
       Router::singleton()->loop();
       TEST_ASSERT_TRUE(structure->available());
       // FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
-      Router::singleton()->read(p("#"));
+     // Router::singleton()->read(p("#"));
       LOG_WRITE(INFO, structure.get(),L("generic structure test setup for {}", structure->toString()));
     }
 
