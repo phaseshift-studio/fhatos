@@ -30,19 +30,19 @@ namespace fhatos {
 
   void test_as_inst() {
     FOS_TEST_FURI_EQUAL(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"),
-                        *PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid);
+                        *PROCESS("/abc/nat -> ||/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(/mmadt/int)"));
-    // FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(type())"));
-    //  FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][])"));
-    //  FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][is(gt(0))])"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(type())"));
+    //FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][])"));
+    //FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][is(gt(0))])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("/abc/nat[5]"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.[/abc/nat][]"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.map([/abc/nat][])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(55,id_p("/abc/nat")), PROCESS("55.as(/abc/nat)"));
-    // FOS_TEST_OBJ_EQUAL(Obj::to_int(555,id_p("/abc/nat")), PROCESS("555.as([/abc/nat][])"));
-    // FOS_TEST_OBJ_EQUAL(Obj::to_int(5555,id_p("/abc/nat")), PROCESS("5555.map(as([/abc/nat][]))"));
-    // FOS_TEST_OBJ_EQUAL(Obj::to_int(55555,id_p("/abc/nat")), PROCESS("55555.as(map(as([/abc/nat][])))"));
+    //FOS_TEST_OBJ_EQUAL(Obj::to_int(555,id_p("/abc/nat")), PROCESS("555.as([/abc/nat][])"));
+    //FOS_TEST_OBJ_EQUAL(Obj::to_int(5555,id_p("/abc/nat")), PROCESS("5555.map(as([/abc/nat][]))"));
+    //FOS_TEST_OBJ_EQUAL(Obj::to_int(55555,id_p("/abc/nat")), PROCESS("55555.as(map(as([/abc/nat][])))"));
     FOS_TEST_ERROR("-5.as(/abc/nat)");
     FOS_TEST_ERROR("-55.map([/abc/nat][])");
     FOS_TEST_ERROR("-555.as([/abc/nat][])");
@@ -71,8 +71,15 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(Obj::to_str("46.23000"), PROCESS("real[46.23].as(str)"));
   }
 
+  void test_ref_inst() {
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("/abc/b->10"));
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("*/abc/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(20),PROCESS("/abc/b-->20"));
+    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("*/abc/b"));
+  }
+
   void test_inst_args() {
-    InstArgs args = Obj::to_inst_args();
+    const InstArgs args = Obj::to_inst_args();
     TEST_ASSERT_TRUE(args->is_indexed_args());
     args->rec_value()->insert({vri("0"), jnt(10)});
     TEST_ASSERT_TRUE(args->is_indexed_args());
@@ -81,6 +88,10 @@ namespace fhatos {
     args->rec_value()->insert({vri("3"), vri("BAD")});
     TEST_ASSERT_FALSE(args->is_indexed_args());
     FOS_TEST_OBJ_EQUAL(args, PROCESS("[<0>=>10,<1>=>'eleven',<3>=>BAD]"));
+    args->rec_value()->insert({vri("2"), vri("GOOD")});
+    TEST_ASSERT_FALSE(args->is_indexed_args());
+    FOS_TEST_OBJ_EQUAL(args, PROCESS("[<0>=>10,<1>=>'eleven',<3>=>BAD,<2>=>GOOD]"));
+    //////////////////////
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp?int<=int(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?int<=int>(a=>10)[plus(*a)]"));
     //FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int()[plus(10)]"));
@@ -309,7 +320,8 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      //FOS_RUN_TEST(test_as_inst); //
+      FOS_RUN_TEST(test_as_inst); //
+      FOS_RUN_TEST(test_ref_inst); //
       FOS_RUN_TEST(test_inst_args); //
       FOS_RUN_TEST(test_uri_lshift_inst); //
       FOS_RUN_TEST(test_rec_lshift_inst); //

@@ -1852,8 +1852,10 @@ namespace fhatos {
           return this->shared_from_this();
         case OType::URI:
           return lhs->deref(this->shared_from_this(), true);
-        case OType::TYPE:
-          return this->type_value()->apply(lhs);
+        case OType::TYPE: {
+         Obj_p new_value = this->type_value()->apply(lhs);
+          return Obj::create(new_value->value_,new_value->otype,this->tid,new_value->vid);
+        }
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
@@ -1930,7 +1932,7 @@ namespace fhatos {
         const bool result = IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->
                             is_noobj();
         if(!result && fail_reason) {
-          fail_reason->push(fmt::format("{} is !rnot!! a subtype of {}", this->tid->toString(),
+          fail_reason->push(fmt::format("!b{}!! is !rnot!! a subtype of !b{}!!", this->tid->toString(),
                                         type_obj->tid->toString()));
         }
         return result;
