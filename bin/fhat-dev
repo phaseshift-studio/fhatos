@@ -308,10 +308,11 @@ build_boot_config() {
 }
 
 build_rlwrap_completions() {
-  # Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "from_get"), Insts::from_get(x(0)));
-  (cat "${FHATOS_HOME}"/src/lang/mmadt/mmadt_obj.hpp |
-    grep FOS_TYPE_INST_URI |
-    grep -o -P '(?<=FOS_TYPE_INST_URI\s").*(?="\),?(\s)Insts)' > "${FHATOS_HOME}"/bin/.fhatos_completions &&
+  # InstBuilder::build(MMADT_PREFIX "ref")
+  (cat "${FHATOS_HOME}"/src/lang/mmadt/mmadt_obj.cpp |
+    grep InstBuilder::build\(MMADT_PREFIX |
+    grep -v MMADT_INST_SCHEME |
+    grep -o -P '(?<=InstBuilder::build\(MMADT_PREFIX\s").*(?="\))' > "${FHATOS_HOME}"/bin/.fhatos_completions &&
     echo -e "[101%] ${BOLDGREEN}Analyzing CXX source to create rlwrap .fhatos_completions${NC}") ||
   (echo -e "${RED}[ERROR]${NC} Regular expression failed while building ${BLUE}${FHATOS_HOME}/bin/.fhatos_completions${NC}" &&
     exit 1;)

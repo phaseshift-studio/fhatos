@@ -161,11 +161,11 @@ namespace mmadt {
           ->save();
 
       InstBuilder::build(MMADT_PREFIX "isa")
-          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(lst({Obj::to_bcode()}))
+          ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(rec({{"type?uri",Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &obj, const InstArgs &args) {
             std::stack<string> fail_reason;
-            Obj_p result = obj->match(ROUTER_READ(args->arg(0)->uri_value()), &fail_reason) ? obj : Obj::to_noobj();
+            Obj_p result = obj->match(ROUTER_READ(args->arg("type")->uri_value()), &fail_reason) ? obj : Obj::to_noobj();
             if(result->is_noobj())
               LOG_WRITE(DEBUG, obj.get(), L("isa({}) mismatch {}\n", args->arg(0)->toString(),
                                             PrintHelper::print_fail_reason(&fail_reason))                  );
@@ -177,7 +177,7 @@ namespace mmadt {
           ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0,INT_MAX})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
+            return args->arg(0)->is_objs() ? args->arg(0)->objs_value()->empty() ? Obj::to_noobj() : args->arg(0) : Obj::to_objs({args->arg(0)});
           })
           ->save();
 
@@ -581,9 +581,9 @@ namespace mmadt {
 
       InstBuilder::build(MMADT_PREFIX "else")
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-          ->inst_args(lst({Obj::to_bcode()}))
+          ->inst_args(rec({{"other",Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            return lhs->is_noobj() ? args->arg(0) : lhs;
+            return lhs->is_noobj() ? args->arg("other") : lhs;
           })->save();
 
       InstBuilder::build(MMADT_PREFIX "explain")
@@ -847,14 +847,16 @@ namespace mmadt {
             return lhs;
           })->save();
 
-      InstBuilder::build(MMADT_PREFIX "ref")
+
+     InstBuilder::build(MMADT_PREFIX "ref")
           ->inst_args(rec({
               {"payload", Obj::to_bcode()},
-              {"retain?bool", __().isa(*BOOL_FURI).else_(dool(true))}}))
+              {"retain",__().isa(*BOOL_FURI)}})) // TODO: why segfalt with else?
           ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p payload = args->arg("payload");
-            ROUTER_WRITE(lhs->uri_value(), payload, args->arg("retain")->bool_value());
+            const Obj_p retain = args->arg("retain");
+            ROUTER_WRITE(lhs->uri_value(), payload, retain->is_noobj() ? true : retain->bool_value());
             return payload;
           })
           ->save();
@@ -1094,8 +1096,11 @@ namespace mmadt {
           })->save();
 
       //////////////////////////////// MODULO ////////////////////////////////////
-      InstBuilder::build(MMADT_PREFIX "mod")->type_args(x(0, "rhs"))->save();
-      InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/mod")
+      InstBuilder::build(MMADT_PREFIX "mod")
+        ->inst_args(isa_arg(INT_FURI))
+          ->save();
+
+       InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/mod")
           ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
           ->inst_args(lst({isa_arg(INT_FURI)}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {

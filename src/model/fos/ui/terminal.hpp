@@ -23,36 +23,36 @@
 #include "../../../fhatos.hpp"
 
 namespace fhatos {
+  static const ID_p TERMINAL_FURI = id_p(FOS_URI "/ui/terminal");
+
   class Terminal final : public Rec {
   protected:
     explicit Terminal(const ID &id) :
-      Rec(rmap({{":stdout", InstBuilder::build(":stdout")
-                 ->type_args(x(0, Obj::to_bcode()))
-                 ->inst_f([](const Str_p &obj, const InstArgs &args) {
-                   FEED_WATCHDOG();
-                   STD_OUT_DIRECT(obj, args->arg(0)->or_else(jnt(-1)));
-                   return noobj();
-                 })->create()},
-                {":stdin", InstBuilder::build(":stdin")
-                 ->inst_f([](const Str_p &, const InstArgs &) {
-                   return STD_IN_DIRECT();
-                 })->create()}}),
-          OType::REC, /*id_p(REC_FURI->extend("terminal"))*/ REC_FURI, id_p(id)) {
+      Rec({}, OType::REC, TERMINAL_FURI, id_p(id)) {
     }
 
   public:
     static void *import() {
+      Typer::singleton()->save_type(*TERMINAL_FURI, Obj::to_rec());
+      InstBuilder::build(TERMINAL_FURI->add_component(":stdout"))
+          ->domain_range(TERMINAL_FURI, {0, 1}, OBJ_FURI, {0, 0})
+          ->inst_args(rec({{"output?str", Obj::to_bcode()}}))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            FEED_WATCHDOG();
+            STD_OUT_DIRECT(args->arg("output"));
+            return noobj();
+          })->save();
+      InstBuilder::build(TERMINAL_FURI->add_component(":stdin"))
+          ->domain_range(TERMINAL_FURI, {0, 1}, STR_FURI, {0, 1})
+          ->inst_args(rec({{"until?str", __().else_(str("\n"))}}))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            return STD_IN_LINE_DIRECT(args->arg("until")->str_value()[0]);
+          })
+          ->save();
       return nullptr;
     }
 
     static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
-      //static bool setup = false;
-      /*if(!setup) {
-        setup = true;
-        TYPE_SAVER(id_p(REC_FURI->extend("terminal")), rec(
-                                        {{":stdout", Obj::to_bcode()},
-                                          {":stdin", Obj::to_bcode()}}));
-      }*/
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
