@@ -85,7 +85,7 @@ namespace mmadt {
 
     [[nodiscard]] string toString() const { return this->bcode_->toString(); }
 
-     operator Obj_p() const {
+    operator Obj_p() const {
       if(this->tid.equals(*BCODE_FURI))
         return this->bcode_;
       // Conversion logic here
@@ -238,11 +238,16 @@ namespace mmadt {
     //Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
 
     class Result {
-      const List_p<Obj_p> results{};
+      List_p<Obj_p> results{};
 
     public:
-      explicit Result(const _mmADT& mmadt) :
-        results{BCODE_PROCESSOR(mmadt.bcode_)->objs_value()} {
+      explicit Result(const _mmADT &mmadt) {
+        if(const Obj_p output = BCODE_PROCESSOR(mmadt.bcode_); output->is_objs())
+          results = output->objs_value();
+        else {
+          results = make_shared<List<Obj_p>>();
+          results->push_back(output);
+        }
       }
 
       [[nodiscard]] bool exists() const {
@@ -263,6 +268,10 @@ namespace mmadt {
         const Obj_p o = this->results->back();
         //this->results->pop_back();
         return o;
+      }
+
+      [[nodiscard]] Objs_p to_objs() const {
+        return Obj::to_objs(this->results);
       }
     };
 

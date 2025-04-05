@@ -48,6 +48,8 @@ namespace fhatos {
 
   void test_generic_rec_embedding() { GenericStructureTest(test_structure).test_rec_embedding(); }
 
+  void test_generic_q_sub() { GenericStructureTest(test_structure).test_q_sub(); }
+
   void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
@@ -56,7 +58,8 @@ namespace fhatos {
       FOS_RUN_TEST(test_generic_subscribe); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
       FOS_RUN_TEST(test_generic_rec_embedding); //
-      //FOS_RUN_TEST(test_generic_q_doc); //
+      FOS_RUN_TEST(test_generic_q_sub); //
+    //  FOS_RUN_TEST(test_generic_q_doc); //
       );
 
 } // namespace fhatos

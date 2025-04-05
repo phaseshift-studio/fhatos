@@ -29,7 +29,7 @@ namespace fhatos {
     unique_ptr<Map<fURI, Obj_p>> doc_data_ = make_unique<Map<fURI, Obj_p>>();
 
   public:
-    explicit QDoc(const ID_p &value_id = nullptr) : QProc(id_p("/fos/q/q_doc"), value_id) {
+    explicit QDoc(const ID_p &value_id = nullptr) : QProc(id_p("/fos/q/doc"), value_id) {
       this->Obj::rec_set("pattern", vri("doc"));
     }
 

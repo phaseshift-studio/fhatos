@@ -138,7 +138,6 @@ mmadt::mmADT::import_ext_types();
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/fos_obj.hpp"
 #define FOS_DEPLOY_FOS_TYPE_2 \
-fhatos::fOS::import_types();  \
 fhatos::fOS::import_sys();
 #else
 #define FOS_DEPLOY_FOS_TYPE_2 ;

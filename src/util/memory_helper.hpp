@@ -18,7 +18,7 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ESP_PLATFORM
   static void use_custom_stack(const Runnable_p f,const int stack_size) {
-    LOG_OBJ(INFO,Scheduler::singleton(), "!ytemporary stack!! created (%i bytes)\n",stack_size);
+    LOG_WRITE(DEBUG,Scheduler::singleton().get(), L("!ytemporary stack!! created ({} bytes)\n",stack_size));
     //Allocate a stack buffer, from heap or as a static form:
     int arch_specific_stack_size = stack_size * sizeof(portSTACK_TYPE);
     portSTACK_TYPE *custom_stack = (portSTACK_TYPE*)malloc(arch_specific_stack_size);
@@ -29,7 +29,7 @@ namespace fhatos {
     ESP_EXECUTE_EXPRESSION_WITH_STACK(custom_stack_lock, custom_stack,arch_specific_stack_size,f);
     vSemaphoreDelete(custom_stack_lock);
     free(custom_stack);
-     LOG_OBJ(INFO,Scheduler::singleton(),"!ytemporary stack!! destroyed (%i bytes)\n",stack_size);
+     LOG_WRITE(DEBUG,Scheduler::singleton().get(),L("!ytemporary stack!! destroyed ({} bytes)\n",stack_size));
   }
 #else
     inline static void use_custom_stack(const Runnable_p f, const int) {

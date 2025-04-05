@@ -37,6 +37,7 @@ namespace fhatos {
   class Scheduler final : public Rec {
   protected:
     const uptr<MutexDeque<Thread_p>> threads_ = std::make_unique<MutexDeque<Thread_p>>();
+    const uptr<MutexDeque<Obj_p>> loops_ = std::make_unique<MutexDeque<Obj_p>>();
     bool running_ = true;
     ptr<Router> router_ = nullptr;
 
@@ -126,6 +127,9 @@ namespace fhatos {
       while(true) {
         this->feed_local_watchdog();
         this->router_->loop();
+        for(const auto& l : *this->loops_) {
+          ROUTER_READ(l->vid_or_tid()->add_component("loop"))->apply(Obj::to_noobj());
+        }
         Thread::yield_current_thread();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));

@@ -216,8 +216,47 @@ namespace fhatos {
       this->detach();
     }
 
+    void test_q_sub() const {
+     // Structure::add_qproc(structure_, QSub::create(structure_->vid->extend("q/sub")));
+      const Subscription_p subscription = Subscription::create(id_p("/boot/scheduler"),p_p(p("abc")),__().to(p("bcd")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","sub")));
+      ROUTER_WRITE(p("abc","sub"),__().to(p("bcd")),true);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc","sub")));
+      ////////// transient
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("bcd")));
+      ////////// transient
+      ROUTER_WRITE(p("abc"),str("fhatty"),false);
+      Router::singleton()->loop();
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty"), ROUTER_READ(p("bcd")));
+      ////////// retain
+      ROUTER_WRITE(p("abc"),str("fhatty pig"),true);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      ////////// unsubscribe
+      ROUTER_WRITE(p("abc","sub"),Obj::to_noobj(),true);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      ////////// transient (no sub)
+      ROUTER_WRITE(p("abc"),str("the fhat"),false);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      ////////// retain (no sub)
+      ROUTER_WRITE(p("abc"),str("the fhat"),true);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("the fhat"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      this->detach();
+    }
+
     void test_q_doc() const {
-      Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/qdoc")));
+      Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/doc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","doc")));
       ROUTER_WRITE(p("abc"), str("no docs"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));

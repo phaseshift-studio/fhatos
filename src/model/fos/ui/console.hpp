@@ -51,13 +51,8 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
+                              const auto console_state = dynamic_cast<Console *>(get_state<Thread>(console_obj).get());
                               try {
-                                static bool first = true;
-                                if(first) {
-                                  first = false;
-                                  console_state->delay(500);
-                                }
                                 /// WRITE TO PROMPT
                                 if(console_obj->has("config/terminal/stdout")) {
                                   if(console_state->new_input_)
@@ -132,16 +127,18 @@ namespace fhatos {
 
     ///// printers
     void write_stdout(const Obj_p &console_obj, const Str_p &s) const {
-      if(this->direct_stdin_out)
-        Terminal::STD_OUT_DIRECT(s,console_obj->rec_get("config/ellipsis"));
+      if(const fURI out = console_obj->get<fURI>("config/terminal/stdout");
+        Terminal::singleton()->vid->extend(":stdout") == out)
+        Terminal::STD_OUT_DIRECT(s, console_obj->rec_get("config/ellipsis"));
       else
-        Router::singleton()->write(console_obj->get<fURI>("config/terminal/stdout"), s, TRANSIENT);
+        ROUTER_WRITE(out, s, RETAIN);
     }
 
     [[nodiscard]] Str_p read_stdin(const Obj_p &console_obj, const char until) const {
-      return this->direct_stdin_out
+      const fURI in = console_obj->get<fURI>("config/terminal/stdin");
+      return Terminal::singleton()->vid->extend(":stdin") == in
                ? Terminal::STD_IN_LINE_DIRECT(until)
-               : Router::singleton()->exec(console_obj->get<fURI>("config/terminal/stdin"), noobj());
+               : Router::singleton()->exec(in, noobj());
     }
 
     void print_exception(const Obj_p &console_obj, const std::exception &ex) const {
@@ -197,7 +194,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
-            static_cast<Console *>(console_state.get())->clear();
+            dynamic_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
@@ -207,7 +204,7 @@ namespace fhatos {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            static_cast<Console *>(console_state.get())->process_line(console_obj, code);
+            dynamic_cast<Console *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();

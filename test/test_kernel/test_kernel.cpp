@@ -86,6 +86,7 @@ namespace fhatos {
         ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
         ->mount(Heap<>::create(FOS_URI "/#"))
+        ->import(fOS::import_q_procs())
         ->import(mmadt::mmADT::import())
         ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
@@ -93,13 +94,13 @@ namespace fhatos {
         //->import(Console::import("/io/lib/console"))
         ->install(Terminal::singleton("/io/terminal"))
         ->install(Log::create("/io/log",
-                  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
-                          ->or_else(Obj::to_rec({
-                           {"INFO", lst({vri("#")})},
-                           {"ERROR", lst({vri("#")})},
-                           {"WARN", lst()},
-                           {"DEBUG", lst()},
-                           {"TRACE", lst()}}))))
+                              Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
+                              ->or_else(Obj::to_rec({
+                                  {"INFO", lst({vri("#")})},
+                                  {"ERROR", lst({vri("#")})},
+                                  {"WARN", lst()},
+                                  {"DEBUG", lst()},
+                                  {"TRACE", lst()}}))))
         ->install(mmadt::Parser::singleton("/io/parser"));
     //->import(mmadt::Parser::import("/io/lib/parser"))
     //->mount(Heap<>::create("+/#"))

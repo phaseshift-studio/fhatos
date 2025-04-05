@@ -59,12 +59,12 @@ namespace fhatos {
       Rec(config->rec_value()->empty()
             ? Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", rec({{"sub", QSub::create()}, {"#", QType::create()}})},
+                {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")}, {"#", QType::create()}})},
             })->
             rec_value()
             : Obj::to_rec({
                 {"pattern", vri(pattern)},
-                {"q_proc", rec({{"sub", QSub::create()}, {"#", QType::create()}})},
+                {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")}, {"#", QType::create()}})},
                 {"config", config->clone()}})->rec_value(),
           OType::REC, type_id,
           value_id),

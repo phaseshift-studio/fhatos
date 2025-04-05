@@ -70,7 +70,8 @@ namespace fhatos {
 
     static void *import_q_procs() {
       Typer::singleton()->start_progress_bar(14);
-      Typer::singleton()->save_type(Q_PROC_FURI->extend("q_doc"), Obj::to_rec());
+      Typer::singleton()->save_type(Q_PROC_FURI->extend("sub"), Obj::to_rec());
+      Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yquery processors!! loaded!g]!! \n",FOS_URI "/q/+"));
       return nullptr;

@@ -34,13 +34,13 @@ namespace fhatos {
 
   public:
     explicit QSub(const ID_p &value_id = nullptr) :
-      QProc(REC_FURI, value_id) {
+      QProc(id_p("/fos/q/sub"), value_id) {
       this->Obj::rec_set("pattern", vri("sub"));
     }
 
-    static ptr<QSub> create(const ID_p &value_id = nullptr) {
+    static ptr<QSub> create(const ID &value_id) {
       //TYPE_SAVER("/fos/q/q_sub", Obj::to_rec());
-      return make_shared<QSub>(value_id);
+      return make_shared<QSub>(value_id.empty() ? nullptr : id_p(value_id));
     }
 
     void loop() const override {
@@ -86,7 +86,7 @@ namespace fhatos {
           // NEEDS ACCESS TO STRUCTURE?? this->publish_retained(subscription);
         }
         LOG_WRITE(TRACE, this,L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));
-      } else if(retain && POSITION::Q_LESS == pos) {
+      } else if(POSITION::Q_LESS == pos) {
         // publish
         for(const Subscription_p &sub: *this->subscriptions_) {
           if(furi_no_query.bimatches(*sub->pattern())) {

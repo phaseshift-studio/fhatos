@@ -35,6 +35,25 @@ namespace fhatos {
     static bool check_noobj(const ID_p &type_id);
   };
 
+  class OBJ_PROXY {
+    ID_p vid;
+
+  public:
+    explicit OBJ_PROXY(const Obj_p &local):
+      vid{local->vid} {
+
+    }
+
+    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
+      return ROUTER_READ(this->vid->extend(uri_key))->or_else(or_else);
+    }
+
+    template<typename T>
+    [[nodiscard]] T get(const fURI &key) const {
+      return std::any_cast<T>(ROUTER_READ(this->vid->extend(key))->value_);
+    }
+  };
+
   class InstBuilder {
     explicit InstBuilder(TypeO_p type);
 
@@ -47,17 +66,27 @@ namespace fhatos {
 
   public:
     static InstBuilder *build(const ID &type_id = *INST_FURI);
+
     static InstBuilder *build(const fURI_p &type_id = INST_FURI);
+
     InstBuilder *inst_args(const Rec_p &args);
+
     InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                            const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr);
+
     InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr);
+
     InstBuilder *domain_range(const ID_p &domain, const IntCoefficient &domain_coefficient, const ID_p &range,
                               const IntCoefficient &range_coefficient);
+
     InstBuilder *doc(const string &documentation);
+
     InstBuilder *inst_f(const Cpp &inst_f);
+
     InstBuilder *inst_f(const Obj_p &obj);
+
     void save(const Obj_p &root = nullptr) const;
+
     [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const;
   };
 } // namespace fhatos

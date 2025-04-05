@@ -91,7 +91,7 @@ namespace fhatos {
       Rec(rmap({
               {"target", vri(target)},
               {"payload", payload},
-              {"retain", dool(retain)}}), OType::REC, id_p("/fos/q/msg")) {
+              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID_p target() const {
@@ -142,7 +142,7 @@ namespace fhatos {
               {"source", vri(source)},
               {"pattern", vri(pattern)},
               {"on_recv", on_recv}
-          }), OType::REC, id_p("/fos/q/sub")) {
+          }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID_p source() const {

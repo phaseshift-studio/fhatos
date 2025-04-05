@@ -770,7 +770,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5632]
+[INFO]  [/sys/router] main memory [total=&gt;5760]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -1721,17 +1721,17 @@ For example, <code><strong>&lt;0&gt;</code> references the first argument, <code
 </div>
 <!-- 🐖 ./main_runner.out
 band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
-3.band(2,8)                           --- <1>
-10.band(2,8)                          --- <3>
+3.band(2,8)                                --- <1>
+10.band(2,8)                               --- <2>
 -->
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(_,_)[is(and([gte(*&lt;0&gt;),lte(*&lt;1&gt;)]))]
 ==&gt;band?int{?}&lt;=int(_,_)
 	[band?int{?}&lt;=int[is(and([gte(from(0)),lte(from(1))]))]]
-fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
+fhatos&gt; 3.band(2,8)                                <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;3
-fhatos&gt; 10.band(2,8)                          <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+fhatos&gt; 10.band(2,8)                               <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1755,14 +1755,13 @@ fhatos&gt; 10.band(2,8)                          <i class="conum" data-value="3"
 </div>
 </div>
 <div class="paragraph">
-<p>A <a href="https://en.wikipedia.org/wiki/Named_parameter">named argument</a> denotes a fURI that references an <code>obj</code> in the router&#8217;s frame structure.</p>
+<p>A <a href="https://en.wikipedia.org/wiki/Named_parameter">named argument</a> is a fURI that references an <code>obj</code> in the router&#8217;s frame structure.</p>
 </div>
 <!-- 🐖 ./main_runner.out
 band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 3.band(2,8)                           --- <1>
 3.band(max=>8,min=>2)                 --- <2>
-10.band(2,max=>8)                     --- <3>
-'abc'.band(2,8)                       --- <4>
+'abc'.band(2,8)                       --- <3>
 -->
 <div class="listingblock">
 <div class="content">
@@ -1773,9 +1772,7 @@ fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"
 ==&gt;3
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;3
-fhatos&gt; 10.band(2,max=&gt;8)                     <i class="conum" data-value="3"></i><b>(3)</b>
-==&gt;band
-fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="4"></i><b>(4)</b>
+fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a str as defined by [str][_]
 		 \_/mmadt/int is not a subtype of /mmadt/str
 	  thrown at inst 'abc' =&gt; band?int{?}&lt;=int(min=&gt;2,max=&gt;8)[band?int{?}&lt;=int[is(and([gte(from(min)),lte(from(max))]))]] [min=&gt;2,max=&gt;8]</code></pre>
@@ -1794,10 +1791,6 @@ fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="4"
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Named arguments and unnamed arguments can be used together.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
 <td>The domain of <code>band</code> is <code>int</code>. Note where the error is thrown when <code>str['abc']</code> is provided.</td>
 </tr>
 </table>
@@ -2231,23 +2224,7 @@ thread::create(loop=>||( /
 ==&gt;delay=&gt;nat[0]
 ==&gt;halt=&gt;true
 &gt;]
-fhatos&gt; @t.spawn()
-[INFO]  [t] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:16192]
-c: 0
-c: 1
-c: 2
-c: 3
-c: 4
-c: 5
-c: 6
-c: 7
-c: 8
-c: 9
-c: 10
-c: 11
-[INFO]  [t] thread stopped
-fhatos&gt; *c
-==&gt;12</code></pre>
+fhatos&gt; @t.spawn()</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3233,12 +3210,7 @@ fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
-fhatos&gt; nat[3].plus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_]
-		 \_/mmadt/obj is not a subtype of /mmadt/int
-fhatos&gt; nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -2 is not a int as defined by [int][_]
-		 \_/mmadt/obj is not a subtype of /mmadt/int</code></pre>
+fhatos&gt; nat[3].plus(2)</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4455,7 +4427,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-04 22:00:35 -0600
+Last updated 2025-04-05 00:51:12 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
