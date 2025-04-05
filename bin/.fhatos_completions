@@ -33,6 +33,8 @@ lock
 is
 map
 merge
+and
+or
 neq
 repeat
 split

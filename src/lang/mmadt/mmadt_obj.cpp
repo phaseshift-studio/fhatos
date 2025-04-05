@@ -637,6 +637,30 @@ namespace mmadt {
           })
           ->save();
 
+       InstBuilder::build(MMADT_PREFIX "and")
+          ->domain_range(OBJ_FURI, {0,1}, BOOL_FURI, {1,1})
+          ->inst_args(rec({{"con?lst",Obj::to_bcode()}}))
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+           for(const auto& a : * args->arg("con")->lst_value()) {
+               if(!a->bool_value())
+                 return dool(false);
+           }
+           return dool(true);
+          })
+          ->save();
+
+       InstBuilder::build(MMADT_PREFIX "or")
+     ->domain_range(OBJ_FURI, {0,1}, BOOL_FURI, {1,1})
+       ->inst_args(rec({{"con?lst",Obj::to_bcode()}}))
+        ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+         for(const auto& a : * args->arg("con")->lst_value()) {
+             if(a->bool_value())
+               return dool(true);
+         }
+         return dool(false);
+        })
+        ->save();
+
       InstBuilder::build(MMADT_PREFIX "uri/" MMADT_INST_SCHEME "/merge")
           ->domain_range(URI_FURI, {1, 1}, OBJS_FURI, {0,INT_MAX})
           //->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
@@ -1097,7 +1121,7 @@ namespace mmadt {
 
       //////////////////////////////// MODULO ////////////////////////////////////
       InstBuilder::build(MMADT_PREFIX "mod")
-        ->inst_args(isa_arg(INT_FURI))
+        ->inst_args(lst({isa_arg(INT_FURI)}))
           ->save();
 
        InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/mod")

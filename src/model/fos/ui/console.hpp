@@ -133,7 +133,7 @@ namespace fhatos {
     ///// printers
     void write_stdout(const Obj_p &console_obj, const Str_p &s) const {
       if(this->direct_stdin_out)
-        Terminal::STD_OUT_DIRECT(s,console_obj->rec_get("config/ellipsis")->or_else(jnt(-1)));
+        Terminal::STD_OUT_DIRECT(s,console_obj->rec_get("config/ellipsis"));
       else
         Router::singleton()->write(console_obj->get<fURI>("config/terminal/stdout"), s, TRANSIENT);
     }
@@ -151,7 +151,7 @@ namespace fhatos {
     void print_prompt(const Obj_p &console_obj, const bool blank = false) const {
       const auto prompt = console_obj->get<string>("config/prompt");
       this->write_stdout(console_obj,
-                         str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
+                         str(blank ? StringHelper::repeat(Ansi<>::strip(prompt).length()) : prompt));
     }
 
     void process_line(const Obj_p &console_obj, string line) const {

@@ -88,19 +88,21 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5760]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 813 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 880 bytes)
 [INFO]  [/sys/router] 
   [
     router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
-    scheduler=>[def_stack_size=>8096]
+    scheduler=>[def_stack_size=>16192]
+    parser=>[stack_size=>64768]
+    vm=>[stack_size=>64768]
     mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,async=>true,cache_size=>50]
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
     ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,ellipsis=>50,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>24288,stack_trace=>true]
+    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,ellipsis=>50,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>32384,stack_trace=>true]
     fs=>[root=>./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
@@ -112,9 +114,11 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading mmadt lang Oo.
 [INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
 [INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
+[INFO]  [/sys/router] vm boot config dropped
       .oO loading fos models Oo.
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [INFO]  [/sys/router] /io/parser obj loaded
+[INFO]  [/sys/router] parser boot config dropped
 [INFO]  [/io/log] switching from boot logger to system logger
 [INFO]  [/sys/router] /io/log obj loaded
 [INFO]  [/sys/router] log boot config dropped
@@ -131,7 +135,6 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/mnt/bus] mapping /bus==>//io
 [INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
 [INFO]  [/sys/router] /io/console obj loaded
-[INFO]  [/io/console] thread spawned: inst()[cpp]
 [INFO]  [/sys/router] console boot config dropped
 ----
 
@@ -183,7 +186,7 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 fhatos> */sys/scheduler
 >[
 ==>config=>[
-===>def_stack_size=>8096
+===>def_stack_size=>16192
 =>]
 ==>thread=>[
 =>]
@@ -283,6 +286,7 @@ The [.h]#mmADT# language is embedded in the fURI address space thus enabling htt
 ----
 fhatos> */mmadt/#/
 >[
+==>/mmadt/and=>and?bool<=obj{?}(con?lst=>_)[cpp]
 ==>/mmadt/as=>as(type?uri=>_)[cpp]
 ==>/mmadt/at=>at?obj{?}<=obj{?}(isa(/mmadt/uri))[cpp]
 ==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(_)[cpp]
@@ -303,7 +307,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/div=>div(_)
 ==>/mmadt/drop=>drop?obj{?}<=obj{?}(isa(/mmadt/obj))[cpp]
 ==>/mmadt/each=>each(isa(/mmadt/obj))
-==>/mmadt/else=>else?obj<=obj{?}(_)[cpp]
+==>/mmadt/else=>else?obj<=obj{?}(other=>_)[cpp]
 ==>/mmadt/embed=>embed()[cpp]
 ==>/mmadt/end=>end?noobj{.}<=obj{*}()[cpp]
 ==>/mmadt/eq=>eq(_)[cpp]
@@ -326,8 +330,8 @@ fhatos> */mmadt/#/
 ==>/mmadt/flip=>flip(_)[cpp]
 ==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
 ==>/mmadt/from=>from?obj{?}<=obj{?}(_,else(noobj))[cpp]
-==>/mmadt/gt=>gt()
-==>/mmadt/gte=>gte()
+==>/mmadt/gt=>gt?bool<=obj{?}()
+==>/mmadt/gte=>gte?bool<=obj{?}()
 ==>/mmadt/inspect=>inspect(_)
 ==>/mmadt/inst=>[inst][_]
 ==>/mmadt/inst/::/mmadt/inspect=>inspect(_)[cpp]
@@ -343,18 +347,18 @@ fhatos> */mmadt/#/
 ==>/mmadt/int=>[int][_]
 ==>/mmadt/int/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
 ==>/mmadt/int/::/mmadt/div=>div(0?int=>isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/int/::/mmadt/gte=>gte(_)[cpp]
+==>/mmadt/int/::/mmadt/gt=>gt(arg?int=>_)[cpp]
+==>/mmadt/int/::/mmadt/gte=>gte(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/int/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/int/::/mmadt/lte=>lte(_)[cpp]
+==>/mmadt/int/::/mmadt/lt=>lt(arg?int=>_)[cpp]
+==>/mmadt/int/::/mmadt/lte=>lte(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/minus=>minus(0?int=>isa(/mmadt/int))[cpp]
 ==>/mmadt/int/::/mmadt/mod=>mod(isa(/mmadt/int))[cpp]
 ==>/mmadt/int/::/mmadt/mult=>mult(0?int=>isa(/mmadt/int))[cpp]
 ==>/mmadt/int/::/mmadt/neg=>neg(isa(/mmadt/int))[cpp]
 ==>/mmadt/int/::/mmadt/plus=>plus(0?int=>isa(/mmadt/int))[cpp]
 ==>/mmadt/is=>is?obj{?}<=obj(_)[cpp]
-==>/mmadt/isa=>isa?obj{?}<=obj{?}(_)[cpp]
+==>/mmadt/isa=>isa?obj{?}<=obj(type?uri=>_)[cpp]
 ==>/mmadt/lift=>lift(_)[cpp]
 ==>/mmadt/lock=>lock(user=>_)[cpp]
 ==>/mmadt/lshift=>lshift()
@@ -368,12 +372,12 @@ fhatos> */mmadt/#/
 ==>/mmadt/lst/::/mmadt/plus=>plus(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/split=>split(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/lt=>lt()
-==>/mmadt/lte=>lte()
+==>/mmadt/lt=>lt?bool<=obj{?}()
+==>/mmadt/lte=>lte?bool<=obj{?}()
 ==>/mmadt/map=>map?obj{?}<=obj{?}(_)[cpp]
 ==>/mmadt/merge=>merge?obj{?}<=obj()[cpp]
 ==>/mmadt/minus=>minus(_)
-==>/mmadt/mod=>mod(from(0?rhs,noobj)[cpp])
+==>/mmadt/mod=>mod(isa(/mmadt/int))
 ==>/mmadt/mult=>mult(_)
 ==>/mmadt/neg=>neg(isa(/mmadt/obj))
 ==>/mmadt/neq=>neq(_)[cpp]
@@ -381,17 +385,18 @@ fhatos> */mmadt/#/
 ==>/mmadt/not=>not?obj{?}<=obj(_)[cpp]
 ==>/mmadt/obj=>[obj][_]
 ==>/mmadt/objs=>[objs][_]
+==>/mmadt/or=>or?bool<=obj{?}(con?lst=>_)[cpp]
 ==>/mmadt/plus=>plus(_)
 ==>/mmadt/print=>print?obj{?}<=obj{?}(_)[cpp]
 ==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
 ==>/mmadt/real=>[real][_]
 ==>/mmadt/real/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
 ==>/mmadt/real/::/mmadt/div=>div(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/real/::/mmadt/gte=>gte(_)[cpp]
+==>/mmadt/real/::/mmadt/gt=>gt(arg?real=>_)[cpp]
+==>/mmadt/real/::/mmadt/gte=>gte(arg?real=>_)[cpp]
 ==>/mmadt/real/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/real/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/real/::/mmadt/lte=>lte(_)[cpp]
+==>/mmadt/real/::/mmadt/lt=>lt(arg?real=>_)[cpp]
+==>/mmadt/real/::/mmadt/lte=>lte(arg?real=>_)[cpp]
 ==>/mmadt/real/::/mmadt/minus=>minus(isa(/mmadt/real))[cpp]
 ==>/mmadt/real/::/mmadt/mult=>mult(isa(/mmadt/real))[cpp]
 ==>/mmadt/real/::/mmadt/neg=>neg(isa(/mmadt/real))[cpp]
@@ -407,7 +412,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/rec/::/mmadt/plus=>plus(isa(/mmadt/rec))[cpp]
 ==>/mmadt/rec/::/mmadt/rshift=>rshift(isa(/mmadt/uri))[cpp]
 ==>/mmadt/rec/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/ref=>ref?obj{?}<=obj{?}(_,block(noobj))[cpp]
+==>/mmadt/ref=>ref?obj{?}<=uri(payload=>_,retain=>isa(/mmadt/bool))[cpp]
 ==>/mmadt/repeat=>repeat(from(0?code,noobj)[cpp],from(1?until,true)[cpp],from(2?emit,false)[cpp])[cpp]
 ==>/mmadt/rshift=>rshift()
 ==>/mmadt/split=>split(_)[cpp]
@@ -415,11 +420,11 @@ fhatos> */mmadt/#/
 ==>/mmadt/str=>[str][_]
 ==>/mmadt/str/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
 ==>/mmadt/str/::/mmadt/div=>div(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/str/::/mmadt/gte=>gte(_)[cpp]
+==>/mmadt/str/::/mmadt/gt=>gt(arg?str=>_)[cpp]
+==>/mmadt/str/::/mmadt/gte=>gte(arg?str=>_)[cpp]
 ==>/mmadt/str/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/str/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/str/::/mmadt/lte=>lte(_)[cpp]
+==>/mmadt/str/::/mmadt/lt=>lt(arg?str=>_)[cpp]
+==>/mmadt/str/::/mmadt/lte=>lte(arg?str=>_)[cpp]
 ==>/mmadt/str/::/mmadt/merge=>merge?objs{*}<=str()[cpp]
 ==>/mmadt/str/::/mmadt/minus=>minus(isa(/mmadt/str))[cpp]
 ==>/mmadt/str/::/mmadt/mult=>mult(isa(/mmadt/str))[cpp]
@@ -431,12 +436,12 @@ fhatos> */mmadt/#/
 ==>/mmadt/uri=>[uri][_]
 ==>/mmadt/uri/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
 ==>/mmadt/uri/::/mmadt/div=>div(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/gt=>gt(_)[cpp]
-==>/mmadt/uri/::/mmadt/gte=>gte(_)[cpp]
+==>/mmadt/uri/::/mmadt/gt=>gt(arg?uri=>_)[cpp]
+==>/mmadt/uri/::/mmadt/gte=>gte(arg?uri=>_)[cpp]
 ==>/mmadt/uri/::/mmadt/inspect=>inspect(_)[cpp]
 ==>/mmadt/uri/::/mmadt/lshift=>lshift(_)[cpp]
-==>/mmadt/uri/::/mmadt/lt=>lt(_)[cpp]
-==>/mmadt/uri/::/mmadt/lte=>lte(_)[cpp]
+==>/mmadt/uri/::/mmadt/lt=>lt(arg?uri=>_)[cpp]
+==>/mmadt/uri/::/mmadt/lte=>lte(arg?uri=>_)[cpp]
 ==>/mmadt/uri/::/mmadt/merge=>merge?objs{*}<=uri()[cpp]
 ==>/mmadt/uri/::/mmadt/minus=>minus(isa(/mmadt/uri))[cpp]
 ==>/mmadt/uri/::/mmadt/mult=>mult(isa(/mmadt/uri))[cpp]
@@ -468,7 +473,7 @@ An `inst` written in C++.
 [source,mmadt]
 ----
 fhatos> *int::lt
-==>lt?bool<=int(_)[cpp]
+==>lt?bool<=int(arg?int=>_)[cpp]
 ----
 
 ++++
@@ -509,7 +514,6 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
-[INFO]  [/mmadt/rec] disconnecting from [mqtt://chibi.local:1883]
 [INFO]  [/sys/router] router /sys/router stopped
 [INFO]  [/sys/router] /sys/# heap detached
 [INFO]  [/sys/router] /mnt/# heap detached
@@ -867,7 +871,7 @@ fhatos> char['b']@b
 ==>char['b']@b
 fhatos> @a + @b
 [ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as str
-	  thrown at inst char['a']@a => plus()[cpp] [0=>'@a + @b',code=>'@a + @b']
+	  thrown at inst char['a']@a => plus()[cpp] [code=>'@a + @b']
 fhatos> *a
 ==>char['a']@a
 fhatos> @a.as(str) + @b
@@ -906,12 +910,13 @@ fhatos> nat[-30]
 fhatos> nat[12]@a
 ==>nat[12]@a
 fhatos> @a.minus(11)
-==>nat[1]@a
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 11 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 fhatos> @a.minus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0=>'@a.minus(2)',0?int=>2]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 fhatos> *a
-==>nat[1]@a
+==>nat[12]@a
 ----
 
 ++++
@@ -991,7 +996,7 @@ For example, `*<0>` references the first argument, `*<1>` the second argument, s
 
 ++++
 <!-- 🐖 ./main_runner.out
-band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 3.band(2,8)                           --- <1>
 10.band(2,8)                          --- <3>
 -->
@@ -999,17 +1004,12 @@ band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
 
 [source,mmadt]
 ----
-fhatos> band -> ||band?int{?}<=int(_,_)[is(gte(*<0>)).is(lte(*<1>))]
+fhatos> band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 ==>band?int{?}<=int(_,_)
-	[band?int{?}<=int[is(gte(from(0))).is(lte(from(1)))]]
+	[band?int{?}<=int[is(and([gte(from(0)),lte(from(1))]))]]
 fhatos> 3.band(2,8)                           // <1>
-[ERROR] [/sys/scheduler] [/mmadt/bcode] from(0) accessed as int
-	  thrown at inst 3 => gte(from(0)) [0=>'3.band(2,8)                           // <1>',1=>8]
-	  thrown at inst 3 => band?int{?}<=int(2,8)[band?int{?}<=int[is(gte(from(0))).is(lte(from(1)))]] [0=>'3.band(2,8)                           // <1>',1=>8]
+==>3
 fhatos> 10.band(2,8)                          // <3>
-[ERROR] [/sys/scheduler] [/mmadt/bcode] from(0) accessed as int
-	  thrown at inst 10 => gte(from(0)) [0=>'10.band(2,8)                          // <3>',1=>8]
-	  thrown at inst 10 => band?int{?}<=int(2,8)[band?int{?}<=int[is(gte(from(0))).is(lte(from(1)))]] [0=>'10.band(2,8)                          // <3>',1=>8]
 ----
 
 ++++
@@ -1034,7 +1034,7 @@ A https://en.wikipedia.org/wiki/Named_parameter[named argument] denotes a fURI t
 
 ++++
 <!-- 🐖 ./main_runner.out
-band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 3.band(2,8)                           --- <1>
 3.band(max=>8,min=>2)                 --- <2>
 10.band(2,max=>8)                     --- <3>
@@ -1044,9 +1044,9 @@ band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
 
 [source,mmadt]
 ----
-fhatos> band -> ||band?int{?}<=int(min=>_,max=>_)[is(gte(*min)).is(lte(*max))]
+fhatos> band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 ==>band?int{?}<=int(min=>_,max=>_)
-	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+	[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos> 3.band(2,8)                           // <1>
 ==>3
 fhatos> 3.band(max=>8,min=>2)                 // <2>
@@ -1054,9 +1054,9 @@ fhatos> 3.band(max=>8,min=>2)                 // <2>
 fhatos> 10.band(2,max=>8)                     // <3>
 ==>band
 fhatos> 'abc'.band(2,8)                       // <4>
-[ERROR] [/sys/scheduler] [/mmadt/int] 2 accessed as str
-	  thrown at inst 'abc' => gte(from(min)) [0=>'\'abc\'.band(2,8)                       // <4>',1=>8,min=>2,max=>8]
-	  thrown at inst 'abc' => band?int{?}<=int(2,8,min=>2,max=>8)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [0=>'\'abc\'.band(2,8)                       // <4>',1=>8,min=>2,max=>8]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a str as defined by [str][_] 
+		 \_/mmadt/int is not a subtype of /mmadt/str
+	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]] [min=>2,max=>8]
 ----
 
 ++++
@@ -1084,7 +1084,7 @@ This makes `else` useful for expressing https://en.wikipedia.org/wiki/Default_ar
 
 ++++
 <!-- 🐖 ./main_runner.out
-band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)]))]
 1.band(min=>1)                        --- <1>
 10.band()                             --- <2>
 {2,3,4,5}.band(min=>3,max=>4)         --- <3>
@@ -1093,18 +1093,16 @@ band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max)
 
 [source,mmadt]
 ----
-fhatos> band -> ||band?int{?}<=int(min=>else(2),max=>else(8))[is(gte(*min)).is(lte(*max))]
+fhatos> band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)]))]
 ==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],max=>else?noobj<=obj(8)[noobj])
-	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+	[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos> 1.band(min=>1)                        // <1>
 ==>1
 fhatos> 10.band()                             // <2>
 ==>10
 fhatos> {2,3,4,5}.band(min=>3,max=>4)         // <3>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/lte?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id       resolve obj      
-	  ->[/mmadt/obj] /mmadt/lte => lte()
-	  thrown at inst 2 => band?int{?}<=int(min=>3,max=>4)[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]] [0=>'{2,3,4,5}.band(min=>3,max=>4)         // <3>',min=>3,max=>4]
+==>3
+==>4
 ----
 
 ++++
@@ -1130,7 +1128,7 @@ If an argument is defined with a query https://en.wikipedia.org/wiki/Data_type[t
 
 ++++
 <!-- 🐖 ./main_runner.out
-is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 10.is_divisible(2)
 10.is_divisible('abc')
 -->
@@ -1138,7 +1136,7 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==>is_divisble?bool<=int(by?int=>_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
@@ -1160,7 +1158,7 @@ contextual args::
 
 ++++
 <!-- 🐖 ./main_runner.out
-is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 10.is_divisible(2)
 10.is_divisible('abc')
 -->
@@ -1168,7 +1166,7 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==>is_divisble?bool<=int(by?int=>_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
@@ -1197,18 +1195,20 @@ If an argument's type is dependent on the value of another argument, then the ar
 
 ++++
 <!-- 🐖 ./main_runner.out
-band -> ||band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
+band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
 2.band(min=>1,max=>1)                 --- <1>
 -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> band -> ||band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
+fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
 ==>band?int{?}<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj...
 	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
-==>2
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/plus inst unresolved 
+	         lhs id      inst id        resolve obj        
+	  ->[/mmadt/obj] /mmadt/plus => plus(_)
 ----
 
 ++++
@@ -1225,7 +1225,7 @@ refined type::
 
 ++++
 <!-- 🐖 ./main_runner.out
-is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
 10.is_divisible(2)
 10.is_divisible('abc')
 -->
@@ -1233,7 +1233,7 @@ is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').m
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> ||is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
 ==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=...
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
@@ -1426,21 +1426,20 @@ a|
 [source,mmadt]
 ----
 fhatos> a?sub -> \|to(b)
-==>a?sub
+==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
 >sub[
 ==>source=>/io/console
 ==>pattern=>a
-==>on_recv=>a?sub
+==>on_recv=>to(b)
 >]
 fhatos> *b
-==>a?sub
 fhatos> a->12
 ==>12
 fhatos> *a
 ==>12
 fhatos> *b
-==>a?sub
+==>12
 ----
 
 ++++
@@ -1505,24 +1504,45 @@ thread::
 
 ++++
 <!-- 🐖 ./main_runner.out
-thread[[ /
-  loop=>from(a,0).plus(1).to(a).is(gt(10)).true.to(/abc/halt), /
-  halt=>false, /
-  delay=>nat[0]]]@abc
+thread::create(loop=>||( /
+  from(|c,0).print('c: {_}'). /
+  plus(1).to(c). /
+  gt(10).to(t/halt). /
+  is(_).print('\n'))).to(|t)
+@t.spawn()
+*c
 -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> thread[[
-          loop=>from(a,0).plus(1).to(a).is(gt(10)).true.to(/abc/halt),
-          halt=>false,
-          delay=>nat[0]]]@abc
+fhatos> thread::create(loop=>||(
+          from(|c,0).print('c: {_}').
+          plus(1).to(c).
+          gt(10).to(t/halt).
+          is(_).print('\n'))).to(|t)
 >thread[
-==>loop=>from(a,0).plus(1).to(a).is(gt(10)).map(true).to(/abc/halt)
-==>halt=>false
+==>loop=>from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')
 ==>delay=>nat[0]
->]@abc
+==>halt=>true
+>]
+fhatos> @t.spawn()
+[INFO]  [t] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:16192]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+c: 6
+c: 7
+c: 8
+c: 9
+c: 10
+c: 11
+[INFO]  [t] thread stopped
+fhatos> *c
+==>12
 ----
 
 ++++
@@ -1601,27 +1621,18 @@ a -> int8[126]                       --- <2>
 fhatos> /sys/router/config/resolve/auto_prefix ->
           *(_) + \|[/mmadt/ext/]             // <1>
 >[
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
-==>noobj
 >]
 fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
-==>int8[127]@a
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 fhatos> @a + 1
-==>int8[128]@a
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 fhatos> @a + 1                               // <3>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
-	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>'@a + 1                               // <3>',0?int=>1]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -1651,11 +1662,11 @@ fhatos> */mmadt/int/#
 ==>[int][[_]]
 ==>as?obj<=int(isa?noobj<=obj(/mmadt/uri)[noobj])[cpp]
 ==>div?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>gt?bool<=int(_)[cpp]
-==>gte?bool<=int(_)[cpp]
+==>gt?bool<=int(arg?int=>_)[cpp]
+==>gte?bool<=int(arg?int=>_)[cpp]
 ==>inspect?rec<=int(_)[cpp]
-==>lt?bool<=int(_)[cpp]
-==>lte?bool<=int(_)[cpp]
+==>lt?bool<=int(arg?int=>_)[cpp]
+==>lte?bool<=int(arg?int=>_)[cpp]
 ==>minus?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
 ==>mod?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
 ==>mult?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
@@ -1904,9 +1915,9 @@ However, what makes
 [source,mmadt]
 ----
 fhatos> 2.rec[[is(gt(2)) => plus(2), _ => 0]]
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj     
-	  ->[/mmadt/obj] /mmadt/gt => gt()
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj                                      
+	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 ----
 
 ++++
@@ -1929,13 +1940,13 @@ For instance, `if` is implemented with a two entry `rec`, where one entry maps t
 fhatos> /io/console/config/nest -> 0                  // <1>
 ==>0
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj     
-	  ->[/mmadt/obj] /mmadt/gt => gt()
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj                                      
+	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=1,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj     
-	  ->[/mmadt/obj] /mmadt/gt => gt()
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj                                      
+	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 ----
 
 ++++
@@ -2216,18 +2227,17 @@ a -> age[45]
 [source,mmadt]
 ----
 fhatos> age -> \|(is(gt(0)).is(lt(120)))
-[ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
-	  thrown at inst age => gt(0) [0=>'age -> \|(is(gt(0)).is(lt(120)))',code=>'age -> \|(is(gt(0)).is(lt(120)))']
+==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=o...
 fhatos> a -> age[45]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] age is an undefined type
+==>age[45]
 fhatos> *a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
-	         lhs id      inst id           resolve obj           
-	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj                                      
+	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 fhatos> @a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
-	         lhs id      inst id           resolve obj           
-	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+	         lhs id      inst id      resolve obj                                      
+	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 ----
 
 ++++
@@ -2243,10 +2253,10 @@ fhatos> @a.inspect()
 [source,mmadt]
 ----
 fhatos> a?sub -> |print(_)
-a?suba?sub==>a?sub
+==>print?noobj<=obj(_)[noobj]
 fhatos> a -> 12
 ==>12
-fhatos> @a.inspect()
+12fhatos> @a.inspect()
 >[
 ==>type=>[
 ===>id=>/mmadt/int
@@ -2262,12 +2272,12 @@ fhatos> @a.inspect()
 ==>sub=>[
 ===>source=>/io/console
 ===>pattern=>a
-===>on_recv=>a?sub
+===>on_recv=>print(_)
 =>]
 >]
-fhatos> @a.plus(1)
+12@afhatos> @a.plus(1)
 ==>13@a
-fhatos> @a.plus(1).plus(1)
+13@afhatos> @a.plus(1).plus(1)
 ==>15@a
 ----
 
@@ -2297,17 +2307,18 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
-[ERROR] [/sys/scheduler] [/mmadt/int] 0 accessed as uri
-	  thrown at inst /type/int/nat => gt(0) [0=>'/type/int/nat -> |is(gt(0))',code=>'/type/int/nat -> |is(gt(0))']
+[ERROR] [/sys/router] no mounted structure for /type/int/nat  
+==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 fhatos> nat[3].plus(2)
-==>nat[5]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0=>'nat[3].mult(-2)',0?int=>-2]
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -2 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -2425,17 +2436,17 @@ fhatos> a -> 'snowbutt'            // <1>
 fhatos> *a                         // <2>
 ==>'snowbutt'
 fhatos> a?sub -> |to(b)            // <3>
-==>a?sub
+==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub                     // <4>
 >sub[
 ==>source=>/io/console
 ==>pattern=>a
-==>on_recv=>a?sub
+==>on_recv=>to(b)
 >]
 fhatos> a -> 'meangirl'            // <5>
 ==>'meangirl'
 fhatos> *b                         // <6>
-==>a?sub
+==>'meangirl'
 ----
 
 ++++

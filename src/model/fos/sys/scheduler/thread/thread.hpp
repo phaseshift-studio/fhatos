@@ -72,6 +72,8 @@ namespace fhatos {
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
                         const Obj_p loop_code = thread_obj->rec_get("loop");
+                        thread_obj->rec_set("halt",dool(false));
+                        thread_obj->save();
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                                                             loop_code->toString(),
                                                             thread_obj->rec_get("config/stack_size",
@@ -135,11 +137,10 @@ namespace fhatos {
             return Obj::to_rec(args->rec_value(), THREAD_FURI);
           })->save();
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
-          ->domain_range(THREAD_FURI, {1, 1}, THREAD_FURI, {1, 1})
+          ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
             const ptr<Thread> thread_state = Model::get_state<Thread>(thread_obj);
-            thread_state->thread_obj_->rec_set("halt", dool(false));
-            return thread_state->thread_obj_;
+            return Obj::to_noobj();
           })->save();
       return nullptr;
     }

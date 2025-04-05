@@ -196,7 +196,24 @@ namespace fhatos {
     //LOG_WRITE(INFO, str("here").get(), L("blockers {} {}: {}\n", op, dool(found)->toString(),
     //                                     ROUTER_READ(MMADT_PREFIX "inst/blockers")->toString()));
     return found;
+  }
 
+  bool is_block_child(const Obj_p &obj) {
+    return (obj->is_bcode() &&
+            !obj->bcode_value()->empty() &&
+            Compiler::in_block_list(obj->bcode_value()->front()->inst_op())) ||
+           (obj->is_inst() && Compiler::in_block_list(obj->inst_op()));
+  }
+
+  Obj_p get_child(const Obj_p &obj) {
+    if(obj->is_bcode() &&
+       1 == obj->bcode_value()->size() &&
+       Compiler::in_block_list(obj->bcode_value()->front()->inst_op())) {
+      return obj->bcode_value()->front()->inst_args()->arg(0);
+    } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op())) {
+        return obj->inst_args()->arg(0);
+    } else
+      return obj;
   }
 
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
@@ -218,17 +235,17 @@ namespace fhatos {
               found = true;
               merged_args->rec_set(
                   rk, in_block_list(provided_inst->inst_op())
-                        ? (lhs->is_noobj() && provided_inst->inst_op() == "block" ? provided_inst : lv)
+                        ? lv
+                        : is_block_child(lv)
+                        ? get_child(lv)
                         : rv->apply(lv->apply(lhs)));
             }
           }
           if(!found)
             merged_args->rec_set(
                 rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
-                      ? in_block_list(provided_inst->inst_op())
-                          ? lhs->is_noobj() && provided_inst->inst_op() == "block"
-                              ? provided_inst
-                              : inst_provided_args->arg(r_counter)
+                      ? in_block_list(provided_inst->inst_op()) || is_block_child(inst_provided_args->arg(r_counter))
+                          ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
                       : rv->apply(lhs)); // default arg
           r_counter++;

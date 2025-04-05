@@ -30,7 +30,7 @@ namespace fhatos {
 
   void test_as_inst() {
     FOS_TEST_FURI_EQUAL(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"),
-                        *PROCESS("/abc/nat -> ||/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid);
+                        *PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(/mmadt/int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(type())"));
@@ -287,7 +287,7 @@ namespace fhatos {
   }
 
   void test_drop_inst() {
-    FOS_TEST_FURI_EQUAL(fURI(MMADT_SCHEME "/from"), *PROCESS("/abc/drop_1 -> ||*/abc/drop_2")->tid);
+    FOS_TEST_FURI_EQUAL(fURI(MMADT_SCHEME "/from"), *PROCESS("/abc/drop_1 -> |*/abc/drop_2")->tid);
     FOS_TEST_FURI_EQUAL(fURI("plus"), *PROCESS("/abc/drop_2 -> |plus(10)")->tid);
     // FOS_TEST_OBJ_EQUAL(jnt(33), PROCESS("23.drop(drop(*/abc/drop_1))"));
     // TODO: implement repeat(drop()).until(not_code)   drop_hard() :)
@@ -303,18 +303,18 @@ namespace fhatos {
     //FOS_TEST_OBJ_EQUAL(jnt(11), PROCESS("1./abc/k()"));
     //FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("2./abc/k(1,2)"));
     //////////////////////////////////////////////////////////////////
-    PROCESS("/abc/k -> ||(plus(10).plus(1))");
+    PROCESS("/abc/k -> |(plus(10).plus(1))");
     FOS_TEST_OBJ_EQUAL(jnt(12), PROCESS("1./abc/k()"));
     FOS_TEST_OBJ_EQUAL(jnt(13), PROCESS("2./abc/k(1,2)"));
     //////////////////////////////////////////////////////////////////
-    PROCESS("/abc/k -> ||(plus(*<0>).plus(*<1>))");
+    PROCESS("/abc/k -> |(plus(*<0>).plus(*<1>))");
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("1./abc/k(2,4)"));
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("1./abc/k(<0>=>1,<1>=>2)"));
     //////////////////////////////////////////////////////////////////
-    PROCESS("/abc/k -> ||[*a1,*b1,_]");
+    PROCESS("/abc/k -> |[*a1,*b1,_]");
     FOS_TEST_OBJ_EQUAL(lst({jnt(32),str("pig"),jnt(12)}), PROCESS("12./abc/k(a1=>32,b1=>'pig')"));
     FOS_TEST_ERROR("1./abc/k(88,'fhatos')");
-    PROCESS("/abc/k -> ||[*<0>,*<1>,_]");
+    PROCESS("/abc/k -> |[*<0>,*<1>,_]");
     FOS_TEST_OBJ_EQUAL(lst({jnt(88),str("fhatos"),jnt(11)}), PROCESS("11./abc/k(88,'fhatos')"));
     FOS_TEST_OBJ_EQUAL(lst({jnt(100),vri("test"),jnt(10)}), PROCESS("10./abc/k(/abc/a=>100,/abc/b=>test)"));
   }

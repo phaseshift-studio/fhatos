@@ -190,23 +190,23 @@ namespace fhatos {
   }
 
   void test_inst_parsing() {
-    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(66), PROCESS("1./abc/temp_inst(65)"));
-    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(68), PROCESS("2./abc/temp_inst(66)"));
-    PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
+    PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]");
     FOS_TEST_OBJ_EQUAL(jnt(70), PROCESS("3./abc/temp_inst(67)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/zyz"),
-                        *PROCESS("/abc/temp_inst -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zyz")->vid);
+                        *PROCESS("/abc/temp_inst -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]@/abc/zyz")->vid);
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/temp_inst(69)"));
     FOS_TEST_OBJ_EQUAL(jnt(73), PROCESS("4./abc/zyz(69)"));
     FOS_TEST_FURI_EQUAL(ID("/abc/temp_inst"),
-                        PROCESS("/abc/zzz -> ||/abc/temp_inst?int<=int(?int)[plus(*<0>)]")->tid->no_query());
+                        PROCESS("/abc/zzz -> |/abc/temp_inst?int<=int(?int)[plus(*<0>)]")->tid->no_query());
     FOS_TEST_OBJ_EQUAL(jnt(105), PROCESS("5./abc/zzz(100)"));
     ///////////////////////////////////////////////////////////////
    /* FOS_TEST_OBJ_EQUAL(dool(false),
                        PROCESS(
-                         "||(bool?bool<=bool(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
+                         "|(bool?bool<=bool(a=>_)[is(eq(*a))]@/abc/bool/true_static);\n"
                          "false./abc/bool/true_static(a=>_).to(/abc/bool/inst_parse);\n"
                          "*/ //abc/bool/inst_parse"*/
                       // ));
@@ -221,7 +221,7 @@ namespace fhatos {
 
     const ID_p ncount = id_p("/abc/ncount");
     const Inst_p ncount_inst = PROCESS(
-        "/abc/ncount -> ||/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
+        "/abc/ncount -> |/abc/ncount?int{1}<=objs{*}(a=>7)[count().plus(*a)]@/abc/ncount");
     FOS_TEST_FURI_EQUAL(*ncount, ncount_inst->tid->query(""));
     FOS_TEST_FURI_EQUAL(*ncount, *ncount_inst->vid);
     TEST_ASSERT_EQUAL(OType::INST, ncount_inst->otype);

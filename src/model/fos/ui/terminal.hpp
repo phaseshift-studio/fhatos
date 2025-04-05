@@ -39,7 +39,8 @@ namespace fhatos {
           ->inst_args(rec({{"output?str", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             FEED_WATCHDOG();
-            STD_OUT_DIRECT(args->arg("output"));
+            const Str_p output = args->arg("output")->clone();
+            STD_OUT_DIRECT(output);
             return noobj();
           })->save();
       InstBuilder::build(TERMINAL_FURI->add_component(":stdin"))
@@ -60,7 +61,7 @@ namespace fhatos {
     static void STD_OUT_DIRECT(const Str_p &str, const Int_p &ellipsis = Obj::to_noobj()) {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
-      string output = str->str_value();
+      auto output = string(str->str_value());
       if(!ellipsis->is_noobj())
         StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
       printer<>()->print(output.c_str());

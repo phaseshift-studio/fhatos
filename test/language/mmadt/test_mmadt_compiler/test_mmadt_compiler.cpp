@@ -60,18 +60,18 @@ namespace fhatos {
     FOS_TEST_COMPILER_FALSE(jnt(43), ID("/compiler/truth"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(str("true"), ID("/compiler/truth"), compiler.type_check);
     /////////////////////////////////// INT /////////////////////////////////////////////////////
-    PROCESS("/compiler/nat -> ||/compiler/nat?int<=int()[is(gt(0))]");
+    PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(jnt(-1), ID("/compiler/nat"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(1.46), ID("/compiler/nat"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.46), ID("/compiler/nat"), compiler.type_check);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    PROCESS("/compiler/nat2 -> ||/compiler/nat2?int<=int(=>)[is(gt(0))]");
+    PROCESS("/compiler/nat2 -> |/compiler/nat2?int<=int(=>)[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat2"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(jnt(-1), ID("/compiler/nat2"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(-1.23), ID("/compiler/nat2"), compiler.type_check);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    PROCESS("/compiler/nat3 -> ||/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
+    PROCESS("/compiler/nat3 -> |/compiler/nat3?int{?}<=int(=>)[is(gt(0))]");
     FOS_TEST_COMPILER_TRUE(jnt(1), ID("/compiler/nat3"), compiler.type_check);
     FOS_TEST_COMPILER_TRUE(jnt(-1), ID("/compiler/nat3"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(real(1.23), ID("/compiler/nat3"), compiler.type_check);
@@ -81,16 +81,16 @@ namespace fhatos {
   void test_type_check_derived_poly_types() {
     Compiler compiler = Compiler(false, false);
     // lst
-    PROCESS("/compiler/lst_alias -> ||?lst");
+    PROCESS("/compiler/lst_alias -> |?lst");
     FOS_TEST_COMPILER_TRUE(lst(), ID("/compiler/lst_alias"), compiler.type_check);
     FOS_TEST_COMPILER_TRUE(lst({jnt(1),jnt(2)}), ID("/compiler/lst_alias"), compiler.type_check);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    PROCESS("/compiler/lst_swap_name -> ||/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
+    PROCESS("/compiler/lst_swap_name -> |/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
     //FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),ID("/compiler/lst_swap_name"),compiler.type_check); // TODO: start vs. map mid-monoid
     FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name"), compiler.type_check);
     //FOS_TEST_COMPILER_FALSE(lst({str("one")}),ID("/compiler/lst_swap_name"),compiler.type_check);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    PROCESS("/compiler/lst_swap_name2 -> ||/compiler/lst_swap_name2?lst<=lst()[==[as(str),as(str)]]");
+    PROCESS("/compiler/lst_swap_name2 -> |/compiler/lst_swap_name2?lst<=lst()[==[as(str),as(str)]]");
     FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}), ID("/compiler/lst_swap_name2"), compiler.type_check);
     FOS_TEST_COMPILER_TRUE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name2"), compiler.type_check);
     FOS_TEST_COMPILER_FALSE(lst({str("one")}), ID("/compiler/lst_swap_name2"), compiler.type_check);
@@ -108,7 +108,7 @@ namespace fhatos {
 
   void test_derived_type_inst_resolution() {
     FOS_TEST_FURI_EQUAL(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"),
-                        *PROCESS("/compiler/nat -> ||/compiler/nat?int<=int()[is(gt(0))]")->tid);
+                        *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
     FOS_TEST_ERROR("/compiler/nat[-5]");
     // FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));

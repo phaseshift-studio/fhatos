@@ -19,6 +19,8 @@
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
 
+#define CUSTOM_STACK_NAME "custom_stack"
+
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
 #include "../mmadt/rewriter.hpp"
@@ -28,6 +30,8 @@ namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
   /////////////////////////////// PROCESSOR /////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////
+
+  static const ID_p PROCESSOR_FURI = id_p("/sys/vm");
 
   class Processor final : public Obj { // : public IDed, Typed or perhaps just full Obj`
 
@@ -162,16 +166,20 @@ namespace fhatos {
     static Objs_p compute(const BCode_p &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
       if(const Int_p stack_size = ROUTER_READ("/sys/vm/config/stack_size"); stack_size->is_noobj()) {
-        const Obj_p objs = Processor(bcode).to_objs();
+        Obj_p objs = Processor(bcode).to_objs();
         return objs;
       } else {
-        static ptr<Processor> processor;
-        processor = make_shared<Processor>(bcode);
-        static Obj_p PROCESSOR_OUTPUT;
+        const ID custom_stack_furi = PROCESSOR_FURI->extend(CUSTOM_STACK_NAME);
+        ROUTER_WRITE(custom_stack_furi, bcode, true);
         MemoryHelper::use_custom_stack([] {
-          PROCESSOR_OUTPUT = std::move(processor->to_objs());
+          const ID custom_stack_furi_inner = PROCESSOR_FURI->extend(CUSTOM_STACK_NAME);
+          const BCode_p bcode_inner = ROUTER_READ(custom_stack_furi_inner);
+          const Obj_p objs = Processor(bcode_inner).to_objs();
+          ROUTER_WRITE(custom_stack_furi_inner, objs, true);
         }, stack_size->int_value());
-        return PROCESSOR_OUTPUT;
+        Objs_p result = ROUTER_READ(custom_stack_furi)->clone();
+        ROUTER_WRITE(custom_stack_furi, Obj::to_noobj(), true);
+        return result;
       }
     }
 
