@@ -1523,6 +1523,22 @@ fhatos> thread::create(loop=>||(
 ==>halt=>true
 >]
 fhatos> @t.spawn()
+[INFO]  [t] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:16192]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+c: 6
+c: 7
+c: 8
+c: 9
+c: 10
+c: 11
+[INFO]  [t] thread stopped
+fhatos> *c
+==>12
 ----
 
 ++++
@@ -2294,6 +2310,11 @@ fhatos> nat[6]
 fhatos> nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 fhatos> nat[3].plus(2)
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
+fhatos> nat[3].mult(-2)
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -2 is not a int as defined by [int][_] 
+		 \_/mmadt/obj is not a subtype of /mmadt/int
 ----
 
 ++++

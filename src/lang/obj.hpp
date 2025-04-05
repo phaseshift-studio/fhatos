@@ -860,7 +860,14 @@ namespace fhatos {
 
     template<typename T>
     [[nodiscard]] T get(const fURI &key) const {
-      return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
+      try {
+        return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
+      } catch(const std::bad_any_cast &e) {
+        throw fError::create("wrong underlying type of %s in %s: %s",
+                             key.toString().c_str(),
+                             this->toString().c_str(),
+                             e.what());
+      }
     }
 
     [[nodiscard]] bool has(const fURI &key) const {
@@ -1853,8 +1860,8 @@ namespace fhatos {
         case OType::URI:
           return lhs->deref(this->shared_from_this(), true);
         case OType::TYPE: {
-         Obj_p new_value = this->type_value()->apply(lhs);
-          return Obj::create(new_value->value_,new_value->otype,this->tid,new_value->vid);
+          Obj_p new_value = this->type_value()->apply(lhs);
+          return Obj::create(new_value->value_, new_value->otype, this->tid, new_value->vid);
         }
         case OType::LST: {
           const auto new_values = make_shared<LstList>();

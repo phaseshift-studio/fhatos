@@ -35,9 +35,6 @@ namespace fhatos {
   protected:
     string line_;
     bool new_input_ = true;
-    /*ID_p stdin_id;
-    ID_p stdout_id;*/
-    bool direct_stdin_out = true;
     mmadt::Tracker tracker_;
 
   public:
@@ -127,18 +124,24 @@ namespace fhatos {
 
     ///// printers
     void write_stdout(const Obj_p &console_obj, const Str_p &s) const {
-      if(const fURI out = console_obj->get<fURI>("config/terminal/stdout");
-        Terminal::singleton()->vid->extend(":stdout") == out)
+      if(console_obj->has("config/terminal/stdout")) {
+        if(const fURI out = console_obj->get<fURI>("config/terminal/stdout");
+          Terminal::singleton()->vid->extend(":stdout") == out) {
+          Terminal::STD_OUT_DIRECT(s, console_obj->rec_get("config/ellipsis"));
+        } else
+          ROUTER_WRITE(out, s, RETAIN);
+      } else {
         Terminal::STD_OUT_DIRECT(s, console_obj->rec_get("config/ellipsis"));
-      else
-        ROUTER_WRITE(out, s, RETAIN);
+      }
     }
 
     [[nodiscard]] Str_p read_stdin(const Obj_p &console_obj, const char until) const {
-      const fURI in = console_obj->get<fURI>("config/terminal/stdin");
-      return Terminal::singleton()->vid->extend(":stdin") == in
-               ? Terminal::STD_IN_LINE_DIRECT(until)
-               : Router::singleton()->exec(in, noobj());
+      if(console_obj->has("config/terminal/stdin")) {
+        const fURI in = console_obj->get<fURI>("config/terminal/stdin");
+        return Terminal::singleton()->vid->extend(":stdin") == in
+                 ? Terminal::STD_IN_LINE_DIRECT(until)
+                 : Router::singleton()->exec(in, noobj());
+      }
     }
 
     void print_exception(const Obj_p &console_obj, const std::exception &ex) const {
