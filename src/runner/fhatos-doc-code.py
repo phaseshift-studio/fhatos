@@ -201,7 +201,9 @@ class ProcessingState:
                 new_header.append(c.removeprefix("[HEADER] "))
             else:
                 o = self._post_process_output(c, self.in_table)
-                if o is not None:
+                if (o is not None and
+                        -1 == o.find("==>noobj") and
+                        -1 == o.find("[/io/console] thread spawned")):
                     new_output.append(o)
         ###################################################################
         if not self.in_table:

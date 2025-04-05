@@ -53,7 +53,7 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 int main(int arg, char **argsv) {
   Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());
   try {
-    char* args[5];
+    char *args[5];
     args[0] = "main_runner";
     args[1] = "--headers=false";
     args[2] = "--log=INFO";
@@ -64,7 +64,7 @@ int main(int arg, char **argsv) {
     printer()->printer_switch(false);
     printer()->ansi_switch(false);
     BootLoader::primary_boot(argv_parser);
-    Router::singleton()->write("/io/console/config/terminal",Obj::to_noobj(),true);
+    Router::singleton()->write("/io/console/config/terminal", Obj::to_noobj(), true);
   } catch(const std::exception &e) {
     fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
     throw;
@@ -76,21 +76,19 @@ int main(int arg, char **argsv) {
     try {
       auto x = string(argsv[i]);
       StringHelper::trim(x);
+      const bool has_thread = x.find("spawn") != string::npos;
       printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
-      // printer()->print(" ");
       printer()->println(x.c_str());
       Router::singleton()->loop();
       StringHelper::replace(&x, "'", "\\'"); // escape quotes
       Processor::compute(fmt::format("*/io/console.eval('{}')", x));
       Router::singleton()->loop();
-      if(x.find("spawn") != string::npos)
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   }
-  delete[] argsv;
   return 0;
 }
 #endif
