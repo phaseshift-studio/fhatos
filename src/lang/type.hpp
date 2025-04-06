@@ -86,7 +86,7 @@ namespace fhatos {
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid) {
-              LOG_WRITE(DEBUG, Typer::singleton().get(), L("!m==>!!searching for !yinst!! !b%s!!\n",
+              LOG_WRITE(DEBUG, Typer::singleton().get(), L("!m==>!!searching for !yinst!! !b{}!!\n",
                                                            inst_type_id.toString()));
               const ID next_inst_type_id =
                   current_obj->vid->add_component(inst_type_id);
@@ -99,7 +99,7 @@ namespace fhatos {
             /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
             LOG_WRITE(DEBUG, Typer::singleton().get(),
-                      L("!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id.toString()));
+                      L("!m==>!!searching for !yinst!! !b{}!!\n", inst_type_id.toString()));
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
                                            ? inst_type_id // drop back to flat namespace
                                            : ID(current_obj->tid->no_query().add_component(inst_type_id));

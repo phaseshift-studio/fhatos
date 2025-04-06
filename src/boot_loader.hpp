@@ -124,6 +124,7 @@ namespace fhatos {
             ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
             ->import(fOS::import_types())
             ->import(fOS::import_q_procs())
+            ->import(Processor::import())
             ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
             ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
                                          QDoc::create("/mnt/mmadt/q/doc")))

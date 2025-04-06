@@ -25,6 +25,7 @@
 #include "../obj.hpp"
 #include "../mmadt/rewriter.hpp"
 #include "../mmadt/compiler.hpp"
+#include "../../model/fos/util/log.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
@@ -186,6 +187,20 @@ namespace fhatos {
     static Objs_p compute(const string &bcode) {
       return Processor::compute(OBJ_PARSER(bcode));
     }
+
+    static void *import() {
+      Typer::singleton()->save_type(*PROCESSOR_FURI, Obj::to_rec());
+      InstBuilder::build(PROCESSOR_FURI->add_component("eval"))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+          ->inst_args(rec({{"code?str", Obj::to_bcode()}}))
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            Objs_p result = Processor::compute(OBJ_PARSER(args->arg("code")->str_value()));
+            return result;
+          })
+          ->save();
+      return nullptr;
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////
    ///////////////////////////////// MONAD ///////////////////////////////////

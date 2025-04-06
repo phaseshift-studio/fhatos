@@ -107,6 +107,30 @@ namespace mmadt {
       return this->extend("isa", rhs);
     }
 
+    [[nodiscard]] _mmADT and_(const Obj_p &rhs1, const Obj_p &rhs2, const Obj_p &rhs3 = nullptr,
+                              const Obj_p &rhs4 = nullptr) const {
+      const Lst_p ands = lst();
+      ands->lst_add(rhs1);
+      ands->lst_add(rhs2);
+      if(rhs3)
+        ands->lst_add(rhs3);
+      if(rhs4)
+        ands->lst_add(rhs4);
+      return this->extend("and", ands);
+    }
+
+    [[nodiscard]] _mmADT or_(const Obj_p &rhs1, const Obj_p &rhs2, const Obj_p &rhs3 = nullptr,
+                             const Obj_p &rhs4 = nullptr) const {
+      const Lst_p ors = lst();
+      ors->lst_add(rhs1);
+      ors->lst_add(rhs2);
+      if(rhs3)
+        ors->lst_add(rhs3);
+      if(rhs4)
+        ors->lst_add(rhs4);
+      return this->extend("or", ors);
+    }
+
     [[nodiscard]] _mmADT isa(const fURI &rhs) const {
       return this->extend("isa", vri(rhs));
     }

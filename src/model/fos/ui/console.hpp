@@ -48,7 +48,9 @@ namespace fhatos {
                        {"delay", jnt(0, NAT_FURI)},
                        {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
                             [](const Obj_p &console_obj, const InstArgs &) {
-                              const auto console_state = dynamic_cast<Console *>(get_state<Thread>(console_obj).get());
+                              console_obj->sync();
+                              // static_cast necessary for esp32
+                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
                               try {
                                 /// WRITE TO PROMPT
                                 if(console_obj->has("config/terminal/stdout")) {
@@ -129,20 +131,21 @@ namespace fhatos {
           Terminal::singleton()->vid->extend(":stdout") == out) {
           Terminal::STD_OUT_DIRECT(s, console_obj->rec_get("config/ellipsis"));
         } else
-          ROUTER_WRITE(out, s, RETAIN);
+          ROUTER_WRITE(out, s, TRANSIENT);
       } else {
         Terminal::STD_OUT_DIRECT(s, console_obj->rec_get("config/ellipsis"));
       }
     }
 
     [[nodiscard]] Str_p read_stdin(const Obj_p &console_obj, const char until) const {
-      if(console_obj->has("config/terminal/stdin")) {
-        const fURI in = console_obj->get<fURI>("config/terminal/stdin");
-        return Terminal::singleton()->vid->extend(":stdin") == in
-                 ? Terminal::STD_IN_LINE_DIRECT(until)
-                 : Router::singleton()->exec(in, noobj());
-      }
+      // if(console_obj->has("config/terminal/stdin")) {
+      const fURI in = console_obj->get<fURI>("config/terminal/stdin");
+      return Terminal::singleton()->vid->extend(":stdin") == in
+               ? Terminal::STD_IN_LINE_DIRECT(until)
+               : Router::singleton()->exec(in, noobj());
+      //}
     }
+
 
     void print_exception(const Obj_p &console_obj, const std::exception &ex) const {
       this->write_stdout(console_obj, str(fmt::format("!r[ERROR]!! {}\n", ex.what())));
@@ -174,14 +177,17 @@ namespace fhatos {
         return;
       }
       FEED_WATCHDOG();
-      const Obj_p obj = OBJ_PARSER(line);
+
+      Obj_p result;
+      if(console_obj->has("config/processor")) {
+        const Uri_p proc = console_obj->rec_get("config/processor");
+        result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
+      } else {
+        result = Processor::compute(line);
+      }
       std::stringbuf to_out;
       FEED_WATCHDOG();
-      PrintHelper::pretty_print_obj(BCODE_PROCESSOR(obj),
-                                    0,
-                                    console_obj->get<int>("config/nest"),
-                                    false,
-                                    &to_out);
+      PrintHelper::pretty_print_obj(result, 0, console_obj->get<int>("config/nest"), false, &to_out);
       this->write_stdout(console_obj, str(to_out.str()));
     }
 
@@ -197,7 +203,7 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
-            dynamic_cast<Console *>(console_state.get())->clear();
+            static_cast<Console *>(console_state.get())->clear();
             return console_obj;
           })->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
@@ -207,12 +213,13 @@ namespace fhatos {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            dynamic_cast<Console *>(console_state.get())->process_line(console_obj, code);
+            static_cast<Console *>(console_state.get())->process_line(console_obj, code);
             return Obj::to_noobj();
           })
           ->save();
       return nullptr;
     }
   };
+
 } // namespace fhatos
 #endif

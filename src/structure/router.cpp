@@ -166,7 +166,9 @@ namespace fhatos {
 
   void Router::save() const {
     const Lst_p structures = Obj::to_lst();
-    this->structures_->forEach([structures](const Structure_p &structure) { structures->lst_add(vri(structure->pattern)); });
+    this->structures_->forEach([structures](const Structure_p &structure) {
+      structures->lst_add(vri(structure->pattern));
+    });
     this->rec_set(FOS_ROUTER_STRUCTURE, structures);
     Obj::save();
   }
@@ -213,7 +215,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      LOG_WRITE(DEBUG, this, L(FURI_WRAP " !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to " FURI_WRAP "\n",
+      LOG_WRITE(DEBUG, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
                                "obj", retain ? "retained" : "transient",
                                furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);

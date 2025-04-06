@@ -237,21 +237,30 @@ namespace fhatos {
       Router::singleton()->loop();
       FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      ROUTER_WRITE(p("abc"),str("little fhatty pig"),true);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       ////////// unsubscribe
       ROUTER_WRITE(p("abc","sub"),Obj::to_noobj(),true);
       Router::singleton()->loop();
-      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc","sub")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       ////////// transient (no sub)
       ROUTER_WRITE(p("abc"),str("the fhat"),false);
       Router::singleton()->loop();
-      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
+      ROUTER_WRITE(p("abc"),str("the little fhat"),false);
+      Router::singleton()->loop();
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       ////////// retain (no sub)
       ROUTER_WRITE(p("abc"),str("the fhat"),true);
       Router::singleton()->loop();
       FOS_TEST_OBJ_EQUAL(str("the fhat"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(str("fhatty pig"), ROUTER_READ(p("bcd")));
+      FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       this->detach();
     }
 

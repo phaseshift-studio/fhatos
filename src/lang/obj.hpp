@@ -506,6 +506,18 @@ namespace fhatos {
       return ROUTER_READ(vid);
     }
 
+    virtual void sync() const {
+      if(this->vid) {
+        const Obj_p fresh = ROUTER_READ(*this->vid);
+        if(this->otype != fresh->otype) {
+          throw fError("%s synchronization yielded different base types: %s != %s", this->vid->toString().c_str(),
+                       OTypes.to_chars(this->otype).c_str(), OTypes.to_chars(fresh->otype).c_str());
+        }
+        const_cast<Obj *>(this)->value_ = fresh->value_;
+        const_cast<Obj *>(this)->tid = fresh->tid;
+      }
+    }
+
     virtual void save() const {
       this->at(this->vid);
     }

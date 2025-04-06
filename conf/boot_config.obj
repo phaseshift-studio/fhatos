@@ -25,6 +25,7 @@
    stdout=>/io/terminal/:stdout,
    stdin=>/io/terminal/:stdin
   ],
+  processor=>/sys/vm/,
   nest=>2,
   ellipsis=>50,
   prompt=>'!mfhatos!g>!! ',
