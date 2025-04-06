@@ -92,7 +92,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 880 bytes)
+[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 902 bytes)
 [INFO]  [/sys/router] 
   [
     router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
@@ -102,7 +102,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,async=>true,cache_size=>50]
     wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
     ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],nest=>2,ellipsis=>50,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>32384,stack_trace=>true]
+    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>32384,stack_trace=>true]
     fs=>[root=>./data/fs]
   ]@/boot/config
 [INFO]  [/sys/router] router boot config dropped
@@ -111,6 +111,8 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] /sys/lib/dsm type imported
 [INFO]  [/sys/router] /sys/lib/bus type imported
 [INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
+[INFO]  [/sys/type] /sys/vm type defined
+[INFO]  [/sys/type] /sys/vm/::/eval type defined
       .oO loading mmadt lang Oo.
 [INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
 [INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
@@ -346,17 +348,17 @@ fhatos> */mmadt/#/
 =>]
 ==>/mmadt/int=>[int][_]
 ==>/mmadt/int/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
-==>/mmadt/int/::/mmadt/div=>div(0?int=>isa(/mmadt/int))[cpp]
+==>/mmadt/int/::/mmadt/div=>div(0?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/gt=>gt(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/gte=>gte(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/inspect=>inspect(_)[cpp]
 ==>/mmadt/int/::/mmadt/lt=>lt(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/lte=>lte(arg?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/minus=>minus(0?int=>isa(/mmadt/int))[cpp]
+==>/mmadt/int/::/mmadt/minus=>minus(0?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/mod=>mod(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/mult=>mult(0?int=>isa(/mmadt/int))[cpp]
+==>/mmadt/int/::/mmadt/mult=>mult(0?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/neg=>neg(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/plus=>plus(0?int=>isa(/mmadt/int))[cpp]
+==>/mmadt/int/::/mmadt/plus=>plus(0?int=>_)[cpp]
 ==>/mmadt/is=>is?obj{?}<=obj(_)[cpp]
 ==>/mmadt/isa=>isa?obj{?}<=obj(type?uri=>_)[cpp]
 ==>/mmadt/lift=>lift(_)[cpp]
@@ -511,7 +513,7 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 fhatos> # -> noobj
 [ERROR] [/sys/router] # crosses multiple structures
 [INFO]  [/sys/router] 1 bus(s) closing
-[INFO]  [/sys/router] 1 dsm(s) closing
+[ERROR] [/io/console] thread error: /io/console synchronization yielded different base types: rec != noobj
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
 [INFO]  [/sys/router] router /sys/router stopped
@@ -910,13 +912,12 @@ fhatos> nat[-30]
 fhatos> nat[12]@a
 ==>nat[12]@a
 fhatos> @a.minus(11)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 11 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+==>nat[1]@a
 fhatos> @a.minus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0?int=>2]
 fhatos> *a
-==>nat[12]@a
+==>nat[1]@a
 ----
 
 ++++
@@ -1621,14 +1622,12 @@ fhatos> /sys/router/config/resolve/auto_prefix ->
 fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+==>int8[127]@a
 fhatos> @a + 1
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+==>int8[128]@a
 fhatos> @a + 1                               // <3>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 1 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
+	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0?int=>1]
 ----
 
 ++++
@@ -1657,17 +1656,17 @@ The wildcard feature of the fURI scheme makes it possible to access instructions
 fhatos> */mmadt/int/#
 ==>[int][[_]]
 ==>as?obj<=int(isa?noobj<=obj(/mmadt/uri)[noobj])[cpp]
-==>div?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
+==>div?int<=int(0?int=>_)[cpp]
 ==>gt?bool<=int(arg?int=>_)[cpp]
 ==>gte?bool<=int(arg?int=>_)[cpp]
 ==>inspect?rec<=int(_)[cpp]
 ==>lt?bool<=int(arg?int=>_)[cpp]
 ==>lte?bool<=int(arg?int=>_)[cpp]
-==>minus?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
+==>minus?int<=int(0?int=>_)[cpp]
 ==>mod?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>mult?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
+==>mult?int<=int(0?int=>_)[cpp]
 ==>neg?int<=int(isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
-==>plus?int<=int(0?int=>isa?noobj<=obj(/mmadt/int)[noobj])[cpp]
+==>plus?int<=int(0?int=>_)[cpp]
 ----
 
 ++++
@@ -2310,11 +2309,10 @@ fhatos> nat[6]
 fhatos> nat[-6]
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
 fhatos> nat[3].plus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+==>nat[5]
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -2 is not a int as defined by [int][_] 
-		 \_/mmadt/obj is not a subtype of /mmadt/int
+[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0?int=>-2]
 ----
 
 ++++
