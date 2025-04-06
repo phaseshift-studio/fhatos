@@ -19,6 +19,7 @@
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_MMADT_EXT_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_SCHEDULER
@@ -97,6 +98,17 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
   }
 
+  void test_type_definitions() {
+    TEST_ASSERT_EQUAL_STRING("big_nat", PROCESS("/compiler/big_nat -> |/compiler/big_nat?nat<=nat()[is(gt(nat[10]))]")->tid->name().c_str());
+    FOS_TEST_OBJ_EQUAL(jnt(11,id_p("/compiler/big_nat")),PROCESS("/compiler/big_nat[11]"));
+    FOS_TEST_OBJ_EQUAL(jnt(23,id_p("/compiler/big_nat")),PROCESS("/compiler/big_nat[11].plus(/compiler/big_nat[12])"));
+    FOS_TEST_OBJ_EQUAL(jnt(21,id_p("/compiler/big_nat")),PROCESS("/compiler/big_nat[11].plus(nat[10])"));
+    FOS_TEST_OBJ_EQUAL(jnt(100,id_p("/compiler/big_nat")),PROCESS("/compiler/big_nat[11].plus(89)"));
+    FOS_TEST_ERROR("/compiler/big_nat[10]");
+    FOS_TEST_ERROR("/compiler/big_nat[-12]");
+    FOS_TEST_ERROR("/compiler/big_nat[11].plus(-1)");
+  }
+
   void test_inst_resolution() {
     Compiler compiler = Compiler(true, true);
     FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
@@ -119,6 +131,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_type_check_base_types); //
       FOS_RUN_TEST(test_type_check_derived_mono_types); //
       FOS_RUN_TEST(test_type_check_derived_poly_types); //
+      FOS_RUN_TEST(test_type_definitions); //
       // FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
       )

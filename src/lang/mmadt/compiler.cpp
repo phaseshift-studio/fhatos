@@ -55,8 +55,6 @@ namespace fhatos {
           max_2 = c;
       }
       int counter = 0;
-      // "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
-
       derivation_string->append(StringHelper::format(string("\n\t%")
                                                      .append("8").append("s !y%-")
                                                      .append(to_string(max_0)).append("s  !y%-")
@@ -325,8 +323,8 @@ namespace fhatos {
     if(type_no_query_id.equals(*OTYPE_FURI.at(value_obj->otype)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-    // if(value_obj->tid->equals(type_no_query_id))
-    //   return true;
+     if(value_obj->tid->equals(type_no_query_id))
+       return true;
     // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
     if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype == OType::BCODE)
       return true;
