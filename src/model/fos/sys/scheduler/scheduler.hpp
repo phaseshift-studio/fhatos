@@ -42,13 +42,14 @@ namespace fhatos {
     ptr<Router> router_ = nullptr;
 
   public:
-    explicit Scheduler(const ID &id) : Rec(rmap({{"thread", lst()}}),
-                                           OType::REC, REC_FURI, id_p(id)) {
+    explicit Scheduler(const ID &id) :
+      Rec(rmap({{"thread", lst()}}),
+          OType::REC, REC_FURI, id_p(id)) {
       SCHEDULER_ID = id_p(id);
       FEED_WATCHDOG = [this] {
         this->feed_local_watchdog();
       };
-      LOG_WRITE(INFO, this, L("!g[!y/sys/scheduler!g] !yscheduler!! started\n"));
+      LOG_WRITE(INFO, this, L("!g[!y{}!g] !yscheduler!! started\n", id.toString()));
       // TODO: broadcast when online to trigger bootstrap of other models
       /*Router::singleton()->write(Router::singleton()->vid, vri(this->vid), false);
       Router::singleton()->route_subscription(Subscription::create(
@@ -127,7 +128,7 @@ namespace fhatos {
       while(true) {
         this->feed_local_watchdog();
         this->router_->loop();
-        for(const auto& l : *this->loops_) {
+        for(const auto &l: *this->loops_) {
           ROUTER_READ(l->vid_or_tid()->add_component("loop"))->apply(Obj::to_noobj());
         }
         Thread::yield_current_thread();

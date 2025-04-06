@@ -784,10 +784,10 @@ namespace mmadt {
                       if(done)
                         list->lst_add(Obj::to_noobj());
                       else {
-                        if(Obj_p result = robj->apply(lhs); !result->is_noobj()) {
-                          list->lst_add(result);
+                        Obj_p result = robj->apply(lhs);
+                        list->lst_add(result);
+                        if(!result->is_noobj())
                           done = true;
-                        }
                       }
                     }
                     return list;
@@ -797,11 +797,11 @@ namespace mmadt {
                     for(const auto &[rk,rv]: *rhs->rec_value()) {
                       if(done)
                         record->rec_set(rk, Obj::to_noobj());
-                      else {
-                        if(lhs->match(rk)) {
+                      else  if(lhs->match(rk)) {
                           record->rec_set(rk, rv->apply(lhs));
                           done = true;
-                        }
+                      } else {
+                         record->rec_set(rk, Obj::to_noobj());
                       }
                     }
                     return record;

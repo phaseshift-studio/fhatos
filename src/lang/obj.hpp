@@ -942,8 +942,8 @@ namespace fhatos {
         current_obj->poly_set(Obj::to_uri(key->uri_value().pretract()), val);
       } else {
         this->rec_drop(key);
-        if(!val->is_noobj())
-          this->rec_value()->insert_or_assign(key, val);
+        //if(!val->is_noobj())
+        this->rec_value()->insert_or_assign(key, val);
       }
       ////////////////////////////////////////
       if(!this->is_base_type()) {

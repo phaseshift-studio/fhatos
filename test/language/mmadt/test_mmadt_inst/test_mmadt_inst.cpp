@@ -19,6 +19,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_MMADT_EXT_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SHARED_MEMORY /abc/#
@@ -38,16 +39,16 @@ namespace fhatos {
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][is(gt(0))])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("/abc/nat[5]"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(1,id_p("/abc/nat")), PROCESS("/abc/nat[5].minus(4)"));
-   // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.[/abc/nat][]"));
-   // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.map([/abc/nat][])"));
+    // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.[/abc/nat][]"));
+    // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.map([/abc/nat][])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(55,id_p("/abc/nat")), PROCESS("55.as(/abc/nat)"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(555,id_p("/abc/nat")), PROCESS("555.as([/abc/nat][])"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(5555,id_p("/abc/nat")), PROCESS("5555.map(as([/abc/nat][]))"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(55555,id_p("/abc/nat")), PROCESS("55555.as(map(as([/abc/nat][])))"));
     FOS_TEST_ERROR("-5.as(/abc/nat)");
-  //  FOS_TEST_ERROR("-55.map([/abc/nat][])");
-  //  FOS_TEST_ERROR("-555.as([/abc/nat][])");
-  //  FOS_TEST_ERROR("-5555.map(as([/abc/nat][]))");
+    //  FOS_TEST_ERROR("-55.map([/abc/nat][])");
+    //  FOS_TEST_ERROR("-555.as([/abc/nat][])");
+    //  FOS_TEST_ERROR("-5555.map(as([/abc/nat][]))");
     FOS_TEST_ERROR("-5555.as(str)");
     // TODO: FOS_TEST_ERROR("-5.as([int][is(gt(0))])");
     //////////////////////////////
@@ -73,10 +74,10 @@ namespace fhatos {
   }
 
   void test_ref_inst() {
-    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("/abc/b->10"));
-    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("*/abc/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(20),PROCESS("/abc/b-->20"));
-    FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("*/abc/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("/abc/b->10"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("*/abc/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(20), PROCESS("/abc/b-->20"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("*/abc/b"));
   }
 
   void test_inst_args() {
@@ -126,6 +127,17 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("{true,false,false}.prod()"))
     FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("{2,5,3}.prod()"));
     FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("{2,5,3}.prod()"));
+  }
+
+  void test_choose_inst() {
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),Obj::to_noobj(),Obj::to_noobj()}), PROCESS("1-|[_,_,_]"));
+    FOS_TEST_OBJ_EQUAL(lst({Obj::to_noobj(),jnt(1),Obj::to_noobj()}), PROCESS("1-|[is(gt(2)),_,_]"));
+    FOS_TEST_OBJ_EQUAL(lst({Obj::to_noobj(),jnt(11,id_p("/mmadt/ext/nat")),Obj::to_noobj()}),
+                       PROCESS("1-|[is(gt(2)),plus(10).as(nat),plus(1)]"));
+    ///////////
+    FOS_TEST_OBJ_EQUAL(PROCESS("[1=>1,is(gt(0))=>noobj,_=>noobj]"), PROCESS("1-|[1=>_,is(gt(0))=>_,_=>_]"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[is(gt(2))=>noobj,is(gt(0))=>1,_=>noobj]"), PROCESS("1-|[is(gt(2))=>_,is(gt(0))=>_,_=>_]"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[is(gt(2))=>noobj,is(gt(0))=>11,_=>noobj]"), PROCESS("1-|[is(gt(2))=>_,is(gt(0))=>plus(10),_=>_]"));
   }
 
   void test_merge_inst() {
@@ -330,6 +342,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_barrier_inst); //
       FOS_RUN_TEST(test_sum_inst); //
       FOS_RUN_TEST(test_prod_inst); //
+      FOS_RUN_TEST(test_choose_inst); //
       FOS_RUN_TEST(test_merge_inst); //
       //FOS_RUN_TEST(test_reduce_inst); //
       //FOS_RUN_TEST(test_neg_inst); //

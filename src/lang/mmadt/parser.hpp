@@ -183,6 +183,7 @@ namespace mmadt {
         return Obj::to_noobj();
       Obj_p result;
       Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER);
+
       if(ret.ret) {
         LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(source)->toString().c_str(),
                 result->toString().c_str());
@@ -335,7 +336,7 @@ namespace mmadt {
           const List<int> components = StringHelper::tokenize<int>(',', coefficient_string, [](const string &s) {
             return StringHelper::is_integer(s) ? stoi(s) : INT_MAX;
           });
-          if(0 == components.size()) { // I believe this first part is an unreachable branch
+          if(components.empty()) { // I believe this first part is an unreachable branch
             min = 1;
             max = 1;
           } else if(1 == components.size()) {

@@ -513,20 +513,9 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 fhatos> # -> noobj
 [ERROR] [/sys/router] # crosses multiple structures
 [INFO]  [/sys/router] 1 bus(s) closing
-[ERROR] [/io/console] thread error: /io/console synchronization yielded different base types: rec != noobj
+[INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
-[INFO]  [/sys/router] router /sys/router stopped
-[INFO]  [/sys/router] /sys/# heap detached
-[INFO]  [/sys/router] /mnt/# heap detached
-[INFO]  [/sys/router] /boot/# heap detached
-[INFO]  [/sys/router] /fos/# heap detached
-[INFO]  [/sys/router] /mmadt/# heap detached
-[INFO]  [/sys/router] /io/# heap detached
-[INFO]  [/sys/router] +/# heap detached
-[INFO]  [/sys/router] /disk/# fs detached
-[INFO]  [/sys/router] /shared/# dsm detached
-[INFO]  [/sys/router] /bus/# bus detached
 ----
 
 ++++
@@ -872,8 +861,8 @@ fhatos> char['a']@a
 fhatos> char['b']@b
 ==>char['b']@b
 fhatos> @a + @b
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as str
-	  thrown at inst char['a']@a => plus()[cpp] [code=>'@a + @b']
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))] 
+	  thrown at inst char['a']@a => plus(char['a']@a)[cpp] [0=>char['a']@a]
 fhatos> *a
 ==>char['a']@a
 fhatos> @a.as(str) + @b
@@ -2030,10 +2019,13 @@ fhatos> {1,2,3}-<[
           is(gt(2)) => _]
 >[
 ==>is(gt(0))=>-1
+==>is(gt(1))=>noobj
+==>is(gt(2))=>noobj
 >]
 >[
 ==>is(gt(0))=>-2
 ==>is(gt(1))=>0
+==>is(gt(2))=>noobj
 >]
 >[
 ==>is(gt(0))=>-3

@@ -1226,20 +1226,9 @@ When the instruction implementation is written in mmADT, the instruction value i
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
 [ERROR] [/sys/router] # crosses multiple structures
 [INFO]  [/sys/router] 1 bus(s) closing
-[ERROR] [/io/console] thread error: /io/console synchronization yielded different base types: rec != noobj
+[INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
-[INFO]  [/sys/router] 7 heap(s) closing
-[INFO]  [/sys/router] router /sys/router stopped
-[INFO]  [/sys/router] /sys/# heap detached
-[INFO]  [/sys/router] /mnt/# heap detached
-[INFO]  [/sys/router] /boot/# heap detached
-[INFO]  [/sys/router] /fos/# heap detached
-[INFO]  [/sys/router] /mmadt/# heap detached
-[INFO]  [/sys/router] /io/# heap detached
-[INFO]  [/sys/router] +/# heap detached
-[INFO]  [/sys/router] /disk/# fs detached
-[INFO]  [/sys/router] /shared/# dsm detached
-[INFO]  [/sys/router] /bus/# bus detached</code></pre>
+[INFO]  [/sys/router] 7 heap(s) closing</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1586,8 +1575,8 @@ fhatos&gt; char['a']@a
 fhatos&gt; char['b']@b
 ==&gt;char['b']@b
 fhatos&gt; @a + @b
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as str
-	  thrown at inst char['a']@a =&gt; plus()[cpp] [code=&gt;'@a + @b']
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
+	  thrown at inst char['a']@a =&gt; plus(char['a']@a)[cpp] [0=&gt;char['a']@a]
 fhatos&gt; *a
 ==&gt;char['a']@a
 fhatos&gt; @a.as(str) + @b
@@ -2812,10 +2801,13 @@ fhatos&gt; {1,2,3}-|[
           is(gt(2)) =&gt; _]
 &gt;[
 ==&gt;is(gt(0))=&gt;-1
+==&gt;is(gt(1))=&gt;noobj
+==&gt;is(gt(2))=&gt;noobj
 &gt;]
 &gt;[
 ==&gt;is(gt(0))=&gt;-2
 ==&gt;is(gt(1))=&gt;0
+==&gt;is(gt(2))=&gt;noobj
 &gt;]
 &gt;[
 ==&gt;is(gt(0))=&gt;-3
@@ -4446,7 +4438,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-06 09:08:39 -0600
+Last updated 2025-04-06 14:19:50 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
