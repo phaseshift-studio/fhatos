@@ -179,7 +179,7 @@ namespace fhatos {
       FEED_WATCHDOG();
 
       Obj_p result;
-      if(console_obj->has("config/processor")) {
+      if(console_obj->has("config/processor") && !console_obj->get<fURI>("config/processor").equals(*PROCESSOR_FURI)) {
         const Uri_p proc = console_obj->rec_get("config/processor");
         result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
       } else {

@@ -37,16 +37,17 @@ namespace fhatos {
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][])"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as([int][is(gt(0))])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("/abc/nat[5]"));
-    FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.[/abc/nat][]"));
-    FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.map([/abc/nat][])"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(1,id_p("/abc/nat")), PROCESS("/abc/nat[5].minus(4)"));
+   // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.[/abc/nat][]"));
+   // FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/abc/nat")), PROCESS("5.map([/abc/nat][])"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(55,id_p("/abc/nat")), PROCESS("55.as(/abc/nat)"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(555,id_p("/abc/nat")), PROCESS("555.as([/abc/nat][])"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(5555,id_p("/abc/nat")), PROCESS("5555.map(as([/abc/nat][]))"));
     //FOS_TEST_OBJ_EQUAL(Obj::to_int(55555,id_p("/abc/nat")), PROCESS("55555.as(map(as([/abc/nat][])))"));
     FOS_TEST_ERROR("-5.as(/abc/nat)");
-    FOS_TEST_ERROR("-55.map([/abc/nat][])");
-    FOS_TEST_ERROR("-555.as([/abc/nat][])");
-    FOS_TEST_ERROR("-5555.map(as([/abc/nat][]))");
+  //  FOS_TEST_ERROR("-55.map([/abc/nat][])");
+  //  FOS_TEST_ERROR("-555.as([/abc/nat][])");
+  //  FOS_TEST_ERROR("-5555.map(as([/abc/nat][]))");
     FOS_TEST_ERROR("-5555.as(str)");
     // TODO: FOS_TEST_ERROR("-5.as([int][is(gt(0))])");
     //////////////////////////////

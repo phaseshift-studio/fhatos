@@ -139,7 +139,7 @@ namespace fhatos {
       if(inst_obj->is_inst_stub() && lhs->vid)
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
-      // /obj_tid/::inst_tid
+      // /obj_tid/::/inst_tid
       if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(
             lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));

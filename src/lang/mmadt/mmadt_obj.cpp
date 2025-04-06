@@ -1164,7 +1164,7 @@ namespace mmadt {
 
         InstBuilder::build(string(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/").append(op).c_str())
             ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
-            ->inst_args(rec({{"0?int", isa_arg(INT_FURI)}}))
+            ->inst_args(rec({{"0?int", Obj::to_bcode()}}))
             ->inst_f(
                 [op](const Obj_p &lhs, const InstArgs &args) {
                   if(strcmp(op, "plus") == 0)

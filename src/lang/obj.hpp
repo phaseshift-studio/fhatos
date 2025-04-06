@@ -898,7 +898,7 @@ namespace fhatos {
     }
 
     template<typename A>
-    static void drop_if(const RecMap_p<> &m, const Predicate<A> pred) {
+    static void drop_if(const RecMap_p<> &m, const Predicate<A>& pred) {
       for(auto it = m->begin(); it != m->end();) {
         if(pred(*it)) {
           it = m->erase(it);
@@ -1873,7 +1873,7 @@ namespace fhatos {
           return lhs->deref(this->shared_from_this(), true);
         case OType::TYPE: {
           Obj_p new_value = this->type_value()->apply(lhs);
-          return Obj::create(new_value->value_, new_value->otype, this->tid, new_value->vid);
+          return new_value;// Obj::create(new_value->value_, new_value->otype, this->tid, new_value->vid);
         }
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
