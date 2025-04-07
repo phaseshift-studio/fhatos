@@ -1283,6 +1283,21 @@ namespace mmadt {
                     }
                     return Obj::to_lst(new_v, lhs->tid, lhs->vid);
                   }
+                  if(strcmp(op, "minus") == 0) {
+                  	const Obj::LstList_p lhs_v = lhs->lst_value();
+                    const Obj::LstList_p rhs_v = args->arg(0)->lst_value();
+                    const auto new_v = make_shared<Obj::LstList>();
+                    for(const auto& l : *lhs_v) {
+                      bool add_element = true;
+                      for(const auto& r : *rhs_v) {
+                        if(l->match(r))
+                          add_element = false;
+                      }
+                      if(add_element)
+                      	new_v->push_back(l);
+                    }
+                    return Obj::to_lst(new_v, lhs->tid, lhs->vid);
+                  }
                   throw fError("unknown op %s\n", op);
                 })
             ->save();
@@ -1315,6 +1330,15 @@ namespace mmadt {
                       }
                     }
                     return Obj::to_rec(new_v, lhs->tid, lhs->vid);
+                  }
+                  if(strcmp(op, "minus") == 0) {
+                    const Obj::RecMap_p<> lhs_v = lhs->rec_value();
+                    const Obj::RecMap_p<> rhs_v = args->arg(0)->rec_value();
+                    const auto new_v = lhs->clone();
+                    for(const auto& r : *rhs_v) {
+                   		  new_v->rec_drop(r.first);
+                    }
+                    return new_v;
                   }
                   throw fError("unknown op %s\n", op);
                 })

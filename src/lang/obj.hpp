@@ -1880,7 +1880,7 @@ namespace fhatos {
           for(const auto &obj: *this->lst_value()) {
             new_values->emplace_back(obj->apply(lhs));
           }
-          return Obj::to_lst(new_values, this->tid);
+          return Obj::to_lst(new_values, this->tid, this->vid);
         }
         case OType::REC: {
           const auto new_pairs = make_shared<RecMap<>>();
@@ -1888,7 +1888,7 @@ namespace fhatos {
             const Obj_p key_apply = key->apply(lhs);
             new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
           }
-          return Obj::to_rec(new_pairs, this->tid);
+          return Obj::to_rec(new_pairs, this->tid, this->vid);
         }
         case OType::INST: {
           if(lhs->is_type()) {
@@ -2649,16 +2649,6 @@ namespace fhatos {
     return m;
   }
 
-  static Obj_p from(const Uri_p &uri, const Obj_p &default_arg = noobj()) {
-    return Obj::to_inst(
-        "from", Obj::to_inst_args({uri, default_arg}),
-        InstF(make_shared<BiFunction<const Obj_p, const InstArgs, Obj_p>>(
-            [](const Uri_p &, const InstArgs &args) {
-              const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
-              return result->is_noobj() ? args->arg(1) : result;
-            })));
-  }
-  
   inline std::ostream &operator <<(std::ostream &os, const Obj &value) {
     os << value.toString();
     return os;

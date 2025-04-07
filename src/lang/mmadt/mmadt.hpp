@@ -103,10 +103,6 @@ namespace mmadt {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] _mmADT isa(const Obj_p &rhs) const {
-      return this->extend("isa", rhs);
-    }
-
     [[nodiscard]] _mmADT and_(const Obj_p &rhs1, const Obj_p &rhs2, const Obj_p &rhs3 = nullptr,
                               const Obj_p &rhs4 = nullptr) const {
       const Lst_p ands = lst();
@@ -131,8 +127,12 @@ namespace mmadt {
       return this->extend("or", ors);
     }
 
+    [[nodiscard]] _mmADT isa(const Obj_p &rhs) const {
+      return this->extend("isa", rhs);
+    }
+
     [[nodiscard]] _mmADT isa(const fURI &rhs) const {
-      return this->extend("isa", vri(rhs));
+      return this->isa(vri(rhs));
     }
 
     [[nodiscard]] _mmADT as(const Obj_p &rhs) const {
@@ -140,8 +140,17 @@ namespace mmadt {
     }
 
     [[nodiscard]] _mmADT as(const fURI &rhs) const {
-      return this->extend("as", vri(rhs));
+      return this->as(vri(rhs));
     }
+
+    [[nodiscard]] _mmADT at(const fURI &rhs) const {
+      return this->at(vri(rhs));
+    }
+
+    [[nodiscard]] _mmADT at(const Uri_p &rhs) const {
+      return this->extend("at", rhs);
+    }
+
 
     [[nodiscard]] _mmADT start(const Obj_p &rhs) const {
       return this->extend("start", rhs);
@@ -318,7 +327,7 @@ namespace mmadt {
   }
 
   static _mmADT __(const Obj_p &start) {
-    return __().map(start);
+    return __().map(start); // try start()
   }
 } // namespace fhatos
 

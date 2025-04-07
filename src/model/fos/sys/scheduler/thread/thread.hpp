@@ -71,32 +71,33 @@ namespace fhatos {
 
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
-                        const Obj_p loop_code = thread_obj->rec_get("loop");
-                        thread_obj->rec_set("halt",dool(false));
+                        thread_obj->rec_set("halt", dool(false));
                         thread_obj->save();
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                                                            loop_code->toString(),
+                                                            thread_obj->rec_get("loop")->toString(),
                                                             thread_obj->rec_get("config/stack_size",
                                                               ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
                                                             )->toString())                            );
                         const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
-                        while(!ROUTER_READ(*thread_obj->vid)->get<bool>("halt")) {
+                        while(!thread_state->thread_obj_->get<bool>("halt")) {
+                          thread_state->thread_obj_->sync();
                           try {
                             FEED_WATCHDOG();
-                            this_thread.store(Thread::get_state(thread_obj).get());
-                            const BCode_p &code = thread_obj->rec_get("loop");
-                            code->apply(thread_obj);
-                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                              Thread::get_state(thread_obj)->delay(delay);
-                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
+                            this_thread.store(Thread::get_state(thread_state->thread_obj_).get());
+                            const BCode_p &code = thread_state->thread_obj_->rec_get("loop");
+                            code->apply(thread_state->thread_obj_);
+                            if(const int delay = thread_state->thread_obj_->get<int>("delay"); delay > 0) {
+                              Thread::get_state(thread_state->thread_obj_)->delay(delay);
+                              thread_state->thread_obj_->rec_set("delay", jnt(0, NAT_FURI));
                             }
                           } catch(const std::exception &e) {
-                            LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
-                            thread_obj->rec_set("halt", dool(true));
+                            LOG_WRITE(ERROR, thread_state->thread_obj_.get(),L("!rthread error!!: {}", e.what()));
+                            thread_state->thread_obj_->rec_set("halt", dool(true));
                           }
+                          thread_state->thread_obj_->save();
                         }
                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-                        threads->lst_remove(vri(thread_obj->vid));
+                        threads->lst_remove(vri(thread_state->thread_obj_->vid));
                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                         try {
                           thread_state->halt();

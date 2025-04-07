@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5632]
+[INFO]  [/sys/router] main memory [total=>5504]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -519,6 +519,7 @@ fhatos> # -> noobj
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
 [INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/sys/router] router /sys/router stopped
 ----
 
 ++++

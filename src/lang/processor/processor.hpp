@@ -25,7 +25,6 @@
 #include "../obj.hpp"
 #include "../mmadt/rewriter.hpp"
 #include "../mmadt/compiler.hpp"
-#include "../../model/fos/util/log.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////

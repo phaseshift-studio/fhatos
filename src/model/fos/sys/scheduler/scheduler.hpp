@@ -134,25 +134,32 @@ namespace fhatos {
       while(true) {
         this->feed_local_watchdog();
         this->router_->loop();
-        for(const auto &fiber_id: *this->bundle_) {
-          const Obj_p fiber = ROUTER_READ(fiber_id);
-          /*if(fiber->has("loop")) {
-            fiber->rec_get("loop")->apply(fiber);
-          } else {
-            Compiler().resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args({}), id_p("loop")))->apply(fiber);
-          }*/
-
-        }
+        this->loop_bundle();
         Thread::yield_current_thread();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }
 
-    virtual void add_fiber(const Obj_p &fiber_obj) {
-      if(!fiber_obj->vid)
-        throw fError("value id required to bundle %s", fiber_obj->toString().c_str());
-      this->bundle_->push_back(*fiber_obj->vid);
-      LOG_WRITE(INFO, this, L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
+    virtual void loop_bundle() const {
+      const Lst_p bundle_uris = this->rec_get("bundle");
+      if(bundle_uris->is_noobj() || bundle_uris->lst_value()->empty())
+        return;
+      const ptr<std::vector<Obj_p>> bundles = bundle_uris->lst_value();
+      bundles->erase(std::remove_if(bundles->begin(), bundles->end(), [this](const Uri_p &fiber_id) {
+        const Obj_p fiber = ROUTER_READ(fiber_id->uri_value());
+        if(fiber->is_noobj()) {
+          LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n", fiber_id->uri_value().toString()));
+          return true;
+        }
+        FEED_WATCHDOG();
+        try {
+          __(fiber).inst("loop").compute();
+          return false;
+        } catch(const std::exception &e) {
+          LOG_WRITE(ERROR, this,L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
+          return true;
+        }
+      }), bundles->end());
     }
 
     virtual Thread_p spawn(const Obj_p &thread_obj) {
@@ -174,12 +181,12 @@ namespace fhatos {
       return thread;
     }
 
-    void save() const override {
-      const Lst_p threads = Obj::to_lst();
-      this->threads_->forEach([threads](const Thread_p &thread) { threads->lst_add(vri(thread->thread_obj_->vid)); });
-      this->rec_set("thread", threads);
-      Obj::save();
-    }
+     void save() const override {
+       const Lst_p threads = Obj::to_lst();
+       this->threads_->forEach([threads](const Thread_p &thread) { threads->lst_add(vri(thread->thread_obj_->vid)); });
+       this->rec_set("thread", threads);
+       Obj::save();
+     }
 
   public:
     static void *import() {
@@ -196,14 +203,15 @@ namespace fhatos {
           })
           ->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))
-          ->inst_args(rec({{"fiber", Obj::to_bcode()}}))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+          ->inst_args(rec({{"fiber", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p fiber = args->arg("fiber");
-            LOG_WRITE(INFO,Scheduler::singleton().get(), L("{}",fiber->toString()));
             const Lst_p bundle = Scheduler::singleton()->rec_get("bundle")->or_else(lst());
             bundle->lst_add(Obj::to_uri(*fiber->vid));
-            Scheduler::singleton()->rec_set("bundle",bundle);
+            Scheduler::singleton()->rec_set("bundle", bundle);
+            Scheduler::singleton()->save();
+            LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !yfiber!! bundled\n", fiber->vid->toString()));
             return fiber;
           })
           ->save();
