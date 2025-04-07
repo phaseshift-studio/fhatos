@@ -77,7 +77,7 @@ namespace mmadt {
       Typer::singleton()->save_type(*SECRET_FURI, Obj::to_type(STR_FURI));
       InstBuilder::build(SECRET_FURI->add_component(MMADT_PREFIX "as"))
           ->domain_range(SECRET_FURI, {1, 1}, OBJ_FURI, {1, 1})
-          ->type_args(x(0, "type"))
+          ->inst_args(rec({{"type",Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &secret_obj, const InstArgs &args) {
             if(args->arg(0)->is_uri() && ROUTER_RESOLVE(args->arg(0)->uri_value()).equals(*STR_FURI)) {
               const size_t length = secret_obj->str_value().length();
@@ -740,7 +740,7 @@ namespace mmadt {
           })->save();
 
       InstBuilder::build(MMADT_PREFIX "repeat")
-          ->type_args(x(0, "code"), x(1, "until", dool(true)), x(2, "emit", dool(false)))
+          ->inst_args(rec({{"code",Obj::to_bcode()},{"until", dool(true)},{"emit", dool(false)}}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             const Obj_p until = args->arg(1);
             Obj_p result = lhs;
@@ -1310,8 +1310,8 @@ namespace mmadt {
                     for(const auto &[k1,v1]: *lhs_v) {
                       for(const auto &[k2,v2]: *rhs_v) {
                         new_v->insert_or_assign(
-                            compiler.resolve_inst(k1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(k2),
-                            compiler.resolve_inst(v1, Obj::to_inst({x(0, Obj::to_bcode())}, id_p("mult")))->apply(v2));
+                            compiler.resolve_inst(k1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(k2),
+                            compiler.resolve_inst(v1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(v2));
                       }
                     }
                     return Obj::to_rec(new_v, lhs->tid, lhs->vid);

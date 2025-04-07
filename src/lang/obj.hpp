@@ -2379,10 +2379,6 @@ namespace fhatos {
       return Obj::to_bcode(make_shared<InstList>(), type_id, value_id);
     }
 
-    static BCode_p ___() {
-      return to_bcode();
-    }
-
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI, const ID_p &value_id = nullptr) {
       const auto list = make_shared<List<Obj_p>>();
       for(const auto &obj: *objs) {
@@ -2625,12 +2621,12 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const string, Obj_p>> &map,
-                                    const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
+                                    const ID_p &type = REC_FURI, const ID_p &vid = nullptr) {
     Obj::RecMap<> rec_map = Obj::RecMap<>();
     std::transform(map.begin(), map.end(),
                    std::inserter(rec_map, rec_map.end()),
                    [](const auto &pair) { return std::make_pair(vri(pair.first), pair.second); });
-    return rec(rec_map, type, id);
+    return rec(rec_map, type, vid);
   }
 
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }
@@ -2662,23 +2658,7 @@ namespace fhatos {
               return result->is_noobj() ? args->arg(1) : result;
             })));
   }
-
-  static Obj_p from(const char *uri, const Obj_p &default_arg = noobj()) {
-    return from(Obj::to_uri(uri), default_arg);
-  }
-
-  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
-    return from(Obj::to_uri(to_string(arg_num)), default_arg);
-  }
-
-  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
-    return from(Obj::to_uri(ID(to_string(arg_num)).query(arg_name)), default_arg);
-  }
-
-  /* [[maybe_unused]] static Inst_p x(const string &arg_name, const Obj_p &default_arg = noobj()) {
-     from(Obj::to_uri(arg_name), default_arg);
-   }*/
-
+  
   inline std::ostream &operator <<(std::ostream &os, const Obj &value) {
     os << value.toString();
     return os;

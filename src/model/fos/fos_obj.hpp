@@ -30,6 +30,7 @@
 #include "sys/scheduler/thread/thread.hpp"
 #include "../../lang/processor/processor.hpp"
 #include "ui/console.hpp"
+#include "ui/button/button.hpp"
 #ifdef ARDUINO
 #include "net/wifi.hpp"
 #include "net/ota.hpp"
@@ -112,6 +113,7 @@ namespace fhatos {
 
     static void *import_ui() {
       Typer::singleton()->start_progress_bar(6);
+      Button::import();
       Terminal::import();
       Console::import();
 #ifdef ARDUINO

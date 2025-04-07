@@ -206,12 +206,12 @@ namespace mmadt {
       return this->extend("to", vri(rhs));
     }
 
-    [[nodiscard]] _mmADT from(const Obj_p &rhs) const {
-      return this->extend("from", rhs);
+    [[nodiscard]] _mmADT from(const Obj_p &rhs, const Obj_p &default_obj = Obj::to_noobj()) const {
+      return this->extend("from", rhs, default_obj);
     }
 
-    [[nodiscard]] _mmADT from(const fURI &rhs) const {
-      return this->from(vri(rhs));
+    [[nodiscard]] _mmADT from(const fURI &rhs, const Obj_p &default_obj = Obj::to_noobj()) const {
+      return this->from(vri(rhs), default_obj);
     }
 
     [[nodiscard]] _mmADT map(const Obj_p &rhs) const {

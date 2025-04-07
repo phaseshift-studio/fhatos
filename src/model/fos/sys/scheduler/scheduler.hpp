@@ -37,13 +37,15 @@ namespace fhatos {
   class Scheduler final : public Rec {
   protected:
     const uptr<MutexDeque<Thread_p>> threads_ = std::make_unique<MutexDeque<Thread_p>>();
-    const uptr<MutexDeque<Obj_p>> loops_ = std::make_unique<MutexDeque<Obj_p>>();
+    const uptr<MutexDeque<ID>> bundle_ = std::make_unique<MutexDeque<ID>>();
     bool running_ = true;
     ptr<Router> router_ = nullptr;
 
   public:
     explicit Scheduler(const ID &id) :
-      Rec(rmap({{"thread", lst()}}),
+      Rec(rmap({
+              {"thread", lst()},
+              {"bundle", lst()}}),
           OType::REC, REC_FURI, id_p(id)) {
       SCHEDULER_ID = id_p(id);
       FEED_WATCHDOG = [this] {
@@ -67,6 +69,7 @@ namespace fhatos {
 
     ~Scheduler() override {
       this->threads_->clear();
+      this->bundle_->clear();
       FEED_WATCHDOG = []() {
       };
     }
@@ -87,6 +90,9 @@ namespace fhatos {
     void stop() {
       auto map = make_unique<Map<string, int>>();
       auto list = make_unique<List<Thread_p>>();
+      this->bundle_->forEach([this](const ID &bundle_id) {
+        LOG_WRITE(INFO, this, L("!b%s !yfiber!!(s) closing\n", bundle_id.toString()));
+      });
       this->threads_->forEach([&map,&list](const Thread_p &thread) {
         const string name = thread->thread_obj_->vid->name();
         int count = map->count(name) ? map->at(name) : 0;
@@ -128,12 +134,25 @@ namespace fhatos {
       while(true) {
         this->feed_local_watchdog();
         this->router_->loop();
-        for(const auto &l: *this->loops_) {
-          ROUTER_READ(l->vid_or_tid()->add_component("loop"))->apply(Obj::to_noobj());
+        for(const auto &fiber_id: *this->bundle_) {
+          const Obj_p fiber = ROUTER_READ(fiber_id);
+          /*if(fiber->has("loop")) {
+            fiber->rec_get("loop")->apply(fiber);
+          } else {
+            Compiler().resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args({}), id_p("loop")))->apply(fiber);
+          }*/
+
         }
         Thread::yield_current_thread();
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
+    }
+
+    virtual void add_fiber(const Obj_p &fiber_obj) {
+      if(!fiber_obj->vid)
+        throw fError("value id required to bundle %s", fiber_obj->toString().c_str());
+      this->bundle_->push_back(*fiber_obj->vid);
+      LOG_WRITE(INFO, this, L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
     }
 
     virtual Thread_p spawn(const Obj_p &thread_obj) {
@@ -174,6 +193,18 @@ namespace fhatos {
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Thread_p thread = Scheduler::singleton()->spawn(args->arg(0));
             return thread->thread_obj_;
+          })
+          ->save();
+      InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))
+          ->inst_args(rec({{"fiber", Obj::to_bcode()}}))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
+            const Obj_p fiber = args->arg("fiber");
+            LOG_WRITE(INFO,Scheduler::singleton().get(), L("{}",fiber->toString()));
+            const Lst_p bundle = Scheduler::singleton()->rec_get("bundle")->or_else(lst());
+            bundle->lst_add(Obj::to_uri(*fiber->vid));
+            Scheduler::singleton()->rec_set("bundle",bundle);
+            return fiber;
           })
           ->save();
       return nullptr;
