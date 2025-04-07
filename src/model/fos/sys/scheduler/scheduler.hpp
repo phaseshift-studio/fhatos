@@ -39,7 +39,6 @@ namespace fhatos {
     const uptr<MutexDeque<Thread_p>> threads_ = std::make_unique<MutexDeque<Thread_p>>();
     const uptr<MutexDeque<ID>> bundle_ = std::make_unique<MutexDeque<ID>>();
     bool running_ = true;
-    ptr<Router> router_ = nullptr;
 
   public:
     explicit Scheduler(const ID &id) :
@@ -128,38 +127,46 @@ namespace fhatos {
       LOG_WRITE(INFO, this, L("!mbarrier start: <!y{}!m>!!\n", "main"));
       if(message)
         LOG_WRITE(INFO, this, L("{}\n", message));
-      if(!this->router_)
-        this->router_ = Router::singleton();
 
+      //this->save();
       while(true) {
-        this->feed_local_watchdog();
-        this->router_->loop();
-        this->loop_bundle();
-        Thread::yield_current_thread();
+        try {
+          this->sync();
+          this->feed_local_watchdog();
+          this->loop_bundle();
+          Router::singleton()->loop();
+          Thread::yield_current_thread();
+        } catch(const std::exception &e) {
+          LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
+        }
       }
       LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }
 
-    virtual void loop_bundle() const {
-      const Lst_p bundle_uris = this->rec_get("bundle");
-      if(bundle_uris->is_noobj() || bundle_uris->lst_value()->empty())
+    void loop_bundle() {
+      const Lst_p bundle_uris = ROUTER_READ(this->vid->extend("bundle"));
+      if(bundle_uris->is_noobj() /*|| bundle_uris->lst_value()->empty()*/) {
         return;
+      }
       const ptr<std::vector<Obj_p>> bundles = bundle_uris->lst_value();
-      bundles->erase(std::remove_if(bundles->begin(), bundles->end(), [this](const Uri_p &fiber_id) {
+      const auto new_bundles = make_shared<std::vector<Uri_p>>();
+      for(const auto &fiber_id: *bundles) {
         const Obj_p fiber = ROUTER_READ(fiber_id->uri_value());
         if(fiber->is_noobj()) {
           LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n", fiber_id->uri_value().toString()));
-          return true;
+          continue;
         }
         FEED_WATCHDOG();
         try {
-          __(fiber).inst("loop").compute();
-          return false;
+          if(__(fiber->clone()).inst("loop").compute().exists())
+          LOG_WRITE(INFO, this, L("!b{} !yfiber!! processed\n", fiber->toString()));
+          new_bundles->push_back(fiber_id);
         } catch(const std::exception &e) {
           LOG_WRITE(ERROR, this,L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
-          return true;
         }
-      }), bundles->end());
+      }
+      this->rec_value()->insert_or_assign(vri("bundle"), lst(new_bundles));
+      ROUTER_WRITE(*this->vid, this->shared_from_this(), RETAIN);
     }
 
     virtual Thread_p spawn(const Obj_p &thread_obj) {
@@ -181,12 +188,12 @@ namespace fhatos {
       return thread;
     }
 
-     void save() const override {
-       const Lst_p threads = Obj::to_lst();
-       this->threads_->forEach([threads](const Thread_p &thread) { threads->lst_add(vri(thread->thread_obj_->vid)); });
-       this->rec_set("thread", threads);
-       Obj::save();
-     }
+    void save() const override {
+      const Lst_p threads = Obj::to_lst();
+      this->threads_->forEach([threads](const Thread_p &thread) { threads->lst_add(vri(thread->thread_obj_->vid)); });
+      this->rec_set("thread", threads);
+      Obj::save();
+    }
 
   public:
     static void *import() {

@@ -34,6 +34,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../util/tsl/ordered_map.h"
+#include "../util/string_helper.hpp"
 #include "mmadt/compiler.hpp"
 #include <utility>
 #include <variant>
@@ -1856,6 +1857,15 @@ namespace fhatos {
       return true;
     }
 
+    static string format_str(const Obj_p &lhs, string &to_format) {
+      const string formatted = StringHelper::replace_groups(&to_format, "{", "}", [lhs](const string &match) {
+        const Obj_p result = OBJ_PARSER(match)->apply(lhs);
+        const string clean = result->none_one_all()->toString(NO_ANSI_PRINTER);
+        return clean;
+      });
+      return formatted;
+    }
+
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -1865,12 +1875,15 @@ namespace fhatos {
         case OType::BOOL:
         case OType::INT:
         case OType::REAL:
-        case OType::STR:
         case OType::NOOBJ:
         case OType::ERROR:
           return this->shared_from_this();
         case OType::URI:
           return lhs->deref(this->shared_from_this(), true);
+        case OType::STR: {
+          auto s = string(this->str_value());
+          return Obj::to_str(format_str(lhs, s), this->tid, this->vid);
+        }
         case OType::TYPE: {
           Obj_p new_value = this->type_value()->apply(lhs);
           return new_value; // Obj::create(new_value->value_, new_value->otype, this->tid, new_value->vid);

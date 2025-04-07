@@ -109,17 +109,16 @@ namespace fhatos {
         dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved_inst->vid_or_tid()->no_query()),
                          resolved_inst);
       return good ? resolved_inst : Obj::to_noobj();
-    } else {
-      const Inst_p inst = InstBuilder::build("")
-          ->inst_args(provided_inst->inst_args())
-          ->inst_f(resolved_inst)
-          ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(), resolved_inst->range(),
-                         resolved_inst->range_coefficient())
-          ->create();
-      LOG_WRITE(TRACE, resolved_inst.get(),
-                L("converting {} to inst {}\n", resolved_inst->toString(), inst->toString()));
-      return inst;
     }
+    const Inst_p inst = InstBuilder::build(provided_inst->vid_or_tid()->name())
+        ->inst_args(provided_inst->inst_args())
+        ->inst_f(resolved_inst)
+        ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(), resolved_inst->range(),
+                       resolved_inst->range_coefficient())
+        ->create();
+    LOG_WRITE(TRACE, resolved_inst.get(),
+              L("converting {} to inst {}\n", resolved_inst->toString(), inst->toString()));
+    return inst;
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
@@ -130,8 +129,12 @@ namespace fhatos {
       return Obj::to_noobj();
     Obj_p inst_obj = inst;
     if(inst_obj->is_inst_stub()) {
+      // rec field
+      if(!inst->is_noobj() && lhs->is_rec() && lhs->rec_get(*inst->tid)->is_code()) {
+        inst_obj = convert_to_inst(lhs, inst, lhs->rec_get(*inst->tid));
+      }
       // inst_vid
-      if(inst_obj->vid)
+      if(inst_obj->is_inst_stub() && inst_obj->vid)
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
       // /obj_vid/::/inst_tid
       if(inst_obj->is_inst_stub() && lhs->vid)
@@ -209,7 +212,7 @@ namespace fhatos {
        Compiler::in_block_list(obj->bcode_value()->front()->inst_op())) {
       return obj->bcode_value()->front()->inst_args()->arg(0);
     } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op())) {
-        return obj->inst_args()->arg(0);
+      return obj->inst_args()->arg(0);
     } else
       return obj;
   }
@@ -323,8 +326,8 @@ namespace fhatos {
     if(type_no_query_id.equals(*OTYPE_FURI.at(value_obj->otype)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-     if(value_obj->tid->equals(type_no_query_id))
-       return true;
+    if(value_obj->tid->equals(type_no_query_id))
+      return true;
     // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
     if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype == OType::BCODE)
       return true;

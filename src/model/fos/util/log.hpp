@@ -24,13 +24,14 @@
 #include "../../../fhatos.hpp"
 #include "../../../furi.hpp"
 #include "../../../lang/obj.hpp"
+#include "../../../lang/mmadt/mmadt.hpp"
 #include "../../../util/obj_helper.hpp"
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
 
 namespace fhatos {
-
+  using namespace mmadt;
   static const ID_p LOG_FURI = id_p("/fos/util/log");
 
   class Log final : public Rec {
@@ -47,9 +48,10 @@ namespace fhatos {
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
       const Lst_p furis = Log::singleton()->rec_get("config/" + LOG_TYPES.to_chars(type));
       if(!furis->is_lst()) {
-        printer<>()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP " log listing not within schema specification: !b{}!!\n",
-                                       LOG_FURI->toString(),
-                                       Log::singleton()->toString()).c_str());
+        printer<>()->print(fmt::format(
+            "!r[ERROR] !! " OBJ_ID_WRAP " log listing not within schema specification: !b{}!!\n",
+            LOG_FURI->toString(),
+            Log::singleton()->toString()).c_str());
         return;
       }
       bool match = false;
@@ -118,11 +120,19 @@ namespace fhatos {
                                               {"WARN", Obj::to_type(LST_FURI)},
                                               {"TRACE", Obj::to_type(LST_FURI)}})}}));
       ////////////////////////// INSTS ////////////////////////////////
-      InstBuilder::build(LOG_FURI->add_component("info"))
+      InstBuilder::build(LOG_FURI->add_component("log"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({{"message", Obj::to_bcode()}, {"level", Obj::to_type(URI_FURI)}}))
+          ->inst_args(rec({{"level", __().is(__().or_(__().eq(vri("INFO")),
+                                                      __().eq(vri("ERROR")),
+                                                      __().eq(vri("DEBUG")),
+                                                      __().eq(vri("WARN")),
+                                                      __().eq(vri("TRACE"))))},
+                           {"message?str", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &source, const InstArgs &args) {
-            return Log::log_inst(source, args);
+            const LOG_TYPE log_level = LOG_TYPES.to_enum(args->get<fURI>("level").toString());
+            auto message = args->arg("message")->str_value();
+            Log::PRIMARY_LOGGING(log_level, source.get(),L("{}\n", message));
+            return source;
           })->save();
       return nullptr;
     }

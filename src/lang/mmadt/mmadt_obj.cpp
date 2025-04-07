@@ -204,17 +204,9 @@ namespace mmadt {
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
           ->inst_args(lst({Obj::to_bcode()}))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-            string new_line;
-            if(args->arg(0)->is_str()) {
-              auto line = args->arg(0)->str_value();
-              new_line = StringHelper::replace_groups(&line, "{", "}", [lhs](const string &match) {
-                const Obj_p result = OBJ_PARSER(match)->apply(lhs);
-                const string clean = result->none_one_all()->toString(NO_ANSI_PRINTER);
-                return clean;
-              });
-            } else {
-              new_line = args->arg(0)->toString(NO_ANSI_PRINTER);
-            }
+            const string new_line = args->arg(0)->is_str() ?
+              args->arg(0)->str_value() :
+              args->arg(0)->toString(NO_ANSI_PRINTER);
             if(new_line.length() > 1 &&
                new_line[new_line.length() - 1] == 'n' &&
                new_line[new_line.length() - 2] == '\\')

@@ -62,8 +62,8 @@ namespace fhatos {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
       auto output = string(str->str_value());
-      if(!ellipsis->is_noobj())
-        StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
+      //if(!ellipsis->is_noobj())
+      //  StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
       printer<>()->print(output.c_str());
     }
 

@@ -23,6 +23,7 @@
 
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
+#include "../../util/obj_helper.hpp"
 
 namespace mmadt {
   using namespace std;
@@ -116,7 +117,7 @@ namespace mmadt {
     }
 
     [[nodiscard]] _mmADT or_(const Obj_p &rhs1, const Obj_p &rhs2, const Obj_p &rhs3 = nullptr,
-                             const Obj_p &rhs4 = nullptr) const {
+                             const Obj_p &rhs4 = nullptr,const Obj_p &rhs5 = nullptr) const {
       const Lst_p ors = lst();
       ors->lst_add(rhs1);
       ors->lst_add(rhs2);
@@ -124,6 +125,8 @@ namespace mmadt {
         ors->lst_add(rhs3);
       if(rhs4)
         ors->lst_add(rhs4);
+      if(rhs5)
+        ors->lst_add(rhs5);
       return this->extend("or", ors);
     }
 
