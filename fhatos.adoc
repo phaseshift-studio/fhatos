@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5760]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -187,6 +187,8 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 ----
 fhatos> */sys/scheduler
 >[
+==>bundle=>[
+=>]
 ==>config=>[
 ===>def_stack_size=>16192
 =>]
@@ -194,6 +196,7 @@ fhatos> */sys/scheduler
 =>]
 ==>::=>[
 ===>spawn=>spawn?obj<=obj{?}(_)[cpp]
+===>bundle=>bundle?obj<=obj{?}(fiber=>_)[cpp]
 =>]
 >]@/sys/scheduler
 ----
@@ -327,7 +330,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/ext/prnt=>prnt()[is(gte(0.00000)).is(lte(100.00000))]
 ==>/mmadt/ext/sec=>[real][_]
 ==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
+==>/mmadt/ext/secret/::/mmadt/as=>as(type=>_)[cpp]
 ==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
 ==>/mmadt/flip=>flip(_)[cpp]
 ==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
@@ -415,7 +418,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/rec/::/mmadt/rshift=>rshift(isa(/mmadt/uri))[cpp]
 ==>/mmadt/rec/::/mmadt/within=>within(_)[cpp]
 ==>/mmadt/ref=>ref?obj{?}<=uri(payload=>_,retain=>isa(/mmadt/bool))[cpp]
-==>/mmadt/repeat=>repeat(from(0?code,noobj)[cpp],from(1?until,true)[cpp],from(2?emit,false)[cpp])[cpp]
+==>/mmadt/repeat=>repeat(code=>_,until=>true,emit=>false)[cpp]
 ==>/mmadt/rshift=>rshift()
 ==>/mmadt/split=>split(_)[cpp]
 ==>/mmadt/start=>start?objs{*}<=noobj{.}(_)[cpp]
@@ -825,7 +828,7 @@ fhatos> */mmadt/ext/#/
 ==>/mmadt/ext/prnt=>prnt()[is(gte(0.00000)).is(lte(100.00000))]
 ==>/mmadt/ext/sec=>[real][_]
 ==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(from(0?type,noobj)[cpp])[cpp]
+==>/mmadt/ext/secret/::/mmadt/as=>as(type=>_)[cpp]
 ==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
 >]
 ----
