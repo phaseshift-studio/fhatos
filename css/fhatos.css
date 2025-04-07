@@ -313,6 +313,7 @@ video {
     padding: 0.5em;
 }
 
+.hljs-fhatos-thrown,
 .hljs-mmadt-noobj {
     color: #ba3925;
 }
@@ -320,7 +321,6 @@ video {
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int,
-.hljs-fhatos-thrown,
 .hljs-fhatos-sys-furi {
     color: #d4de68;
 }
