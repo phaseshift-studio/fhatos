@@ -78,6 +78,8 @@ int main(int arg, char **argsv) {
       StringHelper::trim(x);
       const bool has_thread = x.find("spawn") != string::npos;
       printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
+      StringHelper::replace(&x, "&<<", "{");
+      StringHelper::replace(&x, "&>>", "}");
       printer()->println(x.c_str());
       Router::singleton()->loop();
       StringHelper::replace(&x, "'", "\\'"); // escape quotes

@@ -67,6 +67,8 @@ def execute_code(
         cat = c.endswith("/")
     full_code = " ".join(new_code)
     full_code = full_code.replace("\\|", "|")
+    full_code = full_code.replace("{", "&<<")
+    full_code = full_code.replace("}", "&>>")
 
     if verbose:
         print(f"\n🐖 {BOLD}{GREEN}executing code {language} block:{NC}")
@@ -207,7 +209,7 @@ class ProcessingState:
                     new_output.append(o)
         ###################################################################
         if not self.in_table:
-            new_line = line.replace("\\|", "|").replace("|", "\\|")
+            new_line = line.replace("\\|", "|").replace("|", "\\|").replace("&<<","{").replace("&>>","}")
             if new_line:
                 self.new_lines.append(new_line)
         else:

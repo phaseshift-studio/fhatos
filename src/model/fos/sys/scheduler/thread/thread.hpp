@@ -78,16 +78,16 @@ namespace fhatos {
                                                             thread_obj->rec_get("config/stack_size",
                                                               ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
                                                             )->toString())                            );
-                        const ptr<Thread> thread_state = get_state<Thread>(thread_obj);
+                        ptr<Thread> thread_state = get_state<Thread>(thread_obj);
                         while(!thread_state->thread_obj_->get<bool>("halt")) {
-                          thread_state->thread_obj_->sync();
+                          thread_state = Thread::get_state<Thread>(thread_obj);
                           try {
                             FEED_WATCHDOG();
-                            this_thread.store(Thread::get_state(thread_state->thread_obj_).get());
+                            this_thread.store(thread_state.get());
                             const BCode_p &code = thread_state->thread_obj_->rec_get("loop");
-                            code->apply(thread_state->thread_obj_);
+                            mmADT::delift(code)->apply(thread_state->thread_obj_);
                             if(const int delay = thread_state->thread_obj_->get<int>("delay"); delay > 0) {
-                              Thread::get_state(thread_state->thread_obj_)->delay(delay);
+                              thread_state->delay(delay);
                               thread_state->thread_obj_->rec_set("delay", jnt(0, NAT_FURI));
                             }
                           } catch(const std::exception &e) {
@@ -96,7 +96,7 @@ namespace fhatos {
                           }
                          // thread_state->thread_obj_->save();
                         }
-                        Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
+                        const Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
                         threads->lst_remove(vri(thread_state->thread_obj_->vid));
                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                         try {

@@ -571,14 +571,14 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
       SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT,
                         RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
-                        EMPTY_BCODE, FROM, PASS, LIFT,
+                        EMPTY_BCODE, FROM, PASS, LIFT, DROP,
                         REF, CHOOSE, CHAIN, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; //seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(RSHIFT, ">>", MMADT_PREFIX "rshift");
       SUGAR_GENERATOR(LSHIFT, "<<", MMADT_PREFIX "lshift");
       SUGAR_GENERATOR(LIFT, "^", MMADT_PREFIX "lift");
-      SUGAR_GENERATOR(DROP, "v", MMADT_PREFIX "drop");
+      SUGAR_GENERATOR(DROP, "V", MMADT_PREFIX "drop");
       SUGAR_GENERATOR(FROM, "*", MMADT_PREFIX "from");
       SUGAR_GENERATOR(REF, "->", MMADT_PREFIX "ref");
       SUGAR_GENERATOR(BLOCK, "|", MMADT_PREFIX "block");

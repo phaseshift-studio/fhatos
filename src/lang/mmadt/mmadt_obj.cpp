@@ -99,6 +99,8 @@ namespace mmadt {
                      vri("within"),
                      vri("isa"),
                      vri("split"),
+                     vri("lift"),
+                     //vri("drop"),
                      vri("apply"),
                      vri("choose"),
                      vri("chain")}), true);
@@ -452,11 +454,17 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "drop")
-        ->inst_args(lst({isa_arg(OBJ_FURI)}))
-        ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-          return args->arg(0)->apply(lhs);
-        })
+        ->inst_args(lst({Obj::to_bcode()}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+        ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+         // LOG_WRITE(INFO,lhs.get(),L("XX: {} {}\n",lhs->toString(),args->arg(0)->toString()));
+          const Obj_p d = args->arg(0);
+          if(d->is_inst() && d->inst_op() == "lift")
+            return d->inst_args()->arg(0)->apply(lhs);
+          if(d->is_not_empty_bcode() && d->bcode_value()->front()->inst_op() == "lift")
+            return d->bcode_value()->front()->inst_args()->arg(0)->apply(lhs);
+          return d->apply(lhs);
+        })
         ->save();
 
     /*InstBuilder::build(MMADT_PREFIX "pc_plus")
@@ -470,7 +478,8 @@ namespace mmadt {
     InstBuilder::build(MMADT_PREFIX "lift")
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-          return Obj::to_rec({{lhs, args->arg(0)}});
+          return Obj::to_inst(args, id_p(MMADT_PREFIX "lift"));
+          //return Obj::to_rec({{lhs, args->arg(0)}});
         })
         ->save();
 

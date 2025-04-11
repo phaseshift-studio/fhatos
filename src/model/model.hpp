@@ -56,6 +56,13 @@ namespace fhatos {
     static ptr<MODEL_STATE> create_state(const Obj_p &model_obj);
 
     template<typename FORCED_MODEL_STATE=MODEL_STATE>
+    static ptr<FORCED_MODEL_STATE> get_state(const ID &model_id) {
+      if(MODEL_STATES::singleton()->exists(model_id))
+        return MODEL_STATES::singleton()->load<ptr<FORCED_MODEL_STATE>>(model_id);
+      return nullptr;
+    }
+
+    template<typename FORCED_MODEL_STATE=MODEL_STATE>
     static ptr<FORCED_MODEL_STATE> get_state(const Obj_p &model_obj) {
       if(!model_obj->vid)
         throw fError("!ystateful objs !rmust have !ya value id!!: %s", model_obj->toString().c_str());

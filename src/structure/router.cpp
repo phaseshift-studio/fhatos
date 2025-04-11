@@ -128,7 +128,9 @@ namespace fhatos {
       LOG_WRITE(INFO, this, L("!b{} !y{}!!(s) closing\n", to_string(count), name));
     }
     this->active = false;
-    this->structures_->forEach([](const Structure_p &structure) { structure->stop(); });
+    while(!this->structures_->empty()) {
+      this->structures_->pop_back().value()->stop();
+    }
     LOG_WRITE(INFO, this, L("!yrouter !b{}!! stopped\n", this->vid->toString()));
   }
 
@@ -257,6 +259,7 @@ namespace fhatos {
   }*/
 
   void *Router::import() {
+    //Typer::singleton()->save_type(*ROUTER_FURI,Obj::to_rec());
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(),RETAIN);
     Router::singleton()->write(FRAME_FURI, Obj::to_type(REC_FURI),RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);

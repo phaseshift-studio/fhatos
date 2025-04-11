@@ -32,6 +32,7 @@
 
 namespace fhatos {
 
+  static ID_p ROUTER_FURI = id_p("/sys/router_t");
 
   class Router final : public Rec {
   protected:

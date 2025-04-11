@@ -507,20 +507,29 @@ namespace fhatos {
       return ROUTER_READ(vid);
     }
 
-    virtual void sync() const {
+    virtual void sync(const fURI &subset = "#") const {
       if(this->vid) {
-        const Obj_p fresh = ROUTER_READ(*this->vid);
-        if(this->otype != fresh->otype) {
-          throw fError("%s synchronization yielded different base types: %s != %s", this->vid->toString().c_str(),
-                       OTypes.to_chars(this->otype).c_str(), OTypes.to_chars(fresh->otype).c_str());
+        if(this->is_rec() && !subset.equals("#")) {
+          const Obj_p fresh = ROUTER_READ(this->vid->extend(subset));
+          this->rec_set(Obj::to_uri(subset),fresh);
+        } else {
+          const Obj_p fresh = ROUTER_READ(*this->vid);
+          if(this->otype != fresh->otype) {
+            throw fError("%s synchronization yielded different base types: %s != %s", this->vid->toString().c_str(),
+                         OTypes.to_chars(this->otype).c_str(), OTypes.to_chars(fresh->otype).c_str());
+          }
+          const_cast<Obj *>(this)->value_ = fresh->value_;
+          const_cast<Obj *>(this)->tid = fresh->tid;
         }
-        const_cast<Obj *>(this)->value_ = fresh->value_;
-        const_cast<Obj *>(this)->tid = fresh->tid;
       }
     }
 
     virtual void save() const {
       this->at(this->vid);
+    }
+
+    virtual void save(const fURI &subset) const {
+      ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
     }
 
     /*virtual void write(const fURI &furi, const Obj_p to_write, const bool retain) {
@@ -1792,6 +1801,8 @@ namespace fhatos {
 
     [[nodiscard]] bool is_empty_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
+    [[nodiscard]] bool is_not_empty_bcode() const { return this->is_bcode() && !this->bcode_value()->empty(); }
+
     bool is_initial() const {
       const auto &[dmin,dmax] = this->domain_coefficient();
       return dmin == 0 && dmax == 0;
@@ -1909,7 +1920,7 @@ namespace fhatos {
             const Obj_p key_apply = key->apply(lhs);
             new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
           }
-          return Obj::to_rec(new_pairs, this->tid);
+          return Obj::to_rec(new_pairs, this->tid, this->vid);
         }
         case OType::INST: {
           if(lhs->is_type()) {

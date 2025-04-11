@@ -160,7 +160,13 @@ namespace mmadt {
       return this->extend("start", rhs);
     }
 
+    [[nodiscard]] _mmADT lift(const Obj_p &rhs) const {
+      return this->extend("lift", rhs);
+    }
 
+    [[nodiscard]] _mmADT drop(const Obj_p &rhs) const {
+      return this->extend("drop", rhs);
+    }
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////

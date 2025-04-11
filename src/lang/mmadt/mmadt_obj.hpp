@@ -49,6 +49,7 @@ namespace mmadt {
   class mmADT {
   public:
     static void import_base_types();
+
     static void *import_ext_types();
 
     static Obj_p isa_arg(const ID_p &id) {
@@ -56,7 +57,16 @@ namespace mmadt {
     }
 
     static void import_base_inst();
+
     static void *import();
+
+    static Obj_p delift(const Obj_p &obj) {
+      if(obj->is_not_empty_bcode() && obj->bcode_value()->front()->inst_op() == "lift")
+        return obj->bcode_value()->front()->arg(0);
+      if(obj->is_inst() && obj->inst_op() == "lift")
+        return obj->arg(0);
+      return obj;
+    }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
       //const Obj_p type = ROUTER_READ(*lhs->tid);

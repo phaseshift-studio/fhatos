@@ -31,19 +31,20 @@ namespace fhatos {
     static void *import() {
       Typer::singleton()->save_type(*BUTTON_FURI,
                                     Obj::to_rec({{"pin", Obj::to_bcode()},
-                                      {"on_push", Obj::to_bcode()}}));
+                                                 {"on_push", Obj::to_bcode()}}));
       InstBuilder::build(BUTTON_FURI->add_component("loop"))
           ->domain_range(BUTTON_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_f([](const Obj_p &button, const InstArgs &) {
             const ptr<Button> button_state = Button::get_state(button);
             const Int_p pin = button->rec_get("pin");
             const Int_p reading = __(pin).inst("read").compute().next();
-            if(!button_state->state && reading->int_value() > 0) {
+            //LOG_WRITE(INFO, button.get(),L("button value {}\n", reading->toString()));
+            if(!button_state->state && reading->is_int() && reading->int_value() > 0) {
               LOG_WRITE(INFO, button.get(),L("button {} pushed\n", pin->toString()));
-              button->rec_get("on_push")->clone()->at(nullptr)->apply(button->at(nullptr));
+              mmADT::delift(button->rec_get("on_push"))->apply(button);
             }
             button_state->state = reading->int_value() > 0;
-            //MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
+            MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
             return Obj::to_noobj();
           })->save();
       return nullptr;

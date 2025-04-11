@@ -209,9 +209,9 @@ namespace fhatos {
   Obj_p get_child(const Obj_p &obj) {
     if(obj->is_bcode() &&
        1 == obj->bcode_value()->size() &&
-       Compiler::in_block_list(obj->bcode_value()->front()->inst_op())) {
+       Compiler::in_block_list(obj->bcode_value()->front()->inst_op()) && obj->bcode_value()->front()->inst_op() != "lift") {
       return obj->bcode_value()->front()->inst_args()->arg(0);
-    } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op())) {
+    } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op()) && obj->inst_op() != "lift") {
       return obj->inst_args()->arg(0);
     } else
       return obj;
