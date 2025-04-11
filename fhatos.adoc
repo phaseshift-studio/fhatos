@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=>5760]
+[INFO]  [/sys/router] main memory [total=>5632]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -187,15 +187,15 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 ----
 fhatos> */sys/scheduler
 >[
+==>thread=>[
+=>]
 ==>bundle=>[
 =>]
 ==>config=>[
 ===>def_stack_size=>16192
 =>]
-==>thread=>[
-=>]
 ==>::=>[
-===>spawn=>spawn?obj<=obj{?}(_)[cpp]
+===>spawn=>spawn?thread<=obj{?}(_)[cpp]
 ===>bundle=>bundle?obj<=obj{?}(fiber=>_)[cpp]
 =>]
 >]@/sys/scheduler
@@ -292,14 +292,15 @@ The [.h]#mmADT# language is embedded in the fURI address space thus enabling htt
 fhatos> */mmadt/#/
 >[
 ==>/mmadt/and=>and?bool<=obj{?}(con?lst=>_)[cpp]
-==>/mmadt/as=>as(type?uri=>_)[cpp]
+==>/mmadt/apply=>apply?obj{?}<=obj{?}(rhs=>_,args=>isa(/mmadt/rec))[cpp]
+==>/mmadt/as=>as?obj{?}<=obj{?}(type?uri=>_)[cpp]
 ==>/mmadt/at=>at?obj{?}<=obj{?}(isa(/mmadt/uri))[cpp]
 ==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(_)[cpp]
 ==>/mmadt/bcode=>[bcode][_]
 ==>/mmadt/bcode/::/mmadt/inspect=>inspect(_)[cpp]
 ==>/mmadt/block=>block?obj<=obj{?}(_)[cpp]
 ==>/mmadt/bool=>[bool][_]
-==>/mmadt/bool/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
+==>/mmadt/bool/::/mmadt/as=>as?obj{?}<=bool(isa(/mmadt/uri))[cpp]
 ==>/mmadt/bool/::/mmadt/div=>div(isa(/mmadt/bool))[cpp]
 ==>/mmadt/bool/::/mmadt/inspect=>inspect(_)[cpp]
 ==>/mmadt/bool/::/mmadt/minus=>minus(isa(/mmadt/bool))[cpp]
@@ -310,7 +311,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/choose=>choose(_)[cpp]
 ==>/mmadt/count=>count?int<=objs{*}()[cpp]
 ==>/mmadt/div=>div(_)
-==>/mmadt/drop=>drop?obj{?}<=obj{?}(isa(/mmadt/obj))[cpp]
+==>/mmadt/drop=>drop?obj{?}<=obj{?}(_)[cpp]
 ==>/mmadt/each=>each(isa(/mmadt/obj))
 ==>/mmadt/else=>else?obj<=obj{?}(other=>_)[cpp]
 ==>/mmadt/embed=>embed()[cpp]
@@ -346,11 +347,13 @@ fhatos> */mmadt/#/
 ===>within
 ===>isa
 ===>split
+===>lift
+===>apply
 ===>choose
 ===>chain
 =>]
 ==>/mmadt/int=>[int][_]
-==>/mmadt/int/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
+==>/mmadt/int/::/mmadt/as=>as?obj{?}<=int(isa(/mmadt/uri))[cpp]
 ==>/mmadt/int/::/mmadt/div=>div(0?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/gt=>gt(arg?int=>_)[cpp]
 ==>/mmadt/int/::/mmadt/gte=>gte(arg?int=>_)[cpp]
@@ -395,7 +398,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/print=>print?obj{?}<=obj{?}(_)[cpp]
 ==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
 ==>/mmadt/real=>[real][_]
-==>/mmadt/real/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
+==>/mmadt/real/::/mmadt/as=>as?obj{?}<=real(isa(/mmadt/uri))[cpp]
 ==>/mmadt/real/::/mmadt/div=>div(isa(/mmadt/real))[cpp]
 ==>/mmadt/real/::/mmadt/gt=>gt(arg?real=>_)[cpp]
 ==>/mmadt/real/::/mmadt/gte=>gte(arg?real=>_)[cpp]
@@ -423,7 +426,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/split=>split(_)[cpp]
 ==>/mmadt/start=>start?objs{*}<=noobj{.}(_)[cpp]
 ==>/mmadt/str=>[str][_]
-==>/mmadt/str/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
+==>/mmadt/str/::/mmadt/as=>as?obj{?}<=str(isa(/mmadt/uri))[cpp]
 ==>/mmadt/str/::/mmadt/div=>div(isa(/mmadt/str))[cpp]
 ==>/mmadt/str/::/mmadt/gt=>gt(arg?str=>_)[cpp]
 ==>/mmadt/str/::/mmadt/gte=>gte(arg?str=>_)[cpp]
@@ -439,7 +442,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/to=>to(_,true)[cpp]
 ==>/mmadt/type=>type?uri<=obj{?}(_)[cpp]
 ==>/mmadt/uri=>[uri][_]
-==>/mmadt/uri/::/mmadt/as=>as(isa(/mmadt/uri))[cpp]
+==>/mmadt/uri/::/mmadt/as=>as?obj{?}<=uri(isa(/mmadt/uri))[cpp]
 ==>/mmadt/uri/::/mmadt/div=>div(isa(/mmadt/uri))[cpp]
 ==>/mmadt/uri/::/mmadt/gt=>gt(arg?uri=>_)[cpp]
 ==>/mmadt/uri/::/mmadt/gte=>gte(arg?uri=>_)[cpp]
@@ -1089,7 +1092,7 @@ fhatos> band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),l
 fhatos> 1.band(min=>1)                        // <1>
 ==>1
 fhatos> 10.band()                             // <2>
-==>10
+[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=>2,max=>8)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]
 fhatos> {2,3,4,5}.band(min=>3,max=>4)         // <3>
 [ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=>3,max=>4)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]
 ----
@@ -1129,7 +1132,9 @@ fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==>is_divisble?bool<=int(by?int=>_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
-==>true
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
+	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
 fhatos> 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1159,7 +1164,9 @@ fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==>is_divisble?bool<=int(by?int=>_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
-==>true
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
+	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
 fhatos> 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1195,9 +1202,8 @@ fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[i
 ==>band?intnoobj<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj])
 	[band[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/plus inst unresolved 
-	         lhs id      inst id        resolve obj        
-	  ->[/mmadt/obj] /mmadt/plus => plus(_)
+[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_] 
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -1226,7 +1232,9 @@ fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('er
 ==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=obj(1)[noobj])[noobj])
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
-error==>true
+error[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
+	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
 fhatos> 10.is_divisible('abc')
 error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1630,7 +1638,7 @@ The wildcard feature of the fURI scheme makes it possible to access instructions
 ----
 fhatos> */mmadt/int/#
 ==>[int][[_]]
-==>as?obj<=int(isa?noobj<=obj(/mmadt/uri)[noobj])[cpp]
+==>as?obj{?}<=int(isa?noobj<=obj(/mmadt/uri)[noobj])[cpp]
 ==>div?int<=int(0?int=>_)[cpp]
 ==>gt?bool<=int(arg?int=>_)[cpp]
 ==>gte?bool<=int(arg?int=>_)[cpp]
@@ -2178,8 +2186,8 @@ fhatos> noobj.6
 ==>6
 fhatos> noobj.real[3.14]
 ==>3.140000
-fhatos> noobj.'text'
-==>'text'
+fhatos> noobj.'text {_}'
+==>'text console[[delay=>nat[0],loop=>inst()[cpp],halt=>false,config=>[processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'
 fhatos> noobj.a/b/c
 ==>a/b/c
 fhatos> noobj.[1,2,3]
@@ -2236,10 +2244,23 @@ fhatos> false.[1,2,3]
 ==>2
 ==>3
 >]
-fhatos> true.[true=>1,false=2]
+fhatos> true.[false=>0,true=>1]
 >[
+==>false=>0
 ==>true=>1
 >]
+fhatos> true.i?bool<=bool(_)[and(_,*<0>)]
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read
+[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a lst as defined by [lst][_] 
+		 \_/mmadt/noobj is not a subtype of /mmadt/lst
+	  thrown at inst noobj => true.i(noobj)[true.i[and(_,from(0))]] [0=>noobj]
+fhatos> true.plus(false)
+==>true
 ----
 
 ++++

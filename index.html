@@ -770,7 +770,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5504]
+[INFO]  [/sys/router] main memory [total=&gt;5632]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -910,15 +910,15 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 &gt;[
+==&gt;thread=&gt;[
+=&gt;]
 ==&gt;bundle=&gt;[
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;def_stack_size=&gt;16192
 =&gt;]
-==&gt;thread=&gt;[
-=&gt;]
 ==&gt;::=&gt;[
-===&gt;spawn=&gt;spawn?obj&lt;=obj{?}(_)[cpp]
+===&gt;spawn=&gt;spawn?thread&lt;=obj{?}(_)[cpp]
 ===&gt;bundle=&gt;bundle?obj&lt;=obj{?}(fiber=&gt;_)[cpp]
 =&gt;]
 &gt;]@/sys/scheduler</code></pre>
@@ -1002,14 +1002,15 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/#/
 &gt;[
 ==&gt;/mmadt/and=&gt;and?bool&lt;=obj{?}(con?lst=&gt;_)[cpp]
-==&gt;/mmadt/as=&gt;as(type?uri=&gt;_)[cpp]
+==&gt;/mmadt/apply=&gt;apply?obj{?}&lt;=obj{?}(rhs=&gt;_,args=&gt;isa(/mmadt/rec))[cpp]
+==&gt;/mmadt/as=&gt;as?obj{?}&lt;=obj{?}(type?uri=&gt;_)[cpp]
 ==&gt;/mmadt/at=&gt;at?obj{?}&lt;=obj{?}(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/barrier=&gt;barrier?objs{*}&lt;=objs{*}(_)[cpp]
 ==&gt;/mmadt/bcode=&gt;[bcode][_]
 ==&gt;/mmadt/bcode/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/block=&gt;block?obj&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/bool=&gt;[bool][_]
-==&gt;/mmadt/bool/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
+==&gt;/mmadt/bool/::/mmadt/as=&gt;as?obj{?}&lt;=bool(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/bool/::/mmadt/div=&gt;div(isa(/mmadt/bool))[cpp]
 ==&gt;/mmadt/bool/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/bool/::/mmadt/minus=&gt;minus(isa(/mmadt/bool))[cpp]
@@ -1020,7 +1021,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/choose=&gt;choose(_)[cpp]
 ==&gt;/mmadt/count=&gt;count?int&lt;=objs{*}()[cpp]
 ==&gt;/mmadt/div=&gt;div(_)
-==&gt;/mmadt/drop=&gt;drop?obj{?}&lt;=obj{?}(isa(/mmadt/obj))[cpp]
+==&gt;/mmadt/drop=&gt;drop?obj{?}&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/each=&gt;each(isa(/mmadt/obj))
 ==&gt;/mmadt/else=&gt;else?obj&lt;=obj{?}(other=&gt;_)[cpp]
 ==&gt;/mmadt/embed=&gt;embed()[cpp]
@@ -1056,11 +1057,13 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ===&gt;within
 ===&gt;isa
 ===&gt;split
+===&gt;lift
+===&gt;apply
 ===&gt;choose
 ===&gt;chain
 =&gt;]
 ==&gt;/mmadt/int=&gt;[int][_]
-==&gt;/mmadt/int/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
+==&gt;/mmadt/int/::/mmadt/as=&gt;as?obj{?}&lt;=int(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/int/::/mmadt/div=&gt;div(0?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gt=&gt;gt(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gte=&gt;gte(arg?int=&gt;_)[cpp]
@@ -1105,7 +1108,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/print=&gt;print?obj{?}&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/prod=&gt;prod?obj&lt;=objs{*}()[cpp]
 ==&gt;/mmadt/real=&gt;[real][_]
-==&gt;/mmadt/real/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
+==&gt;/mmadt/real/::/mmadt/as=&gt;as?obj{?}&lt;=real(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/real/::/mmadt/div=&gt;div(isa(/mmadt/real))[cpp]
 ==&gt;/mmadt/real/::/mmadt/gt=&gt;gt(arg?real=&gt;_)[cpp]
 ==&gt;/mmadt/real/::/mmadt/gte=&gt;gte(arg?real=&gt;_)[cpp]
@@ -1133,7 +1136,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/split=&gt;split(_)[cpp]
 ==&gt;/mmadt/start=&gt;start?objs{*}&lt;=noobj{.}(_)[cpp]
 ==&gt;/mmadt/str=&gt;[str][_]
-==&gt;/mmadt/str/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
+==&gt;/mmadt/str/::/mmadt/as=&gt;as?obj{?}&lt;=str(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/str/::/mmadt/div=&gt;div(isa(/mmadt/str))[cpp]
 ==&gt;/mmadt/str/::/mmadt/gt=&gt;gt(arg?str=&gt;_)[cpp]
 ==&gt;/mmadt/str/::/mmadt/gte=&gt;gte(arg?str=&gt;_)[cpp]
@@ -1149,7 +1152,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/to=&gt;to(_,true)[cpp]
 ==&gt;/mmadt/type=&gt;type?uri&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/uri=&gt;[uri][_]
-==&gt;/mmadt/uri/::/mmadt/as=&gt;as(isa(/mmadt/uri))[cpp]
+==&gt;/mmadt/uri/::/mmadt/as=&gt;as?obj{?}&lt;=uri(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/div=&gt;div(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gt=&gt;gt(arg?uri=&gt;_)[cpp]
 ==&gt;/mmadt/uri/::/mmadt/gte=&gt;gte(arg?uri=&gt;_)[cpp]
@@ -1814,7 +1817,7 @@ band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)
 fhatos&gt; 1.band(min=&gt;1)                        <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;1
 fhatos&gt; 10.band()                             <i class="conum" data-value="2"></i><b>(2)</b>
-==&gt;10
+[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=&gt;2,max=&gt;8)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]
 fhatos&gt; {2,3,4,5}.band(min=&gt;3,max=&gt;4)         <i class="conum" data-value="3"></i><b>(3)</b>
 [ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=&gt;3,max=&gt;4)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]</code></pre>
 </div>
@@ -1857,7 +1860,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
-==&gt;true
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 =&gt; mod(noobj)[cpp] [by?int=&gt;2,0=&gt;noobj]
+	  thrown at inst 10 =&gt; is_divisble(by?int=&gt;2)[is_divisble[mod(from(by)).eq(0)]] [by?int=&gt;2]
 fhatos&gt; 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
@@ -1877,7 +1882,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
-==&gt;true
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 =&gt; mod(noobj)[cpp] [by?int=&gt;2,0=&gt;noobj]
+	  thrown at inst 10 =&gt; is_divisble(by?int=&gt;2)[is_divisble[mod(from(by)).eq(0)]] [by?int=&gt;2]
 fhatos&gt; 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
@@ -1904,9 +1911,8 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 ==&gt;band?intnoobj&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
 	[band[is(gte(from(min))).is(lte(from(max)))]]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)</code></pre>
+[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1931,7 +1937,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj&lt;=obj(1)[noobj])[noobj])
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
-error==&gt;true
+error[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 =&gt; mod(noobj)[cpp] [by?int=&gt;2,0=&gt;noobj]
+	  thrown at inst 10 =&gt; is_divisble(by?int=&gt;2)[is_divisble[mod(from(by)).eq(0)]] [by?int=&gt;2]
 fhatos&gt; 10.is_divisible('abc')
 error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
@@ -2343,7 +2351,7 @@ fhatos&gt; @a + 1                               <i class="conum" data-value="3">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/int/#
 ==&gt;[int][[_]]
-==&gt;as?obj&lt;=int(isa?noobj&lt;=obj(/mmadt/uri)[noobj])[cpp]
+==&gt;as?obj{?}&lt;=int(isa?noobj&lt;=obj(/mmadt/uri)[noobj])[cpp]
 ==&gt;div?int&lt;=int(0?int=&gt;_)[cpp]
 ==&gt;gt?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;gte?bool&lt;=int(arg?int=&gt;_)[cpp]
@@ -3130,6 +3138,8 @@ false.'text {_}'
 true.a/b/c
 false.[1,2,3]
 true.[false=>0,true=>1]
+true.i?bool<=bool(_)[and(_,*<0>)]
+true.plus(false)
 -->
 <div class="listingblock">
 <div class="content">
@@ -3154,7 +3164,19 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 &gt;[
 ==&gt;false=&gt;0
 ==&gt;true=&gt;1
-&gt;]</code></pre>
+&gt;]
+fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
+[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
+	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
+[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a lst as defined by [lst][_]
+		 \_/mmadt/noobj is not a subtype of /mmadt/lst
+	  thrown at inst noobj =&gt; true.i(noobj)[true.i[and(_,from(0))]] [0=&gt;noobj]
+fhatos&gt; true.plus(false)
+==&gt;true</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4497,7 +4519,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-07 14:14:51 -0600
+Last updated 2025-04-11 16:23:44 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
