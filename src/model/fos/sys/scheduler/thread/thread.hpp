@@ -94,7 +94,7 @@ namespace fhatos {
                             LOG_WRITE(ERROR, thread_state->thread_obj_.get(),L("!rthread error!!: {}", e.what()));
                             thread_state->thread_obj_->rec_set("halt", dool(true));
                           }
-                          thread_state->thread_obj_->save();
+                         // thread_state->thread_obj_->save();
                         }
                         Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
                         threads->lst_remove(vri(thread_state->thread_obj_->vid));

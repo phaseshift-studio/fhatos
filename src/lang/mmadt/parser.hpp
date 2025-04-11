@@ -31,6 +31,7 @@ FhatOS: A Distributed Operating System
 namespace mmadt {
   using namespace peg;
   using namespace std;
+
   class Tracker {
     int8_t parens = 0;
     int8_t brackets = 0;
@@ -213,8 +214,8 @@ namespace mmadt {
           id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
-        Int_p stack_size = ROUTER_READ(Parser::singleton()->vid->extend("config/stack_size"));
-        if(stack_size->is_noobj()) {
+        if(const Int_p stack_size = ROUTER_READ(Parser::singleton()->vid->extend("config/stack_size"));
+          stack_size->is_noobj()) {
           return Parser::singleton()->parse(obj_string.c_str());
         } else {
           static string PARSE_INPUT;

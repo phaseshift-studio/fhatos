@@ -191,7 +191,7 @@ namespace fhatos {
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
       const Objs_p objs = structure->read(resolved_furi);
-      LOG_WRITE(DEBUG, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
+      LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
                                this->vid->toString(), resolved_furi.toString(), // make this the current process
                                objs->toString(), structure->pattern->toString())          );
       return objs->none_one_all();
@@ -215,7 +215,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      LOG_WRITE(DEBUG, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
+      LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
                                "obj", retain ? "retained" : "transient",
                                furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);

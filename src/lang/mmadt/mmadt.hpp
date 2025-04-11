@@ -87,8 +87,9 @@ namespace mmadt {
     [[nodiscard]] string toString() const { return this->bcode_->toString(); }
 
     operator Obj_p() const {
-      if(this->tid.equals(*BCODE_FURI))
+      if(this->tid.equals(*BCODE_FURI)) {
         return this->bcode_;
+      }
       // Conversion logic here
       return InstBuilder::build(this->tid)
           ->domain_range(id_p(this->domain), this->dc, id_p(this->range), this->rc)

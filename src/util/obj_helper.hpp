@@ -33,6 +33,8 @@ namespace fhatos {
     static bool check_coefficients(const IntCoefficient &a, const IntCoefficient &b, const bool throw_on_error = true);
 
     static bool check_noobj(const ID_p &type_id);
+    static IntCoefficient calculate_domain(const BCode_p& bcode);
+
   };
 
   class OBJ_PROXY {

@@ -15,7 +15,7 @@
 namespace fhatos {
   const static ID_p BUTTON_FURI = id_p("/fos/ui/button");
 
-  class Button : public Model<Button> {
+  class Button final : public Model<Button> {
   public:
     bool state = false;
 
@@ -24,7 +24,7 @@ namespace fhatos {
     };
 
     static ptr<Button> create_state(const Obj_p &button_obj) {
-      const ptr<Button> button_state = make_shared<Button>(button_obj);
+      const auto button_state = make_shared<Button>(button_obj);
       return button_state;
     }
 
@@ -40,9 +40,10 @@ namespace fhatos {
             const Int_p reading = __(pin).inst("read").compute().next();
             if(!button_state->state && reading->int_value() > 0) {
               LOG_WRITE(INFO, button.get(),L("button {} pushed\n", pin->toString()));
-              button->rec_get("on_push")->apply(button);
+              button->rec_get("on_push")->clone()->at(nullptr)->apply(button->at(nullptr));
             }
             button_state->state = reading->int_value() > 0;
+            //MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
             return Obj::to_noobj();
           })->save();
       return nullptr;

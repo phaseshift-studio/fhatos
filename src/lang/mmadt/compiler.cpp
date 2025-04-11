@@ -243,12 +243,18 @@ namespace fhatos {
             }
           }
           if(!found)
+            /* LOG_WRITE(INFO, rv.get(),L("\t{}\n\t{}\n\t{} ({},{})\n", rv->toString(), rv->type()->toString(),
+                                        rv->domain()->toString(), rv->domain_coefficient().first, rv->domain_coefficient().second));*/
             merged_args->rec_set(
                 rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
                       ? in_block_list(provided_inst->inst_op()) || is_block_child(inst_provided_args->arg(r_counter))
                           ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
-                      : rv->apply(lhs)); // default arg
+                      : rv->apply(rv->is_bcode() &&
+                                  !rv->bcode_value()->empty() &&
+                                  rv->bcode_value()->front()->inst_op() == "else" // TODO: use pre-computed inst domain coefficent
+                                    ? Obj::to_noobj()
+                                    : lhs)); // default arg
           r_counter++;
         }
       }

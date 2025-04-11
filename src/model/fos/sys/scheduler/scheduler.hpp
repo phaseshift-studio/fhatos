@@ -158,8 +158,9 @@ namespace fhatos {
         }
         FEED_WATCHDOG();
         try {
-          if(__(fiber->clone()).inst("loop").compute().exists())
-          LOG_WRITE(INFO, this, L("!b{} !yfiber!! processed\n", fiber->toString()));
+          Obj_p temp = fiber->clone();
+          if(!__(temp).inst("loop").compute().next()->is_noobj())
+            LOG_WRITE(INFO, this, L("!b{} !yfiber!! processed\n", fiber->toString()));
           new_bundles->push_back(fiber_id);
         } catch(const std::exception &e) {
           LOG_WRITE(ERROR, this,L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
@@ -203,7 +204,7 @@ namespace fhatos {
       Scheduler::singleton()->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
           ->inst_args(lst({Obj::to_bcode()}))
-          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Thread_p thread = Scheduler::singleton()->spawn(args->arg(0));
             return thread->thread_obj_;

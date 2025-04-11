@@ -1869,6 +1869,14 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
+    Obj_p try_apply(const Obj_p &lhs, const Obj_p &or_else = Obj::to_noobj()) const {
+      try {
+        return this->apply(lhs)->or_else(or_else);
+      } catch(std::exception &e) {
+        return or_else;
+      }
+    }
+
 
     Obj_p apply(const Obj_p &lhs) const {
       switch(this->otype) {
@@ -1901,7 +1909,7 @@ namespace fhatos {
             const Obj_p key_apply = key->apply(lhs);
             new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
           }
-          return Obj::to_rec(new_pairs, this->tid, this->vid);
+          return Obj::to_rec(new_pairs, this->tid);
         }
         case OType::INST: {
           if(lhs->is_type()) {
@@ -2098,12 +2106,16 @@ namespace fhatos {
     }*/
 
     [[nodiscard]] Obj_p as(const ID_p &type_id) const {
-      return Obj::create(this->value_, this->otype, type_id, this->vid);
+      return type_id->equals(*NOOBJ_FURI)
+               ? Obj::to_noobj()
+               : Obj::create(this->value_, this->otype, type_id, this->vid);
     }
 
     [[nodiscard]] Obj_p as(const Obj_p &type_obj) const {
       // if(this->tid->equals(*type_obj->tid))
       //   return this->shared_from_this();
+      if(type_obj->is_noobj())
+        return Obj::to_noobj();
       if(type_obj->is_code()) {
         if(type_obj->is_empty_bcode())
           return this->clone();
@@ -2120,6 +2132,8 @@ namespace fhatos {
       if(type_obj->is_type())
         return this->as(type_obj->tid);
       switch(this->otype) {
+        case OType::NOOBJ:
+          return Obj::to_noobj();
         case OType::BOOL:
         case OType::INT:
         case OType::REAL:
