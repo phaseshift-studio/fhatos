@@ -72,32 +72,33 @@ namespace fhatos {
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
                         thread_obj->rec_set("halt", dool(false));
-                        thread_obj->save();
+                        thread_obj->save("halt");
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                                                             thread_obj->rec_get("loop")->toString(),
                                                             thread_obj->rec_get("config/stack_size",
                                                               ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
                                                             )->toString())                            );
-                        ptr<Thread> thread_state = get_state<Thread>(thread_obj);
-                        while(!thread_state->thread_obj_->get<bool>("halt")) {
-                          thread_state = Thread::get_state<Thread>(thread_obj);
+                        const ptr<Thread> thread_state = Thread::get_state(thread_obj);
+                        while(!thread_obj->get<bool>("halt")) {
                           try {
                             FEED_WATCHDOG();
                             this_thread.store(thread_state.get());
-                            const BCode_p &code = thread_state->thread_obj_->rec_get("loop");
-                            mmADT::delift(code)->apply(thread_state->thread_obj_);
-                            if(const int delay = thread_state->thread_obj_->get<int>("delay"); delay > 0) {
+                            const BCode_p &code = thread_obj->rec_get("loop");
+                            mmADT::delift(code)->apply(thread_obj);
+                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
                               thread_state->delay(delay);
-                              thread_state->thread_obj_->rec_set("delay", jnt(0, NAT_FURI));
+                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
+                              thread_obj->save("delay");
                             }
                           } catch(const std::exception &e) {
-                            LOG_WRITE(ERROR, thread_state->thread_obj_.get(),L("!rthread error!!: {}", e.what()));
-                            thread_state->thread_obj_->rec_set("halt", dool(true));
+                            LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
+                            thread_obj->rec_set("halt", dool(true));
+                            thread_obj->save("halt");
                           }
-                         // thread_state->thread_obj_->save();
+                          thread_obj->sync("halt");
                         }
                         const Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-                        threads->lst_remove(vri(thread_state->thread_obj_->vid));
+                        threads->lst_remove(vri(thread_obj->vid));
                         ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                         try {
                           thread_state->halt();

@@ -45,31 +45,17 @@ namespace fhatos {
               {"thread", lst()},
               {"bundle", lst()}}),
           OType::REC, REC_FURI, id_p(id)) {
-      SCHEDULER_ID = id_p(id);
-      FEED_WATCHDOG = [this] {
-        this->feed_local_watchdog();
+      SCHEDULER_ID = this->vid;
+      FEED_WATCHDOG = [] {
+        Scheduler::singleton()->feed_local_watchdog();
       };
       LOG_WRITE(INFO, this, L("!g[!y{}!g] !yscheduler!! started\n", id.toString()));
-      // TODO: broadcast when online to trigger bootstrap of other models
-      /*Router::singleton()->write(Router::singleton()->vid, vri(this->vid), false);
-      Router::singleton()->route_subscription(Subscription::create(
-        this->vid,
-        p_p(*Router::singleton()->vid),
-        to_inst("on_recv", to_rec({{"msg", to_bcode()}}), [](const Obj_p &lhs, const InstArgs &args) {
-          return to_noobj();
-        })));*/
     }
 
     static ptr<Scheduler> singleton(const ID &id = ID("/sys/scheduler")) {
       static auto scheduler = std::make_shared<Scheduler>(id);
       return scheduler;
     }
-
-    /*~Scheduler() override {
-      FEED_WATCHDOG = []() {
-      };
-      //ROUTER_WRITE(*this->vid, Obj::to_noobj(), true);
-    }*/
 
     void stop() {
       for(const Uri_p &bundle_uri: *this->rec_get("bundle")->lst_value()) {
@@ -108,9 +94,9 @@ namespace fhatos {
       //this->save();
       while(true) {
         try {
-          this->sync();
           this->feed_local_watchdog();
           this->handle_bundle();
+          this->handle_threads();
           Router::singleton()->loop();
           Thread::yield_current_thread();
         } catch(const std::exception &e) {
@@ -137,7 +123,7 @@ namespace fhatos {
       }
       if(!new_thread_uris->equals(*thread_uris)) {
         this->rec_set("thread", new_thread_uris);
-        this->Obj::save(fURI("thread"));
+        this->save("thread");
       }
     }
 
@@ -155,7 +141,7 @@ namespace fhatos {
         }
         FEED_WATCHDOG();
         try {
-          //__(fiber).inst("loop").compute();
+          __(fiber).inst("loop").compute();
           mmADT::delift(fiber->rec_get("loop"))->apply(fiber);
           new_bundles->lst_add(fiber_id);
         } catch(const std::exception &e) {
@@ -164,7 +150,7 @@ namespace fhatos {
       }
       if(!new_bundles->equals(*bundle_uris)) {
         this->rec_set("bundle", new_bundles);
-        this->Obj::save(fURI("bundle"));
+        this->save("bundle");
       }
     }
 
@@ -189,10 +175,10 @@ namespace fhatos {
 
   public:
     static void *import() {
-     /* Typer::singleton()->save_type(*SCHEDULER_FURI,
-                                    Obj::to_rec({
-                                        {"thread", Obj::to_lst()},
-                                        {"bundle", Obj::to_lst()}}));*/
+      /* Typer::singleton()->save_type(*SCHEDULER_FURI,
+                                     Obj::to_rec({
+                                         {"thread", Obj::to_lst()},
+                                         {"bundle", Obj::to_lst()}}));*/
       if(const Rec_p config = ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID);
         !config->is_noobj())
         Scheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));

@@ -109,6 +109,23 @@ namespace fhatos {
     FOS_TEST_ERROR("/compiler/big_nat[11].plus(-1)");
   }
 
+  void test_rec_type_constructors() {
+      PROCESS("/compiler/person -> |[name?str=>'fhat', age?int=>29]");
+      FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("fhat")},{"age?int",jnt(29)}},id_p("/compiler/person")),
+                         PROCESS("/compiler/person[[=>]]"));
+      FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("pig")},{"age?int",jnt(29)}},id_p("/compiler/person")),
+                         PROCESS("/compiler/person[[name=>'pig']]"));
+      FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("fhat")},{"age?int",jnt(10)}},id_p("/compiler/person")),
+                         PROCESS("/compiler/person[[age=>10]]"));
+      FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("chibi")},{"age?int",jnt(2)}},id_p("/compiler/person")),
+                         PROCESS("/compiler/person[[name=>'chibi',age=>2]]"));
+      FOS_TEST_ERROR("/compiler/person[[name=>29,age=>'fhat']]");
+      FOS_TEST_ERROR("/compiler/person[[name=>29]]");
+      FOS_TEST_ERROR("/compiler/person[[age=>'fhat']]");
+      FOS_TEST_OBJ_EQUAL(rec({{"rank",vri("captain")},{"name?str",str("fhat")},{"age?int",jnt(29)}},id_p("/compiler/person")),
+                        PROCESS("/compiler/person[[rank=>captain]]"));
+  }
+
   void test_inst_resolution() {
     Compiler compiler = Compiler(true, true);
     FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
@@ -132,6 +149,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_type_check_derived_mono_types); //
       FOS_RUN_TEST(test_type_check_derived_poly_types); //
       FOS_RUN_TEST(test_type_definitions); //
+      FOS_RUN_TEST(test_rec_type_constructors); //
       // FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
       )

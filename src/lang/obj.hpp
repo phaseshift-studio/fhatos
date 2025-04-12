@@ -473,13 +473,30 @@ namespace fhatos {
         throw fError("the range of an inst can not be its type: %s", type_id->toString().c_str());
       }
       if(value.has_value()) { // value token
+        try {
+          if((otype == OType::REC || otype == OType::LST) &&
+             !type_id->equals(*OTYPE_FURI.at(otype)) &&
+             //!type_id->equals(*NOOBJ_FURI) &&
+             //!type_id->matches("/mmadt/#") &&
+             !type_id->matches("/sys/#") &&
+             !type_id->matches("/fos/#") &&
+             !type_id->matches("/io/#")) {
+            if(const Obj_p type_obj = ROUTER_READ(*type_id); !type_obj->is_noobj() && type_obj->otype == otype) {
+              const Obj_p plain_type_obj = create(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
+              const Obj_p plain_obj = create(value, otype, OTYPE_FURI.at(otype));
+              const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
+              this->value_ = applied_obj->value_;
+              this->otype = applied_obj->otype;
+            }
+          }
+        } catch(std::exception &) {
+          // do nothing
+        }
         Compiler(true, true).type_check(this, *type_id);
         this->tid = type_id;
         if(value_id) {
-          const Obj_p strip = this->clone();
-          //   if(!vid->has_query())
-          //const_cast<Obj *>(strip.get())->vid = nullptr;
-          ROUTER_WRITE(*value_id, strip, true);
+          //const Obj_p strip = this->clone();
+          ROUTER_WRITE(*value_id, this->clone(), true);
         }
       } else {
         this->tid = type_id; // type token
@@ -511,7 +528,7 @@ namespace fhatos {
       if(this->vid) {
         if(this->is_rec() && !subset.equals("#")) {
           const Obj_p fresh = ROUTER_READ(this->vid->extend(subset));
-          this->rec_set(Obj::to_uri(subset),fresh);
+          this->rec_set(Obj::to_uri(subset), fresh);
         } else {
           const Obj_p fresh = ROUTER_READ(*this->vid);
           if(this->otype != fresh->otype) {
