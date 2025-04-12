@@ -112,6 +112,15 @@ namespace mmadt {
         })
         ->save();
 
+    InstBuilder::build(MMADT_PREFIX "option")
+        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+        ->inst_args(lst({Obj::to_bcode()}))
+        ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+          Obj_p result = args->arg(0)->apply(lhs);
+          return result->is_noobj() ? lhs : result;
+        })
+        ->save();
+
     InstBuilder::build(MMADT_PREFIX "flip")
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {1, 1})
         ->inst_args(lst({Obj::to_bcode()}))
@@ -457,7 +466,7 @@ namespace mmadt {
         ->inst_args(lst({Obj::to_bcode()}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-         // LOG_WRITE(INFO,lhs.get(),L("XX: {} {}\n",lhs->toString(),args->arg(0)->toString()));
+          // LOG_WRITE(INFO,lhs.get(),L("XX: {} {}\n",lhs->toString(),args->arg(0)->toString()));
           const Obj_p d = args->arg(0);
           if(d->is_inst() && d->inst_op() == "lift")
             return d->inst_args()->arg(0)->apply(lhs);

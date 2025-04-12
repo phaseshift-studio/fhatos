@@ -195,9 +195,9 @@ namespace fhatos {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI, Obj::to_rec({
-              {"delay", __()},
+              {"delay", __().isa(*NAT_FURI)},
               {"loop", __()},
-              {"halt", __()}
+              {"halt", __().isa(*BOOL_FURI)}
           }));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})

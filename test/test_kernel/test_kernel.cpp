@@ -35,7 +35,6 @@ FhatOS: A Distributed Operating System
 #include "../../src/model/fos/ui/terminal.hpp"
 #include "../../src/model/fos/util/log.hpp"
 //#include FOS_FILE_SYSTEM(fs.hpp)
-#include "../../src/structure/stype/mqtt/mqtt.hpp"
 #include "../../src/structure/stype/heap.hpp"
 ///////////// COMMON MODELS /////////////
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>

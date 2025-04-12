@@ -868,7 +868,7 @@ namespace fhatos {
         for(const auto &[k,v]: *this->rec_value()) {
           if(match_all || k->match(segment_uri)) {
             segment_value->add_obj(v);
-          } else if(k->uri_value().matches(key_no_query)) {
+          } else if(k->is_uri() && k->uri_value().matches(key_no_query)) {
             full_match->add_obj(v);
           }
         }
@@ -882,7 +882,7 @@ namespace fhatos {
         const Objs_p segment_value = Obj::to_objs();
         for(const auto &[k, v]: *this->rec_value()) {
           if(k->match(key))
-            segment_value->add_obj(v);
+            segment_value->add_obj(v->apply(key));
         }
         result = segment_value->none_one_all();
       }
@@ -1640,6 +1640,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool value_equals(const Obj &other) const {
+      if(this->otype != other.otype)
+        return false;
       switch(this->otype) {
         case OType::NOOBJ:
           return true;
@@ -1926,8 +1928,9 @@ namespace fhatos {
         }
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
+          int counter = 0;
           for(const auto &obj: *this->lst_value()) {
-            new_values->emplace_back(obj->apply(lhs));
+            new_values->emplace_back(obj->apply(lhs->is_poly() ? lhs->poly_get(Obj::to_int(counter++)) : lhs));
           }
           return Obj::to_lst(new_values, this->tid, this->vid);
         }
@@ -2073,8 +2076,7 @@ namespace fhatos {
           for(const auto &a: *objs_a) {
             if(!a->match(*b, fail_reason)) {
               if(fail_reason)
-                fail_reason->push(fmt::format("{} does !rnot!! have matching elements in {}", this->toString(),
-                                              type_obj->toString()));
+                fail_reason->push(fmt::format("{} does !rnot!! match {}", a->toString(),(*b)->toString()));
               return false;
             }
             ++b;
@@ -2188,8 +2190,7 @@ namespace fhatos {
           for(const auto &[b_id, b_obj]: *pairs_b) {
             bool found = false;
             for(const auto &[a_id, a_obj]: *pairs_a) {
-              if((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
-                   a_id->match(b_id))) {
+              if(a_id->match(b_id)) {
                 pairs_c->insert_or_assign(a_id->as(b_id), a_obj->as(b_obj));
                 found = true;
                 break;
@@ -2471,10 +2472,18 @@ namespace fhatos {
         case OType::ERROR:
         case OType::BOOL:
         case OType::INT:
-        case OType::REAL:
-        case OType::STR:
-        case OType::URI: {
+        case OType::REAL: {
           auto r = Obj::create(this->value_, this->otype, this->tid);
+          r->vid = this->vid;
+          return r;
+        }
+        case OType::STR: {
+          auto r = Obj::create(std::any(string(std::any_cast<string>(this->value_))), this->otype, this->tid);
+          r->vid = this->vid;
+          return r;
+        }
+        case OType::URI: {
+          auto r = Obj::create(std::any(fURI(std::any_cast<fURI>(this->value_))), this->otype, this->tid);
           r->vid = this->vid;
           return r;
         }
