@@ -185,7 +185,8 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 
 [source,mmadt]
 ----
-fhatos> */sys/scheduler
+[INFO]  [/io/console] fhatos> */sys/scheduler
+thread spawned: inst()[cpp] [stack size:32384]
 >[
 ==>thread=>[
 =>]
@@ -220,6 +221,7 @@ The [.h]#router# is responsible for storing and retrieving `objs` from a pool of
 
 [source,mmadt]
 ----
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> */sys/router
 >[
 ==>frame=>[rec][_]
@@ -289,7 +291,8 @@ The [.h]#mmADT# language is embedded in the fURI address space thus enabling htt
 
 [source,mmadt]
 ----
-fhatos> */mmadt/#/
+[INFO]  [/io/console] fhatos> */mmadt/#/
+thread spawned: inst()[cpp] [stack size:32384]
 >[
 ==>/mmadt/and=>and?bool<=obj{?}(con?lst=>_)[cpp]
 ==>/mmadt/apply=>apply?obj{?}<=obj{?}(rhs=>_,args=>isa(/mmadt/rec))[cpp]
@@ -480,7 +483,8 @@ An `inst` written in C++.
 
 [source,mmadt]
 ----
-fhatos> *int::lt
+[INFO]  [/io/console] fhatos> *int::lt
+thread spawned: inst()[cpp] [stack size:32384]
 ==>lt?bool<=int(arg?int=>_)[cpp]
 ----
 
@@ -496,7 +500,8 @@ An `inst` written in mmADT.
 
 [source,mmadt]
 ----
-fhatos> *nat
+[INFO]  [/io/console] fhatos> *nat
+thread spawned: inst()[cpp] [stack size:32384]
 ==>nat?int<=int()[is(gte(0))]
 ----
 
@@ -516,7 +521,8 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 
 [source,mmadt]
 ----
-fhatos> # -> noobj
+[INFO]  [/io/console] fhatos> # -> noobj
+thread spawned: inst()[cpp] [stack size:32384]
 [ERROR] [/sys/router] # crosses multiple structures
 [INFO]  [/sys/router] 1 bus(s) closing
 [INFO]  [/sys/router] 1 dsm(s) closing
@@ -597,7 +603,8 @@ bool::
 
 [source,mmadt]
 ----
-fhatos> /mmadt/bool[true]
+[INFO]  [/io/console] fhatos> /mmadt/bool[true]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>true
 fhatos> bool[true]
 ==>true
@@ -641,7 +648,8 @@ real::
 
 [source,mmadt]
 ----
-fhatos> /mmadt/real[6.2]
+[INFO]  [/io/console] fhatos> /mmadt/real[6.2]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>6.200000
 fhatos> real[6.2]
 ==>6.200000
@@ -663,7 +671,8 @@ str::
 
 [source,mmadt]
 ----
-fhatos> /mmadt/str['cooties']
+[INFO]  [/io/console] fhatos> /mmadt/str['cooties']
+thread spawned: inst()[cpp] [stack size:32384]
 ==>'cooties'
 fhatos> str['cooties']
 ==>'cooties'
@@ -712,6 +721,7 @@ lst[['a',2,true]]
 
 [source,mmadt]
 ----
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> /mmadt/lst[['a',2,true]]
 ==>['a',2,true]
 fhatos> lst[['a',2,true]]
@@ -739,12 +749,7 @@ rec[[a=>6,b=>false]]
 
 [source,mmadt]
 ----
-fhatos> /mmadt/rec[[a=>6,b=>false]]
-==>[a=>6,b=>false]
-fhatos> rec[[a=>6,b=>false]]
-==>[a=>6,b=>false]
-fhatos> [a=>6,b=>false]
-==>[a=>6,b=>false]
+thread spawned: inst()[cpp] [stack size:32384]
 ----
 
 ++++
@@ -767,7 +772,8 @@ noobj
 
 [source,mmadt]
 ----
-fhatos> /mmadt/noobj[]
+[INFO]  [/io/console] fhatos> /mmadt/noobj[]
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> noobj[]
 fhatos> noobj
 fhatos> 
@@ -817,7 +823,8 @@ The mechanics of `obj` typing are exemplified below using the generally useful t
 
 [source,mmadt]
 ----
-fhatos> */mmadt/ext/#/
+[INFO]  [/io/console] fhatos> */mmadt/ext/#/
+thread spawned: inst()[cpp] [stack size:32384]
 >[
 ==>/mmadt/ext/C=>C()[is(gte(-273.14999))]
 ==>/mmadt/ext/Ox=>Ox()[is(true)]
@@ -898,7 +905,8 @@ nat[12]@a
 
 [source,mmadt]
 ----
-fhatos> *nat
+[INFO]  [/io/console] fhatos> *nat
+thread spawned: inst()[cpp] [stack size:32384]
 ==>nat?int<=int()[is(gte(0))]
 fhatos> nat[12]
 ==>nat[12]
@@ -934,7 +942,8 @@ C[-274.0]
 
 [source,mmadt]
 ----
-fhatos> *C
+[INFO]  [/io/console] fhatos> *C
+thread spawned: inst()[cpp] [stack size:32384]
 ==>C?real<=real()[is(gte(-273.14999))]
 fhatos> C[0.0]
 ==>C[0.000000]
@@ -1000,7 +1009,8 @@ band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 
 [source,mmadt]
 ----
-fhatos> band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
+[INFO]  [/io/console] fhatos> band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>band?intnoobj<=int(_,_)
 	[band[is(and([gte(from(0)),lte(from(1))]))]]
 fhatos> 3.band(2,8)                                // <1>
@@ -1040,7 +1050,8 @@ band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 
 [source,mmadt]
 ----
-fhatos> band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
+[INFO]  [/io/console] fhatos> band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>band?intnoobj<=int(min=>_,max=>_)
 	[band[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos> 3.band(2,8)                           // <1>
@@ -1086,7 +1097,8 @@ band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)
 
 [source,mmadt]
 ----
-fhatos> band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)]))]
+[INFO]  [/io/console] fhatos> band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)]))]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>band?intnoobj<=int(min=>else?noobj<=obj(2)[noobj],max=>else?noobj<=obj(8)[noobj])
 	[band[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos> 1.band(min=>1)                        // <1>
@@ -1160,16 +1172,11 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+[INFO]  [/io/console] fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>is_divisble?bool<=int(by?int=>_)
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
-	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
-	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
-fhatos> 10.is_divisible('abc')
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
-		 \_/mmadt/str is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -1198,7 +1205,8 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 
 [source,mmadt]
 ----
-fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
+[INFO]  [/io/console] fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>band?intnoobj<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj])
 	[band[is(gte(from(min))).is(lte(from(max)))]]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
@@ -1228,7 +1236,8 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+[INFO]  [/io/console] fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=obj(1)[noobj])[noobj])
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos> 10.is_divisible(2)
@@ -1236,8 +1245,6 @@ error[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
 	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
 	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
 fhatos> 10.is_divisible('abc')
-error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
-		 \_/mmadt/str is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -1260,7 +1267,8 @@ int(a=>2)[*a]
 
 [source,mmadt]
 ----
-fhatos> int(a=>2)[*a]
+[INFO]  [/io/console] fhatos> int(a=>2)[*a]
+thread spawned: inst()[cpp] [stack size:32384]
 ==>2
 fhatos> 4 + int(a=>2)[*a]
 ==>6
@@ -1317,7 +1325,8 @@ y -> z
 
 [source,mmadt]
 ----
-fhatos> *y
+[INFO]  [/io/console] fhatos> *y
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> *z
 fhatos> z -> 12
 ==>12
@@ -1378,7 +1387,8 @@ a -> 12
 
 [source,mmadt]
 ----
-fhatos> a -> 12
+[INFO]  [/io/console] fhatos> a -> 12
+thread spawned: inst()[cpp] [stack size:32384]
 ==>12
 fhatos> *a.plus(10)
 ==>22
@@ -1422,7 +1432,8 @@ a|
 
 [source,mmadt]
 ----
-fhatos> a?sub -> \|to(b)
+[INFO]  [/io/console] fhatos> a?sub -> \|to(b)
+thread spawned: inst()[cpp] [stack size:32384]
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
 >sub[
@@ -1476,7 +1487,8 @@ a -> 'axel'
 
 [source,mmadt]
 ----
-fhatos> a -> 'axel'
+[INFO]  [/io/console] fhatos> a -> 'axel'
+thread spawned: inst()[cpp] [stack size:32384]
 ==>'axel'
 fhatos> *a
 ==>'axel'
@@ -1513,11 +1525,12 @@ thread::create(loop=>||( /
 
 [source,mmadt]
 ----
-fhatos> thread::create(loop=>||(
+[INFO]  [/io/console] fhatos> thread::create(loop=>||(
           from(|c,0).print('c: {_}').
           plus(1).to(c).
           gt(10).to(t/halt).
           is(_).print('\n'))).to(|t)
+thread spawned: inst()[cpp] [stack size:32384]
 ==>thread/::/create
 fhatos> @t.spawn()
 [ERROR] [/sys/scheduler] [/mmadt/noobj] spawn inst unresolved 
@@ -1598,8 +1611,9 @@ a -> int8[126]                       --- <2>
 
 [source,mmadt]
 ----
-fhatos> /sys/router/config/resolve/auto_prefix ->
+[INFO]  [/io/console] fhatos> /sys/router/config/resolve/auto_prefix ->
           *(_) + \|[/mmadt/ext/]             // <1>
+thread spawned: inst()[cpp] [stack size:32384]
 >[
 >]
 fhatos> a -> int8[126]                       // <2>
@@ -1847,13 +1861,6 @@ For example, see how the internal `objs` if a `lst` are effected by the applicat
 
 [source,mmadt]
 ----
-fhatos> 2.lst[[1,plus(2),mult(plus(3)),'a']]
->[
-==>1
-==>4
-==>10
-==>'a'
->]
 ----
 
 ++++
@@ -1958,9 +1965,10 @@ if-else::
 
 [source,mmadt]
 ----
-fhatos> {1,2,3}-|[                           
+[INFO]  [/io/console] fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),      // <1>
           _         => mult(100)]     // <2>
+thread spawned: inst()[cpp] [stack size:32384]
 ==>1
 fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),             
@@ -2085,7 +2093,8 @@ hash::
 .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
 [source,mmadt]
 ----
-fhatos> --- todo
+[INFO]  [/io/console] fhatos> --- todo
+thread spawned: inst()[cpp] [stack size:32384]
 ----
 
 ++++
@@ -2120,7 +2129,8 @@ This is, in fact, the case.
 
 [source,mmadt]
 ----
-fhatos> 1.plus(1)         // <1>
+[INFO]  [/io/console] fhatos> 1.plus(1)         // <1>
+thread spawned: inst()[cpp] [stack size:32384]
 ==>2
 fhatos> 1. 2              // <2>
 ==>2
@@ -2187,7 +2197,7 @@ fhatos> noobj.6
 fhatos> noobj.real[3.14]
 ==>3.140000
 fhatos> noobj.'text {_}'
-==>'text console[[delay=>nat[0],loop=>inst()[cpp],halt=>false,config=>[processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'
+==>'text console[[delay=>nat[0],loop=>inst()[cpp],config=>[processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'
 fhatos> noobj.a/b/c
 ==>a/b/c
 fhatos> noobj.[1,2,3]
@@ -2235,7 +2245,7 @@ fhatos> false.6
 fhatos> true.real[3.14]
 ==>3.140000
 fhatos> false.'text {_}'
-==>'text console[[delay=>nat[0],loop=>inst()[cpp],halt=>false,config=>[processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'
+==>'text console[[delay=>nat[0],loop=>inst()[cpp],config=>[processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'
 fhatos> true.a/b/c
 ==>a/b/c
 fhatos> false.[1,2,3]
@@ -2328,7 +2338,8 @@ fhatos> @a.inspect()
 
 [source,mmadt]
 ----
-fhatos> a?sub -> |print(_)
+[INFO]  [/io/console] fhatos> a?sub -> |print(_)
+thread spawned: inst()[cpp] [stack size:32384]
 ==>print?noobj<=obj(_)[noobj]
 fhatos> a -> 12
 ==>12
@@ -2382,7 +2393,8 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 
 [source,mmadt]
 ----
-fhatos> /type/int/nat -> |is(gt(0))
+[INFO]  [/io/console] fhatos> /type/int/nat -> |is(gt(0))
+thread spawned: inst()[cpp] [stack size:32384]
 [ERROR] [/sys/router] no mounted structure for /type/int/nat  
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
@@ -2444,7 +2456,8 @@ The function of the router is to:
 
 [source,mmadt]
 ----
-fhatos> /io/console/config/nest->3
+[INFO]  [/io/console] fhatos> /io/console/config/nest->3
+thread spawned: inst()[cpp] [stack size:32384]
 ==>3
 fhatos> */sys/router/#/
 >[
@@ -2506,7 +2519,8 @@ a -> 'meangirl'            --- <5>
 
 [source,mmadt]
 ----
-fhatos> a -> 'snowbutt'            // <1>
+[INFO]  [/io/console] fhatos> a -> 'snowbutt'            // <1>
+thread spawned: inst()[cpp] [stack size:32384]
 ==>'snowbutt'
 fhatos> *a                         // <2>
 ==>'snowbutt'
@@ -2590,7 +2604,8 @@ o.to(u)
 
 [source,mmadt]
 ----
-fhatos> u -> o
+[INFO]  [/io/console] fhatos> u -> o
+thread spawned: inst()[cpp] [stack size:32384]
 ==>o
 fhatos> u.ref(o)
 ==>o
@@ -2632,7 +2647,8 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 
 [source,mmadt]
 ----
-fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+[INFO]  [/io/console] fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> *a/b            // <1>
 ==>2
 fhatos> *a/b/           // <2>
@@ -2721,7 +2737,8 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 
 [source,mmadt]
 ----
-fhatos> abc?k1=v1&k2=v2&k3=v3                     // <1>
+[INFO]  [/io/console] fhatos> abc?k1=v1&k2=v2&k3=v3                     // <1>
+thread spawned: inst()[cpp] [stack size:32384]
 ==>abc?k1=v1&k2=v2&k3=v3
 fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
 ==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
@@ -2776,7 +2793,8 @@ This section will explore the following considerations when designing a _multi-m
 
 [source,mmadt]
 ----
-fhatos> 1.plus(2)
+[INFO]  [/io/console] fhatos> 1.plus(2)
+thread spawned: inst()[cpp] [stack size:32384]
 ==>3
 ----
 
@@ -2853,7 +2871,8 @@ m/2/3 -> 11
 
 [source,mmadt]
 ----
-fhatos> --- write matrix
+[INFO]  [/io/console] fhatos> --- write matrix
+thread spawned: inst()[cpp] [stack size:32384]
 fhatos> m/0/0 -> 0
 ==>0
 fhatos> m/0/1 -> 1
