@@ -209,12 +209,18 @@ namespace fhatos {
   Obj_p get_child(const Obj_p &obj) {
     if(obj->is_bcode() &&
        1 == obj->bcode_value()->size() &&
-       Compiler::in_block_list(obj->bcode_value()->front()->inst_op()) && obj->bcode_value()->front()->inst_op() != "lift") {
+       Compiler::in_block_list(obj->bcode_value()->front()->inst_op()) && obj->bcode_value()->front()->inst_op() !=
+       "lift") {
       return obj->bcode_value()->front()->inst_args()->arg(0);
     } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op()) && obj->inst_op() != "lift") {
       return obj->inst_args()->arg(0);
     } else
       return obj;
+  }
+
+  bool is_else(const Obj_p &obj) {
+    return obj->is_not_empty_bcode() && obj->bcode_value()->front()->inst_op() == "else" ||
+           obj->is_inst() && obj->inst_op() == "else";
   }
 
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
@@ -250,10 +256,8 @@ namespace fhatos {
                       ? in_block_list(provided_inst->inst_op()) || is_block_child(inst_provided_args->arg(r_counter))
                           ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
-                      : rv->apply(rv->is_bcode() &&
-                                  !rv->bcode_value()->empty() &&
-                                  rv->bcode_value()->front()->inst_op() == "else" // TODO: use pre-computed inst domain coefficent
-                                    ? Obj::to_noobj()
+                      : rv->apply(is_else(rv)
+                                    ? Obj::to_noobj()  // TODO: use pre-computed inst domain coefficent
                                     : lhs)); // default arg
           r_counter++;
         }

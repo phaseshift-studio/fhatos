@@ -44,52 +44,58 @@ namespace fhatos {
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
       const Obj_p console_obj =
-          Obj::to_rec({{"halt", dool(false)},
-                       {"delay", jnt(0, NAT_FURI)},
-                       {"loop", Obj::to_inst(InstF(make_shared<Cpp>(
-                            [](const Obj_p &console_obj, const InstArgs &) {
-                              console_obj->sync();
-                              // static_cast necessary for esp32
-                              const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
-                              try {
-                                /// WRITE TO PROMPT
-                                if(console_obj->has("config/terminal/stdout")) {
-                                  if(console_state->new_input_)
-                                    console_state->print_prompt(console_obj, !console_state->line_.empty());
-                                  console_state->new_input_ = false;
-                                }
-                                if(console_obj->has("config/terminal/stdin")) {
-                                  //// READ FROM PROMPT
-                                  if(const string x = console_state->read_stdin(console_obj, '\n')->str_value();
-                                    x.find(":clear") == 0) {
-                                    console_state->clear();
-                                    return noobj();
-                                  } else {
-                                    console_state->tracker_.track(x);
-                                    if(console_state->tracker_.closed()) {
-                                      console_state->new_input_ = true;
-                                      console_state->line_ += x;
-                                    } else {
-                                      console_state->line_ += x;
-                                      return Obj::to_noobj();
-                                    }
-                                    StringHelper::trim(console_state->line_);
-                                    if(console_state->line_.empty() ||
-                                       console_state->line_[console_state->line_.length() - 1] == ';' ||
-                                       // specific to end-step and imperative simulation
-                                       !console_state->tracker_.closed()) {
-                                      ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                                      return noobj();
-                                    }
-                                  }
-                                  // prepare the user input for processing
-                                  console_state->tracker_.clear();
-                                  StringHelper::trim(console_state->line_);
-                                  console_state->process_line(console_obj, console_state->line_);
-                                  console_state->line_.clear();
-                                }
-                              } catch(std::exception &e) {
-                                console_state->print_exception(console_obj, e);
+          Obj::to_rec({
+                          {"halt", dool(true)},
+                          {"delay", jnt(0, NAT_FURI)},
+                          {"loop", InstBuilder::build(THREAD_FURI->extend("loop"))
+                            ->domain_range(CONSOLE_FURI,{1,1},OBJ_FURI,{0,1})
+                            ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
+                                     console_obj->sync();
+                                     // static_cast necessary for esp32
+                                     const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).
+                                       get());
+                                     try {
+                                       /// WRITE TO PROMPT
+                                       if(console_obj->has("config/terminal/stdout")) {
+                                         if(console_state->new_input_)
+                                           console_state->print_prompt(
+                                               console_obj, !console_state->line_.empty());
+                                         console_state->new_input_ = false;
+                                       }
+                                       if(console_obj->has("config/terminal/stdin")) {
+                                         //// READ FROM PROMPT
+                                         if(const string x = console_state->read_stdin(console_obj, '\n')
+                                               ->str_value();
+                                           x.find(":clear") == 0) {
+                                           console_state->clear();
+                                           return noobj();
+                                         } else {
+                                           console_state->tracker_.track(x);
+                                           if(console_state->tracker_.closed()) {
+                                             console_state->new_input_ = true;
+                                             console_state->line_ += x;
+                                           } else {
+                                             console_state->line_ += x;
+                                             return Obj::to_noobj();
+                                           }
+                                           StringHelper::trim(console_state->line_);
+                                           if(console_state->line_.empty() ||
+                                              console_state->line_[console_state->line_.length() - 1] ==
+                                              ';' ||
+                                              // specific to end-step and imperative simulation
+                                              !console_state->tracker_.closed()) {
+                                             ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                             return noobj();
+                                           }
+                                         }
+                                         // prepare the user input for processing
+                                         console_state->tracker_.clear();
+                                         StringHelper::trim(console_state->line_);
+                                         console_state->process_line(console_obj, console_state->line_);
+                                         console_state->line_.clear();
+                                       }
+                                     } catch(std::exception &e) {
+                                       console_state->print_exception(console_obj, e);
 #ifdef NATIVE
                                 if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
                                   console_state->write_stdout(console_obj,
@@ -102,19 +108,18 @@ namespace fhatos {
                                   }
                                 }
 #endif
-                                console_state->clear();
-                              }
-                              return Obj::to_noobj();
-                            })))},
-                       {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
-      // const auto console_state = make_shared<ConsoleX>(console_obj);
+                                       console_state->clear();
+                                     }
+                                     return Obj::to_noobj();
+                                   })->create()},
+                          {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       MODEL_STATES::singleton()->store(*console_obj->vid, Console::create_state(console_obj));
+      __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
       return console_obj;
     }
 
     static ptr<Thread> create_state(const Obj_p &console_obj) {
       ptr<Thread> console_state = make_shared<Console>(console_obj);
-      //ConsoleX::start_inst(console_obj, Obj::to_inst_args());
       return console_state;
     }
 

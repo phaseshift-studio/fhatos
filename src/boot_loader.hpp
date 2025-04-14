@@ -197,12 +197,12 @@ namespace fhatos {
                                                                    vri(args_parser->option_string(
                                                                        "--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
                                                           id_p("/mnt/dsm/"))))
-            ->drop_config("mqtt")
-            ->mount(
-                Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
+            //->drop_config("mqtt")
+            //->mount(
+            //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
             ->install(Console::create("/io/console",
                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            ->drop_config("console")
+            //->drop_config("console")
             ->eval([args_parser] {
               // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
               //Router::singleton()->loop();

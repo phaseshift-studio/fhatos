@@ -51,6 +51,7 @@ namespace fhatos {
     try {
       FEED_WATCHDOG();
       fthread->thread_function_(fthread->thread_obj_);
+      FEED_WATCHDOG();
       vTaskDelete(nullptr);
     } catch(const std::exception &e) {
       LOG_EXCEPTION(fthread->thread_obj_, e);

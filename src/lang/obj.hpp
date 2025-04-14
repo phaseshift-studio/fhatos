@@ -40,6 +40,9 @@
 #include <variant>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#ifdef ESP_PLATFORM
+#include "esp_task_wdt.h"
+#endif
 
 
 namespace fhatos {
@@ -192,10 +195,10 @@ namespace fhatos {
     fURI range;
     IntCoefficient rng_coeff;
 
-    explicit DomainRange(const fURI &domain, const IntCoefficient &dom_coeff, const fURI &range,
+    explicit DomainRange(const fURI &domain, IntCoefficient dom_coeff, const fURI &range,
                          IntCoefficient rng_coeff) :
       domain{domain},
-      dom_coeff{dom_coeff},
+      dom_coeff{std::move(dom_coeff)},
       range{range},
       rng_coeff{std::move(rng_coeff)} {
     }
@@ -408,6 +411,10 @@ namespace fhatos {
     return nullptr;
   };
   inline Runnable FEED_WATCHDOG = []() {
+#ifdef ESP_PLATFORM
+    //esp_task_wdt_reset();
+    vTaskDelay(1); // feeds the watchdog for the task
+#endif
   };
 
   class ObjsSet;
@@ -475,22 +482,31 @@ namespace fhatos {
       if(value.has_value()) { // value token
         try {
           if((otype == OType::REC || otype == OType::LST) &&
-             !type_id->equals(*OTYPE_FURI.at(otype)) &&
-             //!type_id->equals(*NOOBJ_FURI) &&
-             //!type_id->matches("/mmadt/#") &&
-             !type_id->matches("/sys/#") &&
-             !type_id->matches("/fos/#") &&
-             !type_id->matches("/io/#")) {
-            if(const Obj_p type_obj = ROUTER_READ(*type_id); !type_obj->is_noobj() && type_obj->otype == otype) {
-              const Obj_p plain_type_obj = create(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
-              const Obj_p plain_obj = create(value, otype, OTYPE_FURI.at(otype));
-              const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
-              this->value_ = applied_obj->value_;
-              this->otype = applied_obj->otype;
+             !type_id->equals(*OTYPE_FURI.at(otype))) {
+            if((otype == OType::REC || otype == OType::LST) &&
+               !type_id->equals(*OTYPE_FURI.at(otype)) &&
+               !type_id->matches("/sys/#") &&
+               (type_id->matches("/fos/thread") || !type_id->matches("/fos/#")) &&
+               !type_id->matches("/io/#")) {
+              if(const Obj_p type_obj = ROUTER_READ(*type_id); !type_obj->is_noobj() && type_obj->otype == otype) {
+                Obj_p plain_type_obj;
+                if(type_obj->otype == OType::REC) {
+                  const auto r = std::make_shared<RecMap<>>(*type_obj->value<RecMap_p<>>());
+                  if(r->count(Obj::to_uri("::")))
+                    r->erase(Obj::to_uri("::"));
+                  plain_type_obj = create(r, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
+                } else {
+                  plain_type_obj = create(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
+                }
+                const Obj_p plain_obj = create(value, otype, OTYPE_FURI.at(otype));
+                const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
+                this->value_ = applied_obj->value_;
+                this->otype = applied_obj->otype;
+              }
             }
           }
         } catch(std::exception &) {
-          // do nothing
+          LOG_WRITE(WARN, this,L("unable to build {} from poly type !b{}!!", this->toString(), type_id->toString()));
         }
         Compiler(true, true).type_check(this, *type_id);
         this->tid = type_id;
@@ -548,14 +564,6 @@ namespace fhatos {
     virtual void save(const fURI &subset) const {
       ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
     }
-
-    /*virtual void write(const fURI &furi, const Obj_p to_write, const bool retain) {
-      ROUTER_WRITE(furi, to_write, retain);
-    }
-
-    virtual Obj_p read(const fURI& furi) {
-      return ROUTER_READ(furi);
-    }*/
 
     virtual void load() {
       if(this->vid) {
@@ -1338,8 +1346,7 @@ namespace fhatos {
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
     [[nodiscard]] Obj_p inst_apply(const ID &inst_id, const List<Obj_p> &args = {}) const {
-      return Obj::to_inst(InstValue(Obj::to_inst_args(args), InstF(Obj::to_noobj()), Obj::to_noobj()),
-                          id_p(inst_id))->apply(this->shared_from_this());
+      return Obj::to_inst(Obj::to_inst_args(args), id_p(inst_id))->apply(this->shared_from_this());
     }
 
     // TODO: make obj.cpp/hpp and then reference PrinterHelper for printing
@@ -1938,7 +1945,7 @@ namespace fhatos {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
             const Obj_p key_apply = key->apply(lhs);
-            new_pairs->insert({key, value->apply(lhs->is_poly() ? key_apply : lhs)});
+            new_pairs->insert_or_assign(key, value->apply(lhs->is_poly() ? key_apply : lhs));
           }
           return Obj::to_rec(new_pairs, this->tid, this->vid);
         }
@@ -2076,7 +2083,7 @@ namespace fhatos {
           for(const auto &a: *objs_a) {
             if(!a->match(*b, fail_reason)) {
               if(fail_reason)
-                fail_reason->push(fmt::format("{} does !rnot!! match {}", a->toString(),(*b)->toString()));
+                fail_reason->push(fmt::format("{} does !rnot!! match {}", a->toString(), (*b)->toString()));
               return false;
             }
             ++b;
@@ -2190,7 +2197,7 @@ namespace fhatos {
           for(const auto &[b_id, b_obj]: *pairs_b) {
             bool found = false;
             for(const auto &[a_id, a_obj]: *pairs_a) {
-              if(a_id->match(b_id)) {
+              if(a_id->match(b_id) && (!b_id->is_uri() || b_id->uri_value().toString().find(':') == string::npos)) {
                 pairs_c->insert_or_assign(a_id->as(b_id), a_obj->as(b_obj));
                 found = true;
                 break;

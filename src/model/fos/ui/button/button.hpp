@@ -17,7 +17,7 @@ namespace fhatos {
 
   class Button final : public Model<Button> {
   public:
-    bool state = false;
+    int state = 0;
 
 
     explicit Button(const Obj_p &button_obj) {
@@ -39,12 +39,12 @@ namespace fhatos {
             const Int_p pin = button->rec_get("pin");
             const Int_p reading = __(pin).inst("read").compute().next();
             //LOG_WRITE(INFO, button.get(),L("button value {}\n", reading->toString()));
-            if(!button_state->state && reading->is_int() && reading->int_value() > 0) {
+            if(button_state->state != reading->int_value()) {
               LOG_WRITE(INFO, button.get(),L("button {} pushed\n", pin->toString()));
               mmADT::delift(button->rec_get("on_push"))->apply(button);
+              button_state->state = reading->int_value();
             }
-            button_state->state = reading->int_value() > 0;
-            MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
+            //MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
             return Obj::to_noobj();
           })->save();
       return nullptr;

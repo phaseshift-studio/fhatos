@@ -26,10 +26,6 @@
 #include "thread/thread.hpp"
 #include "../../../../structure/router.hpp"
 #include "../../../../util/mutex_deque.hpp"
-#ifdef ESP_PLATFORM
-#include "esp_task_wdt.h"
-#endif
-
 
 namespace fhatos {
   using Thread_p = ptr<Thread>;
@@ -46,9 +42,6 @@ namespace fhatos {
               {"bundle", lst()}}),
           OType::REC, REC_FURI, id_p(id)) {
       SCHEDULER_ID = this->vid;
-      FEED_WATCHDOG = [] {
-        Scheduler::singleton()->feed_local_watchdog();
-      };
       LOG_WRITE(INFO, this, L("!g[!y{}!g] !yscheduler!! started\n", id.toString()));
     }
 
@@ -70,19 +63,12 @@ namespace fhatos {
           LOG_WRITE(INFO, this, L("!b%s !ythread!! closing\n", thread_state->thread_obj_->vid_or_tid()->toString()));
           if(!thread_state->thread_obj_->get<bool>("halt"))
             thread_state->halt();
-          Thread::current_thread().value()->yield();
+          Thread::yield_current_thread();
         }
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       this->running_ = false;
       LOG_WRITE(INFO, this, L("!yscheduler !b{}!! stopped\n", this->vid->toString()));
-    }
-
-    void feed_local_watchdog() {
-#ifdef ESP_PLATFORM
-      esp_task_wdt_reset();
-      vTaskDelay(1); // feeds the watchdog for the task
-#endif
     }
 
     void barrier(const string &, const Supplier<bool> &passPredicate = nullptr,
@@ -94,11 +80,9 @@ namespace fhatos {
       //this->save();
       while(true) {
         try {
-          this->feed_local_watchdog();
           this->handle_bundle();
           this->handle_threads();
           Router::singleton()->loop();
-          Thread::yield_current_thread();
         } catch(const std::exception &e) {
           LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
         }
@@ -108,13 +92,13 @@ namespace fhatos {
 
     void handle_threads() {
       this->sync("thread");
-      const Lst_p thread_uris = this->rec_get("thread");
+      const Lst_p thread_uris = this->rec_get("thread")->or_else(lst());
       if(thread_uris->lst_value()->empty())
         return;
       const auto new_thread_uris = Obj::to_lst();
       for(const auto &thread_id: *thread_uris->lst_value()) {
-        const Obj_p thread = ROUTER_READ(thread_id->uri_value());
-        if(thread->is_noobj()) {
+        const Bool_p halted = ROUTER_READ(thread_id->uri_value().extend("halt"));
+        if(halted->is_noobj() || halted->bool_value()) {
           LOG_WRITE(INFO, this, L("!b{} !ythread!! removed\n", thread_id->uri_value().toString()));
           continue;
         }
@@ -141,7 +125,7 @@ namespace fhatos {
         }
         FEED_WATCHDOG();
         try {
-          __(fiber).inst("loop").compute();
+          //__(fiber).inst("loop").compute();
           mmADT::delift(fiber->rec_get("loop"))->apply(fiber);
           new_bundles->lst_add(fiber_id);
         } catch(const std::exception &e) {
@@ -154,26 +138,6 @@ namespace fhatos {
       }
     }
 
-    virtual Thread_p spawn(const Obj_p &thread_obj) {
-      /* if(!thread_obj->vid)
-          throw fError("value id required to spawn %s", thread_obj->toString().c_str());
-        if(this->count(*thread_obj->vid)) {
-           LOG_WRITE(ERROR, this, L("!b{} !yprocess!! already running\n",thread_obj->vid->toString()));
-           return false;
-         }
-        Thread_p thread = Thread::get_state(thread_obj);
-        if(thread->thread_obj_->get<bool>("halt")) {
-          throw fError::create(this->toString(), "!b{} !yprocess!! failed to spawn",
-                               thread->thread_obj_->vid->toString().c_str());
-        } else {
-          this->threads_->push_back(thread);
-          LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
-          this->save();
-        }*/
-      return nullptr;
-    }
-
-  public:
     static void *import() {
       /* Typer::singleton()->save_type(*SCHEDULER_FURI,
                                      Obj::to_rec({
@@ -184,11 +148,19 @@ namespace fhatos {
         Scheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));
       Scheduler::singleton()->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
-          ->inst_args(lst({Obj::to_bcode()}))
+          ->inst_args(rec({{"thread", Obj::to_bcode()}}))
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Thread_p thread = Scheduler::singleton()->spawn(args->arg(0));
-            return thread->thread_obj_;
+            const Obj_p thread_obj = args->arg("thread");
+            thread_obj->rec_set("halt", dool(false));
+            thread_obj->save("halt");
+            const Thread_p thread_state = Thread::get_state(thread_obj);
+            const Lst_p thread_uris = Scheduler::singleton()->rec_get("thread")->or_else(lst());
+            thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
+            Scheduler::singleton()->rec_value()->insert_or_assign(vri("thread"), thread_uris);
+            Scheduler::singleton()->save("thread");
+            LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
+            return thread_state->thread_obj_;
           })
           ->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))
@@ -199,7 +171,7 @@ namespace fhatos {
             const Lst_p bundle = Scheduler::singleton()->rec_get("bundle")->or_else(lst());
             bundle->lst_value()->push_back(Obj::to_uri(*fiber->vid));
             Scheduler::singleton()->rec_value()->insert_or_assign(vri("bundle"), bundle);
-            Scheduler::singleton()->save();
+            Scheduler::singleton()->save("bundle");
             LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !yfiber!! bundled\n", fiber->vid->toString()));
             return fiber;
           })

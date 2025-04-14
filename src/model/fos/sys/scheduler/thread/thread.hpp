@@ -78,34 +78,33 @@ namespace fhatos {
                                                             thread_obj->rec_get("config/stack_size",
                                                               ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
                                                             )->toString())                            );
-                        const ptr<Thread> thread_state = Thread::get_state(thread_obj);
-                        while(!thread_obj->get<bool>("halt")) {
+
+                        bool force_halt = false;
+                        while(!force_halt && !ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value()) {
+                          FEED_WATCHDOG();
                           try {
-                            FEED_WATCHDOG();
-                            this_thread.store(thread_state.get());
                             const BCode_p &code = thread_obj->rec_get("loop");
+                            force_halt = ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value();
                             mmADT::delift(code)->apply(thread_obj);
                             if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                              thread_state->delay(delay);
+                              Thread::get_state(thread_obj)->delay(delay);
                               thread_obj->rec_set("delay", jnt(0, NAT_FURI));
                               thread_obj->save("delay");
                             }
                           } catch(const std::exception &e) {
                             LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
-                            thread_obj->rec_set("halt", dool(true));
-                            thread_obj->save("halt");
+                            force_halt = true;
                           }
-                          thread_obj->sync("halt");
+                         // thread_obj->sync();
                         }
-                        const Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-                        threads->lst_remove(vri(thread_obj->vid));
-                        ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
                         try {
-                          thread_state->halt();
+                          Thread::get_state(thread_obj)->halt();
+                          ROUTER_WRITE(thread_obj->vid->extend("halt"), dool(true), true);
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
                         } catch(const std::exception &e) {
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                          throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
+                          throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
+                                               e.what());
                         }
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
                       } catch(std::exception &e) {
@@ -115,33 +114,20 @@ namespace fhatos {
                     });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) {
-      Lst_p threads = ROUTER_READ(SCHEDULER_ID->extend("thread"));
-      if(threads->is_noobj())
-        threads = Obj::to_lst();
-      threads->lst_add(vri(thread_obj->vid));
-      ROUTER_WRITE(SCHEDULER_ID->extend("thread"), threads, true);
       return make_shared<Thread>(thread_obj);
     }
 
     static void *import() {
       const Rec_p thread_t = Obj::to_rec({
-          {"loop", Obj::to_bcode()},
-          {"delay", __().isa(*NAT_FURI)},
-          {"halt", __().isa(*BOOL_FURI)}
+          {"loop", __()},
+          {"delay", __().else_(jnt(0,NAT_FURI))},
+          {"halt", __().else_(dool(true))}
       });
       Typer::singleton()->save_type(*THREAD_FURI, thread_t);
-      InstBuilder::build(THREAD_FURI->add_component("create"))
-          ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
-          ->inst_args(Obj::to_inst_args({{"loop", Obj::to_bcode()},
-                                         {"delay", __().isa(*NAT_FURI).else_(jnt(0, NAT_FURI))},
-                                         {"halt", __().isa(*BOOL_FURI).else_(dool(true))}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return Obj::to_rec(args->rec_value(), THREAD_FURI);
-          })->save();
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
-            const ptr<Thread> thread_state = Model::get_state<Thread>(thread_obj);
+            ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
             return Obj::to_noobj();
           })->save();
       return nullptr;

@@ -157,7 +157,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> process(const Thread_p &process) {
-     Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+     FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // ROUTER_WRITE(process->vid, process,RETAIN);
       //fScheduler::singleton()->spawn(process);
       return Kernel::build();
@@ -169,7 +169,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
-      Scheduler::singleton()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
