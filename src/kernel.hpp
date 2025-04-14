@@ -157,7 +157,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> process(const Thread_p &process) {
-     FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // ROUTER_WRITE(process->vid, process,RETAIN);
       //fScheduler::singleton()->spawn(process);
       return Kernel::build();
@@ -169,7 +169,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
-       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
       bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
@@ -179,8 +179,8 @@ namespace fhatos {
         fhatos::FSx::load_boot_config(boot_config_loader);
         if(boot_config_obj_copy_len > 0) {
           LOG_WRITE(INFO, Router::singleton().get(),
-                         L("!b{} !yboot config file!! loaded (size: {} bytes)\n",
-                         boot_config_loader.toString(), boot_config_obj_copy_len));
+                    L("!b{} !yboot config file!! loaded (size: {} bytes)\n",
+                      boot_config_loader.toString(), boot_config_obj_copy_len));
           to_free_boot = true;
         }
       }
@@ -189,8 +189,8 @@ namespace fhatos {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
           LOG_WRITE(INFO, Router::singleton().get(),
-                         L("!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: {} bytes)\n",
-                         boot_config_obj_copy_len));
+                    L("!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: {} bytes)\n",
+                      boot_config_obj_copy_len));
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
@@ -221,7 +221,12 @@ namespace fhatos {
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
-      Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mpress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler barrier start: <!y{}!m>!!\n", "main"));
+      while(!ROUTER_READ(Scheduler::singleton()->vid->extend("halt"))->or_else(dool(false))->bool_value()) {
+        Scheduler::singleton()->loop();
+      }
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler barrier end: <!g{}!m>!!\n", "main"));
+      Scheduler::singleton()->stop();
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_PLATFORM
       esp_restart();

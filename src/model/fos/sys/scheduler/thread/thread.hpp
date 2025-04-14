@@ -85,22 +85,28 @@ namespace fhatos {
                           try {
                             const BCode_p &code = thread_obj->rec_get("loop");
                             force_halt = ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value();
-                            mmADT::delift(code)->apply(thread_obj);
-                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                              Thread::get_state(thread_obj)->delay(delay);
-                              thread_obj->rec_set("delay", jnt(0, NAT_FURI));
-                              thread_obj->save("delay");
+                            if(!force_halt) {
+                              if(Thread *current = Model::get_state(*thread_obj->vid).get())
+                                this_thread.store(current);
+                              mmADT::delift(code)->apply(thread_obj);
+                              if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
+                                Thread::delay_current_thread(delay);
+                                thread_obj->rec_set("delay", jnt(0, NAT_FURI));
+                                thread_obj->save("delay");
+                              }
                             }
                           } catch(const std::exception &e) {
                             LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
                             force_halt = true;
                           }
-                         // thread_obj->sync();
+                          // thread_obj->sync();
                         }
                         try {
-                          Thread::get_state(thread_obj)->halt();
                           ROUTER_WRITE(thread_obj->vid->extend("halt"), dool(true), true);
+                          if(Thread *current = Thread::get_state(*thread_obj->vid).get())
+                            current->halt();
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
+
                         } catch(const std::exception &e) {
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
                           throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
@@ -120,7 +126,7 @@ namespace fhatos {
     static void *import() {
       const Rec_p thread_t = Obj::to_rec({
           {"loop", __()},
-          {"delay", __().else_(jnt(0,NAT_FURI))},
+          {"delay", __().else_(jnt(0, NAT_FURI))},
           {"halt", __().else_(dool(true))}
       });
       Typer::singleton()->save_type(*THREAD_FURI, thread_t);

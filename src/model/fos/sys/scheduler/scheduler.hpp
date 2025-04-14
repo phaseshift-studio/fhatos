@@ -52,42 +52,37 @@ namespace fhatos {
 
     void stop() {
       for(const Uri_p &bundle_uri: *this->rec_get("bundle")->lst_value()) {
-        LOG_WRITE(INFO, this, L("!b%s !yfiber!! closing\n", bundle_uri->toString()));
+        LOG_WRITE(INFO, this, L("!b{} !yfiber!! closing\n", bundle_uri->toString()));
         ROUTER_WRITE(bundle_uri->uri_value(), Obj::to_noobj(), true);
+        Router::singleton()->loop();
       }
       std::vector<Uri_p> list = *this->rec_get("thread")->lst_value();
       while(!list.empty()) {
         if(list.back()->is_uri()) {
-          const ptr<Thread> thread_state = Thread::get_state(list.back()->uri_value());
+          const Obj_p thread_obj = ROUTER_READ(list.back()->uri_value());
           list.pop_back();
-          LOG_WRITE(INFO, this, L("!b%s !ythread!! closing\n", thread_state->thread_obj_->vid_or_tid()->toString()));
-          if(!thread_state->thread_obj_->get<bool>("halt"))
-            thread_state->halt();
-          Thread::yield_current_thread();
+          LOG_WRITE(INFO, this, L("!b{} !ythread!! closing\n", thread_obj->vid_or_tid()->toString()));
+          ROUTER_WRITE(thread_obj->vid->extend("halt"), dool(true), true);
         }
+        Router::singleton()->loop();
+      }
+      const auto timestamp = std::chrono::system_clock::now();
+      while((std::chrono::system_clock::now() - timestamp) < std::chrono::milliseconds(250)) {
+        //do nothing (waiting for threads to close)
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       this->running_ = false;
       LOG_WRITE(INFO, this, L("!yscheduler !b{}!! stopped\n", this->vid->toString()));
     }
 
-    void barrier(const string &, const Supplier<bool> &passPredicate = nullptr,
-                 const char *message = nullptr) {
-      LOG_WRITE(INFO, this, L("!mbarrier start: <!y{}!m>!!\n", "main"));
-      if(message)
-        LOG_WRITE(INFO, this, L("{}\n", message));
-
-      //this->save();
-      while(true) {
-        try {
-          this->handle_bundle();
-          this->handle_threads();
-          Router::singleton()->loop();
-        } catch(const std::exception &e) {
-          LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
-        }
+    void loop() {
+      try {
+        this->handle_bundle();
+        this->handle_threads();
+        Router::singleton()->loop();
+      } catch(const std::exception &e) {
+        LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
       }
-      LOG_WRITE(INFO, this, L("!mbarrier end: <!g{}!m>!!\n", "main"));
     }
 
     void handle_threads() {

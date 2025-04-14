@@ -230,34 +230,6 @@ namespace fhatos {
       this->stale = true;*/
   }
 
-  /*void Router::unsubscribe(const ID &subscriber, const fURI &pattern) {
-    if(!this->active)
-      return;
-    try {
-      this->structures_->forEach([this, subscriber, pattern](const Structure_p &structure) {
-        if(structure->pattern->matches(pattern) || pattern.matches(*structure->pattern)) {
-          LOG_WRITE(DEBUG, this, L("!y!_routing unsubscribe!! !b{}!! for {}\n", pattern.toString(),
-                                   subscriber.toString())              );
-          structure->recv_unsubscribe(subscriber, pattern);
-        }
-      });
-    } catch(const fError &e) {
-      LOG_EXCEPTION(this->shared_from_this(), e);
-    }
-  }
-
-  void Router::subscribe(const Subscription_p &subscription) {
-    if(!this->active)
-      return;
-    try {
-      const Structure_p struc = this->get_structure(*subscription->pattern());
-      LOG_WRITE(DEBUG, this, L("!y!_routing subscribe!! {}\n", subscription->toString()));
-      struc->recv_subscription(subscription);
-    } catch(const fError &e) {
-      LOG_EXCEPTION(this->shared_from_this(), e);
-    }
-  }*/
-
   void *Router::import() {
     //Typer::singleton()->save_type(*ROUTER_FURI,Obj::to_rec());
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(),RETAIN);
