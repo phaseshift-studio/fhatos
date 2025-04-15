@@ -65,11 +65,13 @@ int main(int arg, char **argsv) {
     printer()->ansi_switch(false);
     BootLoader::primary_boot(argv_parser);
     Router::singleton()->write("/io/console/config/terminal", Obj::to_noobj(), true);
+    Router::singleton()->write("/io/console/config/stack_trace", dool(false), true);
   } catch(const std::exception &e) {
     fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
     throw;
   }
-  LOG(INFO, "Processing %i expressions\n", arg);
+  LOG(INFO, "processing %i expressions\n", arg);
+  const Console* console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
   printer()->printer_switch(true);
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
@@ -78,19 +80,22 @@ int main(int arg, char **argsv) {
       StringHelper::trim(x);
       const bool has_thread = x.find("spawn") != string::npos;
       printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
-      StringHelper::replace(&x, "&<<", "{");
-      StringHelper::replace(&x, "&>>", "}");
       printer()->println(x.c_str());
       Router::singleton()->loop();
-      StringHelper::replace(&x, "'", "\\'"); // escape quotes
-      Processor::compute(fmt::format("*/io/console.eval('{}')", x));
+      //StringHelper::replace(&x, "'", "\\'"); // escape quotes
+      //StringHelper::replace(&x, "{", "{");
+      //StringHelper::replace(&x, "}", "}");
+      console->process_line(x); // TODO: using this access point as issues with {} in print() being intercepted by fmt package
+      //Processor::compute(string("*/io/console.eval('").append(x).append("')"));
       Router::singleton()->loop();
       std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
-
   }
+  printer()->printer_switch(false);
+  Terminal::STD_OUT_DIRECT(str("\n"));
+  //Scheduler::singleton()->stop();
   return 0;
 }
 #endif

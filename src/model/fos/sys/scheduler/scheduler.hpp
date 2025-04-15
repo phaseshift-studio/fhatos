@@ -92,6 +92,8 @@ namespace fhatos {
         return;
       const auto new_thread_uris = Obj::to_lst();
       for(const auto &thread_id: *thread_uris->lst_value()) {
+        if(!thread_id->is_uri())
+          throw fError("scheduler thread can only store uris: %s", OTypes.to_chars(thread_id->otype).c_str());
         const Bool_p halted = ROUTER_READ(thread_id->uri_value().extend("halt"));
         if(halted->is_noobj() || halted->bool_value()) {
           LOG_WRITE(INFO, this, L("!b{} !ythread!! removed\n", thread_id->uri_value().toString()));
@@ -108,11 +110,13 @@ namespace fhatos {
 
     void handle_bundle() {
       this->sync("bundle");
-      const Lst_p bundle_uris = this->rec_get("bundle");
+      const Lst_p bundle_uris = this->rec_get("bundle")->or_else(lst());
       if(bundle_uris->lst_value()->empty())
         return;
       const auto new_bundles = Obj::to_lst();
       for(const auto &fiber_id: *bundle_uris->lst_value()) {
+        if(!fiber_id->is_uri())
+          throw fError("scheduler bundle can only store uris: %s", OTypes.to_chars(fiber_id->otype).c_str());
         const Obj_p fiber = ROUTER_READ(fiber_id->uri_value());
         if(fiber->is_noobj()) {
           LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n", fiber_id->uri_value().toString()));
@@ -120,8 +124,8 @@ namespace fhatos {
         }
         FEED_WATCHDOG();
         try {
-          //__(fiber).inst("loop").compute();
-          mmADT::delift(fiber->rec_get("loop"))->apply(fiber);
+          Inst_p loop_inst = Compiler(true, true).resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+          mmADT::delift(loop_inst)->apply(fiber);
           new_bundles->lst_add(fiber_id);
         } catch(const std::exception &e) {
           LOG_WRITE(ERROR, this, L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
@@ -147,15 +151,15 @@ namespace fhatos {
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p thread_obj = args->arg("thread");
-            thread_obj->rec_set("halt", dool(false));
-            thread_obj->save("halt");
+            //if(thread_obj->vid && MODEL_STATES::singleton()->exists(*thread_obj->vid))
+            //  throw fError("running thread already exists at !b%s!!\n", thread_obj->vid->toString().c_str());
             const Thread_p thread_state = Thread::get_state(thread_obj);
             const Lst_p thread_uris = Scheduler::singleton()->rec_get("thread")->or_else(lst());
             thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
             Scheduler::singleton()->rec_value()->insert_or_assign(vri("thread"), thread_uris);
             Scheduler::singleton()->save("thread");
             LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
-            return thread_state->thread_obj_;
+            return thread_obj;
           })
           ->save();
       InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))

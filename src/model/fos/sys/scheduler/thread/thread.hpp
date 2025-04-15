@@ -73,18 +73,18 @@ namespace fhatos {
                       try {
                         thread_obj->rec_set("halt", dool(false));
                         thread_obj->save("halt");
-                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                                                            thread_obj->rec_get("loop")->toString(),
-                                                            thread_obj->rec_get("config/stack_size",
-                                                              ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))
-                                                            )->toString())                            );
-
+                        LOG_WRITE(INFO, thread_obj.get(),
+                                  L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                                    thread_obj->rec_get("loop")->toString(),
+                                    thread_obj->rec_get("config/stack_size",
+                                      ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))->toString()));
                         bool force_halt = false;
                         while(!force_halt && !ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value()) {
                           FEED_WATCHDOG();
                           try {
                             const BCode_p &code = thread_obj->rec_get("loop");
-                            force_halt = ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value();
+                            force_halt = ROUTER_READ(thread_obj->vid->extend("halt"))->or_else(dool(true))->
+                                bool_value();
                             if(!force_halt) {
                               if(Thread *current = Model::get_state(*thread_obj->vid).get())
                                 this_thread.store(current);

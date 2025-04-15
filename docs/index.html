@@ -770,7 +770,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5632]
+[INFO]  [/sys/router] main memory [total=&gt;5376]
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -816,10 +816,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
 [INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
 [INFO]  [/sys/router] mqtt boot config dropped
-[INFO]  [/mnt/bus] mapping /bus==&gt;//io
-[INFO]  [/sys/router] bus /mnt/bus spanning /bus/# mounted
-[INFO]  [/sys/router] /io/console obj loaded
-[INFO]  [/sys/router] console boot config dropped</code></pre>
+[INFO]  [/sys/scheduler] /io/console thread spawned</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -908,19 +905,19 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <!-- 🐖 ./main_runner.out "*/sys/scheduler" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; */sys/scheduler
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 &gt;[
-==&gt;thread=&gt;[
-=&gt;]
 ==&gt;bundle=&gt;[
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;def_stack_size=&gt;16192
 =&gt;]
 ==&gt;::=&gt;[
-===&gt;spawn=&gt;spawn?thread&lt;=obj{?}(_)[cpp]
+===&gt;spawn=&gt;spawn?thread&lt;=obj{?}(thread=&gt;_)[cpp]
 ===&gt;bundle=&gt;bundle?obj&lt;=obj{?}(fiber=&gt;_)[cpp]
+=&gt;]
+==&gt;thread=&gt;[
+===&gt;/io/console
 =&gt;]
 &gt;]@/sys/scheduler</code></pre>
 </div>
@@ -937,45 +934,14 @@ thread spawned: inst()[cpp] [stack size:32384]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">thread spawned: inst()[cpp] [stack size:32384]
-fhatos&gt; */sys/router
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/router
 &gt;[
 ==&gt;frame=&gt;[rec][_]
 ==&gt;config=&gt;[
-===&gt;resolve=&gt;[
-====&gt;namespace=&gt;[
-=====&gt;:=&gt;/mmadt/
-=====&gt;fos:=&gt;/fos/
-===&gt;]
-====&gt;auto_prefix=&gt;[
-=====&gt;
-=====&gt;/mmadt/
-=====&gt;/mmadt/ext/
-=====&gt;/fos/
-=====&gt;/fos/sys/
-=====&gt;/fos/io/
-=====&gt;/fos/sensor/
-=====&gt;/fos/ui/
-=====&gt;/fos/util/
-=====&gt;/sys/
-===&gt;]
-====&gt;query=&gt;[
-=====&gt;write=&gt;[
-======&gt;lock=&gt;to_do
-====&gt;]
-===&gt;]
-====&gt;default_config=&gt;[
-=====&gt;query=&gt;[
-======&gt;write=&gt;[sub=&gt;noobj]
-====&gt;]
-===&gt;]
-==&gt;]
+===&gt;resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]
 =&gt;]
 ==&gt;query=&gt;[
-===&gt;write=&gt;[
-====&gt;lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp]
-====&gt;sub=&gt;sub?obj{?}&lt;=obj()[cpp]
-==&gt;]
+===&gt;write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]
 =&gt;]
 ==&gt;structure=&gt;[
 ===&gt;/sys/#
@@ -987,7 +953,6 @@ fhatos&gt; */sys/router
 ===&gt;+/#
 ===&gt;/disk/#
 ===&gt;/shared/#
-===&gt;/bus/#
 =&gt;]
 &gt;]@/sys/router</code></pre>
 </div>
@@ -1001,8 +966,7 @@ fhatos&gt; */sys/router
 <!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; */mmadt/#/
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/#/
 &gt;[
 ==&gt;/mmadt/and=&gt;and?bool&lt;=obj{?}(con?lst=&gt;_)[cpp]
 ==&gt;/mmadt/apply=&gt;apply?obj{?}&lt;=obj{?}(rhs=&gt;_,args=&gt;isa(/mmadt/rec))[cpp]
@@ -1106,6 +1070,7 @@ thread spawned: inst()[cpp] [stack size:32384]
 ==&gt;/mmadt/not=&gt;not?obj{?}&lt;=obj(_)[cpp]
 ==&gt;/mmadt/obj=&gt;[obj][_]
 ==&gt;/mmadt/objs=&gt;[objs][_]
+==&gt;/mmadt/option=&gt;option?obj{?}&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/or=&gt;or?bool&lt;=obj{?}(con?lst=&gt;_)[cpp]
 ==&gt;/mmadt/plus=&gt;plus(_)
 ==&gt;/mmadt/print=&gt;print?obj{?}&lt;=obj{?}(_)[cpp]
@@ -1205,8 +1170,7 @@ When the instruction implementation is written in mmADT, the instruction value i
 <!-- 🐖 ./main_runner.out "*int::lt" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; *int::lt
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *int::lt
 ==&gt;lt?bool&lt;=int(arg?int=&gt;_)[cpp]</code></pre>
 </div>
 </div>
@@ -1217,8 +1181,7 @@ thread spawned: inst()[cpp] [stack size:32384]
 <!-- 🐖 ./main_runner.out "*nat" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; *nat
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
 ==&gt;nat?int&lt;=int()[is(gte(0))]</code></pre>
 </div>
 </div>
@@ -1234,13 +1197,12 @@ thread spawned: inst()[cpp] [stack size:32384]
 <!-- 🐖 ./main_runner.out "# -> noobj" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; # -&gt; noobj
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
 [ERROR] [/sys/router] # crosses multiple structures
-[INFO]  [/sys/router] 1 bus(s) closing
 [INFO]  [/sys/router] 1 dsm(s) closing
 [INFO]  [/sys/router] 1 fs(s) closing
-[INFO]  [/sys/router] 7 heap(s) closing</code></pre>
+[INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/sys/router] router /sys/router stopped</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1370,8 +1332,7 @@ However, given frequency of base types usage, specifying the type is not necessa
 <!-- 🐖 ./main_runner.out "/mmadt/bool[true]" "bool[true]" "true" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /mmadt/bool[true]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/bool[true]
 ==&gt;true
 fhatos&gt; bool[true]
 ==&gt;true
@@ -1399,8 +1360,7 @@ fhatos&gt; 6
 <!-- 🐖 ./main_runner.out "/mmadt/real[6.2]" "real[6.2]" "6.2" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /mmadt/real[6.2]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/real[6.2]
 ==&gt;6.200000
 fhatos&gt; real[6.2]
 ==&gt;6.200000
@@ -1414,8 +1374,7 @@ fhatos&gt; 6.2
 <!-- 🐖 ./main_runner.out "/mmadt/str['cooties']" "str['cooties']" "'cooties'" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /mmadt/str['cooties']
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/str['cooties']
 ==&gt;'cooties'
 fhatos&gt; str['cooties']
 ==&gt;'cooties'
@@ -1448,13 +1407,24 @@ lst[['a',2,true]]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">thread spawned: inst()[cpp] [stack size:32384]
-fhatos&gt; /mmadt/lst[['a',2,true]]
-==&gt;['a',2,true]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/lst[['a',2,true]]
+&gt;[
+==&gt;'a'
+==&gt;2
+==&gt;true
+&gt;]
 fhatos&gt; lst[['a',2,true]]
-==&gt;['a',2,true]
+&gt;[
+==&gt;'a'
+==&gt;2
+==&gt;true
+&gt;]
 fhatos&gt; ['a',2,true]
-==&gt;['a',2,true]</code></pre>
+&gt;[
+==&gt;'a'
+==&gt;2
+==&gt;true
+&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1468,7 +1438,21 @@ rec[[a=>6,b=>false]]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">thread spawned: inst()[cpp] [stack size:32384]</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/rec[[a=&gt;6,b=&gt;false]]
+&gt;[
+==&gt;a=&gt;6
+==&gt;b=&gt;false
+&gt;]
+fhatos&gt; rec[[a=&gt;6,b=&gt;false]]
+&gt;[
+==&gt;a=&gt;6
+==&gt;b=&gt;false
+&gt;]
+fhatos&gt; [a=&gt;6,b=&gt;false]
+&gt;[
+==&gt;a=&gt;6
+==&gt;b=&gt;false
+&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1483,8 +1467,7 @@ noobj
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /mmadt/noobj[]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/noobj[]
 fhatos&gt; noobj[]
 fhatos&gt; noobj
 fhatos&gt;
@@ -1530,8 +1513,7 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 <!-- 🐖 ./main_runner.out "*/mmadt/ext/#/" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; */mmadt/ext/#/
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/ext/#/
 &gt;[
 ==&gt;/mmadt/ext/C=&gt;C()[is(gte(-273.14999))]
 ==&gt;/mmadt/ext/Ox=&gt;Ox()[is(true)]
@@ -1613,8 +1595,7 @@ nat[12]@a
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; *nat
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *nat
 ==&gt;nat?int&lt;=int()[is(gte(0))]
 fhatos&gt; nat[12]
 ==&gt;nat[12]
@@ -1645,8 +1626,7 @@ C[-274.0]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; *C
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *C
 ==&gt;C?real&lt;=real()[is(gte(-273.14999))]
 fhatos&gt; C[0.0]
 ==&gt;C[0.000000]
@@ -1731,14 +1711,12 @@ band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; band -&gt; |band?int{?}&lt;=int(_,_)[is(and([gte(*&lt;0&gt;),lte(*&lt;1&gt;)]))]
-thread spawned: inst()[cpp] [stack size:32384]
-==&gt;band?intnoobj&lt;=int(_,_)
-	[band[is(and([gte(from(0)),lte(from(1))]))]]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(_,_)[is(and([gte(*&lt;0&gt;),lte(*&lt;1&gt;)]))]
+==&gt;band?int{?}&lt;=int(_,_)
+	[band?int{?}&lt;=int[is(and([gte(from(0)),lte(from(1))]))]]
 fhatos&gt; 3.band(2,8)                                <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;3
-fhatos&gt; 10.band(2,8)                               <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(2,8)[band[is(and([gte(from(0)),lte(from(1))]))]] [SIGNATURE HERE]</code></pre>
+fhatos&gt; 10.band(2,8)                               <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1772,10 +1750,9 @@ band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;_)[is(and([gte(*min),lte(*max)]))]
-thread spawned: inst()[cpp] [stack size:32384]
-==&gt;band?intnoobj&lt;=int(min=&gt;_,max=&gt;_)
-	[band[is(and([gte(from(min)),lte(from(max))]))]]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;_)[is(and([gte(*min),lte(*max)]))]
+==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;_)
+	[band?int{?}&lt;=int[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;3
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1783,7 +1760,7 @@ fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-val
 fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a str as defined by [str][_]
 		 \_/mmadt/int is not a subtype of /mmadt/str
-	  thrown at inst 'abc' =&gt; band(min=&gt;2,max=&gt;8)[band[is(and([gte(from(min)),lte(from(max))]))]] [min=&gt;2,max=&gt;8]</code></pre>
+	  thrown at inst 'abc' =&gt; band?int{?}&lt;=int(min=&gt;2,max=&gt;8)[band?int{?}&lt;=int[is(and([gte(from(min)),lte(from(max))]))]] [min=&gt;2,max=&gt;8]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1822,16 +1799,15 @@ band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;else(2),max=&gt;else(8))[is(and([gte(*min),lte(*max)]))]
-thread spawned: inst()[cpp] [stack size:32384]
-==&gt;band?intnoobj&lt;=int(min=&gt;else?noobj&lt;=obj(2)[noobj],max=&gt;else?noobj&lt;=obj(8)[noobj])
-	[band[is(and([gte(from(min)),lte(from(max))]))]]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;else(2),max=&gt;else(8))[is(and([gte(*min),lte(*max)]))]
+==&gt;band?int{?}&lt;=int(min=&gt;else?noobj&lt;=obj(2)[noobj],max=&gt;else?noobj&lt;=obj(8)[noobj])
+	[band?int{?}&lt;=int[is(and([gte(from(min)),lte(from(max))]))]]
 fhatos&gt; 1.band(min=&gt;1)                        <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;1
 fhatos&gt; 10.band()                             <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=&gt;2,max=&gt;8)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]
 fhatos&gt; {2,3,4,5}.band(min=&gt;3,max=&gt;4)         <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of band(min=&gt;3,max=&gt;4)[band[is(and([gte(from(min)),lte(from(max))]))]] [SIGNATURE HERE]</code></pre>
+==&gt;3
+==&gt;4</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1890,11 +1866,16 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)
 	[is_divisble[mod(from(by)).eq(0)]]
-fhatos&gt; 10.is_divisible(2)</code></pre>
+fhatos&gt; 10.is_divisible(2)
+[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
+	  thrown at inst 10 =&gt; mod(noobj)[cpp] [by?int=&gt;2,0=&gt;noobj]
+	  thrown at inst 10 =&gt; is_divisble(by?int=&gt;2)[is_divisble[mod(from(by)).eq(0)]] [by?int=&gt;2]
+fhatos&gt; 10.is_divisible('abc')
+[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
+		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1914,10 +1895,9 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
-thread spawned: inst()[cpp] [stack size:32384]
-==&gt;band?intnoobj&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
-	[band[is(gte(from(min))).is(lte(from(max)))]]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
+==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
+	[band?int{?}&lt;=int[is(gte(from(min))).is(lte(from(max)))]]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
@@ -1941,15 +1921,16 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj&lt;=obj(1)[noobj])[noobj])
 	[is_divisble[mod(from(by)).eq(0)]]
 fhatos&gt; 10.is_divisible(2)
 error[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
 	  thrown at inst 10 =&gt; mod(noobj)[cpp] [by?int=&gt;2,0=&gt;noobj]
 	  thrown at inst 10 =&gt; is_divisble(by?int=&gt;2)[is_divisble[mod(from(by)).eq(0)]] [by?int=&gt;2]
-fhatos&gt; 10.is_divisible('abc')</code></pre>
+fhatos&gt; 10.is_divisible('abc')
+error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
+		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1966,8 +1947,7 @@ int(a=>2)[*a]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; int(a=&gt;2)[*a]
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; int(a=&gt;2)[*a]
 ==&gt;2
 fhatos&gt; 4 + int(a=&gt;2)[*a]
 ==&gt;6
@@ -2034,8 +2014,7 @@ y -> z
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; *y
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *y
 fhatos&gt; *z
 fhatos&gt; z -&gt; 12
 ==&gt;12
@@ -2095,8 +2074,7 @@ a -> 12
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a -&gt; 12
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 12
 ==&gt;12
 fhatos&gt; *a.plus(10)
 ==&gt;22
@@ -2138,8 +2116,7 @@ fhatos&gt; *a
 <td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a?sub -&gt; |to(b)
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub
 &gt;sub[
@@ -2198,8 +2175,7 @@ a -> 'axel'
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a -&gt; 'axel'
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'axel'
 ==&gt;'axel'
 fhatos&gt; *a
 ==&gt;'axel'
@@ -2217,27 +2193,44 @@ fhatos&gt; *a
 </div>
 <div id="_tabs_6_thread--panel" class="tabpanel" aria-labelledby="_tabs_6_thread">
 <!-- 🐖 ./main_runner.out
-thread::create(loop=>||( /
+thread[[loop=>^( /
   from(|c,0).print('c: {_}'). /
   plus(1).to(c). /
   gt(10).to(t/halt). /
-  is(_).print('\n'))).to(|t)
-@t.spawn()
-*c
+  is(_).print('\n'))]]@t
+ @t.spawn()
+ *c
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; thread::create(loop=&gt;||(
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; thread[[loop=&gt;^(
           from(|c,0).print('c: {_}').
           plus(1).to(c).
           gt(10).to(t/halt).
-          is(_).print('\n'))).to(|t)
-thread spawned: inst()[cpp] [stack size:32384]
-==&gt;thread/::/create
+          is(_).print('\n'))]]@t
+&gt;thread[
+==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
+==&gt;delay=&gt;nat[0]
+==&gt;halt=&gt;true
+&gt;]@t
 fhatos&gt; @t.spawn()
-[ERROR] [/sys/scheduler] [/mmadt/noobj] spawn inst unresolved
-	         lhs id  inst id    resolve obj
-fhatos&gt; *c</code></pre>
+[INFO]  [/sys/scheduler] t thread spawned
+[INFO]  [t] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [stack size:16192]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+
+fhatos&gt; c: 6
+c: 7
+c: 8
+c: 9
+c: 10
+[INFO]  [t] thread stopped
+fhatos&gt; *c
+==&gt;11</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2314,10 +2307,20 @@ a -> int8[126]                       --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
           *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
-thread spawned: inst()[cpp] [stack size:32384]
 &gt;[
+==&gt;
+==&gt;/mmadt/
+==&gt;/mmadt/ext/
+==&gt;/fos/
+==&gt;/fos/sys/
+==&gt;/fos/io/
+==&gt;/fos/sensor/
+==&gt;/fos/ui/
+==&gt;/fos/util/
+==&gt;/sys/
+==&gt;/mmadt/ext/
 &gt;]
 fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;int8[126]
@@ -2632,7 +2635,13 @@ For example, see how the internal <code>objs</code> if a <code>lst</code> are ef
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"></code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.lst[[1,plus(2),mult(plus(3)),'a']]
+&gt;[
+==&gt;1
+==&gt;4
+==&gt;10
+==&gt;'a'
+&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2668,7 +2677,9 @@ However, what makes
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]
-[ERROR] [/sys/scheduler] [/mmadt/bcode] is(gt(2)) accessed as uri</code></pre>
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2686,9 +2697,13 @@ For instance, <code>if</code> is implemented with a two entry <code>rec</code>, 
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/scheduler] [/mmadt/bcode] is(gt(2)) accessed as uri
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/mmadt/bcode] is(gt(2)) accessed as uri</code></pre>
+[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2750,19 +2765,18 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; {1,2,3}-|[
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-|[
           is(gt(2)) =&gt; mult(-1),      <i class="conum" data-value="1"></i><b>(1)</b>
           _         =&gt; mult(100)]     <i class="conum" data-value="2"></i><b>(2)</b>
-thread spawned: inst()[cpp] [stack size:32384]
 ==&gt;1
+==&gt;2
+==&gt;3
 fhatos&gt; {1,2,3}-|[
           is(gt(2)) =&gt; mult(-1),
           _         =&gt; mult(100)]&gt;-
-[ERROR] [/sys/scheduler] [/mmadt/bcode] is(gt(2)) accessed as uri
-          is(gt(2)) =&gt; mult(-1),
-          _         =&gt; mult(100)]&gt;-')[cpp] [code=&gt;'1-|[
-          is(gt(2)) =&gt; mult(-1),
-          _         =&gt; mult(100)]&gt;-']</code></pre>
+==&gt;100
+==&gt;200
+==&gt;-3</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2801,17 +2815,26 @@ fhatos&gt; {1,2,3}-|[
 ==&gt;is(gt(1))=&gt;noobj
 ==&gt;is(gt(2))=&gt;noobj
 &gt;]
+&gt;[
+==&gt;is(gt(0))=&gt;-2
+==&gt;is(gt(1))=&gt;0
+==&gt;is(gt(2))=&gt;noobj
+&gt;]
+&gt;[
+==&gt;is(gt(0))=&gt;-3
+==&gt;is(gt(1))=&gt;0
+==&gt;is(gt(2))=&gt;3
+&gt;]
 fhatos&gt; {1,2,3}-&lt;[
           is(gt(0)) =&gt; mult(-1),
           is(gt(1)) =&gt; mult(0),
           is(gt(2)) =&gt; _]&gt;-
-[ERROR] [/sys/scheduler] [/mmadt/bcode] is(gt(0)) accessed as uri
-          is(gt(0)) =&gt; mult(-1),
-          is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]&gt;-')[cpp] [code=&gt;'1-&lt;[
-          is(gt(0)) =&gt; mult(-1),
-          is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]&gt;-']</code></pre>
+==&gt;-1
+==&gt;-2
+==&gt;0
+==&gt;-3
+==&gt;0
+==&gt;3</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2823,7 +2846,9 @@ fhatos&gt; {1,2,3}-&lt;[
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
-==&gt;1</code></pre>
+==&gt;1
+==&gt;2
+==&gt;3</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2847,8 +2872,7 @@ fhatos&gt; {1,2,3}-&lt;[
 <div class="listingblock">
 <div class="title">conditional hash <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals"><i class="fa fa-link"></i></a></span></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; --- todo
-thread spawned: inst()[cpp] [stack size:32384]</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2892,8 +2916,7 @@ This is, in fact, the case.</p>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; 1.plus(1)         <i class="conum" data-value="1"></i><b>(1)</b>
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 1.plus(1)         <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;2
 fhatos&gt; 1. 2              <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;2
@@ -3108,7 +3131,6 @@ noobj.noobj
 noobj.true
 noobj.6
 noobj.real[3.14]
-noobj.'text {_}'
 noobj.a/b/c
 noobj.[1,2,3]
 noobj.[noobj=>1]
@@ -3122,8 +3144,6 @@ fhatos&gt; noobj.6
 ==&gt;6
 fhatos&gt; noobj.real[3.14]
 ==&gt;3.140000
-fhatos&gt; noobj.'text {_}'
-==&gt;'text console[[delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[processor=&gt;/sys/vm,nest=&gt;2,ellipsis=&gt;50,prompt=&gt;'
 fhatos&gt; noobj.a/b/c
 ==&gt;a/b/c
 fhatos&gt; noobj.[1,2,3]
@@ -3145,7 +3165,6 @@ true.noobj
 false.true
 false.6
 true.real[3.14]
-false.'text {_}'
 true.a/b/c
 false.[1,2,3]
 true.[false=>0,true=>1]
@@ -3161,8 +3180,6 @@ fhatos&gt; false.6
 ==&gt;6
 fhatos&gt; true.real[3.14]
 ==&gt;3.140000
-fhatos&gt; false.'text {_}'
-==&gt;'text console[[delay=&gt;nat[0],loop=&gt;inst()[cpp],config=&gt;[processor=&gt;/sys/vm,nest=&gt;2,ellipsis=&gt;50,prompt=&gt;'
 fhatos&gt; true.a/b/c
 ==&gt;a/b/c
 fhatos&gt; false.[1,2,3]
@@ -3248,8 +3265,7 @@ fhatos&gt; @a.inspect()
 <!-- 🐖 ./main_runner.out "a?sub -> |print(_)" "a -> 12" "@a.inspect()" "@a.plus(1)" "@a.plus(1).plus(1)" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a?sub -&gt; |print(_)
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |print(_)
 ==&gt;print?noobj&lt;=obj(_)[noobj]
 fhatos&gt; a -&gt; 12
 ==&gt;12
@@ -3303,8 +3319,7 @@ For instance, if a natural number \(\mathbb{N}\) is any non-negative number, the
 <!-- 🐖 ./main_runner.out "/type/int/nat -> |is(gt(0))" "nat[6]" "nat[-6]" "nat[3].plus(2)" "nat[3].mult(-2)" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /type/int/nat -&gt; |is(gt(0))
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /type/int/nat -&gt; |is(gt(0))
 [ERROR] [/sys/router] no mounted structure for /type/int/nat
 ==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj]
 fhatos&gt; nat[6]
@@ -3372,31 +3387,15 @@ The function of the router is to:</p>
 <!-- 🐖 ./main_runner.out "/io/console/config/nest->3" "*/sys/router/#/" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; /io/console/config/nest-&gt;3
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest-&gt;3
 ==&gt;3
 fhatos&gt; */sys/router/#/
 &gt;[
 ==&gt;/sys/router=&gt;[
 ===&gt;frame=&gt;[rec][_]
-===&gt;config=&gt;[
-====&gt;resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]
-==&gt;]
-===&gt;query=&gt;[
-====&gt;write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]
-==&gt;]
-===&gt;structure=&gt;[
-====&gt;/sys/#
-====&gt;/mnt/#
-====&gt;/boot/#
-====&gt;/fos/#
-====&gt;/mmadt/#
-====&gt;/io/#
-====&gt;+/#
-====&gt;/disk/#
-====&gt;/shared/#
-====&gt;/bus/#
-==&gt;]
+===&gt;config=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
+===&gt;query=&gt;[write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]]
+===&gt;structure=&gt;[/sys/#,/mnt/#,/boot/#,/fos/#,/mmadt/#,/io/#,+/#,/disk/#,/shared/#]
 =&gt;]@/sys/router
 &gt;]</code></pre>
 </div>
@@ -3448,8 +3447,7 @@ a -> 'meangirl'            --- <5>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a -&gt; 'snowbutt'            <i class="conum" data-value="1"></i><b>(1)</b>
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'snowbutt'            <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;'snowbutt'
 fhatos&gt; *a                         <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;'snowbutt'
@@ -3548,8 +3546,7 @@ o.to(u)
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; u -&gt; o
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; u -&gt; o
 ==&gt;o
 fhatos&gt; u.ref(o)
 ==&gt;o
@@ -3614,8 +3611,7 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; a/a -&gt; 1; a/b -&gt; 2; a/b/c -&gt; 3; a/b/d -&gt; 4;
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a/a -&gt; 1; a/b -&gt; 2; a/b/c -&gt; 3; a/b/d -&gt; 4;
 fhatos&gt; *a/b            <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;2
 fhatos&gt; *a/b/           <i class="conum" data-value="2"></i><b>(2)</b>
@@ -3764,8 +3760,7 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3                     <i class="conum" data-value="1"></i><b>(1)</b>
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; abc?k1=v1&amp;k2=v2&amp;k3=v3                     <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;abc?k1=v1&amp;k2=v2&amp;k3=v3
 fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
@@ -3845,8 +3840,7 @@ This section will explore the following considerations when designing a <em>mult
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; 1.plus(2)
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 1.plus(2)
 ==&gt;3</code></pre>
 </div>
 </div>
@@ -3920,8 +3914,7 @@ m/2/3 -> 11
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[INFO]  [/io/console] fhatos&gt; --- write matrix
-thread spawned: inst()[cpp] [stack size:32384]
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
 fhatos&gt; m/0/0 -&gt; 0
 ==&gt;0
 fhatos&gt; m/0/1 -&gt; 1
@@ -4539,7 +4532,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-11 23:53:32 -0600
+Last updated 2025-04-15 17:18:28 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

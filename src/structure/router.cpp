@@ -193,9 +193,9 @@ namespace fhatos {
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
       const Objs_p objs = structure->read(resolved_furi);
-      LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
+      /*LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
                                this->vid->toString(), resolved_furi.toString(), // make this the current process
-                               objs->toString(), structure->pattern->toString())          );
+                               objs->toString(), structure->pattern->toString())          );*/
       return objs->none_one_all();
     } catch(const fError &e) {
       LOG_EXCEPTION(this->shared_from_this(), e);

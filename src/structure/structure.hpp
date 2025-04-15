@@ -244,7 +244,7 @@ namespace fhatos {
           /////////////////////////////////////// READ NODE PATTERN/ID /////////////////////////////////////////////
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           if(matches.empty()) {
-            LOG_WRITE(TRACE, this, L("searching for base poly of: {}\n", furi_no_query.toString()));
+            // LOG_WRITE(TRACE, this, L("searching for base poly of: {}\n", furi_no_query.toString()));
             if(const auto pair = this->locate_base_poly(furi_no_query.retract()); pair.has_value()) {
               LOG_WRITE(TRACE, this, L("base poly found at {}: {}\n",
                                        pair->first.toString(),

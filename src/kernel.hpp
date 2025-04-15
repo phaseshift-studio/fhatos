@@ -156,10 +156,9 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> process(const Thread_p &process) {
+    static ptr<Kernel> process(const Obj_p &thread) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      // ROUTER_WRITE(process->vid, process,RETAIN);
-      //fScheduler::singleton()->spawn(process);
+      __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(thread)).compute();
       return Kernel::build();
     }
 

@@ -35,7 +35,7 @@ namespace fhatos {
       auto lock = std::shared_lock<std::shared_mutex>(this->map_mutex);
       if(!this->data_->count(id))
         throw fError::create(id.toString(), "no global value associated with !b%s!!", id.toString().c_str());
-      const Any thing = this->data_->at(id);
+      const std::any thing = this->data_->at(id);
       const T t = std::any_cast<T>(thing);
       return t;
     }

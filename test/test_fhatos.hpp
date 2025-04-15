@@ -195,6 +195,7 @@ using namespace fhatos;
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
+      ROUTER_WRITE(SCHEDULER_ID->extend("halt"),dool(true),true);                                                      \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
       TEST_FAIL_MESSAGE(e.what());                                                                                     \

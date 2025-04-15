@@ -37,7 +37,7 @@ namespace fhatos {
   class Log final : public Rec {
   public:
     explicit Log(const ID &value_id, const Rec_p &config) :
-      Rec(rmap({{"config", config}}), OType::REC, LOG_FURI, id_p(value_id)) {
+      Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
       printer<>()->printf("!g[INFO]  [!m%s!g] switching from !yboot logger!! to !ysystem logger!!\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
@@ -46,11 +46,12 @@ namespace fhatos {
     }
 
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
-      const Lst_p furis = Log::singleton()->rec_get("config/" + LOG_TYPES.to_chars(type));
+      const auto logging = fURI(string("config/").append(LOG_TYPES.to_chars(type)));
+      const Lst_p furis = Log::singleton()->rec_get(logging)->or_else(lst());
       if(!furis->is_lst()) {
         printer<>()->print(fmt::format(
             "!r[ERROR] !! " OBJ_ID_WRAP " log listing not within schema specification: !b{}!!\n",
-            LOG_FURI->toString(),
+            LOG_FURI ? LOG_FURI->toString() : "<none>",
             Log::singleton()->toString()).c_str());
         return;
       }

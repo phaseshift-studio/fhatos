@@ -1479,6 +1479,10 @@ namespace fhatos {
             obj_string = this->type_value()->toString();
             break;
           }
+          case OType::OBJ: {
+            obj_string = this->vid_or_tid()->toString();
+            break;
+          }
           default:
             throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->otype).c_str());
         }
