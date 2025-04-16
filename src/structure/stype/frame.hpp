@@ -39,7 +39,7 @@ namespace fhatos {
                    const ptr<Frame> &previous = nullptr,
                    const Rec_p &frame_data = Obj::to_rec()) :
       Structure(pattern, id_p(FRAME_FURI)), //id_p(pattern.retract())),
-      previous_{previous}, data_{frame_data} {
+      data_{frame_data->rec_no_query()}, previous_{previous} {
     }
 
 

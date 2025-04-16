@@ -144,6 +144,14 @@ namespace fhatos {
     FOS_TEST_ERROR("/compiler/nat[5] + -10");
   }
 
+  void test_anonymous_inst() {
+    FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("10.(a=>_,b=>_)[plus(*a).plus(*b)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("10.(_,_)[plus(*<0>).plus(*<1>)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(50), PROCESS("10.(a=>_,b=>plus(10))[plus(*a).plus(*b)]"));
+    FOS_TEST_ERROR("10.()[plus(*a).plus(*b)]");
+    FOS_TEST_ERROR("10.()[plus(*<0>).plus(*<1>)]");
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_type_check_base_types); //
       FOS_RUN_TEST(test_type_check_derived_mono_types); //
@@ -152,6 +160,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_rec_type_constructors); //
       // FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
+      FOS_RUN_TEST(test_anonymous_inst); //
       )
 } // namespace fhatos
 

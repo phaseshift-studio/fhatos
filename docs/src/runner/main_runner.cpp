@@ -89,13 +89,14 @@ int main(int arg, char **argsv) {
       //Processor::compute(string("*/io/console.eval('").append(x).append("')"));
       Router::singleton()->loop();
       std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
+      Router::singleton()->write(SCHEDULER_ID->extend("halt"),dool(true));
     } catch(std::exception &e) {
       LOG_EXCEPTION(Scheduler::singleton(), e);
     }
   }
   printer()->printer_switch(false);
-  Terminal::STD_OUT_DIRECT(str("\n"));
-  //Scheduler::singleton()->stop();
+
+  // Scheduler::singleton()->stop();
   return 0;
 }
 #endif

@@ -897,6 +897,19 @@ namespace fhatos {
       return result->is_noobj() && or_else ? or_else : result;
     }
 
+    [[nodiscard]] Rec_p rec_no_query() const {
+      if(!this->is_rec())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      Rec_p new_rec = Obj::to_rec();
+      for(const auto &[k,v]: *this->rec_value()) {
+        if(k->is_uri() && k->uri_value().has_query())
+          new_rec->rec_value()->insert_or_assign(Obj::to_uri(k->uri_value().no_query()), v);
+        else
+          new_rec->rec_value()->insert_or_assign(k, v);
+      }
+      return new_rec;
+    }
+
     [[nodiscard]] Obj_p rec_get(const fURI &key, const Obj_p &or_else = nullptr) const {
       return rec_get(to_uri(key), or_else);
     }
@@ -1134,7 +1147,7 @@ namespace fhatos {
         const ID_p ri = id_p(rf);
         return ri;
       }
-      if(this->is_bcode() && !this->bcode_value()->empty())
+      if(this->is_not_empty_bcode())
         return this->bcode_value()->back()->range();
       if(this->is_inst())
         return std::holds_alternative<Obj_p>(this->inst_f())

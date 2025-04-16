@@ -103,15 +103,14 @@ namespace fhatos {
     //////////////////////
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp?int<=int(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?int<=int>(a=>10)[plus(*a)]"));
-    //FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int()[plus(10)]"));
-    //FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int[plus(10)]"));
-    //FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?[plus(10)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int()[plus(10)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.()[plus(10)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?>[plus(10)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.< >[plus(10)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<>(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp()[plus(10)]"));
-    // TODO: FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5./abc/temp?int<=int(10)[plus(from(<0>))]"));
+    FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5./abc/temp?int<=int(10)[plus(from(<0>))]"));
   }
 
   void test_barrier_inst() {

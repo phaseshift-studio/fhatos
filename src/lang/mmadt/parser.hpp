@@ -129,6 +129,12 @@ namespace mmadt {
     }
   };
 
+  static QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
+      [](const size_t line, const size_t column, const string &message, const string &rule) {
+    throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
+                 column - 1, message.c_str(), line, column, rule.c_str());
+  };
+
   class Parser final : public Rec {
   public:
     static ptr<Parser> singleton(const ID &id = "/io/parser",
@@ -175,11 +181,6 @@ namespace mmadt {
     }
 
     Obj_p parse(const char *source) const {
-      static QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
-          [](const size_t line, const size_t column, const string &message, const string &rule) {
-        throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
-                     column - 1, message.c_str(), line, column, rule.c_str());
-      };
       if(0 == strlen(source))
         return Obj::to_noobj();
       Obj_p result;
@@ -282,7 +283,7 @@ namespace mmadt {
         const InstArgs args = any_cast<InstArgs>(vs[1]);
         return Obj::to_inst(args, op, vs.size() == 3 ? id_p(*any_cast<fURI_p>(vs[2])) : nullptr);
       };
-      auto furi_action = [](const SemanticValues &vs) {
+      auto furi_action = [](const SemanticValues &vs) -> fURI_p {
         string s = vs.token_to_string();
         while(s.find("`.") != string::npos) {
           StringHelper::replace(&s, "`.", ".");
@@ -362,14 +363,30 @@ namespace mmadt {
                                 vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
           case 1: { // a(c)[b]@xyz
-            const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
-            const auto args = any_cast<InstArgs>(vs[1]);
-            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[2]);
-            const Obj_p body = Obj::create(v, o, type_id);
-            const ID_p value_id = vs.size() == 4 ? id_p(*std::any_cast<fURI_p>(vs[3])) : nullptr;
-            return Obj::to_inst(
-                make_tuple(args, InstF(body), nullptr),
-                type_id, value_id);
+            bool has_type_id = false;
+            ID_p type_id = INST_FURI;
+            try { // TODO: figure out how to 'tag' semantic values
+              if(vs.size() > 2) {
+                type_id = id_p(*std::any_cast<fURI_p>(vs[0]));
+                has_type_id = true;
+              }
+            } catch(const bad_any_cast &) {
+              has_type_id = false;
+              // do nothing
+            }
+            const auto args = any_cast<InstArgs>(vs[has_type_id ? 1 : 0]);
+            const auto [v,o] = any_cast<Pair<Any, OType>>(vs[has_type_id ? 2 : 1]);
+            const Obj_p body = Obj::create(v, o, OTYPE_FURI.at(o));
+            const ID_p value_id = (vs.size() == (has_type_id ? 4 : 3))
+                                    ? id_p(*std::any_cast<fURI_p>(vs[has_type_id ? 3 : 2]))
+                                    : nullptr;
+            return true || has_type_id
+                     ? Obj::to_inst(make_tuple(args, InstF(body), nullptr), type_id, value_id)
+                     : InstBuilder::build("inst")
+                     ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                     ->inst_args(args)
+                     ->inst_f(body)
+                     ->create(value_id);
           }
           case 2: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);
@@ -546,7 +563,7 @@ namespace mmadt {
       OBJ <= cho(
           seq(lit("["), TYPE_ID, lit("]"), lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)),
           // [a][b]@xyz
-          seq(TYPE_ID, ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
+          seq(opt(TYPE_ID), ARGS, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a(c)[b]@xyz)
           seq(INST), // a(b)@xyz
           seq(TYPE_ID, lit("["), cho(START_OBJ, PROTO, EMPTY), lit("]"), opt(VALUE_ID)), // a[b]@xyz
           seq(PROTO, opt(VALUE_ID)) // b@xyz
