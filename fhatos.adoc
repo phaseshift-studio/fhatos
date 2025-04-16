@@ -899,7 +899,7 @@ fhatos> @a.minus(11)
 ==>nat[1]@a
 fhatos> @a.minus(2)
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0?int=>2]
+	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0=>2]
 fhatos> *a
 ==>nat[1]@a
 ----
@@ -947,8 +947,8 @@ fhatos> C[-274.0]
 \tt{obj} := \tt{type}(\color{yellow}{\underline{\tt{frame}}})[\tt{value}]@\tt{ref}
 ++++
 
-The [.h]#frame# of an `obj` is a set of fURI named variables that are dereferenceably accessible within the value of the `obj`.
-If an `obj` has a specified frame, the `obj` is called an `inst` (instruction).
+The [.h]#frame# of an `obj` is a set of fURI named variables that are _dereferenceably accessible_ within the value component of the `obj`.
+An `obj` with a frame is called an `inst` (instruction).
 An `inst` is a function
 
 [stem]
@@ -957,11 +957,15 @@ f(\tt{obj}_\tt{in},a_1,a_2,\ldots,a_n) \mapsto \tt{obj}_\tt{out},
 ++++
 
 where latexmath:[\tt{obj}_\tt{in}] is the _left hand side_ `obj` (input) and latexmath:[a_m] are the variables of the `obj` frame (arguments).
-To demonstrate how frames work, the `inst` `band` is defined. This function takes two `int` arguments. If the incoming
-`obj` is within the bounds of the two `ints`, it is emitted, else `noobj` is returned. The arguments are stored in an
-`inst`-specific frame mounted in the router. When the `inst` completes it's execution, the frame is unmounted. If an `inst`
-calls another `inst`, then a stack of frames is realized and arguments declared in the parent `inst` are accessible
-in the child `inst`.
+To demonstrate how frames work, the `inst` `band` is defined.
+This function takes two `int` arguments.
+If the incoming
+`obj` is within the bounds of the two `ints`, it is emitted, else `noobj` is returned.
+The arguments are stored in an
+`inst`-specific frame mounted in the router.
+When the `inst` completes it's execution, the frame is unmounted.
+If an `inst`
+calls another `inst`, then a stack of frames is realized and arguments declared in the parent `inst` are accessible in the child `inst`.
 
 [tabs]
 ====
@@ -991,7 +995,7 @@ band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 ----
 fhatos> band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 ==>band?int{?}<=int(_,_)
-	[band?int{?}<=int[is(and([gte(from(0)),lte(from(1))]))]]
+	[is(and([gte(from(0)),lte(from(1))]))]
 fhatos> 3.band(2,8)                                // <1>
 ==>3
 fhatos> 10.band(2,8)                               // <2>
@@ -1030,7 +1034,7 @@ band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 ----
 fhatos> band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 ==>band?int{?}<=int(min=>_,max=>_)
-	[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]]
+	[is(and([gte(from(min)),lte(from(max))]))]
 fhatos> 3.band(2,8)                           // <1>
 ==>3
 fhatos> 3.band(max=>8,min=>2)                 // <2>
@@ -1038,7 +1042,7 @@ fhatos> 3.band(max=>8,min=>2)                 // <2>
 fhatos> 'abc'.band(2,8)                       // <3>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a str as defined by [str][_] 
 		 \_/mmadt/int is not a subtype of /mmadt/str
-	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]] [min=>2,max=>8]
+	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[is(and([gte(from(min)),lte(from(max))]))] [min=>2,max=>8]
 ----
 
 ++++
@@ -1047,7 +1051,8 @@ fhatos> 'abc'.band(2,8)                       // <3>
 
 <1> If the argument name isn't provided, then it's position in the argument list determines its nane,
 <2> When arguments are named, they can be written in any order.
-<3> The domain of `band` is `int`. Note where the error is thrown when `str['abc']` is provided.
+<3> The domain of `band` is `int`.
+Note where the error is thrown when `str['abc']` is provided.
 
 --
 
@@ -1076,7 +1081,7 @@ band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)
 ----
 fhatos> band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)]))]
 ==>band?int{?}<=int(min=>else?noobj<=obj(2)[noobj],max=>else?noobj<=obj(8)[noobj])
-	[band?int{?}<=int[is(and([gte(from(min)),lte(from(max))]))]]
+	[is(and([gte(from(min)),lte(from(max))]))]
 fhatos> 1.band(min=>1)                        // <1>
 ==>1
 fhatos> 10.band()                             // <2>
@@ -1104,7 +1109,8 @@ typed args::
 \tt{obj}_\tt{in}.f(a_1\color{yellow}{?type_1}, a_2\color{yellow}{?type_2},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
 ++++
 
-If an argument is defined with a query https://en.wikipedia.org/wiki/Data_type[type], then the argument's value must satisfy that type's specification. This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.
+If an argument is defined with a query https://en.wikipedia.org/wiki/Data_type[type], then the argument's value must satisfy that type's specification.
+This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.
 
 ++++
 <!-- 🐖 ./main_runner.out
@@ -1117,12 +1123,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 [source,mmadt]
 ----
 fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>_)
-	[is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>_)[mod(from(by)).eq(0)]
 fhatos> 10.is_divisible(2)
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
-	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
-	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
+==>true
 fhatos> 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1132,6 +1135,61 @@ fhatos> 10.is_divisible('abc')
 <!-- 🐓 -->
 ++++
 
+--
+
+anonymous inst args::
++
+--
+
+[stem]
+++++
+\tt{obj}_\tt{in}.\color{yellow}{\lambda}(a_1 \Rightarrow x, a_2 \Rightarrow y,\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+++++
+
+An untyped `inst` is an anonymous `inst` and behaves analogously to an
+https://en.wikipedia.org/wiki/Anonymous_function[anonymous function] in other programming environments.
+Anonymous `insts` can be both defined and evaluated in the same expression to provide
+https://en.wikipedia.org/wiki/Immediately_invoked_function_expression[immediately invoked function expression] semantics.
+Like any `inst`, anonymous `inst` arguments are scoped to the value of the `inst`, providing
+https://en.wikipedia.org/wiki/Scope_(computer_science)#Block_scope[block-scope] semantics.
+Finally, a degenerate anonymous `inst` with no specified variable frame is simply `bcode`.
+
+++++
+<!-- 🐖 ./main_runner.out
+10.(min=>2,max=>8)[is(and([gte(*min),lte(*max)]))]                --- <1>
+10.(min=>minus(1),max=>plus(1))[is(and([gte(*min),lte(*max)]))]   --- <2>
+10.()[is(and([gte(*min),lte(*max)]))]                             --- <3>
+|((min=>2,max=>8)[is(and([gte(*min),lte(*max)]))])                --- <4>
+10.is(and([gte(minus(1)),lte(plus(1))]))                          --- <5>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> 10.(min=>2,max=>10)[is(and([gte(*min),lte(*max)]))]                // <1>
+[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of inst(min=>2,max=>8)[is(and([gte(from(min)),lte(from(max))]))] [SIGNATURE HERE]
+fhatos> 10.(min=>minus(1),max=>plus(1))[is(and([gte(*min),lte(*max)]))]   // <2>
+==>10
+fhatos> 10.()[is(and([gte(*min),lte(*max)]))]                             // <3>
+[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_] 
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
+	  thrown at inst 10 => inst()[is(and([gte(from(min)),lte(from(max))]))] [=>]
+fhatos> |((min=>2,max=>8)[is(and([gte(*min),lte(*max)]))])                // <4>
+==>inst?noobj<=obj(min=>2,max=>8)
+	[is(and([gte(from(min)),lte(from(max))]))]
+fhatos> 10.is(and([gte(minus(1)),lte(plus(1))]))                          // <5>
+==>10
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> The unnamed "band" `inst` is evaluated in line.
+<2> `min` and `max` are computed dynamically relative to the input.
+<3> The `inst` value is referencing undefined frame variables.
+<4> An anonymous `inst` is compiled to an "`obj` filter"-`inst`.
+<5> When arguments are embedded in the value, then the `inst` is simply `bcode`.
 --
 
 contextual args::
@@ -1149,12 +1207,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 [source,mmadt]
 ----
 fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>_)
-	[is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>_)[mod(from(by)).eq(0)]
 fhatos> 10.is_divisible(2)
-[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
-	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
-	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
+==>true
 fhatos> 10.is_divisible('abc')
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1188,7 +1243,7 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 ----
 fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
 ==>band?int{?}<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj])
-	[band?int{?}<=int[is(gte(from(min))).is(lte(from(max)))]]
+	[is(gte(from(min))).is(lte(from(max)))]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_] 
 		 \_/mmadt/noobj is not a subtype of /mmadt/int
@@ -1217,12 +1272,9 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 [source,mmadt]
 ----
 fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=obj(1)[noobj])[noobj])
-	[is_divisble[mod(from(by)).eq(0)]]
+==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=obj(1)[noobj])[noobj])[mod(from(by)).eq(0)]
 fhatos> 10.is_divisible(2)
-error[ERROR] [/sys/scheduler] [/mmadt/noobj] noobj accessed as int
-	  thrown at inst 10 => mod(noobj)[cpp] [by?int=>2,0=>noobj]
-	  thrown at inst 10 => is_divisble(by?int=>2)[is_divisble[mod(from(by)).eq(0)]] [by?int=>2]
+error==>true
 fhatos> 10.is_divisible('abc')
 error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
@@ -1234,7 +1286,6 @@ error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined b
 
 --
 ====
-
 
 For instance:
 
@@ -1259,9 +1310,6 @@ fhatos> 4 + int(a=>2)[+*a]
 ++++
 <!-- 🐓 -->
 ++++
-
-
-
 
 ==== The Value
 
@@ -1513,15 +1561,15 @@ fhatos> thread[[loop=>^(
 >]@t
 fhatos> @t.spawn()
 [INFO]  [/sys/scheduler] t thread spawned
-[INFO]  [t] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [stack size:16192]
+thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [stack size:16192]
 c: 0
 c: 1
 c: 2
 c: 3
 c: 4
 c: 5
-
-fhatos> c: 6
+fhatos> 
+c: 6
 c: 7
 c: 8
 c: 9
@@ -1627,7 +1675,7 @@ fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1                               // <3>
 [ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
-	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0?int=>1]
+	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>1]
 ----
 
 ++++
@@ -1967,7 +2015,6 @@ if-else::
 --
 
 .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
-
 ++++
 <!-- 🐖 ./main_runner.out
 {1,2,3}-|[                            /
@@ -2008,7 +2055,6 @@ switch::
 --
 
 .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
-
 ++++
 <!-- 🐖 ./main_runner.out
 {1,2,3}-<[                   /
@@ -2064,7 +2110,6 @@ guard::
 --
 
 .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
-
 ++++
 <!-- 🐖 ./main_runner.out
 {1,2,3}.[
@@ -2089,7 +2134,6 @@ pattern::
 --
 
 .pattern-match icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Pattern_matching,2x,role=blue]
-
 ++++
 <!-- 🐖 ./main_runner.out
 --- todo
@@ -2177,6 +2221,7 @@ fhatos> [a=>1,b=>2].b     // <5>
 <5> `rec\[[a=>1,b=>2]]` applied to the `uri[b]`.
 
 [.small][.center]
+
 [cols="1,1,1,1,1,1,1,1,1,1,1",width=85%]
 |===
 |`lhs=>rhs`|`=>noobj` |`=>bool`|`=>int`|`=>real`|`=>str` |`=>uri`  |`=>lst`|`=>rec`|`=>inst`|`=>bcode`
@@ -2286,7 +2331,7 @@ fhatos> true.i?bool<=bool(_)[and(_,*<0>)]
 	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read
 [ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a lst as defined by [lst][_] 
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
-	  thrown at inst noobj => true.i(noobj)[true.i[and(_,from(0))]] [0=>noobj]
+	  thrown at inst noobj => true.i(noobj)[and(_,from(0))] [0=>noobj]
 fhatos> true.plus(false)
 ==>true
 ----
@@ -2298,7 +2343,6 @@ fhatos> true.plus(false)
 
 
 ====
-
 
 ==== Values
 
@@ -2421,7 +2465,7 @@ fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
 [ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
-	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0?int=>-2]
+	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0=>-2]
 ----
 
 ++++
