@@ -380,13 +380,7 @@ namespace mmadt {
             const ID_p value_id = (vs.size() == (has_type_id ? 4 : 3))
                                     ? id_p(*std::any_cast<fURI_p>(vs[has_type_id ? 3 : 2]))
                                     : nullptr;
-            return true || has_type_id
-                     ? Obj::to_inst(make_tuple(args, InstF(body), nullptr), type_id, value_id)
-                     : InstBuilder::build("inst")
-                     ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
-                     ->inst_args(args)
-                     ->inst_f(body)
-                     ->create(value_id);
+            return Obj::to_inst(make_tuple(args, InstF(body), nullptr), type_id, value_id);
           }
           case 2: { // a(b)@xyz
             return any_cast<Inst_p>(vs[0]);

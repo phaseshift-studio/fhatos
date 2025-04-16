@@ -246,6 +246,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("2.plus(1).isa(int)"));
     FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("2.plus(1).isa(/mmadt/int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("2.plus(1).isa(str)"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("2.plus(1).?int"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("2.plus(1).?/mmadt/int"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("2.plus(1).?str"));
   }
 
   void test_start_inst_sugar_parsing() {
