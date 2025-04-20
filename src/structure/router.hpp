@@ -38,7 +38,7 @@ namespace fhatos {
   protected:
     bool active = true;
     bool stale = false;
-    const unique_ptr<MutexDeque<Structure_p>> structures_;
+    const ptr<MutexDeque<Structure_p>> structures_;
 
   public:
     ~Router() override = default;
@@ -47,7 +47,7 @@ namespace fhatos {
 
     void load_config(const ID &config_id);
 
-    static ptr<Router> singleton(const ID &value_id = "/sys/router/");
+    static ptr<Router>& singleton(const ID &value_id = "/sys/router/");
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
 

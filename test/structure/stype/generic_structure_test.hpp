@@ -22,6 +22,8 @@ FhatOS: A Distributed Operating System
 #include "../../../src/structure/router.hpp"
 #include "../../../src/structure/qtype/q_doc.hpp"
 
+#define FOS_MAX_PATH_SEGMENTS 15
+
 namespace fhatos {
   class GenericStructureTest {
   protected:

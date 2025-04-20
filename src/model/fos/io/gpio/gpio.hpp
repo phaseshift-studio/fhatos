@@ -34,7 +34,8 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   static ID_p GPIO_FURI = id_p("/fos/io/gpio");
-  const static char *GPIO_CHIP_NAME = "gpiochip0";
+  static auto GPIO_CHIP_NAME = "gpiochip0";
+  static auto gpio_mutex = Mutex();
 
   class GPIO final {
   public:
@@ -76,6 +77,7 @@ namespace fhatos {
           ->inst_f([](const Obj_p &gpio, const InstArgs &args) {
             const uint8_t pin = gpio->int_value();
             const uint8_t value = args->arg("value")->int_value();
+            auto lock = lock_guard<Mutex>(gpio_mutex);
 #ifdef NATIVE
             gpiod_chip *chip = gpiod_chip_open_by_name(GPIO_CHIP_NAME);
             if(!chip)
@@ -103,7 +105,8 @@ namespace fhatos {
           ->domain_range(GPIO_FURI, {1, 1}, INT_FURI, {1, 1})
           ->inst_f([](const Obj_p &gpio, const InstArgs &) {
             int val;
-            uint8_t pin = gpio->int_value();
+            const uint8_t pin = gpio->int_value();
+            auto lock = shared_lock<Mutex>(gpio_mutex);
 #ifdef NATIVE
             gpiod_chip *chip = gpiod_chip_open_by_name(GPIO_CHIP_NAME);
             if(!chip)
@@ -121,7 +124,7 @@ namespace fhatos {
             gpiod_line_release(line);
             gpiod_chip_close(chip);
 #else
-          val =  digitalRead(pin);
+            val = digitalRead(pin);
 #endif
             return jnt(val);
           })->save();

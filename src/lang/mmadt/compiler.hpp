@@ -80,7 +80,7 @@ namespace fhatos {
     template<typename COEF = IntCoefficient>
     bool coefficient_check(const COEF &lhs, const COEF &rhs) const;
 
-    bool type_check(const Obj *value_obj, const ID &type_id) const;
+    bool type_check(const Obj *obj, const ID &type_id) const;
 
     [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID &type_id) const {
       return this->type_check(value_obj.get(), type_id);

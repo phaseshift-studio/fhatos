@@ -36,16 +36,16 @@ namespace fhatos {
   static void THREAD_FUNCTIONXX(void *vptr_thread) {
     const auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
-      LOG_EXCEPTION(Obj::to_noobj(), fError("unable to acquire thread state"));
+      LOG_WRITE(ERROR,Obj::to_noobj().get(), L("unable to acquire thread state"));
       return;
     }
     if(!fthread->thread_obj_) {
-      LOG_EXCEPTION(Obj::to_noobj(), fError("unable to acquire thread obj"));
+      LOG_WRITE(ERROR,Obj::to_noobj().get(), L("unable to acquire thread obj"));
       return;
     }
     if(!fthread->thread_function_) {
-      LOG_EXCEPTION(fthread->thread_obj_,
-                    fError("unable to acquire thread function: %s", fthread->thread_obj_->toString().c_str()));
+      LOG_WRITE(ERROR,fthread->thread_obj_.get(),L(
+                    "unable to acquire thread function: {}", fthread->thread_obj_->toString()));
       return;
     }
     try {
@@ -54,7 +54,7 @@ namespace fhatos {
       FEED_WATCHDOG();
       vTaskDelete(nullptr);
     } catch(const std::exception &e) {
-      LOG_EXCEPTION(fthread->thread_obj_, e);
+      LOG_WRITE(ERROR,fthread->thread_obj_.get(), L("{}",e.what()));
     }
   }
 

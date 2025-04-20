@@ -71,7 +71,7 @@ int main(int arg, char **argsv) {
     throw;
   }
   LOG(INFO, "processing %i expressions\n", arg);
-  const Console* console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
+  const Console *console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
   printer()->printer_switch(true);
   Router::singleton()->loop();
   for(int i = 1; i < arg; i++) {
@@ -85,13 +85,14 @@ int main(int arg, char **argsv) {
       //StringHelper::replace(&x, "'", "\\'"); // escape quotes
       //StringHelper::replace(&x, "{", "{");
       //StringHelper::replace(&x, "}", "}");
-      console->process_line(x); // TODO: using this access point as issues with {} in print() being intercepted by fmt package
+      console->process_line(x);
+      // TODO: using this access point as issues with {} in print() being intercepted by fmt package
       //Processor::compute(string("*/io/console.eval('").append(x).append("')"));
       Router::singleton()->loop();
       std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
-      Router::singleton()->write(SCHEDULER_ID->extend("halt"),dool(true));
+      Router::singleton()->write(SCHEDULER_ID->extend("halt"), dool(true));
     } catch(std::exception &e) {
-      LOG_EXCEPTION(Scheduler::singleton(), e);
+      LOG_WRITE(ERROR, Scheduler::singleton().get(),L("{}", e.what()));
     }
   }
   printer()->printer_switch(false);

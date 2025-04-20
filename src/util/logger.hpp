@@ -24,7 +24,7 @@
 
 
 namespace fhatos {
-  inline auto stdout_mutex = std::mutex();
+  //inline auto stdout_mutex = std::mutex();
 
   enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6, OFF = 7 };
 
@@ -44,7 +44,7 @@ namespace fhatos {
       if(static_cast<uint8_t>(type) < LOG_LEVEL)
         return;
       // control garbled concurrent writes (destructor releases lock)
-      std::lock_guard<std::mutex> lock(stdout_mutex);
+      //std::lock_guard<std::mutex> lock(stdout_mutex);
       if(type == NONE)
         printer<>()->print("");
       else if(type == ERROR)

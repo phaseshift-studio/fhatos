@@ -10,7 +10,7 @@ namespace fhatos {
 
   class MODEL_STATES {
     std::shared_mutex map_mutex;
-    const unique_ptr<Map<ID, Any, furi_less>> data_ = make_unique<Map<ID, Any, furi_less>>();
+    const ptr<Map<ID, Any, furi_less>> data_ = make_shared<Map<ID, Any, furi_less>>();
 
   public:
     static ptr<MODEL_STATES> singleton() {
@@ -18,10 +18,15 @@ namespace fhatos {
       return global;
     }
 
+    void drop(const ID &id) {
+      auto lock = std::lock_guard(this->map_mutex);
+      this->data_->erase(ID(id));
+    }
+
     template<typename T>
     T store(const ID &id, const T &thing) {
       auto lock = std::lock_guard(this->map_mutex);
-      this->data_->insert_or_assign(id, thing);
+      this->data_->insert_or_assign(ID(id), thing);
       return thing;
     }
 
@@ -54,6 +59,16 @@ namespace fhatos {
     virtual ~Model() = default;
 
     static ptr<MODEL_STATE> create_state(const Obj_p &model_obj);
+
+    template<typename FORCED_MODEL_STATE=MODEL_STATE>
+    static void drop_state(const Obj_p &model_obj) {
+      if(!model_obj->vid)
+        throw fError("!ystateful objs !rmust have !ya value id!!: %s", model_obj->toString().c_str());
+      if(MODEL_STATES::singleton()->exists(*model_obj->vid))
+        MODEL_STATES::singleton()->drop(*model_obj->vid);
+      else
+        LOG_WRITE(WARN, model_obj.get(),L("model {} already removed", model_obj->vid->toString()));
+    }
 
     template<typename FORCED_MODEL_STATE=MODEL_STATE>
     static ptr<FORCED_MODEL_STATE> get_state(const ID &model_id) {

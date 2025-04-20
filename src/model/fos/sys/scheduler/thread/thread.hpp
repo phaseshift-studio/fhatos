@@ -49,22 +49,32 @@ namespace fhatos {
       return std::any_cast<HANDLER>(this->handler_);
     }
 
+    static int core_current_thread() {
+#ifdef ESP_PLATFORM
+      return xPortGetCoreID();
+#else
+      return sched_getcpu();
+#endif
+    }
+
     void delay(uint64_t milliseconds);
 
     static void delay_current_thread(uint64_t milliseconds) {
-      if(current_thread().has_value()) {
-        FEED_WATCHDOG();
-        current_thread().value()->delay(milliseconds);
-      }
+#ifdef ESP_PLATFORM
+      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+#else
+      std::this_thread::sleep_for(chrono::milliseconds(milliseconds));
+#endif
     }
 
     void yield();
 
     static void yield_current_thread() {
-      if(current_thread().has_value()) {
-        FEED_WATCHDOG();
-        current_thread().value()->yield();
-      }
+#ifdef ESP_PLATFORM
+      vTaskDelay(1);
+#else
+      std::this_thread::yield();
+#endif
     }
 
     void halt();
@@ -72,22 +82,23 @@ namespace fhatos {
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
                         thread_obj->rec_set("halt", dool(false));
-                        thread_obj->save("halt");
+                        const fURI halt_furi = thread_obj->vid->extend("halt");
+                        ROUTER_WRITE(halt_furi, dool(false), true);
                         LOG_WRITE(INFO, thread_obj.get(),
                                   L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                                     thread_obj->rec_get("loop")->toString(),
                                     thread_obj->rec_get("config/stack_size",
                                       ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))->toString()));
+                        const ptr<Thread> current = Thread::get_state(*thread_obj->vid);
                         bool force_halt = false;
-                        while(!force_halt && !ROUTER_READ(thread_obj->vid->extend("halt"))->bool_value()) {
+                        while(!force_halt && !ROUTER_READ(halt_furi)->bool_value()) {
                           FEED_WATCHDOG();
                           try {
                             const BCode_p &code = thread_obj->rec_get("loop");
-                            force_halt = ROUTER_READ(thread_obj->vid->extend("halt"))->or_else(dool(true))->
+                            force_halt = ROUTER_READ(halt_furi)->or_else(dool(true))->
                                 bool_value();
                             if(!force_halt) {
-                              if(Thread *current = Model::get_state(*thread_obj->vid).get())
-                                this_thread.store(current);
+                              this_thread.store(current.get());
                               mmADT::delift(code)->apply(thread_obj);
                               if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
                                 Thread::delay_current_thread(delay);
@@ -100,10 +111,11 @@ namespace fhatos {
                             force_halt = true;
                           }
                           // thread_obj->sync();
+                          current->yield();
                         }
                         try {
-                          ROUTER_WRITE(thread_obj->vid->extend("halt"), dool(true), true);
-                          if(Thread *current = Thread::get_state(*thread_obj->vid).get())
+                          ROUTER_WRITE(halt_furi, dool(true), true);
+                          if(current)
                             current->halt();
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
 
@@ -133,6 +145,7 @@ namespace fhatos {
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
+            thread_obj->rec_set("halt",dool(false));
             ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
             return Obj::to_noobj();
           })->save();

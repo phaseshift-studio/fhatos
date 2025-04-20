@@ -45,7 +45,6 @@ namespace fhatos {
     explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
                   const Rec_p &config = Obj::to_rec()) :
       Structure(pattern, id_p(HEAP_FURI), value_id, config) {
-      // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -65,47 +64,36 @@ namespace fhatos {
 
   protected:
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
-      Obj_p send_obj = Obj::to_noobj();
       if(retain) {
         auto lock = std::lock_guard<Mutex>(this->map_mutex);
-        if(obj->is_noobj())
-          this->data_->erase(id);
-        else
-          this->data_->insert_or_assign(std::move(ID(id)), obj);
-
-        send_obj = obj;
-      } else {
-        auto lock = std::shared_lock<Mutex>(this->map_mutex);
-        const Obj_p eval_obj = this->data_->count(id) ? this->data_->at(id) : Obj::to_noobj();
-        lock.unlock();
-        send_obj = eval_obj->apply(obj);
-        /*LOG(INFO, "[%s] %s => %s = %s\n", id->toString().c_str(), obj->toString().c_str(), eval_obj->toString().c_str(),
-            send_obj->toString().c_str());*/
+        if(obj->is_noobj()) {
+          if(this->data_->count(id))
+            this->data_->erase(id);
+        } else {
+          this->data_->insert_or_assign(ID(id), obj->clone()); // clone?
+        }
       }
-    //  this->distribute_to_subscribers(Message::create(id_p(id), send_obj, retain));
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {
       auto list = IdObjPairs();
+      auto lock = std::shared_lock<Mutex>(this->map_mutex);
       if(!match.is_pattern()) {
-        auto lock = std::shared_lock<Mutex>(this->map_mutex);
-        if(const auto id_match = ID(match); this->data_->count(id_match))
-          list.push_back({id_match, this->data_->at(id_match)});
-        lock.unlock();
+        if(this->data_->count(match))
+          list.push_back(
+              std::make_pair<const ID,  Obj_p>(ID(match), this->data_->at(match)->clone()));
       } else {
-        auto lock = std::shared_lock<Mutex>(this->map_mutex);
         for(const auto &[id, obj]: *this->data_) {
           if(id.matches(match)) {
-            list.push_back({id, obj});
+            list.push_back(std::make_pair<const ID,  Obj_p>(ID(id), obj->clone())); // TODO: clone?
           }
         }
-        lock.unlock();
       }
       return list;
     }
 
     bool has(const fURI &furi) override {
-      std::shared_lock<Mutex> lock(this->map_mutex);
+      auto lock = std::shared_lock<Mutex>(this->map_mutex);
       if(!furi.is_pattern() && this->data_->count(furi))
         return true;
       for(const auto &[id, obj]: *this->data_) {

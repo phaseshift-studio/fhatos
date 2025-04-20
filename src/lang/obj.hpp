@@ -466,39 +466,105 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
                  const ID_p &value_id = nullptr) :
-      Typed(OTYPE_FURI.at(otype)),
+      Typed(type_id),
       Valued(value_id),
       otype(otype),
       value_(value) {
-      if(otype == OType::INST && nullptr == std::get<2>(std::any_cast<InstValue>(value))) {
-        this->value_ = make_tuple(std::get<0>(std::any_cast<InstValue>(value)),
-                                  std::get<1>(std::any_cast<InstValue>(value)),
+    }
+
+    Obj(const Obj &other) :
+      Typed(other.tid), Valued(other.vid), otype(other.otype) {
+      switch(other.otype) {
+        case OType::NOOBJ:
+          this->value_ = any(nullptr);
+          break;
+        case OType::BOOL:
+        case OType::INT:
+        case OType::REAL:
+          this->value_ = other.value_;
+          break;
+        case OType::STR:
+          this->value_ = any(string(other.str_value()));
+          break;
+        case OType::URI:
+          this->value_ = any(fURI(other.uri_value()));
+          break;
+        case OType::LST: {
+          const auto list = make_shared<std::vector<Obj_p>>();
+          for(const Obj_p &element: *other.lst_value()) {
+            list->push_back(make_shared<Obj>(*element));
+          }
+          this->value_ = any(list);
+          break;
+        }
+        case OType::REC: {
+          const auto record = make_shared<RecMap<>>();
+          for(const auto &[k,v]: *other.rec_value()) {
+            record->insert_or_assign(make_shared<Obj>(*k), make_shared<Obj>(*v));
+          }
+          this->value_ = any(record);
+          break;
+        }
+        case OType::BCODE: {
+          const auto insts = make_shared<InstList>();
+          for(const auto &inst: *other.bcode_value()) {
+            insts->push_back(make_shared<Obj>(*inst));
+          }
+          this->value_ = any(insts);
+          break;
+        }
+        case OType::INST:
+        case OType::OBJS:
+        case OType::ERROR:
+        case OType::TYPE:
+          this->value_ = other.value_;
+          break;
+        default:
+          throw fError("unknown obj type being created: %s", other.otype);
+      }
+    }
+
+    static ptr<Obj> create(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) {
+      const auto creation = make_shared<Obj>(value, otype, type_id, value_id);
+      creation->type_check();
+      if(creation->vid)
+        ROUTER_WRITE(*value_id, creation, true);
+      return creation;
+    }
+
+    void type_check() {
+      if(this->is_base_type())
+        return;
+      if(this->otype == OType::INST && nullptr == std::get<2>(std::any_cast<InstValue>(this->value_))) {
+        this->value_ = make_tuple(std::get<0>(std::any_cast<InstValue>(this->value_)),
+                                  std::get<1>(std::any_cast<InstValue>(this->value_)),
                                   this->is_gather() ? Obj::to_objs() : Obj::to_noobj());
       }
-      if(otype == OType::INST && type_id->has_query(FOS_RANGE) && type_id->no_query().equals(
-             ID(type_id->query_value(FOS_RANGE).value()))) {
-        throw fError("the range of an inst can not be its type: %s", type_id->toString().c_str());
+      if(this->otype == OType::INST && this->tid->has_query(FOS_RANGE) && this->tid->no_query().equals(
+             ID(this->tid->query_value(FOS_RANGE).value()))) {
+        throw fError("the range of an inst can not be its type: %s", this->tid->toString().c_str());
       }
-      if(value.has_value()) { // value token
+      if(this->value_.has_value()) { // value token
         try {
           if((otype == OType::REC || otype == OType::LST) &&
-             !type_id->equals(*OTYPE_FURI.at(otype))) {
+             !this->tid->equals(*OTYPE_FURI.at(otype))) {
             if((otype == OType::REC || otype == OType::LST) &&
-               !type_id->equals(*OTYPE_FURI.at(otype)) &&
-               !type_id->matches("/sys/#") &&
-               (type_id->matches("/fos/thread") || !type_id->matches("/fos/#")) &&
-               !type_id->matches("/io/#")) {
-              if(const Obj_p type_obj = ROUTER_READ(*type_id); !type_obj->is_noobj() && type_obj->otype == otype) {
+               !this->tid->equals(*OTYPE_FURI.at(otype)) &&
+               !this->tid->matches("/sys/#") &&
+               (this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
+               !this->tid->matches("/io/#")) {
+              if(const Obj_p type_obj = ROUTER_READ(*this->tid);
+                !type_obj->is_noobj() && type_obj->otype == this->otype) {
                 Obj_p plain_type_obj;
                 if(type_obj->otype == OType::REC) {
                   const auto r = std::make_shared<RecMap<>>(*type_obj->value<RecMap_p<>>());
                   if(r->count(Obj::to_uri("::")))
                     r->erase(Obj::to_uri("::"));
-                  plain_type_obj = create(r, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
+                  plain_type_obj = make_shared<Obj>(r, OType::REC, REC_FURI);
                 } else {
-                  plain_type_obj = create(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
+                  plain_type_obj = make_shared<Obj>(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
                 }
-                const Obj_p plain_obj = create(value, otype, OTYPE_FURI.at(otype));
+                const Obj_p plain_obj = make_shared<Obj>(this->value_, this->otype, OTYPE_FURI.at(this->otype));
                 const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
                 this->value_ = applied_obj->value_;
                 this->otype = applied_obj->otype;
@@ -506,28 +572,18 @@ namespace fhatos {
             }
           }
         } catch(std::exception &) {
-          LOG_WRITE(WARN, this,L("unable to build {} from poly type !b{}!!", this->toString(), type_id->toString()));
+          LOG_WRITE(WARN, this,L("unable to build {} from poly type !b{}!!", this->toString(), this->tid->toString()));
         }
-        Compiler(true, true).type_check(this, *type_id);
-        this->tid = type_id;
-        if(value_id) {
-          //const Obj_p strip = this->clone();
-          ROUTER_WRITE(*value_id, this->clone(), true);
-        }
-      } else {
-        this->tid = type_id; // type token
+        Compiler(true, true).type_check(this, *this->tid);
       }
-    }
-
-    static ptr<Obj> create(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return make_shared<Obj>(value, otype, type_id, value_id);
     }
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
-      return fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(),
-                    obj->toString().c_str(),
-                    index == string::npos ? function : string(function).replace(index, 6, "").c_str());
+      const auto error = fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(),
+                                  obj->toString().c_str(),
+                                  index == string::npos ? function : string(function).replace(index, 6, "").c_str());
+      return error;
     }
 
     //////////////////////////////////////////////////////////////
@@ -540,11 +596,16 @@ namespace fhatos {
       return ROUTER_READ(vid);
     }
 
-    virtual void sync(const fURI &subset = "#") const {
+    virtual void sync(const fURI &subset) const {
       if(this->vid) {
-        if(this->is_rec() && !subset.equals("#")) {
-          const Obj_p fresh = ROUTER_READ(this->vid->extend(subset));
-          this->rec_set(Obj::to_uri(subset), fresh);
+        if(this->is_rec() && (!subset.equals("#") && !subset.empty())) {
+          const fURI subset_furi = this->vid->extend(subset);
+          const Obj_p fresh = ROUTER_READ(subset_furi);
+          const Uri_p subset_uri = Obj::to_uri(subset_furi);
+          if(fresh->is_noobj())
+            this->rec_drop(subset_uri);
+          else
+            this->rec_set(subset_uri, fresh);
         } else {
           const Obj_p fresh = ROUTER_READ(*this->vid);
           if(this->otype != fresh->otype) {
@@ -628,26 +689,8 @@ namespace fhatos {
     [[nodiscard]] fURI uri_value() const {
       if(!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<fURI>();
-    }
-
-    [[nodiscard]] Obj_p uri_resolve() const {
-      if(!this->is_uri())
-        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return ROUTER_READ(this->uri_value());
-    }
-
-    [[nodiscard]] ID_p id_p_value() const {
-      if(!this->is_uri())
-        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return id_p(this->value<fURI>());
-    }
-
-    template<typename FURI>
-    [[nodiscard]] ptr<FURI> uri_p_value() const {
-      if(!this->is_uri())
-        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return make_shared<FURI>(this->value<FURI>());
+      const auto value_furi = fURI(this->value<fURI>().toString());
+      return value_furi;
     }
 
     [[nodiscard]] string str_value() const {
@@ -696,13 +739,6 @@ namespace fhatos {
         return this->rec_get(key);
       if(this->is_lst())
         return this->lst_get(key);
-      /*if(this->is_objs()) {
-        const Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
-        for(const auto &o: *this->objs_value()) {
-          transform->add_obj(o->deref(key, obj_on_fail));
-        }
-        return transform;
-      }*/
       return obj_on_fail ? key : Obj::to_noobj();
     }
 
@@ -866,9 +902,9 @@ namespace fhatos {
       Obj_p result;
       if(key->is_uri()) {
         const fURI key_no_query = key->uri_value().no_query();
-        const auto segment = 0 == key_no_query.path_length()
-                               ? key_no_query.toString()
-                               : string(key_no_query.segment(0));
+        const string segment = 0 == key_no_query.path_length()
+                                 ? key_no_query.toString()
+                                 : string(key_no_query.segment(0));
         Objs_p segment_value = Obj::to_objs();
         const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
@@ -881,16 +917,23 @@ namespace fhatos {
           }
         }
         segment_value = segment_value->none_one_all();
-        const Obj_p temp = key_no_query.path_length() <= 1
-                             ? segment_value
-                             : segment_value->deref(to_uri(key_no_query.subpath(1)), false);
+        Obj_p temp;
+        if(key_no_query.path_length() <= 1)
+          temp = segment_value;
+        else {
+          const auto sub = string(key_no_query.subpath(1));
+          const Uri_p sub_uri = Obj::to_uri(sub);
+          temp = segment_value->deref(sub_uri, false);
+        }
         full_match->add_obj(temp);
         result = full_match->none_one_all();
       } else {
         const Objs_p segment_value = Obj::to_objs();
         for(const auto &[k, v]: *this->rec_value()) {
-          if(k->match(key))
-            segment_value->add_obj(v->apply(key));
+          if(k->match(key)) {
+            const Obj_p to_add = v->apply(key);
+            segment_value->add_obj(to_add);
+          }
         }
         result = segment_value->none_one_all();
       }
@@ -900,7 +943,7 @@ namespace fhatos {
     [[nodiscard]] Rec_p rec_no_query() const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      Rec_p new_rec = Obj::to_rec();
+      const Rec_p new_rec = Obj::to_rec();
       for(const auto &[k,v]: *this->rec_value()) {
         if(k->is_uri() && k->uri_value().has_query())
           new_rec->rec_value()->insert_or_assign(Obj::to_uri(k->uri_value().no_query()), v);
@@ -911,11 +954,16 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p rec_get(const fURI &key, const Obj_p &or_else = nullptr) const {
-      return rec_get(to_uri(key), or_else);
+      const Uri_p uri_key = to_uri(key);
+      const Obj_p ret = rec_get(uri_key, or_else);
+      return ret;
     }
 
-    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
-      return rec_get(to_uri(uri_key), or_else);
+    [[nodiscard]] Obj_p rec_get(const char *key, const Obj_p &or_else = nullptr) const {
+      const auto string_key = string(key);
+      const Uri_p uri_key = to_uri(string_key);
+      const Obj_p ret = rec_get(uri_key, or_else);
+      return ret;
     }
 
     template<typename T>
@@ -923,15 +971,14 @@ namespace fhatos {
       try {
         return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
       } catch(const std::bad_any_cast &e) {
-        throw fError::create("wrong underlying type of %s in %s: %s",
-                             key.toString().c_str(),
-                             this->toString().c_str(),
+        throw fError::create("wrong underlying type of %s in %s: %s", key.toString().c_str(), this->toString().c_str(),
                              e.what());
       }
     }
 
     [[nodiscard]] bool has(const fURI &key) const {
-      return !this->poly_get(Obj::to_uri(key))->is_noobj();
+      const Uri_p key_uri = Obj::to_uri(key);
+      return !this->poly_get(key_uri)->is_noobj();
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
@@ -954,6 +1001,15 @@ namespace fhatos {
           ++it;
         }
       }
+    }
+
+    virtual void lst_drop(const Int_p &index) const {
+      if(index->is_int()) {
+        this->lst_value()->erase(this->lst_value()->begin() + index->int_value());
+      } else if(index->is_uri() && StringHelper::is_integer(index->uri_value().toString())) {
+        this->lst_value()->erase(this->lst_value()->begin() + atoi(index->uri_value().toString().c_str()));
+      } else
+        throw fError("unable to drop non-indexed key from lst: %s", index->toString().c_str());
     }
 
     virtual void rec_drop(const Obj_p &key) const {
@@ -980,14 +1036,16 @@ namespace fhatos {
       ///////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
         // const fURI key_no_query = key->uri_value().no_query();
-        const Uri_p current_key = Obj::to_uri(key->uri_value().segment(0));
+        const fURI current_key_furi = key->uri_value().segment(0);
+        const Uri_p current_key = Obj::to_uri(current_key_furi);
         Obj_p current_obj = this->rec_get(current_key);
         const bool is_lst = StringHelper::is_integer(key->uri_value().segment(1));
         if(current_obj->is_noobj()) {
           current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
           this->rec_value()->insert_or_assign(current_key, current_obj);
         }
-        current_obj->poly_set(Obj::to_uri(key->uri_value().pretract()), val);
+        const fURI pretracted = key->uri_value().pretract();
+        current_obj->poly_set(Obj::to_uri(pretracted), val);
       } else {
         this->rec_drop(key);
         //if(!val->is_noobj())
@@ -1028,6 +1086,22 @@ namespace fhatos {
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
+
+    void poly_drop(const Obj_p &key) const {
+      if(!this->is_poly() && !this->is_objs())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(this->is_rec())
+        this->rec_drop(key);
+      else if(this->is_lst())
+        this->lst_drop(key);
+      else if(this->is_objs()) {
+        for(const auto &o: *this->objs_value()) {
+          if(o->is_poly())
+            o->poly_drop(key);
+        }
+      } else
+        throw fError("unknown poly base type (logic error): %s", this->tid->toString().c_str());
+    }
 
     void poly_set(const Obj_p &key, const Obj_p &value) const {
       if(!this->is_poly() && !this->is_objs())
@@ -1903,7 +1977,8 @@ namespace fhatos {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       int counter = 0;
-      for(const auto &[k,v]: *this->rec_value()) {
+      const auto r = *this->rec_value();
+      for(const auto &[k,v]: r) {
         if(!(k->is_uri() &&
              k->uri_value().toString() == to_string(counter++)))
           return false;
@@ -1930,7 +2005,6 @@ namespace fhatos {
         return or_else;
       }
     }
-
 
     Obj_p apply(const Obj_p &lhs) const {
       switch(this->otype) {
@@ -2080,7 +2154,9 @@ namespace fhatos {
           return match;
         }
         case OType::URI: {
-          const bool match = this->uri_value().no_query().matches(type_obj->uri_value().no_query());
+          const fURI this_no_query = this->uri_value().no_query();
+          const fURI type_no_query = type_obj->uri_value().no_query();
+          const bool match = this_no_query.matches(type_no_query);
           if(!match && fail_reason)
             fail_reason->push(fmt::format(does_not_equal, this->toString(), type_obj->toString()));
           return match;
@@ -2110,9 +2186,9 @@ namespace fhatos {
         case OType::REC: {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
-          for(const auto &[b_key, b_obj]: *pairs_b) {
+          for(const auto &[b_key, b_obj]: RecMap<>(*pairs_b)) {
             bool found = false;
-            for(const auto &[a_key, a_obj]: *pairs_a) {
+            for(const auto &[a_key, a_obj]: RecMap<>(*pairs_a)) {
               if((b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos) || (
                    a_key->match(b_key) && a_obj->match(b_obj))) {
                 found = true;
@@ -2305,7 +2381,7 @@ namespace fhatos {
     }
 
     static Obj_p to_noobj() {
-      static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
+      const static auto noobj = Obj::create(Any(nullptr), OType::NOOBJ, NOOBJ_FURI);
       // id_p(NOOBJ_FURI->query({{"dc", "0,0"}, {"rc", "0,0"}})));
       return noobj;
     }
@@ -2489,81 +2565,7 @@ namespace fhatos {
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
-      switch(this->otype) {
-        case OType::NOOBJ:
-          return Obj::to_noobj();
-        case OType::OBJ:
-        case OType::ERROR:
-        case OType::BOOL:
-        case OType::INT:
-        case OType::REAL: {
-          auto r = Obj::create(this->value_, this->otype, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::STR: {
-          auto r = Obj::create(std::any(string(std::any_cast<string>(this->value_))), this->otype, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::URI: {
-          auto r = Obj::create(std::any(fURI(std::any_cast<fURI>(this->value_))), this->otype, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::LST: {
-          const auto new_list = make_shared<LstList>();
-          for(const auto &e: *this->lst_value()) {
-            new_list->push_back(e->clone());
-          }
-          auto r = Lst::create(new_list, OType::LST, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::REC: {
-          const auto new_map = make_shared<RecMap<>>();
-          for(const auto &[k, v]: *this->rec_value()) {
-            new_map->insert({k->clone(), v->clone()});
-          }
-          auto r = Rec::create(new_map, OType::REC, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::INST: {
-          auto r = Inst::create(make_tuple(this->inst_args(),
-                                           this->inst_f(),
-                                           this->inst_seed_supplier()
-                                             ? this->inst_seed_supplier()->clone()
-                                             : Obj::to_noobj()), OType::INST, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::BCODE: {
-          InstList_p new_insts = make_shared<InstList>();
-          for(const auto &inst: *this->bcode_value()) {
-            new_insts->push_back(inst->clone());
-          }
-          auto r = BCode::create(new_insts, OType::BCODE, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::OBJS: {
-          const auto new_list = make_shared<List<Obj_p>>();
-          for(const auto &e: *this->objs_value()) {
-            new_list->push_back(e->clone());
-          }
-          auto r = Objs::create(new_list, OType::OBJS, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        case OType::TYPE: {
-          auto r = Type::create(this->type_value()->clone(), OType::TYPE, this->tid);
-          r->vid = this->vid;
-          return r;
-        }
-        default:
-          throw fError("unknown base type: %i", this->otype);
-      }
+      return std::make_shared<Obj>(*this);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

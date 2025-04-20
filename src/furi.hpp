@@ -20,7 +20,9 @@
 #ifndef fhatos_furi_hpp
 #define fhatos_furi_hpp
 
-#define FOS_MAX_PATH_SEGMENTS 15
+#ifndef FOS_MAX_PATH_SEGMENTS
+#define FOS_MAX_PATH_SEGMENTS 10
+#endif
 #define COMPONENT_SEPARATOR STR(::)
 #define COEFFICIENT_SEPARATOR STR($)
 
@@ -54,6 +56,19 @@ namespace fhatos {
     const char *query_ = nullptr;
     const char *coefficient_ = nullptr;
     // const char *fragment_ = nullptr;
+    ////////////////////////////////////////
+    void delete_path() {
+      if(this->path_ && this->path_length_ > 0) {
+        for(int i = 0; i < this->path_length_; i++) {
+          free(this->path_[i]);
+        }
+        delete[] this->path_;
+      }
+      this->path_ = nullptr;
+      this->path_length_ = 0;
+      this->spostfix_ = false;
+      this->sprefix_ = this->scheme_ || this->host_ || this->user_ || this->password_;
+    }
 
   public:
     [[nodiscard]] const char *scheme() const { return this->scheme_ ? this->scheme_ : ""; }
@@ -169,17 +184,12 @@ namespace fhatos {
       return path_str;
     }
 
-    /*    [[nodiscard]] Pair<string, const string> path_prefixed(const uint8_t index = -1) const {
-          const string p = -1 == index ? this->name() : this->path(index);
-          const size_t split = p.find(':');
-          return make_pair<string, const string>(split == string::npos ? EMPTY_CHARS : string(p.substr(0, split)),
-                                                 split == string::npos ? p : string(p.substr(split)));
-        }*/
-
     [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = 0) const {
-      for(int i = start_index; i < path_length_; i++) {
-        if(strcmp(path_[i], segment) == 0)
-          return true;
+      if(this->path_) {
+        for(int i = start_index; i < path_length_; i++) {
+          if(strcmp(path_[i], segment) == 0)
+            return true;
+        }
       }
       return false;
     }
@@ -231,16 +241,13 @@ namespace fhatos {
 
 
     [[nodiscard]] fURI path(const string &path) const {
+      string new_path = string(path);
+      StringHelper::trim(new_path);
       auto new_uri = fURI(*this);
-      StringHelper::trim(path);
-      for(uint8_t i = 0; i < this->path_length_; i++) {
-        free(new_uri.path_[i]);
-      }
-      delete[] new_uri.path_;
-      new_uri.path_length_ = 0;
+      new_uri.delete_path();
       new_uri.path_ = new char *[FOS_MAX_PATH_SEGMENTS];
-      const size_t len = strlen(path.c_str());
-      char *dup = strndup(path.c_str(), len);
+      const size_t len = strlen(new_path.c_str());
+      char *dup = strndup(new_path.c_str(), len);
       auto ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
@@ -271,7 +278,7 @@ namespace fhatos {
         new_uri.path_length_ = i + 1;
         new_uri.spostfix_ = false;
       }
-      if(path[path.length() - 1] == '/')
+      if(new_path[new_path.length() - 1] == '/')
         new_uri.spostfix_ = true;
       free(dup);
       if(new_uri.host_ || new_uri.scheme_)
@@ -385,20 +392,6 @@ namespace fhatos {
       return this->query_value(key).has_value();
     }
 
-    static void encode_query(string &query) {
-      if(query.empty())
-        return;
-      //StringHelper::replace(&query, "=>", "%20%50");
-      //StringHelper::replace(&query, "<=", "%20%60");
-    }
-
-    static void decode_query(string &query) {
-      if(query.empty())
-        return;
-      //StringHelper::replace(&query, "%20%50", "=>");
-      //StringHelper::replace(&query, "%20%60", "<=");
-    }
-
     [[nodiscard]] fURI query(const char *query) const {
       auto new_uri = fURI(*this);
       FOS_SAFE_FREE(new_uri.query_);
@@ -498,7 +491,11 @@ namespace fhatos {
 
     ////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] fURI extend(const fURI &furi_path) const { return this->extend(furi_path.path().c_str()); }
+    [[nodiscard]] fURI extend(const fURI &furi_path) const {
+      return this->extend(furi_path.path().c_str());
+      //  const char *char_path = furi_path.toString().c_str();
+      // return this->extend(char_path);
+    }
 
     [[nodiscard]] fURI extend(const char *extension) const {
       if(strlen(extension) == 0) {
@@ -521,22 +518,24 @@ namespace fhatos {
       }
     }
 
+
     [[nodiscard]] fURI retract(const int steps = 1) const {
       /// pathless clone
       auto new_uri = fURI(*this);
-      for(uint8_t i = 0; i < new_uri.path_length_; i++) {
-        free(new_uri.path_[i]);
-      }
-      delete[] new_uri.path_;
+      new_uri.delete_path();
       /////////////////////////////////////////
       new_uri.path_length_ = this->path_length_ > steps ? this->path_length_ - steps : 0;
-      new_uri.path_ = new char *[new_uri.path_length_];
-      for(uint8_t i = 0; i < new_uri.path_length_; i++) {
-        new_uri.path_[i] = strdup(this->path_[i]);
-      }
-      if(new_uri.path_length_ == 0) {
+      if(path_length_ > 0) {
+        new_uri.path_ = new char *[new_uri.path_length_];
+        for(uint8_t i = 0; i < new_uri.path_length_; i++) {
+          new_uri.path_[i] = strdup(this->path_[i]);
+        }
+        new_uri.spostfix_ = this->spostfix_;
+        new_uri.sprefix_ = this->sprefix_;
+      } else {
+        new_uri.sprefix_ = new_uri.scheme_ || new_uri.host_ || new_uri.user_ || new_uri.password_;
         new_uri.spostfix_ = false;
-        new_uri.sprefix_ = false;
+
       }
       return new_uri.path_length_ > 1 && 0 == strcmp(new_uri.path_[new_uri.path_length_ - 1], COMPONENT_SEPARATOR)
                ? new_uri.retract()
@@ -568,17 +567,17 @@ namespace fhatos {
     [[nodiscard]] fURI pretract(const int steps = 1) const {
       /// pathless clone
       auto new_uri = fURI(*this);
-      for(uint8_t i = 0; i < new_uri.path_length_; i++) {
-        free(new_uri.path_[i]);
-      }
-      delete[] new_uri.path_;
+      new_uri.delete_path();
       /////////////////////////////////////////
-      new_uri.path_length_ = (this->path_length_ > steps) ? ((this->path_length_ - steps)) : 0;
-      new_uri.path_ = new char *[new_uri.path_length_];
-      for(uint8_t i = steps; i < this->path_length_; i++) {
-        new_uri.path_[i - steps] = strdup(this->path_[i]);
-      }
-      if(new_uri.path_length_ == 0) {
+      new_uri.path_length_ = (this->path_length_ > steps) ? (this->path_length_ - steps) : 0;
+      if(new_uri.path_length_ > 0) {
+        new_uri.path_ = new char *[new_uri.path_length_];
+        for(uint8_t i = steps; i < this->path_length_; i++) {
+          new_uri.path_[i - steps] = strdup(this->path_[i]);
+        }
+        new_uri.spostfix_ = this->spostfix_;
+        new_uri.sprefix_ = this->sprefix_;
+      } else {
         new_uri.spostfix_ = false;
         new_uri.sprefix_ = false;
       }
@@ -856,13 +855,10 @@ namespace fhatos {
       this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
       free((void *) this->query_);
       this->query_ = other.query_ ? strdup(other.query_) : nullptr;
+      this->delete_path();
       this->path_length_ = other.path_length_;
-      for(size_t i = 0; i < this->path_length_; i++) {
-        free(this->path_[i]);
-      }
-      delete[] path_;
-      this->path_ = new char *[other.path_length_]();
       if(other.path_) {
+        this->path_ = new char *[other.path_length_]();
         for(uint8_t i = 0; i < other.path_length_; i++) {
           this->path_[i] = strdup(other.path_[i]);
         }
@@ -888,10 +884,7 @@ namespace fhatos {
       free((void *) this->coefficient_);
       free((void *) this->query_);
       // free((void *) this->fragment_);
-      for(size_t i = 0; i < this->path_length_; i++) {
-        free(path_[i]);
-      }
-      delete[] path_;
+      this->delete_path();
     }
 
     fURI(const fURI &other) {
@@ -902,12 +895,12 @@ namespace fhatos {
       this->port_ = other.port_;
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
-      this->path_length_ = other.path_length_;
       this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
       this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
-      this->path_ = new char *[other.path_length_]();
+      this->path_length_ = other.path_length_;
       if(other.path_) {
+        this->path_ = new char *[other.path_length_]();
         for(uint8_t i = 0; i < other.path_length_; i++) {
           this->path_[i] = strdup(other.path_[i]);
         }
@@ -919,8 +912,12 @@ namespace fhatos {
     }
 
     fURI(const char *uri_chars) {
-      if(strlen(uri_chars) == 0)
+      if(strlen(uri_chars) == 0) {
+        this->path_length_ = 0;
+        this->sprefix_ = false;
+        this->spostfix_ = false;
         return;
+      }
       const char *dups = strdup(uri_chars);
       /*for (size_t i = 0; i < strlen(dups); i++) {
         if (dups[i] == '#' && i != strlen(dups) - 1) {
@@ -1133,13 +1130,13 @@ namespace fhatos {
           // this->_fragment = strdup(token.c_str());
           // }
         }
-        if(this->path_) {
+        if(this->path_ && this->path_length_ > 0) {
           for(uint8_t i = 0; i < this->path_length_; i++) {
             if(this->path_[i][0] == '#' && i != this->path_length_ - 1) {
               throw fError("only the last path segment can contain the recursive !b#!! wildcard: %s",
                            this->path().c_str());
             }
-            if(!this->spostfix_) {
+            if(!this->spostfix_ && strlen(this->path_[this->path_length_ - 1]) > 0) {
               if(char last = this->path_[this->path_length_ - 1][strlen(this->path_[this->path_length_ - 1]) - 1];
                 /* last == '.' || */last == '_' || last == '=') {
                 throw fError("furis can not end with chars !g[!y_!c=!g]!!: %s", this->name().c_str());
@@ -1165,12 +1162,14 @@ namespace fhatos {
     [[nodiscard]] bool equals(const fURI &other) const {
       if(this->path_length_ != other.path_length_)
         return false;
-      for(int i = 0; i < this->path_length_; i++) {
-        if(!StringHelper::char_ptr_equal(this->path_[i], other.path_[i]))
-          return false;
+      if(this->path_ && other.path_) {
+        for(int i = 0; i < this->path_length_; i++) {
+          if(!StringHelper::char_ptr_equal(this->path_[i], other.path_[i]))
+            return false;
+        }
       }
-      return this->spostfix_ == other.spostfix_ &&
-             this->sprefix_ == other.sprefix_ &&
+      return (this->empty() || this->spostfix_ == other.spostfix_) &&
+             (this->empty() || this->sprefix_ == other.sprefix_) &&
              StringHelper::char_ptr_equal(this->coefficient_, other.coefficient_) &&
              StringHelper::char_ptr_equal(this->query_, other.query_) &&
              StringHelper::char_ptr_equal(this->scheme_, other.scheme_) &&

@@ -28,17 +28,17 @@ namespace fhatos {
   public:
     PrintHelper() = delete;
 
-    static string print_fail_reason(std::stack<std::string> *fail_reason) {
+    static string print_fail_reason(std::stack<std::string> fail_reason) {
       string fail;
       int count = 1;
-      while(!fail_reason->empty()) {
+      while(!fail_reason.empty()) {
         fail.append("\n\t\t")
             .append(StringHelper::repeat(count, " "))
             .append("!m\\")
             .append(StringHelper::repeat(count, "_"))
             .append("!!")
-            .append(fail_reason->top());
-        fail_reason->pop();
+            .append(fail_reason.top());
+        fail_reason.pop();
         count++;
       }
       return fail;

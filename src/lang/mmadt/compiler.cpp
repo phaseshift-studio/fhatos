@@ -189,7 +189,8 @@ namespace fhatos {
   }
 
   bool Compiler::in_block_list(const string &op) {
-    const std::vector<Uri_p> *blocker_list = ROUTER_READ(MMADT_PREFIX "inst/blockers")->lst_value().get();
+    const Lst_p block_list_obj = ROUTER_READ(MMADT_PREFIX "inst/blockers")->or_else(Obj::to_lst());
+    const std::vector<Uri_p> *blocker_list = block_list_obj->lst_value().get();
     const bool found = blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
                                                            [&op](const Uri_p &u) {
                                                              return u->uri_value().name() == op;
@@ -257,7 +258,7 @@ namespace fhatos {
                           ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
                       : rv->apply(is_else(rv)
-                                    ? Obj::to_noobj()  // TODO: use pre-computed inst domain coefficent
+                                    ? Obj::to_noobj() // TODO: use pre-computed inst domain coefficent
                                     : lhs)); // default arg
           r_counter++;
         }
@@ -309,20 +310,20 @@ namespace fhatos {
     return true;
   }
 
-  bool Compiler::type_check(const Obj *value_obj, const ID &type_id) const {
+  bool Compiler::type_check(const Obj *obj, const ID &type_id) const {
     if(Compiler::boot_loading)
       return true;
     /* if(value_obj->is_inst())
        return this->type_check(ROUTER_READ(*value_obj->range()),type_id);*/
     auto fail_reason = std::stack<string>();
-    if(value_obj->is_noobj()) {
+    if(obj->is_noobj()) {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF);
         !coef.empty() && stoi(coef.front()) == 0) {
         return true;
       }
     }
-    if(value_obj->is_rec()) {
-      for(const auto &[k,v]: *value_obj->rec_value()) {
+    if(obj->is_rec()) {
+      for(const auto &[k,v]: *obj->rec_value()) {
         if(k->is_uri() && k->uri_value().has_query()) {
           if(!this->type_check(v, k->uri_value().query()))
             return false;
@@ -333,25 +334,25 @@ namespace fhatos {
     if(type_no_query_id.equals(*OBJ_FURI) || type_no_query_id.equals(*NOOBJ_FURI)) // TODO: hack on noobj
       return true;
     // if the type is a base type and the base types match, then type check passes
-    if(type_no_query_id.equals(*OTYPE_FURI.at(value_obj->otype)))
+    if(type_no_query_id.equals(*OTYPE_FURI.at(obj->otype)))
       return true;
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-    if(value_obj->tid->equals(type_no_query_id))
-      return true;
+    // if(obj->tid->equals(type_no_query_id))
+    //   return true;
     // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-    if(value_obj->otype == OType::TYPE || value_obj->otype == OType::INST || value_obj->otype == OType::BCODE)
+    if(obj->otype == OType::TYPE || obj->otype == OType::INST || obj->otype == OType::BCODE)
       return true;
-    if(type_no_query_id.equals(*NOOBJ_FURI) && (value_obj->otype == OType::NOOBJ || value_obj->tid->equals(*OBJ_FURI)))
+    if(type_no_query_id.equals(*NOOBJ_FURI) && (obj->otype == OType::NOOBJ || obj->tid->equals(*OBJ_FURI)))
       return true;
     if(const Obj_p type = ROUTER_READ(type_no_query_id); !type->is_noobj()) {
-      Compiler::coefficient_check(value_obj->range_coefficient(), type->domain_coefficient());
+      Compiler::coefficient_check(obj->range_coefficient(), type->domain_coefficient());
       //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
       // if(type->is_type() && !obj->apply(type)->is_noobj())
       //   return true;
-      if(value_obj->match(type, &fail_reason))
+      if(obj->match(type, &fail_reason))
         return true;
       if(this->throw_on_miss) {
-        static const auto p = GLOBAL_PRINTERS.at(value_obj->otype)->clone();
+        static const auto p = GLOBAL_PRINTERS.at(obj->otype)->clone();
         p->show_type = false;
         string fail;
         int count = 1;
@@ -366,7 +367,7 @@ namespace fhatos {
           count++;
         }
         throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", "/sys/lang/parser",
-                     value_obj->toString(p.get()).c_str(), type_id.toString().c_str(), type->toString().c_str(),
+                     obj->toString(p.get()).c_str(), type_id.toString().c_str(), type->toString().c_str(),
                      fail.c_str());
       }
       return false;

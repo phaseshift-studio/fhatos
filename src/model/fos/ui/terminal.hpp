@@ -53,7 +53,7 @@ namespace fhatos {
       return nullptr;
     }
 
-    static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
+    static ptr<Terminal>& singleton(const ID &id = ID("/io/terminal")) {
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
@@ -79,7 +79,7 @@ namespace fhatos {
       string line;
       int c = EOF;
       while(c != until) {
-        while(!ROUTER_READ(SCHEDULER_ID->extend("halt"))->or_else(dool(false))->bool_value() && // TODO: create a global shutdown flag at /sys/halt
+        while(/*!ROUTER_READ(SCHEDULER_ID->extend("halt"))->or_else(dool(false))->bool_value() &&*/ // TODO: create a global shutdown flag at /sys/halt
               -1 == (c = printer<>()->read())) {
           Thread::yield_current_thread();
         }

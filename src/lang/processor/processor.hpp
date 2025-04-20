@@ -51,8 +51,7 @@ namespace fhatos {
 
   public:
     explicit Processor(const BCode_p &bcode) :
-      Obj(Any(), OType::OBJ, REC_FURI,
-          id_p(to_string(rand()).insert(0, "/sys/vm/processor/").c_str())),
+      Obj(Any(), OType::OBJ, REC_FURI, id_p(Processor::get_core_id())),
       compiler_(make_unique<Compiler>(true, false)), bcode_(bcode) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {
@@ -98,6 +97,11 @@ namespace fhatos {
       }
     }
 
+    static fURI get_core_id(const string &postfix = "") {
+      const fURI i = ID("/sys/vm/core").append(to_string(Thread::core_current_thread()));
+      return postfix.empty() ? i : i.extend(postfix);
+    }
+
     [[nodiscard]] ID_p vid_or_tid() const {
       return this->vid;
     }
@@ -130,9 +134,8 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
-      LOG_WRITE(TRACE, vri(this->vid_or_tid()).get(), L("{}\n",
-                                                        Ansi<>::singleton()->silly_print("processor shutting down", true
-                                                          , false))          );
+      LOG_WRITE(TRACE, vri(this->vid_or_tid()).get(),
+                L("{}\n", Ansi<>::singleton()->silly_print("processor shutting down", true, false)));
       return objs;
     }
 
@@ -165,21 +168,30 @@ namespace fhatos {
 
     static Objs_p compute(const BCode_p &bcode) {
       //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      if(const Int_p stack_size = ROUTER_READ("/sys/vm/config/stack_size"); stack_size->is_noobj()) {
+      int custom_stack_size = 0;
+      if(bcode->vid) {
+        const Int_p stack_size = ROUTER_READ(bcode->vid->extend("config/stack_size"));
+        if(stack_size->is_int() && stack_size->int_value() > 0) {
+          custom_stack_size = stack_size->int_value();
+        }
+      }
+      if(0 == custom_stack_size) {
+        const Int_p stack_size = ROUTER_READ("/sys/vm/config/stack_size");
+        if(stack_size->is_int() && stack_size->int_value() > 0) {
+          custom_stack_size = stack_size->int_value();
+        }
+      }
+      ////////////////////////////////////////////////////////////////////
+      if(custom_stack_size <= 0) {
         Obj_p objs = Processor(bcode).to_objs();
         return objs;
       } else {
-        const ID custom_stack_furi = PROCESSOR_FURI->extend(CUSTOM_STACK_NAME);
-        ROUTER_WRITE(custom_stack_furi, bcode, true);
-        MemoryHelper::use_custom_stack([] {
-          const ID custom_stack_furi_inner = PROCESSOR_FURI->extend(CUSTOM_STACK_NAME);
-          const BCode_p bcode_inner = ROUTER_READ(custom_stack_furi_inner);
-          const Obj_p objs = Processor(bcode_inner).to_objs();
-          ROUTER_WRITE(custom_stack_furi_inner, objs, true);
-        }, stack_size->int_value());
-        Objs_p result = ROUTER_READ(custom_stack_furi)->clone();
-        ROUTER_WRITE(custom_stack_furi, Obj::to_noobj(), true);
-        return result;
+        return MemoryHelper::use_custom_stack(
+            InstBuilder::build("proc_helper")
+            ->inst_f([](const Obj_p &bcode, const InstArgs &) {
+              return Processor(bcode).to_objs();
+            })->create(), bcode, custom_stack_size);
+
       }
     }
 

@@ -177,10 +177,11 @@ namespace mmadt {
         ->inst_args(rec({{"type?uri", Obj::to_bcode()}}))
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
           std::stack<string> fail_reason;
-          Obj_p result = obj->match(ROUTER_READ(args->arg("type")->uri_value()), &fail_reason) ? obj : Obj::to_noobj();
+          const fURI type_furi = args->arg("type")->uri_value();
+          Obj_p result = obj->match(ROUTER_READ(type_furi), &fail_reason) ? obj : Obj::to_noobj();
           if(result->is_noobj())
             LOG_WRITE(DEBUG, obj.get(), L("isa({}) mismatch {}\n", args->arg(0)->toString(),
-                                          PrintHelper::print_fail_reason(&fail_reason))                );
+                                          PrintHelper::print_fail_reason(fail_reason))                );
           return result;
         })
         ->save();
@@ -898,7 +899,7 @@ namespace mmadt {
     InstBuilder::build(MMADT_PREFIX "ref")
         ->inst_args(rec({
             {"payload", Obj::to_bcode()},
-            {"retain", __().isa(*BOOL_FURI)}})) // TODO: why segfalt with else?
+            {"retain", __().else_(Obj::to_noobj())}}))
         ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const Obj_p payload = args->arg("payload");
@@ -929,8 +930,8 @@ namespace mmadt {
           for(size_t i = 0; i < xstr.length(); i++) {
             chars->push_back(str(xstr.substr(i, 1)));
           }
-          const BCode_p code = args->arg(0)->bcode_starts(Obj::to_objs(chars));
-          const Objs_p strs = BCODE_PROCESSOR(code);
+          const BCode_p code = args->arg(0);//->bcode_starts(Obj::to_objs(chars));
+          const Objs_p strs = code->apply(Obj::to_objs(chars));
           string ret;
           for(const Str_p &s: *strs->objs_value()) {
             ret += s->str_value();

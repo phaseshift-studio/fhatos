@@ -63,7 +63,7 @@ namespace fhatos {
         file.close();
         FOS_FS.end();
       } catch(std::exception& ex) {
-        LOG_EXCEPTION(Router::singleton(),ex);
+        LOG_WRITE(ERROR,Router::singleton().get(),L("{}",ex.what()));
       }
     }
 

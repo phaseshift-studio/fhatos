@@ -60,7 +60,7 @@ namespace fhatos {
             }
           }
         } catch(const fError &e) {
-          LOG_EXCEPTION(this, e);
+          LOG_WRITE(ERROR, this,L("{}", e.what()));
         }
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ namespace fhatos {
     }
 
   public:
-    static ptr<Typer> singleton(const ID &id = "/sys/type") {
+    static ptr<Typer> &singleton(const ID &id = "/sys/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       Compiler::boot_loading = false;
       return types_p;
@@ -246,7 +246,7 @@ namespace fhatos {
           }
         }
       } catch(const fError &e) {
-        LOG_EXCEPTION(this, e);
+        LOG_WRITE(ERROR, this, L("{}", e.what()));
       }
     }
 

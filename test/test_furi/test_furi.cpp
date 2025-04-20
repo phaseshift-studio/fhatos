@@ -556,13 +556,13 @@ void test_uri_segment() {
 void test_uri_prepend() {
   /// TRUE
   FOS_TEST_FURI_EQUAL(fURI("b/a"), fURI("a").prepend("b"));
-  FOS_TEST_FURI_EQUAL(fURI("/b/a"), fURI("/a").prepend("b"));
+  FOS_TEST_FURI_EQUAL(fURI("b/a"), fURI("/a").prepend("b"));
   FOS_TEST_FURI_EQUAL(fURI("/b/a"), fURI("a").prepend("/b"));
   FOS_TEST_FURI_EQUAL(fURI("/b/a"), fURI("/a").prepend("/b"));
   FOS_TEST_FURI_EQUAL(fURI("/b/a/"), fURI("/a/").prepend("/b"));
   FOS_TEST_FURI_EQUAL(fURI("/b/a/"), fURI("/a/").prepend("/b/"));
   FOS_TEST_FURI_EQUAL(fURI("/b/a"), fURI("a").prepend("/b/"));
-  FOS_TEST_FURI_EQUAL(fURI("/c/b/a"), fURI("/a").prepend("/b").prepend("c"));
+  FOS_TEST_FURI_EQUAL(fURI("c/b/a"), fURI("/a").prepend("/b").prepend("c"));
   FOS_TEST_FURI_EQUAL(fURI("c/b/a"), fURI("a").prepend("b").prepend("c"));
   FOS_TEST_FURI_EQUAL(fURI("/c/b/a/"), fURI("/a/").prepend("/b/").prepend("/c/"));
 }

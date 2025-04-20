@@ -41,7 +41,7 @@ int main(int, char **) {
     BootLoader::primary_boot(argv_parser);
     return 0;
   } catch (const std::exception &e) {
-    LOG_EXCEPTION(Router::singleton(),e);
+    LOG_WRITE(ERROR,Router::singleton().get(),L("{}",e.what()));
     throw;
   }
 }

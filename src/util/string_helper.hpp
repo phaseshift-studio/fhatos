@@ -107,11 +107,10 @@ namespace fhatos {
     }
 
 
-    static void trim(const std::string &s) {
-      if(s.empty())
-        return;
-      ltrim(const_cast<string &>(s));
-      rtrim(const_cast<string &>(s));
+    static void trim(std::string &s) {
+      if(s.empty()) return;
+      ltrim(s);
+      rtrim(s);
     }
 
     static string repeat(const uint8_t amount, const string &repeater = " ") {

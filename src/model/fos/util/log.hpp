@@ -25,7 +25,9 @@
 #include "../../../furi.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../../lang/mmadt/mmadt.hpp"
+#include "../../../util/memory_helper.hpp"
 #include "../../../util/obj_helper.hpp"
+#include "../sys/scheduler/thread/mutex.hpp"
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
@@ -33,15 +35,25 @@
 namespace fhatos {
   using namespace mmadt;
   static const ID_p LOG_FURI = id_p("/fos/util/log");
+  static ptr<Trip<const LOG_TYPE, const Obj *, const std::function<std::string()>>> log_stack;
 
   class Log final : public Rec {
+  protected:
+    Mutex log_mutex;
+
   public:
     explicit Log(const ID &value_id, const Rec_p &config) :
       Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
       printer<>()->printf("!g[INFO]  [!m%s!g] switching from !yboot logger!! to !ysystem logger!!\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
-        PRIMARY_LOGGING(log_type, source, message);
+        PRIMARY_LOGGING(log_type,source, message);
+        /*MemoryHelper::use_custom_stack(InstBuilder::build("log_helper")->inst_f(
+                                           [log_type, &message](const Obj_p &obj, const InstArgs &) {
+
+                                             return Obj::to_noobj();
+                                           })->create(), source->shared_from_this(), 8000, true);*/
+
       };
     }
 
@@ -57,7 +69,8 @@ namespace fhatos {
       }
       bool match = false;
       const bool source_is_null = nullptr == source;
-      for(const auto &a: *furis->lst_value()) {
+      const auto furis_list = std::vector<Obj_p>(*furis->lst_value());
+      for(const auto &a: furis_list) {
         if(!source_is_null && source->vid_or_tid()->matches(a->uri_value())) {
           match = true;
           break;
@@ -65,7 +78,7 @@ namespace fhatos {
       }
       if(!match)
         return;
-      std::lock_guard lock(stdout_mutex);
+      //std::lock_guard lock(stdout_mutex);
       if(type == NONE)
         printer()->print("");
       else if(type == INFO)

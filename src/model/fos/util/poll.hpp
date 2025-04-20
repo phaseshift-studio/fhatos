@@ -44,8 +44,8 @@ namespace fhatos {
         try {
           const auto start_time = std::chrono::high_resolution_clock::now();
           LOG_WRITE(INFO, poll_obj.get(), L("!ypolling !b{} !ystarted!! [delay:{} ms]\n",
-                  poll_obj->rec_get("loop")->toString(),
-                  poll_obj->get<int>("delay")));
+                                            poll_obj->rec_get("loop")->toString(),
+                                            poll_obj->get<int>("delay")));
           while(!poll_obj->get<bool>("halt")) {
             const Obj_p code = poll_obj->rec_get("loop");
             const Obj_p result = BCODE_PROCESSOR(code);
@@ -53,10 +53,10 @@ namespace fhatos {
           }
           const std::chrono::duration<double, milli> duration = std::chrono::high_resolution_clock::now() - start_time;
           LOG_WRITE(INFO, poll_obj.get(), L("!ypolling !b{} !ystopped!! [runtime:{} sec]\n",
-                  poll_obj->rec_get("loop")->toString(),
-                  duration.count() / 1000.0f));
+                                            poll_obj->rec_get("loop")->toString(),
+                                            duration.count() / 1000.0f)              );
         } catch(const std::exception &e) {
-          LOG_EXCEPTION(poll_obj, fError("poll failure: %s", e.what()));
+          LOG_WRITE(ERROR, poll_obj.get(), L("poll failure: {}", e.what()));
         }
       });
     }

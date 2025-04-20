@@ -19,13 +19,11 @@ namespace fhatos {
   public:
     int state = 0;
 
-
-    explicit Button(const Obj_p &button_obj) {
+    explicit Button() {
     };
 
-    static ptr<Button> create_state(const Obj_p &button_obj) {
-      const auto button_state = make_shared<Button>(button_obj);
-      return button_state;
+    static ptr<Button> create_state(const Obj_p &) {
+      return make_shared<Button>();
     }
 
     static void *import() {
@@ -37,14 +35,13 @@ namespace fhatos {
           ->inst_f([](const Obj_p &button, const InstArgs &) {
             const ptr<Button> button_state = Button::get_state(button);
             const Int_p pin = button->rec_get("pin");
-            const Int_p reading = __(pin).inst("read").compute().next();
+            const int reading = pin->inst_apply("read")->or_else(jnt(-1))->int_value();
             //LOG_WRITE(INFO, button.get(),L("button value {}\n", reading->toString()));
-            if(button_state->state != reading->int_value()) {
+            if(reading != -1 && (button_state->state != reading)) {
               LOG_WRITE(INFO, button.get(),L("button {} pushed\n", pin->toString()));
               mmADT::delift(button->rec_get("on_push"))->apply(button);
-              button_state->state = reading->int_value();
+              button_state->state = reading;
             }
-            //MODEL_STATES::singleton()->store<ptr<Button>>(*button->vid, button_state);
             return Obj::to_noobj();
           })->save();
       return nullptr;

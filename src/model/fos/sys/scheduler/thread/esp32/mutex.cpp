@@ -20,29 +20,51 @@ FhatOS: A Distributed Operating System
 #include <cstdio>
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include "ext/read_write_lock.hpp"
+
+#define READ_WRITE_LOCK_TYPE ReadWriteLockPreferReader
+#define USING_READER_PREFERENCE
 
 namespace fhatos {
       // mutexes can not be used in ISR context
-       Mutex::Mutex() : handler_(xSemaphoreCreateMutex()) {
-          if (std::any_cast<SemaphoreHandle_t>(this->handler_) == NULL)
-            throw fError("unable to construct mutex");
+       Mutex::Mutex() : handler_(new READ_WRITE_LOCK_TYPE()) {
+        //printer<>()->println("creating mutex");
         }
-         void Mutex::lock() {
-          BaseType_t success = xSemaphoreTake(std::any_cast<SemaphoreHandle_t>(this->handler_), portMAX_DELAY);
-          if(success != pdTRUE) throw fError("unable to lock mutex");
+
+        void Mutex::lock() {
+            //printer<>()->println("locking guarded mutex");
+            std::any_cast<READ_WRITE_LOCK_TYPE*>(this->handler_)->WriterLock();
+        
         }
          void Mutex::unlock() {
-          BaseType_t success = xSemaphoreGive(std::any_cast<SemaphoreHandle_t>(this->handler_));
-          if(success != pdTRUE) throw fError("unable to unlock mutex");
+           // printer<>()->println("unlocking guarded mutex");
+            std::any_cast<READ_WRITE_LOCK_TYPE*>(this->handler_)->WriterUnlock();
+         
         }
          void Mutex::lock_shared() {
-           this->lock();
+           // printer<>()->println("locking shared mutex");
+            std::any_cast<READ_WRITE_LOCK_TYPE*>(this->handler_)->ReaderLock();
+              
         }
         void Mutex::unlock_shared() {
-           this->unlock();
+            //printer<>()->println("unlocking shared mutex");
+            std::any_cast<READ_WRITE_LOCK_TYPE*>(this->handler_)->ReaderUnlock();
+             
         }
          Mutex::~Mutex() {
-          vSemaphoreDelete(std::any_cast<SemaphoreHandle_t>(this->handler_));
-        }
+            //printer<>()->println("destroying mutex");
+            READ_WRITE_LOCK_TYPE* h = std::any_cast<READ_WRITE_LOCK_TYPE*>(this->handler_);
+
+            h->WriterUnlock();
+#ifdef USING_READER_PREFERENCE
+              vSemaphoreDelete(h->ReadLock);
+              vSemaphoreDelete(h->ResourceLock);
+#else
+
+              vSemaphoreDelete(h->WriteLock);
+              vSemaphoreDelete(h->BlockReadersLock);
+#endif
+            delete std::any_cast<READ_WRITE_LOCK_TYPE*>(handler_);
+       }
   }
 #endif

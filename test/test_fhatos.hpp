@@ -28,6 +28,7 @@
 #endif
 
 #define RETAIN true
+#define FOS_MAX_PATH_SEGMENTS 15
 
 #include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"

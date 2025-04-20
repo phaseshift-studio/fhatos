@@ -28,6 +28,7 @@
 #include "util/memory_helper.hpp"
 #include "util/print_helper.hpp"
 #include "boot_config_loader.hpp"
+#include "model/fos/sys/memory/memory.hpp"
 
 namespace fhatos {
   class Kernel {
@@ -116,9 +117,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> display_memory(const string &label, const Rec_p &info) {
-      if(!info->is_noobj())
-        LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! {}\n", label, info->toString()));
+    static ptr<Kernel> display_memory() {
+      Memory::singleton()->log_memory_stats();
       return Kernel::build();
     }
 
@@ -193,7 +193,12 @@ namespace fhatos {
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-        MemoryHelper::use_custom_stack(mmadt::Parser::load_boot_config,FOS_BOOT_CONFIG_MEM_USAGE);
+        MemoryHelper::use_custom_stack(
+            InstBuilder::build("boot_helper")
+            ->inst_f([](const Obj_p &, const InstArgs &args) {
+              mmadt::Parser::load_boot_config();
+              return Obj::to_noobj();
+            })->create(), Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
         config_obj = Router::singleton()->read(*config_id);
       }
       if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {

@@ -46,7 +46,7 @@ namespace fhatos {
     static Obj_p create(const ID &id, const Rec_p &console_config) {
       const Obj_p console_obj =
           Obj::to_rec({
-                          {"halt", dool(true)},
+                          {"halt", dool(false)},
                           {"delay", jnt(0, NAT_FURI)},
                           {"loop", InstBuilder::build(THREAD_FURI->extend("loop"))
                            ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
@@ -67,8 +67,7 @@ namespace fhatos {
                                }
                                if(console_obj->has("config/terminal/stdin")) {
                                  //// READ FROM PROMPT
-                                 if(const string x = console_state->read_stdin('\n')
-                                       ->str_value();
+                                 if(const string x = console_state->read_stdin('\n')->str_value();
                                    x.find(":clear") == 0) {
                                    console_state->clear();
                                    return noobj();
@@ -99,7 +98,7 @@ namespace fhatos {
                                }
                              } catch(std::exception &e) {
                                console_state->print_exception(e);
-#ifdef NATIVEX
+#ifdef NATIVE
                                 if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
                                   console_state->write_stdout(str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
                                   string response = console_state->read_stdin('\0')->str_value();
@@ -114,9 +113,9 @@ namespace fhatos {
                              }
                              return Obj::to_noobj();
                            })->create()},
-                          {"config", console_config->clone()}}, CONSOLE_FURI, id_p(ID(id)));
+                          {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       MODEL_STATES::singleton()->store(id, Console::create_state(console_obj));
-     // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
+      // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
       return console_obj;
     }
 
@@ -185,12 +184,11 @@ namespace fhatos {
       FEED_WATCHDOG();
 
       Obj_p result;
-      if(this->has("config/processor") && !this->get<fURI>("config/processor").equals(*PROCESSOR_FURI)) {
-        const Uri_p proc = this->rec_get("config/processor");
-        result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
-      } else {
+      const static Uri_p processor_uri = Obj::to_uri(*PROCESSOR_FURI);
+      if(const Uri_p proc = this->rec_get("config/processor"); !proc->equals(*processor_uri))
+        result =  __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
+      else
         result = Processor::compute(line);
-      }
       std::stringbuf to_out;
       FEED_WATCHDOG();
       PrintHelper::pretty_print_obj(result, 0, this->get<int>("config/nest"), false, &to_out);
@@ -216,9 +214,9 @@ namespace fhatos {
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(rec({{"code", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
-            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
+            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             static_cast<Console *>(console_state.get())->process_line(code);
             return Obj::to_noobj();
           })

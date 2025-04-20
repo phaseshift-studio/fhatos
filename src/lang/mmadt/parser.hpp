@@ -187,8 +187,8 @@ namespace mmadt {
       Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER);
 
       if(ret.ret) {
-        LOG_OBJ(DEBUG, this, "!gsuccessful!! parse of %s !g==>!!\n\t%s\n", str(source)->toString().c_str(),
-                result->toString().c_str());
+        LOG_WRITE(DEBUG, this, L("!gsuccessful!! parse of {} !g==>!!\n\t{}\n", str(source)->toString(),
+                result->toString()));
         if(result->is_empty_bcode() && strcmp(source, "_") != 0)
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
         return std::move(result->is_bcode() && result->bcode_value()->size() == 1
@@ -215,19 +215,22 @@ namespace mmadt {
           id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
+        // TODO: modulate stack size based on string length
         if(const Int_p stack_size = ROUTER_READ(Parser::singleton()->vid->extend("config/stack_size"));
           stack_size->is_noobj()) {
           return Parser::singleton()->parse(obj_string.c_str());
         } else {
-          static string PARSE_INPUT;
-          PARSE_INPUT.clear();
-          PARSE_INPUT.append(obj_string);
-          static Obj_p PARSE_OUTPUT;
-          MemoryHelper::use_custom_stack([] {
-            PARSE_OUTPUT = std::move(Parser::singleton()->parse(PARSE_INPUT.c_str()));
-            PARSE_INPUT.clear();
-          }, stack_size->int_value());
-          return PARSE_OUTPUT->clone();
+          const int int_stack_size = stack_size->is_code()
+                                       ? stack_size->apply(str(obj_string))->int_value()
+                                       : stack_size->int_value();
+          try {
+            return MemoryHelper::use_custom_stack(InstBuilder::build("parse_helper")->inst_f(
+                                                      [](const Str_p &source, const InstArgs &) {
+                                                        return Parser::singleton()->parse(source->str_value().c_str());
+                                                      })->create(), Obj::to_str(obj_string), int_stack_size);
+          } catch(const fError &e) {
+            throw;
+          }
         }
       };
     }
@@ -317,7 +320,7 @@ namespace mmadt {
         int min;
         int max;
         // INT_MAX means "or more"
-        const string coefficient_string = vs.token_to_string();
+        string coefficient_string = vs.token_to_string();
         StringHelper::trim(coefficient_string);
         if(coefficient_string.empty()) {
           min = 1;

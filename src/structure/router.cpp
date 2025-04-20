@@ -27,7 +27,7 @@ namespace fhatos {
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
 
 
-  ptr<Router> Router::singleton(const ID &value_id) {
+  ptr<Router>& Router::singleton(const ID &value_id) {
     static auto router_p = std::make_shared<Router>(value_id);
     return router_p;
   }
@@ -40,7 +40,7 @@ namespace fhatos {
     Rec(rmap({{"structure", to_lst()}}),
         //stop and attach
         OType::REC, REC_FURI, id_p(id)),
-    structures_(make_unique<MutexDeque<Structure_p>>()) {
+    structures_(make_shared<MutexDeque<Structure_p>>()) {
     load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_ID = id_p(id);
@@ -85,7 +85,7 @@ namespace fhatos {
   void Router::load_config(const ID &config_id) {
     const Obj_p config = this->read(config_id);
     if(config->is_noobj())
-      LOG_WRITE(WARN, this, L("!b%s!! does not reference a config obj\n", config_id.toString().c_str()));
+      LOG_WRITE(WARN, this, L("!b{}!! does not reference a config obj\n", config_id.toString().c_str()));
     if(!config->is_noobj()) {
       const Rec_p router_config = config->rec_get(vri("router"));
       this->rec_set("config", router_config);
@@ -198,7 +198,7 @@ namespace fhatos {
                                objs->toString(), structure->pattern->toString())          );*/
       return objs->none_one_all();
     } catch(const fError &e) {
-      LOG_EXCEPTION(this->shared_from_this(), e);
+      LOG_WRITE(ERROR, this, L("{}", e.what()));
       return noobj();
     }
   }
@@ -217,12 +217,12 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-                               "obj", retain ? "retained" : "transient",
-                               furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
+      //LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
+       //                        "obj", retain ? "retained" : "transient",
+        //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
-      LOG_EXCEPTION(this->shared_from_this(), e);
+      LOG_WRITE(ERROR, this, L("{}", e.what()));
     }
     if(!this->active)
       this->stop();
@@ -288,7 +288,7 @@ namespace fhatos {
       if(to_write && to_write->is_noobj() && s->vid && pattern.bimatches(*s->vid)) {
         s->stop();
       } else {
-        if(pattern.bimatches(*s->pattern)) {
+        if(const auto p = Pattern(*s->pattern); pattern.bimatches(p)) {
           if(found && throw_on_error)
             throw fError("!b%s!! crosses multiple structures", pattern.toString().c_str());
             //LOG_WRITE(WARN, this,L("!b{}!! crosses multiple structures", pattern.toString()));
@@ -337,15 +337,15 @@ namespace fhatos {
       for(const auto &prefix: *prefixes) {
         const fURI x = prefix->uri_value().extend(c);
         if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
-          LOG_WRITE(TRACE, this, L("located !b%s!! in %s and resolved to !b{}!!\n",
-                                   furi.toString(), structure->toString(), x.toString()));
+          //LOG_WRITE(TRACE, this, L("located !b{}!! in {} and resolved to !b{}!!\n",
+          //                         furi.toString(), structure->toString(), x.toString()));
           found = furi_p(x);
           break;
         }
       }
-      if(!found) {
+      /*if(!found) {
         LOG_WRITE(TRACE, this, L("unable to locate !b{}!!\n", c.toString()));
-      }
+      }*/
       if(first) {
         first = false;
         test = furi_p(found ? *found : c);

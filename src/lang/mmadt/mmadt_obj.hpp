@@ -28,7 +28,7 @@
 #define MMADT_PREFIX "/mmadt/"
 #define MMADT_URI "/mmadt"
 #define MMADT_EXT_URI "/mmadt/ext"
-#define TOTAL_INSTRUCTIONS 100
+#define TOTAL_INSTRUCTIONS 130
 
 namespace mmadt {
   using namespace fhatos;

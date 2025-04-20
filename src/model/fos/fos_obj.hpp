@@ -28,6 +28,7 @@
 #include "util/poll.hpp"
 #include "util/text.hpp"
 #include "sys/scheduler/thread/thread.hpp"
+#include "sys/memory/memory.hpp"
 #include "../../lang/processor/processor.hpp"
 #include "ui/console.hpp"
 #include "ui/button/button.hpp"
@@ -93,7 +94,8 @@ namespace fhatos {
     }
 
     static void *import_sys() {
-      Typer::singleton()->start_progress_bar(1);
+      Typer::singleton()->start_progress_bar(2);
+      Memory::import();
       Thread::import();
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
