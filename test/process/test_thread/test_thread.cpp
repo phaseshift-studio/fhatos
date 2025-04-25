@@ -54,7 +54,7 @@ namespace fhatos {
     FOS_TEST_OBJ_NTEQL(Obj::to_noobj(),PROCESS("/sys/scheduler::spawn(@z)")); // prev: test thread structure pre-spawn; post: test thread structure post-spawn
     std::this_thread::sleep_for(chrono::milliseconds(50)); // give thread time to execute for a while
    // FOS_TEST_OBJ_EQUAL(Obj::to_lst({vri("z")}),ROUTER_READ("/sys/scheduler/thread")); // ensure scheduler posted thread furi
-    TEST_ASSERT_FALSE(thread->load()->get<bool>("halt")); // ensure spawned thread isn't halted
+    TEST_ASSERT_FALSE(thread->obj_get("halt")->bool_value()); // ensure spawned thread isn't halted
     TEST_ASSERT_FALSE(PROCESS("*z/halt")->bool_value()); // ensure spawned thread isn't halted
     FOS_TEST_FURI_EQUAL(*INT_FURI,PROCESS("*abc.type()")->uri_value());
     std::this_thread::sleep_for(chrono::milliseconds(50)); // give thread time to execute for a while
@@ -75,10 +75,10 @@ namespace fhatos {
     counter = PROCESS("*abc")->int_value();
     std::this_thread::sleep_for(chrono::milliseconds(250)); // give scheduler time to dismantle thread
     std::this_thread::yield();
-    TEST_ASSERT_TRUE(thread->get<bool>("halt")); // ensure spawned thread is halted
-    //TEST_ASSERT_TRUE(PROCESS("*z/halt")->bool_value());
-    //TEST_ASSERT_EQUAL(counter,PROCESS("*abc")->int_value()); // make sure thread isn't continuing after halting
-   	//FOS_TEST_OBJ_EQUAL(thread,PROCESS("*z"));
+    TEST_ASSERT_TRUE(thread->obj_get("halt")->bool_value()); // ensure spawned thread is halted
+    TEST_ASSERT_TRUE(PROCESS("*z/halt")->bool_value());
+    TEST_ASSERT_EQUAL(counter,PROCESS("*abc")->int_value()); // make sure thread isn't continuing after halting
+  // 	FOS_TEST_OBJ_EQUAL(thread,PROCESS("*z"));
     std::this_thread::yield();
   }
 

@@ -82,8 +82,7 @@ namespace fhatos {
                                    }
                                    StringHelper::trim(console_state->line_);
                                    if(console_state->line_.empty() ||
-                                      console_state->line_[console_state->line_.length() - 1] ==
-                                      ';' ||
+                                      console_state->line_[console_state->line_.length() - 1] == ';' ||
                                       // specific to end-step and imperative simulation
                                       !console_state->tracker_.closed()) {
                                      ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
@@ -96,7 +95,7 @@ namespace fhatos {
                                  console_state->process_line(console_state->line_);
                                  console_state->line_.clear();
                                }
-                             } catch(std::exception &e) {
+                             } catch(const fError &e) {
                                console_state->print_exception(e);
 #ifdef NATIVE
                                 if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
@@ -115,6 +114,7 @@ namespace fhatos {
                            })->create()},
                           {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       MODEL_STATES::singleton()->store(id, Console::create_state(console_obj));
+      //Scheduler::singleton()->spawn_thread(console_obj);
       // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
       return console_obj;
     }
@@ -186,7 +186,7 @@ namespace fhatos {
       Obj_p result;
       const static Uri_p processor_uri = Obj::to_uri(*PROCESSOR_FURI);
       if(const Uri_p proc = this->rec_get("config/processor"); !proc->equals(*processor_uri))
-        result =  __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
+        result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
       else
         result = Processor::compute(line);
       std::stringbuf to_out;

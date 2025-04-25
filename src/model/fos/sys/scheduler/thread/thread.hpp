@@ -81,51 +81,40 @@ namespace fhatos {
 
     explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
                       try {
-                        thread_obj->rec_set("halt", dool(false));
-                        const fURI halt_furi = thread_obj->vid->extend("halt");
-                        ROUTER_WRITE(halt_furi, dool(false), true);
+                        thread_obj->obj_set("halt", dool(false));
                         LOG_WRITE(INFO, thread_obj.get(),
                                   L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                                    thread_obj->rec_get("loop")->toString(),
-                                    thread_obj->rec_get("config/stack_size",
-                                      ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))->toString()));
+                                    thread_obj->obj_get("loop")->toString(),
+                                    thread_obj->obj_get("config/stack_size")->toString()));
                         const ptr<Thread> current = Thread::get_state(*thread_obj->vid);
-                        bool force_halt = false;
-                        while(!force_halt && !ROUTER_READ(halt_furi)->bool_value()) {
+                        while(!thread_obj->obj_get("halt")->or_else(dool(false))->bool_value()) {
                           FEED_WATCHDOG();
                           try {
-                            const BCode_p &code = thread_obj->rec_get("loop");
-                            force_halt = ROUTER_READ(halt_furi)->or_else(dool(true))->
-                                bool_value();
-                            if(!force_halt) {
-                              this_thread.store(current.get());
-                              mmADT::delift(code)->apply(thread_obj);
-                              if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                                Thread::delay_current_thread(delay);
-                                thread_obj->rec_set("delay", jnt(0, NAT_FURI));
-                                thread_obj->save("delay");
-                              }
+                            this_thread.store(current.get());
+                            mmADT::delift(thread_obj->obj_get("loop"))->apply(thread_obj);
+                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
+                              Thread::delay_current_thread(delay);
+                              thread_obj->obj_set("delay", jnt(0, NAT_FURI));
+                              thread_obj->save("delay");
                             }
-                          } catch(const std::exception &e) {
+                          } catch(const fError &e) {
                             LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
-                            force_halt = true;
                           }
                           // thread_obj->sync();
                           current->yield();
                         }
                         try {
-                          ROUTER_WRITE(halt_furi, dool(true), true);
                           if(current)
                             current->halt();
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
 
-                        } catch(const std::exception &e) {
+                        } catch(const fError &e) {
                           MODEL_STATES::singleton()->remove(*thread_obj->vid);
                           throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
                                                e.what());
                         }
                         LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
-                      } catch(std::exception &e) {
+                      } catch(const fError &e) {
                         MODEL_STATES::singleton()->remove(*thread_obj->vid);
                         throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
                       }
@@ -145,7 +134,7 @@ namespace fhatos {
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
-            thread_obj->rec_set("halt",dool(false));
+            thread_obj->rec_set("halt", dool(false));
             ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
             return Obj::to_noobj();
           })->save();

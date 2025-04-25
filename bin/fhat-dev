@@ -51,13 +51,16 @@ else
   echo -e " ${LB}working directory ${GREEN}$working_directory${NC}${RB}"
 
   # create bash key/value pairs for all provided args
+  echo -e " ${LB}key/values"
   for ARGUMENT in "$@"
   do
    KEY=$(echo $ARGUMENT | cut -f1 -d=)
    KEY_LENGTH=${#KEY}
    VALUE="${ARGUMENT:$KEY_LENGTH+1}"
    export "$KEY"="$VALUE"
+   echo -e "  ${GREEN}${KEY} = ${YELLOW}${VALUE}${NC}"
   done
+  echo -e " ${RB}"
 
   if [[ -z $j ]]; then
     export j=6
@@ -297,14 +300,17 @@ test_esp32() {
 build_boot_config() {
   pushd .
   cd "${FHATOS_HOME}"/conf || exit 1;
-  echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
-  printf '%b\n' "$(cat boot_config.obj)\n"
-  xxd -i boot_config.obj > "${FHATOS_HOME}"/src/boot_config.hpp
-  status_check $? "generated boot_config.hpp (header encoding)"
-  cp "${FHATOS_HOME}"/conf/boot_config.obj "${FHATOS_HOME}"/data/boot/
-  status_check $? "generated data/boot/boot_config.obj (littlefs encoding)"
-  status_check $? "boot_config"
   popd
+  if [[ -z $boot ]]; then
+    boot="conf/boot_config.obj"
+  fi
+  echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
+  printf '%b\n' "$(cat ${boot})\n"
+  xxd -i -n boot_config_obj $boot > "${FHATOS_HOME}"/src/boot_config.hpp
+  status_check $? "generated boot_config.hpp (header encoding)"
+  cp "${FHATOS_HOME}/${boot}" "${FHATOS_HOME}"/data/boot/boot_config.obj
+  status_check $? "generated ${boot} => data/boot/boot_config.obj (littlefs encoding)"
+  status_check $? "boot_config"
 }
 
 build_rlwrap_completions() {
@@ -366,8 +372,8 @@ elif [[ $1 == "upload" ]]; then
     platformio run ${environ} --target buildfs
     status_check $? "pio buildfs"
     platformio run ${environ} --target uploadfs
+    status_check $? "pio uploadfs"
   fi
-  status_check $? "pio uploadfs"
   platformio run ${environ} --target upload
   status_check $? "pio upload"
   build_rlwrap_completions

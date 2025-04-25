@@ -581,8 +581,8 @@ namespace fhatos {
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
       const auto error = fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(),
-                                  obj->toString().c_str(),
-                                  index == string::npos ? function : string(function).replace(index, 6, "").c_str());
+                                obj->toString().c_str(),
+                                index == string::npos ? function : string(function).replace(index, 6, "").c_str());
       return error;
     }
 
@@ -964,6 +964,20 @@ namespace fhatos {
       const Uri_p uri_key = to_uri(string_key);
       const Obj_p ret = rec_get(uri_key, or_else);
       return ret;
+    }
+
+    [[nodiscard]] Obj_p obj_get(const fURI &key) const {
+      const Obj_p value = this->vid ? ROUTER_READ(this->vid->extend(key)) : nullptr;
+      if(value && this->is_rec())
+        this->rec_set(Obj::to_uri(key), value);
+      return value ? value : Obj::to_noobj();
+    }
+
+    void obj_set(const fURI &key, const Obj_p &value) const {
+      if(this->is_rec())
+        this->rec_set(Obj::to_uri(key), value);
+      if(this->vid)
+        ROUTER_WRITE(this->vid->extend(key), value, true);
     }
 
     template<typename T>

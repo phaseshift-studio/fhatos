@@ -28,12 +28,13 @@
 #include "../../../../util/mutex_deque.hpp"
 
 namespace fhatos {
-  using Thread_p = ptr<Thread>;
-  static ID_p SCHEDULER_FURI = id_p("/sys/scheduler_t");
+  // using Thread_p = ptr<Thread>;
+  //static ID_p SCHEDULER_FURI = id_p("/sys/scheduler_t");
 
   class Scheduler final : public Rec {
   protected:
     bool running_ = true;
+    Mutex mutex = Mutex();
 
   public:
     explicit Scheduler(const ID &id) :
@@ -66,7 +67,7 @@ namespace fhatos {
           const Obj_p thread_obj = ROUTER_READ(list.back()->uri_value());
           list.pop_back();
           LOG_WRITE(INFO, this, L("!b{} !ythread!! closing\n", thread_obj->vid_or_tid()->toString()));
-          ROUTER_WRITE(thread_obj->vid->extend("halt"), dool(true), true);
+          thread_obj->obj_set("halt", dool(true));
         }
         Router::singleton()->loop();
       }
@@ -85,7 +86,7 @@ namespace fhatos {
         this->handle_threads();
         Router::singleton()->loop();
         //Thread::yield_current_thread();
-      } catch(const std::exception &e) {
+      } catch(const fError &e) {
         LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
       }
     }
@@ -95,73 +96,85 @@ namespace fhatos {
     }
 
     void handle_threads() {
-      this->sync("thread");
-      const Lst_p thread_uris = this->rec_get("thread")->or_else(lst());
+      auto lock = std::lock_guard<Mutex>(mutex);
+      const Lst_p thread_uris = this->obj_get("thread")->or_else(lst());
       if(thread_uris->lst_value()->empty())
         return;
       const size_t count = thread_uris->lst_value()->size();
-      thread_uris->lst_value()->erase(std::remove_if<>(thread_uris->lst_value()->begin(),
-                                                       thread_uris->lst_value()->end(),
-                                                       [this](const Uri_p &thread_id) -> bool {
-                                                         if(!thread_id->is_uri()) {
-                                                           LOG_WRITE(ERROR, this,
-                                                                     L("scheduler thread can only store uris: {}",
-                                                                       OTypes.to_chars(thread_id->otype).c_str()));
-                                                           return true;
-                                                         }
-                                                         if(ROUTER_READ(thread_id->uri_value().extend("halt"))->or_else(
-                                                             dool(false))->bool_value()) {
-                                                           LOG_WRITE(INFO, this, L("!b{} !ythread!! removed\n",
-                                                                       thread_id->uri_value().toString()));
-                                                           return true;
-                                                         }
-                                                         return false;
-                                                       }),thread_uris->lst_value()->end());
-      if(thread_uris->lst_value()->size() != count) {
-        this->rec_set("thread", thread_uris);
-        this->save("thread");
-      }
+      thread_uris->lst_value()->erase(
+          std::remove_if<>(thread_uris->lst_value()->begin(),
+                           thread_uris->lst_value()->end(),
+                           [this](const Uri_p &thread_id) -> bool {
+                             if(!thread_id->is_uri()) {
+                               LOG_WRITE(ERROR, this,L("scheduler thread can only store uris: {}",
+                                                       OTypes.to_chars(thread_id->otype).c_str()));
+                               return true;
+                             }
+                             if(ROUTER_READ(thread_id->uri_value().extend("halt"))->or_else(dool(false))->
+                               bool_value()) {
+                               LOG_WRITE(INFO, this, L("!b{} !ythread!! removed\n", thread_id->uri_value().toString()));
+                               return true;
+                             }
+                             return false;
+                           }), thread_uris->lst_value()->end());
+      if(thread_uris->lst_value()->size() != count)
+        this->obj_set("thread", thread_uris);
+    }
+
+    void spawn_thread(const Obj_p &thread_obj) {
+      auto lock = std::lock_guard<Mutex>(mutex);
+      thread_obj->obj_set("halt", dool(false));
+      // MODEL_STATES::singleton()->store(*thread_obj->vid, Thread::create_state(thread_obj));
+      const ptr<Thread> thread_state = Thread::get_state(thread_obj);
+      const Lst_p thread_uris = Scheduler::singleton()->obj_get("thread")->or_else(lst());
+      thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
+      Scheduler::singleton()->obj_set("thread", thread_uris);
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
+    }
+
+    void bundle_fiber(const Obj_p &fiber_obj) {
+      auto lock = std::lock_guard<Mutex>(mutex);
+      const Lst_p fiber_uris = Scheduler::singleton()->obj_get("bundle")->or_else(lst());
+      fiber_uris->lst_value()->push_back(Obj::to_uri(*fiber_obj->vid));
+      Scheduler::singleton()->obj_set("bundle", fiber_uris);
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
     }
 
     void handle_bundle() {
-      this->sync("bundle");
-      const Lst_p bundle_uris = this->rec_get("bundle")->or_else(lst());
+      auto lock = std::lock_guard<Mutex>(mutex);
+      const Lst_p bundle_uris = this->obj_get("bundle")->or_else(lst());
       if(bundle_uris->lst_value()->empty())
         return;
       const size_t count = bundle_uris->lst_value()->size();
-      bundle_uris->lst_value()->erase(std::remove_if<>(bundle_uris->lst_value()->begin(),
-                                                       bundle_uris->lst_value()->end(),
-                                                       [this](const Uri_p &fiber_id) -> bool {
-                                                         if(!fiber_id->is_uri()) {
-                                                           LOG_WRITE(ERROR, this,
-                                                                     L("fiber bundles can only store uris: {}",
-                                                                       OTypes.to_chars(fiber_id->otype).c_str()));
-                                                           return true;
-                                                         }
-                                                         const Obj_p fiber = ROUTER_READ(fiber_id->uri_value());
-                                                         if(fiber->is_noobj()) {
-                                                           LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n",
-                                                                       fiber_id->uri_value().toString()));
-                                                           return true;
-                                                         }
-                                                         try {
-                                                           const Inst_p loop_inst = Compiler(true, true).resolve_inst(
-                                                               fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-                                                           ROUTER_WRITE(fiber->vid->extend("loop/config/stack_size"),
-                                                                        jnt(8096), true);
-                                                           mmADT::delift(loop_inst)->apply(fiber);
-                                                           return false;
-                                                         } catch(const std::exception &e) {
-                                                           LOG_WRITE(ERROR, this,
-                                                                     L("!b{} !yfiber !rloop error!!: {}\n",
-                                                                       fiber->vid_or_tid()->toString(), e.what()));
-                                                           return true;
-                                                         }
-                                                       }),bundle_uris->lst_value()->end());
-      if(bundle_uris->lst_value()->size() != count) {
-        this->rec_set("bundle", bundle_uris);
-        this->save("bundle");
-      }
+      bundle_uris->lst_value()->erase(
+          std::remove_if<>(
+              bundle_uris->lst_value()->begin(),
+              bundle_uris->lst_value()->end(),
+              [this](const Uri_p &fiber_id) -> bool {
+                if(!fiber_id->is_uri()) {
+                  LOG_WRITE(ERROR, this,
+                            L("fiber bundles can only store uris: {}", OTypes.to_chars(fiber_id->otype).c_str()));
+                  return true;
+                }
+                const Obj_p fiber = ROUTER_READ(fiber_id->uri_value());
+                if(fiber->is_noobj()) {
+                  LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n", fiber_id->uri_value().toString()));
+                  return true;
+                }
+                try {
+                 // const Inst_p loop_inst = Compiler(true, true).resolve_inst(fiber, fiber->obj_get("loop"));
+                  //LOG_WRITE(INFO,fiber.get(),L("here: {}\n",loop_inst->toString()));
+                  // ROUTER_WRITE(fiber->vid->extend("loop/config/stack_size"), jnt(8096), true);
+                  mmADT::delift(fiber->obj_get("loop"))->apply(fiber);
+                  return false;
+                } catch(const fError &e) {
+                  LOG_WRITE(ERROR, this,
+                            L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
+                  return true;
+                }
+              }), bundle_uris->lst_value()->end());
+      if(bundle_uris->lst_value()->size() != count)
+        this->obj_set("bundle", bundle_uris);
     }
 
     static void *import() {
@@ -178,14 +191,7 @@ namespace fhatos {
           ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p thread_obj = args->arg("thread");
-            //if(thread_obj->vid && MODEL_STATES::singleton()->exists(*thread_obj->vid))
-            //  throw fError("running thread already exists at !b%s!!\n", thread_obj->vid->toString().c_str());
-            const Thread_p thread_state = Thread::get_state(thread_obj);
-            const Lst_p thread_uris = Scheduler::singleton()->rec_get("thread")->or_else(lst());
-            thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
-            Scheduler::singleton()->rec_value()->insert_or_assign(vri("thread"), thread_uris);
-            Scheduler::singleton()->save("thread");
-            LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
+            Scheduler::singleton()->spawn_thread(thread_obj);
             return thread_obj;
           })
           ->save();
@@ -194,11 +200,7 @@ namespace fhatos {
           ->inst_args(rec({{"fiber", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p fiber = args->arg("fiber");
-            const Lst_p bundle = Scheduler::singleton()->rec_get("bundle")->or_else(lst());
-            bundle->lst_value()->push_back(Obj::to_uri(*fiber->vid));
-            Scheduler::singleton()->rec_value()->insert_or_assign(vri("bundle"), bundle);
-            Scheduler::singleton()->save("bundle");
-            LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !yfiber!! bundled\n", fiber->vid->toString()));
+            Scheduler::singleton()->bundle_fiber(fiber);
             return fiber;
           })
           ->save();
