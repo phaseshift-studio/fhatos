@@ -33,7 +33,7 @@ namespace fhatos {
          ->int_value();
    }*/
 
-  static void THREAD_FUNCTIONXX(void *vptr_thread) {
+  static void THREAD_FUNCTION(void *vptr_thread) {
     const auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
       LOG_WRITE(ERROR,Obj::to_noobj().get(), L("unable to acquire thread state"));
@@ -72,7 +72,7 @@ namespace fhatos {
           jnt(FOS_ESP_THREAD_STACK_SIZE) // use default environmental variable
           ->int_value();
     }
-    const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTIONXX, // Function that should be called
+    const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                                             this->thread_obj_->vid->toString().c_str(),
                                                             // Name of the task (for debugging)
                                                             stack_size, // Stack size (bytes)

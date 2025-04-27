@@ -36,8 +36,6 @@ namespace fhatos {
 
   class Router final : public Rec {
   protected:
-    bool active = true;
-    bool stale = false;
     const ptr<MutexDeque<Structure_p>> structures_;
 
   public:
@@ -64,10 +62,6 @@ namespace fhatos {
     [[nodiscard]] Objs_p read(const fURI &furi);
 
     void write(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
-
-    /* void unsubscribe(const ID &subscriber, const fURI &pattern = "#");
-
-     void subscribe(const Subscription_p &subscription);*/
 
     static void push_frame(const Pattern &pattern, const Rec_p &frame_data);
 

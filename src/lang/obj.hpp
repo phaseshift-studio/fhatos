@@ -592,7 +592,7 @@ namespace fhatos {
       return this->vid ? this->vid : this->tid;
     }
 
-    static Obj_p load(const ID &vid) {
+    /*static Obj_p load(const ID &vid) {
       return ROUTER_READ(vid);
     }
 
@@ -616,17 +616,17 @@ namespace fhatos {
           const_cast<Obj *>(this)->tid = fresh->tid;
         }
       }
-    }
+    }*/
 
     virtual void save() const {
       this->at(this->vid);
     }
 
-    virtual void save(const fURI &subset) const {
+    /*virtual void save(const fURI &subset) const {
       ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
-    }
+    }*/
 
-    virtual void load() {
+    /*virtual void load() {
       if(this->vid) {
         const Obj_p other = ROUTER_READ(*this->vid);
         if(this->otype != other->otype || !this->tid->equals(*other->tid))
@@ -634,9 +634,9 @@ namespace fhatos {
                        other->tid->toString().c_str());
         this->value_ = other->value_;
       }
-    }
+    }*/
 
-    virtual Obj_p load() const {
+    /*virtual Obj_p load() const {
       if(this->vid) {
         const Obj_p other = ROUTER_READ(*this->vid);
         if(this->otype != other->otype || !this->tid->equals(*other->tid))
@@ -645,7 +645,7 @@ namespace fhatos {
         return other;
       }
       return this->shared_from_this();
-    }
+    }*/
 
     template<typename VALUE>
     [[nodiscard]] VALUE value() const {
@@ -968,8 +968,12 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p obj_get(const fURI &key) const {
       const Obj_p value = this->vid ? ROUTER_READ(this->vid->extend(key)) : nullptr;
-      if(value && this->is_rec())
-        this->rec_set(Obj::to_uri(key), value);
+      if(value && this->is_rec()) {
+        if(value->is_noobj())
+          this->rec_drop(Obj::to_uri(key));
+        else
+          this->rec_set(Obj::to_uri(key), value);
+      }
       return value ? value : Obj::to_noobj();
     }
 

@@ -127,7 +127,6 @@ namespace fhatos {
     for(const auto &[name, count]: *map) {
       LOG_WRITE(INFO, this, L("!b{} !y{}!!(s) closing\n", to_string(count), name));
     }
-    this->active = false;
     while(!this->structures_->empty()) {
       this->structures_->pop_back().value()->stop();
     }
@@ -182,8 +181,6 @@ namespace fhatos {
   // }
 
   [[nodiscard]] Objs_p Router::read(const fURI &furi) {
-    if(!this->active)
-      return Obj::to_noobj();
     try {
       if(THREAD_FRAME_STACK) {
         if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
@@ -208,10 +205,8 @@ namespace fhatos {
   }*/
 
   void Router::write(const fURI &furi, const Obj_p &obj, const bool retain) {
-    if(!this->active)
-      return;
     if(obj->is_noobj() && furi.is_node() && this->vid->matches(furi))
-      this->active = false;
+      this->stop();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,8 +219,6 @@ namespace fhatos {
     } catch(const fError &e) {
       LOG_WRITE(ERROR, this, L("{}", e.what()));
     }
-    if(!this->active)
-      this->stop();
     /*if(furi->matches(this->vid->extend("#")))
       this->stale = true;*/
   }
@@ -314,8 +307,6 @@ namespace fhatos {
   }
 
   [[nodiscard]] fURI Router::resolve(const fURI &furi) const {
-    if(!this->active)
-      return furi;
     if(furi.empty() || (!furi.headless() && !furi.has_components()))
       return furi;
     if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
@@ -331,7 +322,7 @@ namespace fhatos {
     for(const auto &c: components) {
       List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->or_else(lst())->lst_value();
       if(prefixes->empty())
-        LOG_WRITE(WARN, this, L("router has no auto-prefix configuration: {}\n", this->rec_get("config")->toString()));
+       LOG_WRITE(WARN, this, L("!bauto-prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {

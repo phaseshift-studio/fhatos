@@ -1,12 +1,14 @@
 === standard boot config obj ===
-/boot/config -> [router=>[
- resolve=>[
-  namespace=>[:=>/mmadt/,fos:=>/fos/],
-  auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
-  query=>[write=>[lock=>to_do]],
-  default_config=>[query=>[write=>[sub=>noobj]]]]],
+/boot/config -> [
+ router=>[
+  resolve=>[
+   namespace=>[:=>/mmadt/,fos:=>/fos/],
+   auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
+   query=>[write=>[lock=>to_do]],
+   default_config=>[query=>[write=>[sub=>noobj]]]]],
  scheduler=>[
   def_stack_size=>16192],
+ log=>[INFO=>[#],ERROR=>[#],WARN=>[#],TRACE=>[],DEBUG=>[]],
  parser=>[
   stack_size=>32384
  ],
@@ -31,7 +33,7 @@
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,
-  stack_size=>16192,
+  stack_size=>32384,
   stack_trace=>true
  ],
  fs=>[root=><./data/fs>]

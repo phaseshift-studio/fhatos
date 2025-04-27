@@ -16,7 +16,10 @@ namespace fhatos {
   const static ID_p BUTTON_FURI = id_p("/fos/ui/button");
 
   class Button final : public Model<Button> {
-  public:
+  protected:
+    Mutex mutex = Mutex();
+
+    public:
     int state = 0;
 
     explicit Button() {
@@ -36,7 +39,6 @@ namespace fhatos {
             const ptr<Button> button_state = Button::get_state(button);
             const Int_p pin = button->rec_get("pin");
             const int reading = pin->inst_apply("read")->or_else(jnt(-1))->int_value();
-            //LOG_WRITE(INFO, button.get(),L("button value {}\n", reading->toString()));
             if(reading != -1 && (button_state->state != reading)) {
               LOG_WRITE(INFO, button.get(),L("button {} pushed\n", pin->toString()));
               mmADT::delift(button->rec_get("on_push"))->apply(button);

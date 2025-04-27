@@ -47,7 +47,7 @@ namespace fhatos {
       printer<>()->printf("!g[INFO]  [!m%s!g] switching from !yboot logger!! to !ysystem logger!!\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
-        PRIMARY_LOGGING(log_type,source, message);
+        PRIMARY_LOGGING(log_type, source, message);
         /*MemoryHelper::use_custom_stack(InstBuilder::build("log_helper")->inst_f(
                                            [log_type, &message](const Obj_p &obj, const InstArgs &) {
 
@@ -78,7 +78,7 @@ namespace fhatos {
       }
       if(!match)
         return;
-      //std::lock_guard lock(stdout_mutex);
+      auto lock = lock_guard<Mutex>(Log::singleton()->log_mutex);
       if(type == NONE)
         printer()->print("");
       else if(type == INFO)
@@ -91,23 +91,20 @@ namespace fhatos {
         printer()->print("!y[DEBUG]!! ");
       else if(type == TRACE)
         printer()->print("!r[TRACE]!! ");
-      if(source_is_null || (source->vid && source->vid->has_path("sys")))
-        printer()->print(
-            fmt::format(SYS_ID_WRAP, source_is_null ? "<none>" : source->vid_or_tid()->toString()).c_str());
+      if(source->vid && source->vid->has_path("sys"))
+        printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString()).c_str());
       else
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString()).c_str());
       printer()->print(message().c_str());
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
-      const static auto log = std::make_shared<Log>(id, config->is_noobj()
-                                                          ? rec({
-                                                              {"INFO", lst({vri("#")})},
-                                                              {"ERROR", lst({vri("#")})},
-                                                              {"DEBUG", lst()},
-                                                              {"WARN", lst()},
-                                                              {"TRACE", lst()}})
-                                                          : config);
+      const static auto log = std::make_shared<Log>(id, config->or_else(rec({
+                                                        {"INFO", lst({vri("#")})},
+                                                        {"ERROR", lst({vri("#")})},
+                                                        {"DEBUG", lst()},
+                                                        {"WARN", lst()},
+                                                        {"TRACE", lst()}})));
       return log;
     }
 
@@ -127,6 +124,13 @@ namespace fhatos {
   public:
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
+      TYPE_SAVER(LOG_FURI->extend("level"),
+                 __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI).is(__().or_(
+                     __().eq(vri("INFO")),
+                     __().eq(vri("ERROR")),
+                     __().eq(vri("DEBUG")),
+                     __().eq(vri("WARN")),
+                     __().eq(vri("TRACE")))));
       TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", rec({
                                               {"INFO", Obj::to_type(LST_FURI)},
                                               {"ERROR", Obj::to_type(LST_FURI)},
@@ -136,15 +140,12 @@ namespace fhatos {
       ////////////////////////// INSTS ////////////////////////////////
       InstBuilder::build(LOG_FURI->add_component("log"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({{"level", __().is(__().or_(__().eq(vri("INFO")),
-                                                      __().eq(vri("ERROR")),
-                                                      __().eq(vri("DEBUG")),
-                                                      __().eq(vri("WARN")),
-                                                      __().eq(vri("TRACE"))))},
-                           {"message?str", Obj::to_bcode()}}))
+          ->inst_args(rec({
+              {vri(ID("level").query(LOG_FURI->extend("level").toString().c_str())), __().else_(vri("INFO"))},
+              {vri("message?str"), Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &source, const InstArgs &args) {
             const LOG_TYPE log_level = LOG_TYPES.to_enum(args->get<fURI>("level").toString());
-            auto message = args->arg("message")->str_value();
+            const auto message = args->arg("message")->str_value();
             Log::PRIMARY_LOGGING(log_level, source.get(),L("{}\n", message));
             return source;
           })->save();

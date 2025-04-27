@@ -71,7 +71,8 @@ namespace fhatos {
 
     static void yield_current_thread() {
 #ifdef ESP_PLATFORM
-      vTaskDelay(1);
+      //vTaskDelay(1 / portTICK_PERIOD_MS);
+      taskYIELD();
 #else
       std::this_thread::yield();
 #endif
@@ -79,46 +80,50 @@ namespace fhatos {
 
     void halt();
 
-    explicit Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
-                      try {
-                        thread_obj->obj_set("halt", dool(false));
-                        LOG_WRITE(INFO, thread_obj.get(),
-                                  L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                                    thread_obj->obj_get("loop")->toString(),
-                                    thread_obj->obj_get("config/stack_size")->toString()));
-                        const ptr<Thread> current = Thread::get_state(*thread_obj->vid);
-                        while(!thread_obj->obj_get("halt")->or_else(dool(false))->bool_value()) {
-                          FEED_WATCHDOG();
-                          try {
-                            this_thread.store(current.get());
-                            mmADT::delift(thread_obj->obj_get("loop"))->apply(thread_obj);
-                            if(const int delay = thread_obj->get<int>("delay"); delay > 0) {
-                              Thread::delay_current_thread(delay);
-                              thread_obj->obj_set("delay", jnt(0, NAT_FURI));
-                              thread_obj->save("delay");
-                            }
-                          } catch(const fError &e) {
-                            LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
-                          }
-                          // thread_obj->sync();
-                          current->yield();
-                        }
-                        try {
-                          if(current)
-                            current->halt();
-                          MODEL_STATES::singleton()->remove(*thread_obj->vid);
+    explicit Thread(
+        const Obj_p &thread_obj,
+        const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
+          try {
+            thread_obj->obj_set("halt", dool(false));
+            LOG_WRITE(INFO, thread_obj.get(),
+                      L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                        thread_obj->obj_get("loop")->toString(),
+                        thread_obj->obj_get("config/stack_size")->toString()));
+            const ptr<Thread> current = Thread::get_state(*thread_obj->vid);
+            const Inst_p thread_loop_inst = thread_obj->is_rec() && thread_obj->has("loop")
+                                              ? thread_obj->rec_get("loop")
+                                              : Compiler(false, false).resolve_inst(
+                                                  thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+            while(!thread_obj->obj_get("halt")->or_else(dool(false))->bool_value()) {
+              FEED_WATCHDOG();
+              try {
+                //this_thread.store(current.get());
+                mmADT::delift(thread_loop_inst)->apply(thread_obj);
+                if(const int delay = thread_obj->obj_get("delay")->or_else(jnt(0))->int_value(); delay > 0) {
+                  Thread::delay_current_thread(delay);
+                  thread_obj->obj_set("delay", jnt(0, NAT_FURI));
+                }
+              } catch(const fError &e) {
+                LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
+              }
+              Thread::yield_current_thread();
+            }
+            try {
+              if(current)
+                current->halt();
+              MODEL_STATES::singleton()->remove(*thread_obj->vid);
 
-                        } catch(const fError &e) {
-                          MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                          throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
-                                               e.what());
-                        }
-                        LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
-                      } catch(const fError &e) {
-                        MODEL_STATES::singleton()->remove(*thread_obj->vid);
-                        throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
-                      }
-                    });
+            } catch(const fError &e) {
+              MODEL_STATES::singleton()->remove(*thread_obj->vid);
+              throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
+                                   e.what());
+            }
+            LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
+          } catch(const fError &e) {
+            MODEL_STATES::singleton()->remove(*thread_obj->vid);
+            throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
+          }
+        });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) {
       return make_shared<Thread>(thread_obj);

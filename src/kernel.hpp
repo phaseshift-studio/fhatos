@@ -29,6 +29,11 @@
 #include "util/print_helper.hpp"
 #include "boot_config_loader.hpp"
 #include "model/fos/sys/memory/memory.hpp"
+#ifdef ESP_PLATFORM
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <esp_freertos_hooks.h>
+#endif
 
 namespace fhatos {
   class Kernel {
@@ -222,21 +227,30 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static bool main_loop() {
+
+      return true;
+    }
+
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
-      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler barrier start: <!y{}!m>!!\n", "main"));
-      while(!ROUTER_READ(Scheduler::singleton()->vid->extend("halt"))->or_else(dool(false))->bool_value()) {
+      LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop start!!\n", "main"));
+      while(!Scheduler::singleton()->rec_get("halt")->or_else(dool(false))->bool_value()) {
         Scheduler::singleton()->loop();
+        Router::singleton()->loop();
+        FEED_WATCHDOG();
+        Thread::delay_current_thread(750);
       }
-      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler barrier end: <!g{}!m>!!\n", "main"));
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!g{}!m>-loop end!!\n", "main"));
       Scheduler::singleton()->stop();
-      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
+      printer()->printf("\n" FOS_TAB_8 "%s\n\n", Ansi<>::silly_print("Fare thee well FhatOS...").c_str());
 #ifdef ESP_PLATFORM
       esp_restart();
 #else
       exit(EXIT_SUCCESS);
-#endif
+#endif*/
     }
   };
 } // namespace fhatos

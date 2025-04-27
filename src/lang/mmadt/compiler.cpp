@@ -130,8 +130,11 @@ namespace fhatos {
     Obj_p inst_obj = inst;
     if(inst_obj->is_inst_stub()) {
       // rec field
-      if(!inst->is_noobj() && lhs->is_rec() && lhs->rec_get(*inst->tid)->is_code()) {
+      if(lhs->is_rec() && lhs->rec_get(*inst->tid)->is_code()) {
         inst_obj = convert_to_inst(lhs, inst, lhs->rec_get(*inst->tid));
+      }
+      if(inst_obj->is_inst_stub() && inst->vid && lhs->is_rec() && lhs->rec_get(*inst->vid)->is_code()) {
+        inst_obj = convert_to_inst(lhs, inst, lhs->rec_get(*inst->vid));
       }
       // inst_vid
       if(inst_obj->is_inst_stub() && inst_obj->vid)
@@ -220,16 +223,16 @@ namespace fhatos {
   }
 
   bool is_else(const Obj_p &obj) {
-    return obj->is_not_empty_bcode() && obj->bcode_value()->front()->inst_op() == "else" ||
-           obj->is_inst() && obj->inst_op() == "else";
+    return (obj->is_not_empty_bcode() && obj->bcode_value()->front()->inst_op() == "else") ||
+           (obj->is_inst() && obj->inst_op() == "else");
   }
 
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
     const auto inst_provided_args = provided_inst->inst_args();
     if(resolved_inst->is_inst()) {
-      LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
+     /* LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
                                     resolved_inst->toString().c_str(),
-                                    provided_inst->toString().c_str())          );
+                                    provided_inst->toString().c_str())          );*/
       Obj_p merged_args = Obj::to_inst_args();
       const auto inst_resolved_args = resolved_inst->inst_args();
       if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
@@ -258,16 +261,16 @@ namespace fhatos {
                           ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
                       : rv->apply(is_else(rv)
-                                    ? Obj::to_noobj() // TODO: use pre-computed inst domain coefficent
+                                    ? Obj::to_noobj()  // TODO: use pre-computed inst domain coefficent
                                     : lhs)); // default arg
           r_counter++;
         }
       }
-      LOG(TRACE, "**** %s ****\ninst_resolved args: %s\ninst_provided args: %s\ninst_merged args: %s\n",
+      /*LOG(TRACE, "**** %s ****\ninst_resolved args: %s\ninst_provided args: %s\ninst_merged args: %s\n",
           inst_resolved_args->vid_or_tid()->toString().c_str(),
           inst_resolved_args->toString().c_str(),
           inst_provided_args->toString().c_str(),
-          merged_args->toString().c_str());
+          merged_args->toString().c_str());*/
       return Obj::to_inst(
           resolved_inst->inst_op(),
           merged_args,

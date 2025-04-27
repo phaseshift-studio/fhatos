@@ -81,6 +81,7 @@ namespace fhatos {
       while(c != until) {
         while(/*!ROUTER_READ(SCHEDULER_ID->extend("halt"))->or_else(dool(false))->bool_value() &&*/ // TODO: create a global shutdown flag at /sys/halt
               -1 == (c = printer<>()->read())) {
+          FEED_WATCHDOG();
           Thread::yield_current_thread();
         }
         line += static_cast<char>(c);

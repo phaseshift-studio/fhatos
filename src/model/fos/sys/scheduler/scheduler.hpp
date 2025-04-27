@@ -32,8 +32,8 @@ namespace fhatos {
   //static ID_p SCHEDULER_FURI = id_p("/sys/scheduler_t");
 
   class Scheduler final : public Rec {
+
   protected:
-    bool running_ = true;
     Mutex mutex = Mutex();
 
   public:
@@ -76,16 +76,14 @@ namespace fhatos {
         //do nothing (waiting for threads to close)
       }
       Router::singleton()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
-      this->running_ = false;
       LOG_WRITE(INFO, this, L("!yscheduler !b{}!! stopped\n", this->vid->toString()));
     }
 
     void loop() {
       try {
+        auto lock = std::lock_guard<Mutex>(mutex);
         this->handle_bundle();
-        this->handle_threads();
-        Router::singleton()->loop();
-        //Thread::yield_current_thread();
+       // this->handle_threads();
       } catch(const fError &e) {
         LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
       }
@@ -96,8 +94,7 @@ namespace fhatos {
     }
 
     void handle_threads() {
-      auto lock = std::lock_guard<Mutex>(mutex);
-      const Lst_p thread_uris = this->obj_get("thread")->or_else(lst());
+      const Lst_p thread_uris = this->obj_get("thread")->clone()->or_else(lst());
       if(thread_uris->lst_value()->empty())
         return;
       const size_t count = thread_uris->lst_value()->size();
@@ -126,7 +123,7 @@ namespace fhatos {
       thread_obj->obj_set("halt", dool(false));
       // MODEL_STATES::singleton()->store(*thread_obj->vid, Thread::create_state(thread_obj));
       const ptr<Thread> thread_state = Thread::get_state(thread_obj);
-      const Lst_p thread_uris = Scheduler::singleton()->obj_get("thread")->or_else(lst());
+      const Lst_p thread_uris = Scheduler::singleton()->obj_get("thread")->clone()->or_else(lst());
       thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
       Scheduler::singleton()->obj_set("thread", thread_uris);
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
@@ -134,15 +131,14 @@ namespace fhatos {
 
     void bundle_fiber(const Obj_p &fiber_obj) {
       auto lock = std::lock_guard<Mutex>(mutex);
-      const Lst_p fiber_uris = Scheduler::singleton()->obj_get("bundle")->or_else(lst());
+      const Lst_p fiber_uris = Scheduler::singleton()->obj_get("bundle")->clone()->or_else(lst());
       fiber_uris->lst_value()->push_back(Obj::to_uri(*fiber_obj->vid));
       Scheduler::singleton()->obj_set("bundle", fiber_uris);
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
     }
 
     void handle_bundle() {
-      auto lock = std::lock_guard<Mutex>(mutex);
-      const Lst_p bundle_uris = this->obj_get("bundle")->or_else(lst());
+      const Lst_p bundle_uris = this->obj_get("bundle")->clone()->or_else(lst());
       if(bundle_uris->lst_value()->empty())
         return;
       const size_t count = bundle_uris->lst_value()->size();
@@ -162,10 +158,10 @@ namespace fhatos {
                   return true;
                 }
                 try {
-                 // const Inst_p loop_inst = Compiler(true, true).resolve_inst(fiber, fiber->obj_get("loop"));
-                  //LOG_WRITE(INFO,fiber.get(),L("here: {}\n",loop_inst->toString()));
-                  // ROUTER_WRITE(fiber->vid->extend("loop/config/stack_size"), jnt(8096), true);
-                  mmADT::delift(fiber->obj_get("loop"))->apply(fiber);
+                  const Inst_p fiber_loop_inst =
+                      Compiler(true, true).resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+                  // LOG_WRITE(INFO, this,L("{}\n", fiber_loop_inst->toString()));
+                  mmADT::delift(fiber_loop_inst)->apply(fiber);
                   return false;
                 } catch(const fError &e) {
                   LOG_WRITE(ERROR, this,
@@ -178,10 +174,6 @@ namespace fhatos {
     }
 
     static void *import() {
-      /* Typer::singleton()->save_type(*SCHEDULER_FURI,
-                                     Obj::to_rec({
-                                         {"thread", Obj::to_lst()},
-                                         {"bundle", Obj::to_lst()}}));*/
       if(const Rec_p config = ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID);
         !config->is_noobj())
         Scheduler::singleton()->rec_set("config", config->rec_get("scheduler")->or_else(noobj()));

@@ -188,7 +188,7 @@ namespace mmadt {
 
       if(ret.ret) {
         LOG_WRITE(DEBUG, this, L("!gsuccessful!! parse of {} !g==>!!\n\t{}\n", str(source)->toString(),
-                result->toString()));
+                                 result->toString())            );
         if(result->is_empty_bcode() && strcmp(source, "_") != 0)
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
         return std::move(result->is_bcode() && result->bcode_value()->size() == 1
@@ -215,23 +215,15 @@ namespace mmadt {
           id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
-        // TODO: modulate stack size based on string length
-        if(const Int_p stack_size = ROUTER_READ(Parser::singleton()->vid->extend("config/stack_size"));
-          stack_size->is_noobj()) {
-          return Parser::singleton()->parse(obj_string.c_str());
-        } else {
-          const int int_stack_size = stack_size->is_code()
-                                       ? stack_size->apply(str(obj_string))->int_value()
-                                       : stack_size->int_value();
-          try {
-            return MemoryHelper::use_custom_stack(InstBuilder::build("parse_helper")->inst_f(
-                                                      [](const Str_p &source, const InstArgs &) {
-                                                        return Parser::singleton()->parse(source->str_value().c_str());
-                                                      })->create(), Obj::to_str(obj_string), int_stack_size);
-          } catch(const fError &e) {
-            throw;
-          }
-        }
+        //StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
+        const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(0));
+        const int int_stack_size = stack_size->is_code()
+                                     ? stack_size->apply(str(obj_string))->int_value()
+                                     : stack_size->int_value();
+        return MemoryHelper::use_custom_stack(InstBuilder::build("custom_parse_stack")->inst_f(
+                                                  [](const Str_p &source, const InstArgs &) {
+                                                    return Parser::singleton()->parse(source->str_value().c_str());
+                                                  })->create(), Obj::to_str(obj_string), int_stack_size);
       };
     }
 
