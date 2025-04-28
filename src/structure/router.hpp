@@ -45,7 +45,7 @@ namespace fhatos {
 
     void load_config(const ID &config_id);
 
-    static ptr<Router>& singleton(const ID &value_id = "/sys/router/");
+    static ptr<Router> &singleton(const ID &value_id = "/sys/router/");
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
 

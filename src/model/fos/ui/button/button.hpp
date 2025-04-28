@@ -19,7 +19,7 @@ namespace fhatos {
   protected:
     Mutex mutex = Mutex();
 
-    public:
+  public:
     int state = 0;
 
     explicit Button() {

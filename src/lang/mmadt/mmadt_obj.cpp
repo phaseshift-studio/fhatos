@@ -910,15 +910,15 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "append")
-      ->inst_args(rec({
-          {"obj", Obj::to_bcode()}}))
-      ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
-      ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-        const Obj_p obj = args->arg("obj");
-        ROUTER_APPEND(lhs->uri_value(), obj);
-        return obj;
-      })
-      ->save();
+        ->inst_args(rec({
+            {"obj", Obj::to_bcode()}}))
+        ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
+        ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+          const Obj_p obj = args->arg("obj");
+          ROUTER_APPEND(lhs->uri_value(), obj);
+          return obj;
+        })
+        ->save();
 
     InstBuilder::build(MMADT_PREFIX "type")
         ->domain_range(OBJ_FURI, {0, 1}, URI_FURI, {1, 1})
@@ -941,7 +941,7 @@ namespace mmadt {
           for(size_t i = 0; i < xstr.length(); i++) {
             chars->push_back(str(xstr.substr(i, 1)));
           }
-          const BCode_p code = args->arg(0);//->bcode_starts(Obj::to_objs(chars));
+          const BCode_p code = args->arg(0); //->bcode_starts(Obj::to_objs(chars));
           const Objs_p strs = code->apply(Obj::to_objs(chars));
           string ret;
           for(const Str_p &s: *strs->objs_value()) {

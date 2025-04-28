@@ -27,7 +27,7 @@ namespace fhatos {
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
 
 
-  ptr<Router>& Router::singleton(const ID &value_id) {
+  ptr<Router> &Router::singleton(const ID &value_id) {
     static auto router_p = std::make_shared<Router>(value_id);
     return router_p;
   }
@@ -229,8 +229,8 @@ namespace fhatos {
     try {
       const Structure_p structure = this->get_structure(furi, obj);
       //LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-       //                        "obj", retain ? "retained" : "transient",
-        //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
+      //                        "obj", retain ? "retained" : "transient",
+      //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_WRITE(ERROR, this, L("{}", e.what()));
@@ -338,7 +338,7 @@ namespace fhatos {
     const List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->clone()->or_else(lst())->lst_value();
     for(const auto &c: components) {
       if(prefixes->empty())
-       LOG_WRITE(WARN, this, L("!bauto-prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
+        LOG_WRITE(WARN, this, L("!bauto-prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {

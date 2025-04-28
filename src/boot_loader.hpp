@@ -163,29 +163,29 @@ namespace fhatos {
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-             /* ->mount(Structure::add_qproc(DSM::create("/shared/#", id_p("/mnt/dsm"),
-                                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
-                                                       or_else(
-                                                           Obj::to_rec({
-                                                               {"async", dool(true)},
-                                                               {"broker",
-                                                                vri(args_parser->option_string(
-                                                                    "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                                               {"client",
-                                                                vri(args_parser->option_string(
-                                                                    "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
-                                           QSubMqtt::create(Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
-                                                            or_else(
-                                                                Obj::to_rec({
-                                                                    {"async", dool(true)},
-                                                                    {"broker",
-                                                                     vri(args_parser->option_string(
-                                                                         "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                                                                    {"client",
-                                                                     vri(args_parser->option_string(
-                                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
-                                                            id_p("/mnt/dsm/"))))*/
-              ->drop_config("mqtt")
+            /* ->mount(Structure::add_qproc(DSM::create("/shared/#", id_p("/mnt/dsm"),
+                                                      Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
+                                                      or_else(
+                                                          Obj::to_rec({
+                                                              {"async", dool(true)},
+                                                              {"broker",
+                                                               vri(args_parser->option_string(
+                                                                   "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                              {"client",
+                                                               vri(args_parser->option_string(
+                                                                   "--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
+                                          QSubMqtt::create(Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
+                                                           or_else(
+                                                               Obj::to_rec({
+                                                                   {"async", dool(true)},
+                                                                   {"broker",
+                                                                    vri(args_parser->option_string(
+                                                                        "--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                                                                   {"client",
+                                                                    vri(args_parser->option_string(
+                                                                        "--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
+                                                           id_p("/mnt/dsm/"))))*/
+            ->drop_config("mqtt")
             //->mount(
             //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
             ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))

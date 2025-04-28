@@ -49,8 +49,10 @@ namespace fhatos {
     Rec_p q_procs_;
     std::atomic_bool available_ = std::atomic_bool(false);
     Mutex mutex = Mutex();
+
     //////////////////////////////////
     void write_internal(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
+
     Obj_p read_internal(const fURI &furi);
 
   public:
@@ -209,7 +211,7 @@ namespace fhatos {
 
     virtual void write(const ID &source, const fURI &target, const Obj_p &obj);
 
-    virtual void write(const fURI &furi, const Obj_p &obj, const bool retain = RETAIN) ;
+    virtual void write(const fURI &furi, const Obj_p &obj, const bool retain = RETAIN);
 
     virtual void append(const fURI &furi, const Obj_p &obj);
 

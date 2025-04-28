@@ -230,9 +230,9 @@ namespace fhatos {
   Inst_p Compiler::merge_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Inst_p &resolved_inst) const {
     const auto inst_provided_args = provided_inst->inst_args();
     if(resolved_inst->is_inst()) {
-     /* LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
-                                    resolved_inst->toString().c_str(),
-                                    provided_inst->toString().c_str())          );*/
+      /* LOG_WRITE(TRACE, lhs.get(), L("merging resolved inst into provide inst\n\t\t{} => {}\n",
+                                     resolved_inst->toString().c_str(),
+                                     provided_inst->toString().c_str())          );*/
       Obj_p merged_args = Obj::to_inst_args();
       const auto inst_resolved_args = resolved_inst->inst_args();
       if(!inst_resolved_args->is_indexed_args() && !inst_provided_args->is_indexed_args()) {
@@ -261,7 +261,7 @@ namespace fhatos {
                           ? inst_provided_args->arg(r_counter)
                           : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
                       : rv->apply(is_else(rv)
-                                    ? Obj::to_noobj()  // TODO: use pre-computed inst domain coefficent
+                                    ? Obj::to_noobj() // TODO: use pre-computed inst domain coefficent
                                     : lhs)); // default arg
           r_counter++;
         }

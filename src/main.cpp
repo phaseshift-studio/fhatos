@@ -42,7 +42,7 @@ void loop() {
 #ifdef NATIVE
 int main(const int argc, char **argv) {
   args_parser->init(argc, argv);
-  if (args_parser->option_string("--help", "NO_HELP") != "NO_HELP") {
+  if(args_parser->option_string("--help", "NO_HELP") != "NO_HELP") {
     const auto ansi = new Ansi();
     ansi->printf("%s: A Distributed Operating System\n", ansi->silly_print("FhatOS", true, true).c_str());
     ansi->printf(HELP, "help", "!rnoobj!!");
