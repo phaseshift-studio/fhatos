@@ -88,7 +88,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       .oO loading system objs Oo.
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/mem] main [total=>10736,free=>4848,used=>54.84352]
+[INFO]  [/sys/mem] main [total=>10736,free=>4976,used=>53.65127]
 [INFO]  [/sys/router] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
@@ -130,7 +130,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router] fs boot config dropped
 [INFO]  [/sys/router] mqtt boot config dropped
 [INFO]  [/sys/router] console boot config dropped
-[INFO]  [/sys/mem] main [total=>85684,free=>78260,used=>8.66439]
+[INFO]  [/sys/mem] main [total=>85684,free=>78388,used=>8.51501]
 
 ----
 
@@ -440,7 +440,6 @@ An `inst` written in C++.
 [source,mmadt]
 ----
 fhatos> *int::lt
- hread spawned: loop?obj{?}<=console()[cpp] [stack size:16192]
 ==>lt?bool<=int(arg?int=>_)[cpp]
 ----
 
@@ -478,10 +477,6 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 ----
 fhatos> # -> noobj
 [INFO]  [/sys/router] 7 heap(s) closing
-[ERROR] [/mnt/mmadt] unable to read /mmadt/ext/nat/::/mmadt
-[ERROR] [/mnt/mmadt] unable to read /mmadt/ext/nat
-[ERROR] [/mnt/mmadt] unable to read /mmadt/ext
-[ERROR] [/mnt/mmadt] unable to read /mmadt
 ----
 
 ++++
@@ -1284,6 +1279,7 @@ int(a=>2)[*a]
 ----
 fhatos> int(a=>2)[*a]
 ==>2
+ =>2
 fhatos> 4 + int(a=>2)[*a]
 ==>6
 fhatos> 4 + int(a=>2)[+*a]
@@ -1398,7 +1394,7 @@ a -> 12
 [source,mmadt]
 ----
 fhatos> a -> 12
-[INFO]  [/io/console] ==>12
+==>12
 fhatos> *a.plus(10)
 ==>22
 fhatos> *a
@@ -1874,7 +1870,7 @@ The router supports a chain `fos:frame` structures and, in this way, `fos:frame`
 [source,mmadt]
 ----
 fhatos> 34.make_bigger(a=>plus(10))[plus(*a)]
-[INFO]  [/io/console] ==>88
+==>88
 ----
 
 ++++
