@@ -83,7 +83,7 @@ namespace fhatos {
       try {
         auto lock = std::lock_guard<Mutex>(mutex);
         this->handle_bundle();
-        this->handle_threads();
+        //this->handle_threads();
       } catch(const fError &e) {
         LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
       }
@@ -93,7 +93,7 @@ namespace fhatos {
       // check memory and if low, warn logging.
     }
 
-    void handle_threads() {
+    /*void handle_threads() {
       const Lst_p thread_uris = this->obj_get("thread")->clone()->or_else(lst());
       if(thread_uris->lst_value()->empty())
         return;
@@ -117,16 +117,42 @@ namespace fhatos {
                            }), thread_uris->lst_value()->end());
       if(thread_uris->lst_value()->size() != count)
         this->obj_set("thread", thread_uris);
-    }
+    }*/
 
     void spawn_thread(const Obj_p &thread_obj) {
       auto lock = std::lock_guard<Mutex>(mutex);
+      if(!thread_obj->vid)
+        throw fError("!ythread obj !rmust have!y a vid!!: %s", thread_obj->toString().c_str());
       thread_obj->obj_set("halt", dool(false));
-      // MODEL_STATES::singleton()->store(*thread_obj->vid, Thread::create_state(thread_obj));
-      const ptr<Thread> thread_state = Thread::get_state(thread_obj);
       const Lst_p thread_uris = Scheduler::singleton()->obj_get("thread")->clone()->or_else(lst());
+      /*for(const auto &id: *thread_uris->lst_value()) {
+        if(thread_obj->vid->equals(id->uri_value()))
+          throw fError("!g[!b%s!g] !ralready spawned!!: %s", thread_obj->vid->toString().c_str(),
+                       thread_obj->toString().c_str());
+      }*/
       thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
       Scheduler::singleton()->obj_set("thread", thread_uris);
+      ROUTER_WRITE(thread_obj->vid->extend("halt").query("sub"), Subscription::create(
+                       Scheduler::singleton()->vid, p_p(thread_obj->vid->extend("halt")),
+                       [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
+                         if(obj->is_bool() && obj->bool_value()) {
+                           //LOG_WRITE(INFO,Scheduler::singleton().get(),L("HERE: {} {} -> {}\n", obj->toString(), Scheduler::singleton()->rec_get("thread")->toString(), args->arg("target")->toString()));
+                           const Lst_p new_thread_ids = Obj::to_lst();
+                           for(const Uri_p &thread_id:
+                               *Scheduler::singleton()->obj_get("thread")->or_else(lst())->lst_value()) {
+                             if(!thread_id->uri_value().matches(args->arg("target")->uri_value().retract())) {
+                               new_thread_ids->lst_add(thread_id);
+                             } else {
+                               ROUTER_WRITE(args->arg("target")->uri_value().query("sub"), Obj::to_noobj(), true);
+                               LOG_WRITE(INFO, Scheduler::singleton().get(),
+                                         L("!ythread !b{}!! unscheduled\n", thread_id->toString()));
+                             }
+                           }
+                           Scheduler::singleton()->obj_set("thread", new_thread_ids);
+                         }
+                         return Obj::to_noobj();
+                       }), true);
+      const ptr<Thread> thread_state = Thread::get_state(thread_obj);
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
     }
 
@@ -185,20 +211,6 @@ namespace fhatos {
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Obj_p thread_obj = args->arg("thread");
             Scheduler::singleton()->spawn_thread(thread_obj);
-            ROUTER_WRITE(thread_obj->vid->extend("halt").query("sub"), Subscription::create(
-                             Scheduler::singleton()->vid, p_p(thread_obj->vid->extend("halt")),
-                             [](const Obj_p &obj, const InstArgs &args) {
-                               if(obj->is_bool() && obj->bool_value()) {
-                                 const Lst_p new_thread_ids = Obj::to_lst();
-                                 for(const Uri_p &thread_id:
-                                     *Scheduler::singleton()->obj_get("thread")->or_else(lst())->lst_value()) {
-                                   if(!thread_id->equals(*args->arg("target")))
-                                     new_thread_ids->lst_add(thread_id);
-                                 }
-                                 Scheduler::singleton()->obj_set("thread", new_thread_ids);
-                               }
-                               return Obj::to_noobj();
-                             }), true);
             return thread_obj;
           })
           ->save();

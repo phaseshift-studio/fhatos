@@ -978,10 +978,10 @@ namespace fhatos {
     }
 
     void obj_set(const fURI &key, const Obj_p &value) const {
-      if(this->is_rec())
-        this->rec_set(Obj::to_uri(key), value);
       if(this->vid)
         ROUTER_WRITE(this->vid->extend(key), value, true);
+      if(this->is_rec())
+        this->rec_set(Obj::to_uri(key), value);
     }
 
     template<typename T>
