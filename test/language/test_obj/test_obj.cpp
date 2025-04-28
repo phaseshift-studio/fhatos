@@ -22,6 +22,7 @@
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_MMADT_EXT_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY /obj/#
 
@@ -69,62 +70,50 @@ namespace fhatos {
   }
 
 
-  /*void test_int() {
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
-    const Int_p intA = share(Int(1));
-    const Int_p intB = share<Int>(Int(1));
-    const Int_p intC = share(Int(1, FOS_TYPE_PREFIX "int/age"));
-    const Int_p intD = ptr<Int>(new Int(2, "nat"));
+  void test_int() {
+ID_p AGE_FURI = id_p("/obj/age");
+    Typer::singleton()->save_type(*AGE_FURI,__().isa(*INT_FURI)); //
+    const Int_p intA = jnt(1);
+    const Int_p intB = make_shared<Int>(*jnt(1));
+    const Int_p intC = Obj::to_int(1, AGE_FURI);
+    const Int_p intD = Obj::create(2, OType::INT,NAT_FURI);
     ///
-    const Int_p int5 = share(Int(5, "age"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*int5).c_str());
+    const Int_p int5 = jnt(5, AGE_FURI);
 
     TEST_ASSERT_FALSE(intA->is_bcode());
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "int/", intA->tid->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING(INT_FURI->toString().c_str(), intA->tid->toString().c_str());
     TEST_ASSERT_EQUAL_STRING("int", intA->tid->name().c_str());
-    TEST_ASSERT_EQUAL_STRING("/type", intA->tid->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("int/", intA->tid->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->otype);
     TEST_ASSERT_FALSE(intA->is_noobj());
     TEST_ASSERT_TRUE(intA->match(intB));
     TEST_ASSERT_FALSE(intA->match(jnt(987)));
     ///
-    FOS_TEST_FURI_EQUAL(*intC->tid, *intA->as(id_p("age"))->tid);
+    FOS_TEST_FURI_EQUAL(*intC->tid, *intA->as(AGE_FURI)->tid);
     FOS_TEST_OBJ_EQUAL(intA, intB);
     FOS_TEST_OBJ_EQUAL(intB, intA);
-    FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as(FOS_TYPE_PREFIX "int/age"));
-    FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
-    FOS_TEST_OBJ_EQUAL(intC, intB->as(FOS_TYPE_PREFIX "int/age"));
-    FOS_TEST_OBJ_EQUAL(intA, intC->as(FOS_TYPE_PREFIX "int/"));
-    FOS_TEST_OBJ_EQUAL(intA, intA->as(FOS_TYPE_PREFIX "int/"));
+    FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as(AGE_FURI));
+    FOS_TEST_OBJ_EQUAL(intC, intA->as(AGE_FURI));
+    FOS_TEST_OBJ_EQUAL(intC, intB->as(AGE_FURI));
+    FOS_TEST_OBJ_EQUAL(intA, intC->as(INT_FURI));
+    FOS_TEST_OBJ_EQUAL(intA, intA->as(INT_FURI));
     /// apply
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intB));
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intA));
-    FOS_TEST_OBJ_EQUAL(intA->as("age"), intA->as(FOS_TYPE_PREFIX "int/age")->apply(intB));
-    FOS_TEST_OBJ_EQUAL(intC, intA->as("age")->apply(intB));
+    FOS_TEST_OBJ_EQUAL(intA->as(AGE_FURI), intA->as(AGE_FURI)->apply(intB));
+    FOS_TEST_OBJ_EQUAL(intC, intA->as(AGE_FURI)->apply(intB));
     /// relations
-    TEST_ASSERT_GREATER_THAN_INT(intA->as("nat")->int_value(), intD->int_value());
-    TEST_ASSERT_LESS_THAN_INT(intD->int_value(), intB->as(FOS_TYPE_PREFIX "int/nat")->int_value());
+    TEST_ASSERT_GREATER_THAN_INT(intA->as(NAT_FURI)->int_value(), intD->int_value());
+    TEST_ASSERT_LESS_THAN_INT(intD->int_value(), intB->as(NAT_FURI)->int_value());
     /// match
     TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_int(22)));
-    TEST_ASSERT_TRUE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("nat")));
-    TEST_ASSERT_FALSE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("age")));
-    TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_bcode({
+    TEST_ASSERT_TRUE(Obj::to_int(22)->as(NAT_FURI)->match(Obj::to_int(22)->as(NAT_FURI)));
+    TEST_ASSERT_FALSE(Obj::to_int(22)->as(NAT_FURI)->match(Obj::to_int(22)->as(AGE_FURI)));
+    /*TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_bcode({
       Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))
       })));
     TEST_ASSERT_FALSE(
-        Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));
-    ////// BYTECODE
-    /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age"))._bcode->bcode_value(), "/_bcode/age"));
-     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
-     // TEST_ASSERT_TRUE(intBCode->is_bcode());
-     TEST_ASSERT_EQUAL_STRING("/_bcode/age", intBCode->tid->toString().c_str());
-     TEST_ASSERT_EQUAL_STRING("age", intBCode->tid->lastSegment().c_str());
-     /// apply
-     FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
-     FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/nat"))))*/
-  //}
+        Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));*/
+   }
 
   /*void test_real() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/money"), Obj::to_bcode()); //
@@ -221,6 +210,28 @@ namespace fhatos {
 
   }
 
+  void test_rec_insert_order() {
+    Rec_p record = Obj::to_rec();
+    for(int i=0;i<100;i++) {
+      record->rec_set(jnt(i),jnt(i));
+    }
+    int counter =0;
+    for(const auto& [k,v]: *record->rec_value()) {
+      TEST_ASSERT_EQUAL_INT(counter,k->int_value());
+      TEST_ASSERT_EQUAL_INT(counter,v->int_value());
+      counter++;
+    }
+    for(int i=0;i<100;i++) {
+      record->rec_set(jnt(i),jnt(i+10));
+    }
+    counter =0;
+    for(const auto& [k,v]: *record->rec_value()) {
+     TEST_ASSERT_EQUAL_INT(counter,k->int_value());
+      TEST_ASSERT_EQUAL_INT(counter+10,v->int_value());
+      counter++;
+    }
+    TEST_ASSERT_EQUAL_INT(100,counter);
+  }
 
   /*
     void test_rec() {
@@ -482,13 +493,14 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_operator_equals); //
       FOS_RUN_TEST(test_lock); //
-      //  FOS_RUN_TEST(test_int); //
+        FOS_RUN_TEST(test_int); //
       //  FOS_RUN_TEST(test_real); //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_str); //
       FOS_RUN_TEST(test_uri); //
       FOS_RUN_TEST(test_lst); //
       FOS_RUN_TEST(test_lst_nested_set_get); //
+      FOS_RUN_TEST(test_rec_insert_order); //
       FOS_RUN_TEST(test_rec_nested_set_get); //
       FOS_RUN_TEST(test_rec_nested_set_get_with_components); //
       FOS_RUN_TEST(test_inst); //

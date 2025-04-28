@@ -67,6 +67,10 @@ namespace fhatos {
       this->write(furi, obj, retain);
     };
     ////////////////////////////////////////////////////////////////////////////////////
+    ROUTER_APPEND = [this](const fURI &furi, const Obj_p &obj) {
+      this->append(furi, obj);
+    };
+    ////////////////////////////////////////////////////////////////////////////////////
     LOG_WRITE(INFO, this, L("!yrouter!! started\n"));
   }
 
@@ -204,6 +208,18 @@ namespace fhatos {
     this->write(target,obj,target.has_query("pass"));
   }*/
 
+  void Router::append(const fURI &furi, const Obj_p &obj) const {
+    try {
+      const Structure_p structure = this->get_structure(furi, obj);
+      //LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
+      //                        "obj", retain ? "retained" : "transient",
+      //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
+      structure->append(furi, obj);
+    } catch(const fError &e) {
+      LOG_WRITE(ERROR, this, L("{}", e.what()));
+    }
+  }
+
   void Router::write(const fURI &furi, const Obj_p &obj, const bool retain) {
     if(obj->is_noobj() && furi.is_node() && this->vid->matches(furi))
       this->stop();
@@ -319,8 +335,8 @@ namespace fhatos {
     }
     bool first = true;
     fURI_p test = nullptr;
+    const List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->clone()->or_else(lst())->lst_value();
     for(const auto &c: components) {
-      List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->or_else(lst())->lst_value();
       if(prefixes->empty())
        LOG_WRITE(WARN, this, L("!bauto-prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router

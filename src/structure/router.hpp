@@ -63,6 +63,8 @@ namespace fhatos {
 
     void write(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
 
+    void append(const fURI &furi, const Obj_p &obj) const;
+
     static void push_frame(const Pattern &pattern, const Rec_p &frame_data);
 
     static void pop_frame();

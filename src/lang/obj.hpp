@@ -397,6 +397,10 @@ namespace fhatos {
       [](const fURI &, const Obj_p &, const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
+  inline BiConsumer<const fURI &, const Obj_p &> ROUTER_APPEND =
+      [](const fURI &, const Obj_p &) -> void {
+    LOG(TRACE, "!yROUTER_APPEND!! undefined at this point in bootstrap.\n");
+  };
   inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
@@ -946,9 +950,9 @@ namespace fhatos {
       const Rec_p new_rec = Obj::to_rec();
       for(const auto &[k,v]: *this->rec_value()) {
         if(k->is_uri() && k->uri_value().has_query())
-          new_rec->rec_value()->insert_or_assign(Obj::to_uri(k->uri_value().no_query()), v);
+          new_rec->insert_into_position(Obj::to_uri(k->uri_value().no_query()), v);
         else
-          new_rec->rec_value()->insert_or_assign(k, v);
+          new_rec->insert_into_position(k, v);
       }
       return new_rec;
     }
@@ -968,12 +972,8 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p obj_get(const fURI &key) const {
       const Obj_p value = this->vid ? ROUTER_READ(this->vid->extend(key)) : nullptr;
-      if(value && this->is_rec()) {
-        if(value->is_noobj())
-          this->rec_drop(Obj::to_uri(key));
-        else
-          this->rec_set(Obj::to_uri(key), value);
-      }
+      if(value && this->is_rec())
+        this->rec_set(Obj::to_uri(key), value);
       return value ? value : Obj::to_noobj();
     }
 
@@ -1000,8 +1000,10 @@ namespace fhatos {
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
+      if(!this->is_rec())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       for(const auto &[key, value]: *rmap) {
-        this->rec_value()->insert_or_assign(key, value);
+        this->insert_into_position(key, value);
       }
       return shared_from_this();
     }
@@ -1046,6 +1048,15 @@ namespace fhatos {
       }
     }
 
+    void insert_into_position(const Obj_p &key, const Obj_p &value) const {
+      if(!this->is_rec())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(this->rec_value()->count(key))
+        this->rec_value()->at(key) = value;
+      else
+        this->rec_value()->insert_or_assign(key, value);
+    }
+
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
@@ -1060,14 +1071,14 @@ namespace fhatos {
         const bool is_lst = StringHelper::is_integer(key->uri_value().segment(1));
         if(current_obj->is_noobj()) {
           current_obj = is_lst ? Obj::to_lst() : Obj::to_rec();
-          this->rec_value()->insert_or_assign(current_key, current_obj);
+          this->insert_into_position(current_key, current_obj);
         }
         const fURI pretracted = key->uri_value().pretract();
         current_obj->poly_set(Obj::to_uri(pretracted), val);
       } else {
         this->rec_drop(key);
         //if(!val->is_noobj())
-        this->rec_value()->insert_or_assign(key, val);
+        this->insert_into_position(key, val);
       }
       ////////////////////////////////////////
       if(!this->is_base_type()) {
@@ -1409,11 +1420,22 @@ namespace fhatos {
     }
 
     [[nodiscard]] BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) const {
-      if(!this->is_bcode() || !bcode->is_bcode())
+      if(!this->is_bcode() || !bcode->is_code())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const InstList_p insts = make_shared<InstList>();
-      for(const auto &inst: *bcode->bcode_value()) {
-        insts->push_back(inst);
+      if(this->is_bcode()) {
+        for(const auto &inst: *this->bcode_value()) {
+          insts->push_back(inst);
+        }
+      } else if(this->is_inst()) {
+        insts->push_back(this->clone());
+      }
+      if(bcode->is_bcode()) {
+        for(const auto &inst: *bcode->bcode_value()) {
+          insts->push_back(inst);
+        }
+      } else if(bcode->is_inst()) {
+        insts->push_back(bcode);
       }
       return Obj::to_bcode(insts);
     }

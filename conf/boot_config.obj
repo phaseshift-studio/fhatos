@@ -33,7 +33,7 @@
   prompt=>'!mfhatos!g>!! ',
   strict=>false,
   log=>INFO,
-  stack_size=>32384,
+  stack_size=>16192,
   stack_trace=>true
  ],
  fs=>[root=><./data/fs>]

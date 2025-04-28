@@ -96,7 +96,7 @@ namespace mmadt {
         if(last[0] == '<')
           angles--;
       } else if(c == '>') {
-        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?') // -> => >> ?>
+        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?' && (last[0] != '+' && last[1] != '-')) // -> => >> ?> -+>
           angles--;
         if(last[0] == '>')
           angles++;
@@ -167,7 +167,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition
-        IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
+        APPEND, IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
         MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ,
         SPLIT, EACH, CHOOSE, CHAIN, LIFT;
 #endif
@@ -575,7 +575,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      SUGAR_INST <= cho(EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT,
+      SUGAR_INST <= cho(APPEND, EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT,
                         RSHIFT_0, LSHIFT_0, PLUS, MULT, BARRIER, WITHIN,
                         EMPTY_BCODE, FROM, PASS, LIFT, DROP,
                         REF, CHOOSE, CHAIN, BLOCK, EACH, END, MERGE, SPLIT/*, REPEAT*/);
@@ -587,6 +587,7 @@ namespace mmadt {
       SUGAR_GENERATOR(DROP, "V", MMADT_PREFIX "drop");
       SUGAR_GENERATOR(FROM, "*", MMADT_PREFIX "from");
       SUGAR_GENERATOR(REF, "->", MMADT_PREFIX "ref");
+      SUGAR_GENERATOR(APPEND, "-+>", MMADT_PREFIX "append");
       SUGAR_GENERATOR(BLOCK, "|", MMADT_PREFIX "block");
       SUGAR_GENERATOR(SPLIT, "-<", MMADT_PREFIX "split");
       SUGAR_GENERATOR(CHOOSE, "-|", MMADT_PREFIX "choose");

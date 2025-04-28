@@ -909,6 +909,17 @@ namespace mmadt {
         })
         ->save();
 
+    InstBuilder::build(MMADT_PREFIX "append")
+      ->inst_args(rec({
+          {"obj", Obj::to_bcode()}}))
+      ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
+      ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+        const Obj_p obj = args->arg("obj");
+        ROUTER_APPEND(lhs->uri_value(), obj);
+        return obj;
+      })
+      ->save();
+
     InstBuilder::build(MMADT_PREFIX "type")
         ->domain_range(OBJ_FURI, {0, 1}, URI_FURI, {1, 1})
         ->inst_args(lst({Obj::to_bcode()}))
