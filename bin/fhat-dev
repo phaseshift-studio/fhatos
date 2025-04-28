@@ -27,6 +27,7 @@ help_menu() {
     fhat-dev clean
     fhat-dev package native
     fhat-dev build docs
+    fhat-dev build native boot=conf/boot_config.obj
     fhat-dev test native test_scheduler
     fhat-dev build esp32 fhatos
     fhat-dev upload esp32
@@ -58,7 +59,7 @@ else
    KEY_LENGTH=${#KEY}
    VALUE="${ARGUMENT:$KEY_LENGTH+1}"
    export "$KEY"="$VALUE"
-   echo -e "  ${GREEN}${KEY} = ${YELLOW}${VALUE}${NC}"
+   echo -e "  ${MAGENTA}${KEY} = ${YELLOW}${VALUE}${NC}"
   done
   echo -e " ${RB}"
 
@@ -152,10 +153,12 @@ fi
 status_check() {
    exit_code=$1
    message=$2
-   if [[ $exit_code == 0 ]]; then
-     echo -e "${GREEN}[ OK ]${NC} ${YELLOW}$message${NC}"
+   if [[ $exit_code == -1 ]]; then
+     echo -e "${YELLOW}[SKIP]${NC} ${MAGENTA}$message${NC}"
+   elif [[ $exit_code == 0 ]]; then
+     echo -e "${GREEN}[ OK ]${NC} ${MAGENTA}$message${NC}"
    else
-     echo -e "${RED}[ERROR]${NC} ${YELLOW}$message${NC}"
+     echo -e "${RED}[ERROR]${NC} ${MAGENTA}$message${NC}"
     cd "${working_directory}" || exit 1
     exit 1
    fi
@@ -366,13 +369,16 @@ elif [[ $1 == "partition" ]]; then
 elif [[ $1 == "upload" ]]; then
   build_boot_config
   # clean_esp32
-  if [[ $3 != "--skip_fs" ]]; then
+  if [[ -z ${fs} ]]; then
     echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}flash memory partition${NC}\n"
     printf '%b\n' "$(cat board/partition/large_code.csv)\n"
     platformio run ${environ} --target buildfs
     status_check $? "pio buildfs"
     platformio run ${environ} --target uploadfs
     status_check $? "pio uploadfs"
+  else
+    status_check -1 "pio buildfs"
+    status_check -1 "pio uploadfs"
   fi
   platformio run ${environ} --target upload
   status_check $? "pio upload"

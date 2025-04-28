@@ -113,10 +113,11 @@ namespace fhatos {
                              return Obj::to_noobj();
                            })->create()},
                           {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
-      MODEL_STATES::singleton()->store(id, Console::create_state(console_obj));
-      //Scheduler::singleton()->spawn_thread(console_obj);
+      const ptr<Thread> console_state = Console::create_state(console_obj);
+      MODEL_STATES::singleton()->store(id,console_state);
+      //Scheduler::singleton()->spawn_thread(console_state->thread_obj_);
       // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
-      return console_obj;
+      return console_state->thread_obj_;
     }
 
     static ptr<Thread> create_state(const Obj_p &console_obj) {

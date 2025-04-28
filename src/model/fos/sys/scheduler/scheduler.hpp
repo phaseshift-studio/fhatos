@@ -39,7 +39,7 @@ namespace fhatos {
   public:
     explicit Scheduler(const ID &id) :
       Rec(rmap({
-              {"thread", lst()},
+              {"spawn", lst()},
               {"bundle", lst()}}),
           OType::REC, REC_FURI, id_p(id)) {
       SCHEDULER_ID = this->vid;
@@ -61,7 +61,7 @@ namespace fhatos {
         ROUTER_WRITE(bundle_uri->uri_value(), Obj::to_noobj(), true);
         Router::singleton()->loop();
       }
-      std::vector<Uri_p> list = *this->rec_get("thread")->lst_value();
+      std::vector<Uri_p> list = *this->rec_get("spawn")->lst_value();
       while(!list.empty()) {
         if(list.back()->is_uri()) {
           const Obj_p thread_obj = ROUTER_READ(list.back()->uri_value());
@@ -81,9 +81,8 @@ namespace fhatos {
 
     void loop() {
       try {
-        auto lock = std::lock_guard<Mutex>(mutex);
         this->handle_bundle();
-        //this->handle_threads();
+        //this->handle_spawn();
       } catch(const fError &e) {
         LOG_WRITE(ERROR, this,L("scheduling error: {}", e.what()));
       }
@@ -93,7 +92,7 @@ namespace fhatos {
       // check memory and if low, warn logging.
     }
 
-    /*void handle_threads() {
+    /*void handle_spawn() {
       const Lst_p thread_uris = this->obj_get("thread")->clone()->or_else(lst());
       if(thread_uris->lst_value()->empty())
         return;
@@ -120,18 +119,18 @@ namespace fhatos {
     }*/
 
     void spawn_thread(const Obj_p &thread_obj) {
-      auto lock = std::lock_guard<Mutex>(mutex);
       if(!thread_obj->vid)
         throw fError("!ythread obj !rmust have!y a vid!!: %s", thread_obj->toString().c_str());
+      auto lock = std::lock_guard<Mutex>(mutex);
       thread_obj->obj_set("halt", dool(false));
-      const Lst_p thread_uris = Scheduler::singleton()->obj_get("thread")->clone()->or_else(lst());
+      const Lst_p thread_uris = Scheduler::singleton()->obj_get("spawn")->clone()->or_else(lst());
       /*for(const auto &id: *thread_uris->lst_value()) {
         if(thread_obj->vid->equals(id->uri_value()))
           throw fError("!g[!b%s!g] !ralready spawned!!: %s", thread_obj->vid->toString().c_str(),
                        thread_obj->toString().c_str());
       }*/
       thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
-      Scheduler::singleton()->obj_set("thread", thread_uris);
+      Scheduler::singleton()->obj_set("spawn", thread_uris);
       ROUTER_WRITE(thread_obj->vid->extend("halt").query("sub"), Subscription::create(
                        Scheduler::singleton()->vid, p_p(thread_obj->vid->extend("halt")),
                        [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
@@ -139,7 +138,7 @@ namespace fhatos {
                            //LOG_WRITE(INFO,Scheduler::singleton().get(),L("HERE: {} {} -> {}\n", obj->toString(), Scheduler::singleton()->rec_get("thread")->toString(), args->arg("target")->toString()));
                            const Lst_p new_thread_ids = Obj::to_lst();
                            for(const Uri_p &thread_id:
-                               *Scheduler::singleton()->obj_get("thread")->or_else(lst())->lst_value()) {
+                               *Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()) {
                              if(!thread_id->uri_value().matches(args->arg("target")->uri_value().retract())) {
                                new_thread_ids->lst_add(thread_id);
                              } else {
@@ -148,12 +147,12 @@ namespace fhatos {
                                          L("!ythread !b{}!! unscheduled\n", thread_id->toString()));
                              }
                            }
-                           Scheduler::singleton()->obj_set("thread", new_thread_ids);
+                           Scheduler::singleton()->obj_set("spawn", new_thread_ids);
                          }
                          return Obj::to_noobj();
                        }), true);
-      const ptr<Thread> thread_state = Thread::get_state(thread_obj);
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
+      const ptr<Thread> thread_state = Thread::get_state(thread_obj);
     }
 
     void bundle_fiber(const Obj_p &fiber_obj) {
@@ -165,6 +164,7 @@ namespace fhatos {
     }
 
     void handle_bundle() {
+      auto lock = std::lock_guard<Mutex>(mutex);
       const Lst_p bundle_uris = this->obj_get("bundle")->clone()->or_else(lst());
       if(bundle_uris->lst_value()->empty())
         return;

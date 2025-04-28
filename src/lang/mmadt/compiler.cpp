@@ -138,24 +138,24 @@ namespace fhatos {
       }
       // inst_vid
       if(inst_obj->is_inst_stub() && inst_obj->vid)
-        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
+        inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(*inst->vid));
       // /obj_vid/::/inst_tid
       if(inst_obj->is_inst_stub() && lhs->vid)
         inst_obj = convert_to_inst(
-            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
+            lhs, inst, ROUTER_READ(lhs->vid->add_component(inst->tid->no_query())));
       // /obj_tid/::/inst_tid
       if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(
-            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
+            lhs, inst, ROUTER_READ(lhs->tid->add_component(inst->tid->no_query())));
       // /obj_vid/::/resolved/inst_tid
       const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
       if(inst_obj->is_inst_stub() && lhs->vid)
         inst_obj = convert_to_inst(
-            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
+            lhs, inst, ROUTER_READ(lhs->vid->add_component(inst_type_id_resolved)));
       // /obj_tid/::/resolved/inst_tid
       if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(
-            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
+            lhs, inst, ROUTER_READ(lhs->tid->add_component(inst_type_id_resolved)));
       // /resolved/inst_tid
       if(inst_obj->is_inst_stub())
         inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
@@ -167,12 +167,14 @@ namespace fhatos {
       }
       if(inst_obj->is_inst_stub()) {
         if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
-          inst_obj = convert_to_inst(lhs, inst, this->resolve_inst(
-                                         Router::singleton()->read(
-                                             Router::singleton()->read(
-                                                 Router::singleton()->resolve(
-                                                     lhs->tid->no_query()))->domain()->no_query()),
-                                         inst_obj));
+          inst_obj =
+              convert_to_inst(lhs,
+                              inst,
+                              this->resolve_inst(
+                                  ROUTER_READ(
+                                      ROUTER_READ(
+                                          Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
+                                  inst_obj));
         }
       }
       if(this->throw_on_miss && inst_obj->is_inst_stub()) {

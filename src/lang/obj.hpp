@@ -468,16 +468,16 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<HASH, EQ>>;
     ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
-    explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
+    explicit Obj(Any value, const OType otype, const ID_p &type_id,
                  const ID_p &value_id = nullptr) :
       Typed(type_id),
       Valued(value_id),
       otype(otype),
-      value_(value) {
+      value_(std::move(value)) {
     }
 
     Obj(const Obj &other) :
-      Typed(other.tid), Valued(other.vid), otype(other.otype) {
+      Obj(any(nullptr), other.otype, other.tid, other.vid) {
       switch(other.otype) {
         case OType::NOOBJ:
           this->value_ = any(nullptr);
@@ -562,8 +562,8 @@ namespace fhatos {
                 Obj_p plain_type_obj;
                 if(type_obj->otype == OType::REC) {
                   const auto r = std::make_shared<RecMap<>>(*type_obj->value<RecMap_p<>>());
-                  if(r->count(Obj::to_uri("::")))
-                    r->erase(Obj::to_uri("::"));
+                  if(r->count(Obj::to_uri(COMPONENT_SEPARATOR)))
+                    r->erase(Obj::to_uri(COMPONENT_SEPARATOR));
                   plain_type_obj = make_shared<Obj>(r, OType::REC, REC_FURI);
                 } else {
                   plain_type_obj = make_shared<Obj>(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
@@ -693,7 +693,8 @@ namespace fhatos {
     [[nodiscard]] fURI uri_value() const {
       if(!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      const auto value_furi = fURI(this->value<fURI>().toString());
+      const fURI furi = this->value<fURI>();
+      const auto value_furi = fURI(furi);
       return value_furi;
     }
 
@@ -914,9 +915,10 @@ namespace fhatos {
         const bool match_all = StringHelper::has_wildcards(segment);
         const Objs_p full_match = Obj::to_objs();
         for(const auto &[k,v]: *this->rec_value()) {
+          const fURI_p k_furi = k->is_uri() ? furi_p(k->uri_value()) : nullptr;
           if(match_all || k->match(segment_uri)) {
             segment_value->add_obj(v);
-          } else if(k->is_uri() && k->uri_value().matches(key_no_query)) {
+          } else if(k_furi && k_furi->matches(key_no_query)) {
             full_match->add_obj(v);
           }
         }

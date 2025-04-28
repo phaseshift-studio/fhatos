@@ -44,17 +44,17 @@ namespace fhatos {
 
   class fURI {
   protected:
-    const char *scheme_ = nullptr;
-    const char *user_ = nullptr;
-    const char *password_ = nullptr;
-    const char *host_ = nullptr;
+    mutable const char *scheme_ = nullptr;
+    mutable const char *user_ = nullptr;
+    mutable const char *password_ = nullptr;
+    mutable const char *host_ = nullptr;
     uint16_t port_ = 0;
-    char **path_ = nullptr;
+    mutable char **path_ = nullptr;
     bool sprefix_ = false;
     bool spostfix_ = false;
     uint8_t path_length_ = 0;
-    const char *query_ = nullptr;
-    const char *coefficient_ = nullptr;
+    mutable const char *query_ = nullptr;
+    mutable const char *coefficient_ = nullptr;
     // const char *fragment_ = nullptr;
     ////////////////////////////////////////
     void delete_path() {
@@ -839,7 +839,7 @@ namespace fhatos {
     }
 
 
-    fURI &operator=(const fURI &other) {
+    fURI &operator=(const fURI &other) noexcept {
       if(&other == this)
         return *this;
       free((void *) this->scheme_);
@@ -865,6 +865,41 @@ namespace fhatos {
       }
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
+      return *this;
+    }
+
+    fURI &operator=(fURI &&other) noexcept {
+      if(&other == this)
+        return *this;
+      ///////////////////////////////////
+      free((void *) this->scheme_);
+      free((void *) this->host_);
+      free((void *) this->user_);
+      free((void *) this->password_);
+      free((void *) this->coefficient_);
+      free((void *) this->query_);
+      this->delete_path();
+      ///////////////////////////////////
+      this->scheme_ = other.scheme_;
+      this->host_ = other.host_;
+      this->port_ = other.port_;
+      this->user_ = other.user_;
+      this->password_ = other.password_;
+      this->coefficient_ = other.coefficient_;
+      this->query_ = other.query_;
+      this->path_length_ = other.path_length_;
+      this->path_ = other.path_;
+      this->sprefix_ = other.sprefix_;
+      this->spostfix_ = other.spostfix_;
+      ///////////////////////////////////
+      other.scheme_ = nullptr;
+      other.host_ = nullptr;
+      other.user_ = nullptr;
+      other.password_ = nullptr;
+      other.coefficient_ = nullptr;
+      other.query_ = nullptr;
+      other.path_ = nullptr;
+      ///////////////////////////////////
       return *this;
     }
 

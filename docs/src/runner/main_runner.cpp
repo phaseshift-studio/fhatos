@@ -91,8 +91,9 @@ int main(int arg, char **argsv) {
       Router::singleton()->loop();
       std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
       Router::singleton()->write(SCHEDULER_ID->extend("halt"), dool(true));
-    } catch(std::exception &e) {
-      LOG_WRITE(ERROR, Scheduler::singleton().get(),L("{}", e.what()));
+    } catch(const fError &e) {
+      printer()->print("[ERROR] ");
+      printer()->println(e.what());
     }
   }
   printer()->printer_switch(false);
