@@ -43,7 +43,20 @@ namespace fhatos {
     }
 
 #ifdef ESP_PLATFORM
-    static Rec_p instruction_memory() {
+    
+static const TaskSnapshot_t *find_snapshot_linked_to_status(const TaskStatus_t *taskStatus,
+  const TaskSnapshot_t *taskSnapshotArray,
+  size_t taskSnapshotArraySize) {
+for (size_t i = 0; i < taskSnapshotArraySize; ++i) {
+if (*(int*)taskSnapshotArray[i].pxTCB == *(int*)taskStatus->xHandle) {
+return &taskSnapshotArray[i];
+}
+}
+
+return NULL;
+}
+
+static Rec_p instruction_memory() {
       return Obj::to_rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
                           {"free", jnt(ESP.getFreeSketchSpace())},
                           {"used", real(ESP.getSketchSize() == 0
@@ -83,6 +96,13 @@ namespace fhatos {
                                           : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
                                                          FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
     }
+
+    static Rec_p cpu_frequency() {
+      return Obj::to_rec({{"freq", jnt(ESP.getCpuFreqMHz())}});
+    }
+
+
+
 #else
 
     static void process_mem_usage(double &vm_usage, double &resident_set) {
@@ -144,6 +164,12 @@ namespace fhatos {
           })
           ->save();
 #ifdef ESP_PLATFORM
+      InstBuilder::build(Memory::singleton()->vid->add_component("freq"))
+           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
+           ->inst_f([](const Obj_p &, const InstArgs &) {
+             return Memory::cpu_frequency();
+           })
+           ->save();
       InstBuilder::build(Memory::singleton()->vid->add_component("inst"))
       ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
       ->inst_f([](const Obj_p &, const InstArgs &) {

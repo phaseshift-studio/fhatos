@@ -89,7 +89,7 @@ namespace fhatos {
   void Router::load_config(const ID &config_id) {
     const Obj_p config = this->read(config_id);
     if(config->is_noobj())
-      LOG_WRITE(WARN, this, L("!b{}!! does not reference a config obj\n", config_id.toString().c_str()));
+      LOG_WRITE(WARN, this, L("!b{}!! does not reference a config obj\n", config_id.toString()));
     if(!config->is_noobj()) {
       const Rec_p router_config = config->rec_get(vri("router"));
       this->rec_set("config", router_config);
@@ -156,7 +156,7 @@ namespace fhatos {
       if(structure->available()) {
         LOG_WRITE(INFO, this, L("!y{} !b{} !yspanning !b{}!! mounted\n",
                                 structure->tid->name(),
-                                structure->vid ? structure->vid->toString() : "<none>",
+                                structure->vid ? structure->vid->toString().c_str() : "<none>",
                                 structure->pattern->toString())            );
       } else {
         LOG_WRITE(ERROR, this, L("!runable to mount!! {}: {} at {}!!\n", structure->pattern->toString(),
@@ -325,6 +325,8 @@ namespace fhatos {
   [[nodiscard]] fURI Router::resolve(const fURI &furi) const {
     if(furi.empty() || (!furi.headless() && !furi.has_components()))
       return furi;
+    static auto mutex = Mutex();
+    auto lock = lock_guard<Mutex>(mutex);
     if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
       return furi;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};

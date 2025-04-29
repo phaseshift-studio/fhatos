@@ -259,6 +259,7 @@ LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_RANGE "rng"
 #define FOS_RNG_COEF "rc"
 #define FOS_CONFIG "config"
+#define FOS_PRE_ALLOCATED_ELEMENT_LIST_SIZE 5
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

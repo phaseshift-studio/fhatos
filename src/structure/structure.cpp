@@ -100,6 +100,7 @@ namespace fhatos {
         IdObjPairs matches = this->read_raw_pairs(furi_no_query_node);
         if(furi_no_query.is_branch()) {
           const Rec_p rec = Obj::to_rec();
+          rec->rec_value()->reserve(matches.size());
           // BRANCH ID AND PATTERN
           for(const auto &[key, value]: matches) {
             rec->rec_set(vri(key), value, false);

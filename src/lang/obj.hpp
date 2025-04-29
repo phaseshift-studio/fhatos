@@ -572,6 +572,12 @@ namespace fhatos {
                 const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
                 this->value_ = applied_obj->value_;
                 this->otype = applied_obj->otype;
+                if(plain_obj->is_rec() && applied_obj->is_rec()) {
+                  for(const auto &[k,v]: *plain_obj->rec_value()) {
+                    if(!applied_obj->rec_value()->count(k))
+                      applied_obj->rec_set(k, v);
+                  }
+                }
               }
             }
           }
@@ -598,7 +604,7 @@ namespace fhatos {
 
     /*static Obj_p load(const ID &vid) {
       return ROUTER_READ(vid);
-    }
+    }*/
 
     virtual void sync(const fURI &subset) const {
       if(this->vid) {
@@ -620,15 +626,15 @@ namespace fhatos {
           const_cast<Obj *>(this)->tid = fresh->tid;
         }
       }
-    }*/
+    }
 
     virtual void save() const {
       this->at(this->vid);
     }
 
-    /*virtual void save(const fURI &subset) const {
-      ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
-    }*/
+    /* virtual void save(const fURI &subset) const {
+       ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
+     }*/
 
     /*virtual void load() {
       if(this->vid) {
@@ -854,10 +860,10 @@ namespace fhatos {
       ////////////////////////////////////////
     }
 
-    [[nodiscard]] Uri_p uri_set(const Int_p &index, const Obj_p &val) {
+    /*[[nodiscard]] Uri_p uri_set(const Int_p &index, const Obj_p &val) {
       fURI furi = this->uri_value();
 
-    }
+    }*/
 
     [[nodiscard]] RecMap_p<> rec_value() const {
       if(!this->is_rec())
@@ -973,17 +979,25 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p obj_get(const fURI &key) const {
-      const Obj_p value = this->vid ? ROUTER_READ(this->vid->extend(key)) : nullptr;
-      if(value && this->is_rec())
-        this->rec_set(Obj::to_uri(key), value);
-      return value ? value : Obj::to_noobj();
+      if(this->is_poly()) {
+        if(this->vid) {
+          const Obj_p value = ROUTER_READ(this->vid->extend(key));
+          if(value->is_noobj())
+            this->poly_drop(Obj::to_uri(key));
+          else
+            this->poly_set(Obj::to_uri(key), value);
+          return value;
+        }
+        return this->poly_get(Obj::to_uri(key));
+      }
+      return this->vid ? ROUTER_READ(this->vid->extend(key)) : Obj::to_noobj();
     }
 
     void obj_set(const fURI &key, const Obj_p &value) const {
+      if(this->is_poly())
+        this->poly_set(Obj::to_uri(key), value);
       if(this->vid)
         ROUTER_WRITE(this->vid->extend(key), value, true);
-      if(this->is_rec())
-        this->rec_set(Obj::to_uri(key), value);
     }
 
     template<typename T>
@@ -997,8 +1011,11 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool has(const fURI &key) const {
-      const Uri_p key_uri = Obj::to_uri(key);
-      return !this->poly_get(key_uri)->is_noobj();
+      return this->vid
+               ? !ROUTER_READ(this->vid->extend(key))->is_noobj()
+               : this->is_poly()
+               ? !this->poly_get(Obj::to_uri(key))->is_noobj()
+               : false;
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
@@ -1059,11 +1076,11 @@ namespace fhatos {
         this->rec_value()->insert_or_assign(key, value);
     }
 
-    virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
+    virtual void rec_set(const Obj_p &key, const Obj_p &value, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
       if(key->is_uri() && key->uri_value().has_query())
-        Compiler(true, true).type_check(val, key->uri_value().query());
+        Compiler(true, true).type_check(value, key->uri_value().query());
       ///////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
         // const fURI key_no_query = key->uri_value().no_query();
@@ -1076,11 +1093,11 @@ namespace fhatos {
           this->insert_into_position(current_key, current_obj);
         }
         const fURI pretracted = key->uri_value().pretract();
-        current_obj->poly_set(Obj::to_uri(pretracted), val);
+        current_obj->poly_set(Obj::to_uri(pretracted), value);
       } else {
-        this->rec_drop(key);
+        // this->rec_drop(key);
         //if(!val->is_noobj())
-        this->insert_into_position(key, val);
+        this->insert_into_position(key, value);
       }
       ////////////////////////////////////////
       if(!this->is_base_type()) {
@@ -1911,7 +1928,7 @@ namespace fhatos {
       return *this;
     }
 
-    [[nodiscard]] Obj_p operator[](const char *key) const { return this->rec_get(key); }
+    //  [[nodiscard]] Obj_p operator[](const char *key) const { return this->rec_get(key); }
 
     [[nodiscard]] bool is_type() const { return this->otype == OType::TYPE; }
 
@@ -2414,6 +2431,11 @@ namespace fhatos {
       return this->is_noobj() ? other : this->shared_from_this();
     }
 
+    template<typename T>
+    T or_else_(const T &other) const {
+      return this->is_noobj() ? other : this->value<T>();
+    }
+
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Obj_p to_type(const ID_p &type_id,
                          const Obj_p &obj = Obj::create(make_shared<List<Inst_p>>(), OType::BCODE,
@@ -2462,12 +2484,15 @@ namespace fhatos {
     }
 
     static Lst_p to_lst(const ID_p &type_id = LST_FURI, const ID_p &value_id = nullptr) {
-      return to_lst(make_shared<LstList>(), type_id, value_id);
+      const Lst_p list = to_lst(make_shared<LstList>(), type_id, value_id);
+      list->lst_value()->reserve(FOS_PRE_ALLOCATED_ELEMENT_LIST_SIZE);
+      return list;
     }
 
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &type_id = LST_FURI,
                         const ID_p &value_id = nullptr) {
       const auto list = make_shared<LstList>();
+      list->reserve(xlst.size());
       for(const auto &obj: xlst) {
         list->push_back(obj.clone());
       }
@@ -2485,12 +2510,15 @@ namespace fhatos {
     }
 
     static Rec_p to_rec(const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) {
-      return to_rec(make_shared<RecMap<>>(), type_id, value_id);
+      const Rec_p record = to_rec(make_shared<RecMap<>>(), type_id, value_id);
+      record->rec_value()->reserve(FOS_PRE_ALLOCATED_ELEMENT_LIST_SIZE);
+      return record;
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &type_id = REC_FURI,
                         const ID_p &value_id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
+      map->reserve(xrec.size());
       for(const auto &[key, value]: xrec) {
         map->insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(value)));
       }
@@ -2500,6 +2528,7 @@ namespace fhatos {
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &type_id = REC_FURI,
                         const ID_p &value_id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
+      map->reserve(xrec.size());
       for(const auto &[key, value]: xrec) {
         map->insert(make_pair(key, value));
       }
@@ -2509,6 +2538,7 @@ namespace fhatos {
     static Rec_p to_rec(const std::initializer_list<Pair<const string, Obj_p>> &xrec, const ID_p &type_id = REC_FURI,
                         const ID_p &value_id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
+      map->reserve(xrec.size());
       for(const auto &[key, value]: xrec) {
         map->insert(make_pair(Obj::to_uri(key), value));
       }

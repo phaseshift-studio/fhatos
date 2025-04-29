@@ -60,18 +60,9 @@ namespace fhatos {
 
   Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
     thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
-    int stack_size;
-    if(thread_obj->is_rec()) {
-      stack_size = thread_obj->rec_get("stack_size") // check provided obj
-          ->or_else(thread_obj->rec_get("+/stack_size")->none_one()) // check one depth more (e.g. config/stack_size)
-          // ->or_else(this->rec_get("config/def_stack_size") // check default setting in scheduler
-          ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
-          ->int_value();
-    } else {
-      stack_size = ///= this->rec_get("config/def_stack_size") // check default setting in scheduler
-          jnt(FOS_ESP_THREAD_STACK_SIZE) // use default environmental variable
-          ->int_value();
-    }
+    int stack_size = this->thread_obj_->obj_get("config/stack_size")->or_else_(0);
+    if(0 == stack_size)
+      throw fError("thread stack size must be greater than 0");
     const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                                             this->thread_obj_->vid->toString().c_str(),
                                                             // Name of the task (for debugging)

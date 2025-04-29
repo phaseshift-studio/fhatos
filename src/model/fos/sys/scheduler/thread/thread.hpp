@@ -84,14 +84,19 @@ namespace fhatos {
         const Obj_p &thread_obj,
         const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
           try {
+            // const ptr<Thread> current = Thread::get_state(thread_obj);
             thread_obj->obj_set("halt", dool(false));
+            const int stack_size =
+                thread_obj->obj_get("config/stack_size")->or_else(
+                    ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))->or_else_(0);
+            thread_obj->obj_set("config/stack_size", jnt(stack_size));
             LOG_WRITE(INFO, thread_obj.get(),
                       L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                         thread_obj->obj_get("loop")->toString(),
                         thread_obj->obj_get("config/stack_size")->toString()));
-            const ptr<Thread> current = Thread::get_state(*thread_obj->vid);
+
             const Inst_p thread_loop_inst = thread_obj->is_rec() && thread_obj->has("loop")
-                                              ? thread_obj->rec_get("loop")
+                                              ? thread_obj->obj_get("loop")
                                               : Compiler(false, false).resolve_inst(
                                                   thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
             while(!thread_obj->obj_get("halt")->or_else(dool(false))->bool_value()) {
@@ -109,12 +114,11 @@ namespace fhatos {
               Thread::yield_current_thread();
             }
             try {
-              if(current)
-                current->halt();
+              Thread::get_state(thread_obj)->halt();
               MODEL_STATES::singleton()->remove(*thread_obj->vid);
 
             } catch(const fError &e) {
-              MODEL_STATES::singleton()->remove(*thread_obj->vid);
+              Thread::drop_state(thread_obj);
               throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
                                    e.what());
             }
@@ -139,7 +143,6 @@ namespace fhatos {
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
-            thread_obj->rec_set("halt", dool(false));
             ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
             return Obj::to_noobj();
           })->save();
