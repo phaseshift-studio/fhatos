@@ -163,7 +163,7 @@ namespace fhatos {
             ->drop_config("ota")
             //->mount(HeapPSRAM::create("/psram/#"))
 #endif
-            /* ->mount(Structure::add_qproc(DSM::create("/shared/#", id_p("/mnt/dsm"),
+            ->mount(Structure::add_qproc(DSM::create("/shared/#", id_p("/mnt/dsm"),
                                                       Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")->
                                                       or_else(
                                                           Obj::to_rec({
@@ -184,7 +184,7 @@ namespace fhatos {
                                                                    {"client",
                                                                     vri(args_parser->option_string(
                                                                         "--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
-                                                           id_p("/mnt/dsm/"))))*/
+                                                           id_p("/mnt/dsm/"))))
             ->drop_config("mqtt")
             //->mount(
             //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))

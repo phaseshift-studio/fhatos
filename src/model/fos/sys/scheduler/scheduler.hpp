@@ -92,32 +92,6 @@ namespace fhatos {
       // check memory and if low, warn logging.
     }
 
-    /*void handle_spawn() {
-      const Lst_p thread_uris = this->obj_get("thread")->clone()->or_else(lst());
-      if(thread_uris->lst_value()->empty())
-        return;
-      const size_t count = thread_uris->lst_value()->size();
-      thread_uris->lst_value()->erase(
-          std::remove_if<>(thread_uris->lst_value()->begin(),
-                           thread_uris->lst_value()->end(),
-                           [this](const Uri_p &thread_id) -> bool {
-                             if(!thread_id->is_uri()) {
-                               LOG_WRITE(ERROR, this,L("scheduler thread can only store uris: {}",
-                                                       OTypes.to_chars(thread_id->otype).c_str()));
-                               return true;
-                             }
-                             if(ROUTER_READ(thread_id->uri_value())->is_noobj() ||
-                                ROUTER_READ(thread_id->uri_value().extend("halt"))->or_else(dool(false))->
-                                bool_value()) {
-                               LOG_WRITE(INFO, this, L("!b{} !ythread!! removed\n", thread_id->uri_value().toString()));
-                               return true;
-                             }
-                             return false;
-                           }), thread_uris->lst_value()->end());
-      if(thread_uris->lst_value()->size() != count)
-        this->obj_set("thread", thread_uris);
-    }*/
-
     void spawn_thread(const Obj_p &thread_obj) {
       if(!thread_obj->vid)
         throw fError("!ythread obj !rmust have!y a vid!!: %s", thread_obj->toString().c_str());

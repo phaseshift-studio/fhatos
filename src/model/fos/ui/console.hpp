@@ -115,9 +115,9 @@ namespace fhatos {
                           {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       const ptr<Thread> console_state = Console::create_state(console_obj);
       MODEL_STATES::singleton()->store(id,console_state);
-      //Scheduler::singleton()->spawn_thread(console_state->thread_obj_);
+      Scheduler::singleton()->spawn_thread(console_obj);
       // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
-      return console_state->thread_obj_;
+      return console_obj;
     }
 
     static ptr<Thread> create_state(const Obj_p &console_obj) {
