@@ -167,31 +167,17 @@ namespace fhatos {
     }
 
     static Objs_p compute(const BCode_p &bcode) {
-      //ROUTER_PUSH_FRAME("+", Obj::to_inst_args());
-      int custom_stack_size = 0;
-      if(bcode->vid) {
-        const Int_p stack_size = bcode->obj_get("../config/stack_size");
-        if(stack_size->is_int() && stack_size->int_value() > 0) {
-          custom_stack_size = stack_size->int_value();
-        }
-      }
-      if(0 == custom_stack_size) {
-        const Int_p stack_size = ROUTER_READ("/sys/vm/config/stack_size");
-        if(stack_size->is_int() && stack_size->int_value() > 0) {
-          custom_stack_size = stack_size->int_value();
-        }
-      }
       ////////////////////////////////////////////////////////////////////
-      if(custom_stack_size <= 0) {
-        Obj_p objs = Processor(bcode).to_objs();
+      if(const int custom_stack_size = Memory::get_stack_size(bcode,"config/stack_size",0);
+        custom_stack_size <= 0) {
+        const Obj_p objs = Processor(bcode).to_objs();
         return objs;
       } else {
-        return MemoryHelper::use_custom_stack(
+        return Memory::singleton()->use_custom_stack(
             InstBuilder::build("process_custom_stack")
             ->inst_f([](const Obj_p &bcode, const InstArgs &) {
               return Processor(bcode).to_objs();
             })->create(), bcode, custom_stack_size);
-
       }
     }
 

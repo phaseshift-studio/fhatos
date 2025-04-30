@@ -70,7 +70,7 @@ namespace fhatos {
     static Int_p STD_IN_DIRECT() {
       int c;
       while(-1 == (c = printer<>()->read())) {
-        Thread::yield_current_thread();
+        Thread::delay_current_thread(1);
       }
       return jnt(c);
     }
@@ -83,7 +83,7 @@ namespace fhatos {
           // TODO: create a global shutdown flag at /sys/halt
           -1 == (c = printer<>()->read())) {
           FEED_WATCHDOG();
-          Thread::yield_current_thread();
+          Thread::delay_current_thread(1);
         }
         line += static_cast<char>(c);
         if(until == '\0')

@@ -21,7 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../obj.hpp"
-#include "../../util/memory_helper.hpp"
+#include "../../model/fos/sys/memory/memory.hpp"
 #include "../util/peglib.h"
 
 #define WRAP(LEFT,DEFINITION,RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))),(DEFINITION))
@@ -219,9 +219,14 @@ namespace mmadt {
         //StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
         const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(0));
         const int int_stack_size = stack_size->is_code()
-                                     ? stack_size->apply(str(obj_string))->int_value()
-                                     : stack_size->int_value();
-        return MemoryHelper::use_custom_stack(InstBuilder::build("custom_parse_stack")->inst_f(
+                                     ? BOOTING
+                                         ? 32384
+                                         : mmADT::delift(stack_size)->apply(str(obj_string))->int_value()
+                                     : stack_size->is_int()
+                                     ? stack_size->int_value()
+                                     : 0;
+
+        return Memory::singleton()->use_custom_stack(InstBuilder::build("custom_parse_stack")->inst_f(
                                                   [](const Str_p &source, const InstArgs &) {
                                                     return Parser::singleton()->parse(source->str_value().c_str());
                                                   })->create(), Obj::to_str(obj_string), int_stack_size);

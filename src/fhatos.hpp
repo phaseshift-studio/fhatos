@@ -332,5 +332,7 @@ LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #else
 #error "Unknown architecture."
 #endif
+
+  inline bool BOOTING = true;
 } // namespace fhatos
 #endif

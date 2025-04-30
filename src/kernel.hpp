@@ -198,7 +198,7 @@ namespace fhatos {
         }
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-        MemoryHelper::use_custom_stack(
+        Memory::singleton()->use_custom_stack(
             InstBuilder::build("boot_helper")
             ->inst_f([](const Obj_p &, const InstArgs &args) {
               mmadt::Parser::load_boot_config();
@@ -237,6 +237,7 @@ namespace fhatos {
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop start!!\n", "main"));
+      BOOTING = false;
       while(!Scheduler::singleton()->rec_get("halt")->or_else(dool(false))->bool_value()) {
         Scheduler::singleton()->loop();
         Router::singleton()->loop();

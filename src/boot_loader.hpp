@@ -133,8 +133,8 @@ namespace fhatos {
             ->drop_config("vm")
             ////////
             ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
-            ->import(fOS::import_io())
             ->import(fOS::import_sys())
+            ->import(fOS::import_io())
             ->import(fOS::import_sensor())
             ->import(fOS::import_ui())
             ->import(fOS::import_util())

@@ -22,6 +22,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../../lang/type.hpp"
 #include "../../../../../lang/obj.hpp"
 #include "../../../../model.hpp"
+#include "../../../../fos/sys/memory/memory.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
 
 namespace fhatos {
@@ -87,8 +88,8 @@ namespace fhatos {
             // const ptr<Thread> current = Thread::get_state(thread_obj);
             thread_obj->obj_set("halt", dool(false));
             const int stack_size =
-                thread_obj->obj_get("config/stack_size")->or_else(
-                    ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))->or_else_(0);
+                Memory::get_stack_size(thread_obj, "config/stack_size",
+                                       ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
             thread_obj->obj_set("config/stack_size", jnt(stack_size));
             LOG_WRITE(INFO, thread_obj.get(),
                       L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
@@ -99,19 +100,19 @@ namespace fhatos {
                                               ? thread_obj->obj_get("loop")
                                               : Compiler(false, false).resolve_inst(
                                                   thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-            while(!thread_obj->obj_get("halt")->or_else(dool(false))->bool_value()) {
+            while(!thread_obj->obj_get("halt")->or_else_(false)) {
               FEED_WATCHDOG();
               try {
                 //this_thread.store(current.get());
                 mmADT::delift(thread_loop_inst)->apply(thread_obj);
-                if(const int delay = thread_obj->obj_get("delay")->or_else(jnt(0))->int_value(); delay > 0) {
+                if(const int delay = thread_obj->obj_get("delay")->or_else_(0); delay > 0) {
                   Thread::delay_current_thread(delay);
                   thread_obj->obj_set("delay", jnt(0, NAT_FURI));
                 }
               } catch(const fError &e) {
                 LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
               }
-              Thread::yield_current_thread();
+              //Thread::yield_current_thread();
             }
             try {
               Thread::get_state(thread_obj)->halt();
@@ -124,7 +125,7 @@ namespace fhatos {
             }
             LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
           } catch(const fError &e) {
-            MODEL_STATES::singleton()->remove(*thread_obj->vid);
+            Thread::drop_state(thread_obj);
             throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
           }
         });
