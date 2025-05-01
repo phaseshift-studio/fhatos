@@ -17,26 +17,35 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_base_fs_hpp
-#define fhatos_base_fs_hpp
+#ifndef fhatos_fs_hpp
+#define fhatos_fs_hpp
 
-#include "../../../fhatos.hpp"
-#include "../../structure.hpp"
-#include "../../router.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../structure/structure.hpp"
+#include "../../../../structure/router.hpp"
 
 namespace fhatos {
 
-  const static ID FS_FURI = ID("/io/lib/fs");
+  const static auto FS_FURI = ID("/sys/lib/fs");
 
-  class BaseFS : public Structure {
+  class FS : public Structure {
 
   protected:
     ID root;
 
-    explicit BaseFS(const Pattern &pattern, const ID_p &value_id = nullptr,
-                    const Rec_p &config = Obj::to_rec({{"root", vri(".")}})) :
-      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
-    }
+    void write_raw_pairs(const ID &id, const Obj_p &obj, bool retain) override;
+
+    IdObjPairs read_raw_pairs(const fURI &match) override;
+  public:
+    explicit FS(const Pattern &pattern, const ID_p &value_id = nullptr,
+                      const Rec_p &config = Obj::to_rec({{"root", vri(".")}}));/* :
+        Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
+      }*/
+
+    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr,
+                          const Rec_p &config = Obj::to_rec());
+
+    static void load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
 
     ID map_fos_to_fs(const ID &fos_id) const {
       const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
@@ -50,11 +59,8 @@ namespace fhatos {
       return retracted_pattern.extend(fos_retracted_id);
     }
 
-  public:
-    template<typename STRUCTURE>
     static void *import(const ID &import_id) {
-      static_assert(std::is_base_of_v<BaseFS, STRUCTURE>, "STRUCTURE should be derived from BaseFS");
-      Router::import_structure<STRUCTURE>(import_id, FS_FURI);
+      Router::import_structure<FS>(import_id, FS_FURI);
       return nullptr;
     }
   };

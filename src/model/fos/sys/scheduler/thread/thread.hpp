@@ -92,19 +92,18 @@ namespace fhatos {
                                        ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
             thread_obj->obj_set("config/stack_size", jnt(stack_size));
             LOG_WRITE(INFO, thread_obj.get(),
-                      L("!ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                      L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                         thread_obj->obj_get("loop")->toString(),
                         thread_obj->obj_get("config/stack_size")->toString()));
 
-            const Inst_p thread_loop_inst = thread_obj->is_rec() && thread_obj->has("loop")
+            const Inst_p thread_loop_inst = mmADT::delift(thread_obj->is_rec() && thread_obj->has("loop")
                                               ? thread_obj->obj_get("loop")
                                               : Compiler(false, false).resolve_inst(
-                                                  thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+                                                  thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"))));
             while(!thread_obj->obj_get("halt")->or_else_(false)) {
               FEED_WATCHDOG();
               try {
-                //this_thread.store(current.get());
-                mmADT::delift(thread_loop_inst)->apply(thread_obj);
+                thread_loop_inst->apply(thread_obj);
                 if(const int delay = thread_obj->obj_get("delay")->or_else_(0); delay > 0) {
                   Thread::delay_current_thread(delay);
                   thread_obj->obj_set("delay", jnt(0, NAT_FURI));
@@ -112,7 +111,6 @@ namespace fhatos {
               } catch(const fError &e) {
                 LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
               }
-              //Thread::yield_current_thread();
             }
             try {
               Thread::get_state(thread_obj)->halt();

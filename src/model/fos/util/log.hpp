@@ -44,7 +44,7 @@ namespace fhatos {
   public:
     explicit Log(const ID &value_id, const Rec_p &config) :
       Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
-      printer<>()->printf("!g[INFO]  [!m%s!g] switching from !yboot logger!! to !ysystem logger!!\n",
+      printer<>()->printf("!g[INFO]  [!m%s!g] !yboot logger!g/!ysystem logger!! swapped\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
         PRIMARY_LOGGING(log_type, source, message);

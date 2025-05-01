@@ -87,11 +87,10 @@ namespace fhatos {
         ->mount(Heap<>::create(FOS_URI "/#"))
         ->import(fOS::import_q_procs())
         ->import(mmadt::mmADT::import())
+        ->import(fOS::import_util())
+        ->import(fOS::import_ui())
         ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
-        ->import(Log::import())
-        //->import(Console::import("/io/lib/console"))
-        ->install(Terminal::singleton("/io/terminal"))
         ->install(Log::create("/io/log",
                               Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
                               ->or_else(Obj::to_rec({

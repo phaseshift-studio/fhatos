@@ -25,6 +25,7 @@
 #include "../../model.hpp"
 #include "terminal.hpp"
 #include "../../../lang/type.hpp"
+#include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
 #include "../../../../extern/fmt/include/fmt/core.h"
 

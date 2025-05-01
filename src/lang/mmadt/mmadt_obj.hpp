@@ -61,9 +61,9 @@ namespace mmadt {
     static void *import();
 
     static Obj_p delift(const Obj_p &obj) {
-      if(obj->is_not_empty_bcode() && obj->bcode_value()->front()->inst_op() == "lift")
+      if(obj->is_not_empty_bcode() && obj->bcode_value()->front()->tid->equals(MMADT_PREFIX "lift"))
         return obj->bcode_value()->front()->arg(0);
-      if(obj->is_inst() && obj->inst_op() == "lift")
+      if(obj->is_inst() && obj->tid->equals(MMADT_PREFIX "lift"))
         return obj->arg(0);
       return obj;
     }

@@ -15,11 +15,11 @@
  vm=>[stack_size=>32384],
  mqtt=>[
   broker=><mqtt://chibi.local:1883>,
-  client=>fhatos_client,
+  client=>fos_native,
   async=>true,
   cache_size=>50],
- wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fhatos],
- ota=>[host=>mdns://fhatos_client:3232],
+ wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fos_native],
+ ota=>[host=>mdns://fos_native:3232],
  console=>[
   terminal=>[
    stdout=>/io/terminal/:stdout,
@@ -34,5 +34,5 @@
   stack_size=>16192,
   stack_trace=>true
  ],
- fs=>[root=><./data/fs>]
+ fs=>[root=></mnt/fs>]
 ]@/boot/config

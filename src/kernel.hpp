@@ -20,8 +20,7 @@
 #define fhatos_kernel_hpp
 
 #include "fhatos.hpp"
-//#include STR(process/ptype/HARDWARE/scheduler.hpp)
-#include STR(structure/stype/fs/HARDWARE/fs.hpp)
+#include "model/fos/io/fs/fs.hpp"
 #include "model/fos/sys/scheduler/thread/thread.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "lang/mmadt/parser.hpp"
@@ -180,10 +179,10 @@ namespace fhatos {
       Obj_p config_obj = Obj::to_noobj();
       // boot from header file, file system, or wifi
       if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
-        fhatos::FSx::load_boot_config(boot_config_loader);
+        fhatos::FS::load_boot_config(boot_config_loader);
         if(boot_config_obj_copy_len > 0) {
           LOG_WRITE(INFO, Router::singleton().get(),
-                    L("!b{} !yboot config file!! loaded (size: {} bytes)\n",
+                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n",
                       boot_config_loader.toString(), boot_config_obj_copy_len));
           to_free_boot = true;
         }
@@ -199,7 +198,7 @@ namespace fhatos {
       }
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         Memory::singleton()->use_custom_stack(
-            InstBuilder::build("boot_helper")
+            InstBuilder::build("boot_loader_stack")
             ->inst_f([](const Obj_p &, const InstArgs &args) {
               mmadt::Parser::load_boot_config();
               return Obj::to_noobj();

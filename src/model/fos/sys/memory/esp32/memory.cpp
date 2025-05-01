@@ -22,86 +22,90 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   static thread_local auto CUSTOM_STACK = new std::stack<Obj_p>();
 
-   Rec_p Memory::main_memory() const {
+  Rec_p Memory::main_memory() const {
     return Obj::to_rec({{"total", jnt(ESP.getHeapSize())},
-      {"free", jnt(ESP.getFreeHeap())},
-      {"used", real(static_cast<float>(ESP.getHeapSize()) == 0
-                      ? 0.0f
-                      : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<
-                                             float>(ESP.
-                                             getHeapSize())))), REAL_FURI)}});
+                        {"free", jnt(ESP.getFreeHeap())},
+                        {"used", real(static_cast<float>(ESP.getHeapSize()) == 0
+                                        ? 0.0f
+                                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeHeap()) / static_cast<
+                                                               float>(ESP.
+                                                               getHeapSize())))), REAL_FURI)}});
   }
 
   Rec_p Memory::inst_memory() const {
-     return Obj::to_rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
-       {"free", jnt(ESP.getFreeSketchSpace())},
-       {"used", real(ESP.getSketchSize() == 0
-                       ? 0.0f
-                       : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) /
-                                            static_cast<float>(
-                                              ESP.getSketchSize() + ESP.getFreeSketchSpace())))),
-                     REAL_FURI)}});
-   }
+    return Obj::to_rec({{"total", jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
+                        {"free", jnt(ESP.getFreeSketchSpace())},
+                        {"used", real(ESP.getSketchSize() == 0
+                                        ? 0.0f
+                                        : (100.0f * (1.0f - (static_cast<float>(ESP.getFreeSketchSpace()) /
+                                                             static_cast<float>(
+                                                               ESP.getSketchSize() + ESP.getFreeSketchSpace())))),
+                                      REAL_FURI)}});
+  }
 
-   Rec_p Memory::psram_memory() const {
-     return Obj::to_rec({{"total", jnt(ESP.getPsramSize())},
-       {"free", jnt(ESP.getFreePsram())},
-       {"used",
-         real(static_cast<float>(ESP.getPsramSize()) == 0
-                ? 0.0f
-                : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
-                                       getPsramSize())))), REAL_FURI)}});
-   }
+  Rec_p Memory::psram_memory() const {
+    return Obj::to_rec({{"total", jnt(ESP.getPsramSize())},
+                        {"free", jnt(ESP.getFreePsram())},
+                        {"used",
+                         real(static_cast<float>(ESP.getPsramSize()) == 0
+                                ? 0.0f
+                                : (100.0f * (1.0f - (static_cast<float>(ESP.getFreePsram()) / static_cast<float>(ESP.
+                                                       getPsramSize())))), REAL_FURI)}});
+  }
 
-   Rec_p Memory::high_water_mark() const {
-     const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-     return Obj::to_rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
-       {"min_free", jnt(free)},
-       {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
-                       ? 0.0f
-                       : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
-                                      FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
-   }
+  Rec_p Memory::high_water_mark() const {
+    const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+    return Obj::to_rec({{"total", jnt(FOS_ESP_THREAD_STACK_SIZE)},
+                        {"min_free", jnt(free)},
+                        {"used", real(FOS_ESP_THREAD_STACK_SIZE == 0
+                                        ? 0.0f
+                                        : (100.0f * (1.0f - static_cast<float>(free) / static_cast<float>(
+                                                       FOS_ESP_THREAD_STACK_SIZE))), REAL_FURI)}});
+  }
 
-   Rec_p Memory::cpu_frequency() const {
-     return Obj::to_rec({{"freq", jnt(ESP.getCpuFreqMHz())}});
-   }
+  Rec_p Memory::cpu_frequency() const {
+    return Obj::to_rec({{"freq", jnt(ESP.getCpuFreqMHz())}});
+  }
 
   Obj_p Memory::internal_use_custom_stack(const Inst_p &inst, const Obj_p &lhs, const int stack_size) {
-      if(stack_size <= 0)
-        return std::holds_alternative<Obj_p>(inst->inst_f())
-                 ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
-                 : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
-      /////////////////////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////////////////////////////////////////////
-      //Allocate a stack buffer, from heap or as a static form:
-      //LOG_WRITE(WARN,inst.get(),L("!yusing custom stack !g[!ysize!!:{}!g]!!\n",stack_size));
-      int arch_specific_stack_size = stack_size * sizeof(portSTACK_TYPE);
-      portSTACK_TYPE *custom_stack =  (portSTACK_TYPE *) ps_malloc(arch_specific_stack_size);
-      assert(custom_stack != NULL);
-      if(!psramInit())
-        LOG_WRITE(WARN, inst.get(), L("!ycustom stack!! could not be created in psram ({} bytes)\n", stack_size));
-      CUSTOM_STACK->push(inst);
-      CUSTOM_STACK->push(lhs);
-      //Allocate a mutex to protect its usage:
-      SemaphoreHandle_t custom_stack_lock = xSemaphoreCreateMutex();
-      assert(custom_stack_lock != NULL);
-      ESP_EXECUTE_EXPRESSION_WITH_STACK(custom_stack_lock, custom_stack, arch_specific_stack_size, []() {
-        const Obj_p lhs = CUSTOM_STACK->top();
-        CUSTOM_STACK->pop();
-        const Inst_p inst = CUSTOM_STACK->top();
-        CUSTOM_STACK->pop();
-        const Obj_p rhs = std::holds_alternative<Obj_p>(inst->inst_f())
-                            ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
-                            : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
-        CUSTOM_STACK->push(rhs);
-      });
-      vSemaphoreDelete(custom_stack_lock);
-      free(custom_stack);
-      const Obj_p rhs = CUSTOM_STACK->top();
-      CUSTOM_STACK->pop();
-      return rhs;
-      //LOG_WRITE(DEBUG,Scheduler::singleton().get(),L("!ytemporary stack!! destroyed ({} bytes)\n",stack_size));
-    }
+    if(stack_size <= 0)
+      return std::holds_alternative<Obj_p>(inst->inst_f())
+               ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+               : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    //Allocate a stack buffer, from heap or as a static form:
+    //LOG_WRITE(WARN,inst.get(),L("!yusing custom stack !g[!ysize!!:{}!g]!!\n",stack_size));
+    const unsigned int arch_specific_stack_size = stack_size * sizeof(portSTACK_TYPE);
+    auto *custom_stack = static_cast<uint8_t *>(ps_malloc(arch_specific_stack_size));
+    if(!custom_stack || !psramInit())
+      throw fError::create(this->vid->toString(),
+                           "!ycustom stack!! allocation failed in psram (%s bytes)",
+                           stack_size);
+    CUSTOM_STACK->push(inst);
+    CUSTOM_STACK->push(lhs);
+    //Allocate a mutex to protect its usage:
+    const SemaphoreHandle_t custom_stack_lock = xSemaphoreCreateMutex();
+    assert(custom_stack_lock != nullptr);
+    ESP_EXECUTE_EXPRESSION_WITH_STACK(custom_stack_lock,
+                                      custom_stack,
+                                      arch_specific_stack_size,
+                                      []() {
+                                      const Obj_p lhs = CUSTOM_STACK->top();
+                                      CUSTOM_STACK->pop();
+                                      const Inst_p inst = CUSTOM_STACK->top();
+                                      CUSTOM_STACK->pop();
+                                      const Obj_p rhs = std::holds_alternative<Obj_p>(inst->inst_f())
+                                      ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+                                      : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
+                                      CUSTOM_STACK->push(rhs);
+                                      });
+    vSemaphoreDelete(custom_stack_lock);
+    free(custom_stack);
+    const Obj_p rhs = CUSTOM_STACK->top();
+    CUSTOM_STACK->pop();
+    return rhs;
+    //LOG_WRITE(DEBUG,Scheduler::singleton().get(),L("!ytemporary stack!! destroyed ({} bytes)\n",stack_size));
+  }
 }
 #endif

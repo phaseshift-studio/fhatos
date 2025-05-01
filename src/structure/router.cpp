@@ -300,9 +300,7 @@ namespace fhatos {
         if(const auto p = Pattern(*s->pattern); pattern.bimatches(p)) {
           if(found && throw_on_error)
             throw fError("!b%s!! crosses multiple structures", pattern.toString().c_str());
-            //LOG_WRITE(WARN, this,L("!b{}!! crosses multiple structures", pattern.toString()));
-          else
-            found = s;
+          found = s;
         }
       }
     }

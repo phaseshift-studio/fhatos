@@ -25,14 +25,14 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_SCHEDULER
 //#define FOS_DEPLOY_SHARED_MEMORY /io/#
 #include "../../../../src/fhatos.hpp"
-#include "../../../test_fhatos.hpp"
-#include STR(../../../../src/structure/stype/fs/HARDWARE/fs.hpp)
-#include "../generic_structure_test.hpp"
+#include "../../../../test_fhatos.hpp"
+#include "../../../../src/model/fos/io/fs/fs.hpp"
+#include "../../../../structure/stype/generic_structure_test.hpp"
 
 namespace fhatos {
   using namespace mmadt;
 
-  Structure_p test_structure = std::make_shared<FSx>("/fs/xyz/#",id_p("/sys/test"),Obj::to_rec({{"root",vri("./fs")}}));
+  Structure_p test_structure = std::make_shared<FS>("/fs/xyz/#",id_p("/sys/test"),Obj::to_rec({{"root",vri("./fs")}}));
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////

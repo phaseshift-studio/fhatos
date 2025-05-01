@@ -206,6 +206,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 SET(FOS_MACHINE_SUBOS ${CMAKE_SYSTEM})
 SET(FOS_MACHINE_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+SET(FOS_BOOT_CONFIG_FS_URI "/boot/boot_config.obj")
 MESSAGE(NOTICE "
 \t  \t${.m}-----${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pr${.m}op${.y}eR${.g}Ti${.r}Es${.m}-----${..}
 \t  ${.g}PROJECT_NAME${..}                  : ${PROJECT_NAME}
@@ -227,6 +228,7 @@ MESSAGE(NOTICE "
 \t  ${.y}FOS_MACHINE_SUBOS${..}          : ${FOS_MACHINE_SUBOS}
 \t  ${.y}FOS_MACHINE_ARCH${..}           : ${FOS_MACHINE_ARCH}
 \t  ${.y}FOS_MACHINE_MODEL${..}          : ${FOS_MACHINE_MODEL}
+\t  ${.y}FOS_BOOT_CONFIG_FS_URI${..}     : ${FOS_BOOT_CONFIG_FS_URI}
 \t  ${.y}PLATFORM${..}                   : ${PLATFORM}
 \t  ${.y}CMAKE_SYSTEM_NAME${..}          : ${CMAKE_SYSTEM_NAME}
 \t  ${.y}CMAKE_C_COMPILER${..}           : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
