@@ -137,6 +137,10 @@ namespace fhatos {
       Rec(*rec) {
     }
 
+    void post() const {
+      ROUTER_WRITE(this->pattern()->query("sub"),this->shared_from_this(),true);
+    }
+
     explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) :
       Rec(rmap({
               {"source", vri(source)},

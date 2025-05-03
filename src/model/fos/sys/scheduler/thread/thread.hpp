@@ -19,11 +19,11 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_thread_hpp
 #define fhatos_thread_hpp
 #include "../../../../../fhatos.hpp"
-#include "../../../../../lang/type.hpp"
-#include "../../../../../lang/obj.hpp"
-#include "../../../../model.hpp"
-#include "../../../../fos/sys/memory/memory.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../../../../lang/type.hpp"
+#include "../../../../fos/sys/memory/memory.hpp"
+#include "../../../../model.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -72,7 +72,7 @@ namespace fhatos {
 
     static void yield_current_thread() {
 #ifdef ESP_PLATFORM
-      //vTaskDelay(1 / portTICK_PERIOD_MS);
+      // vTaskDelay(1 / portTICK_PERIOD_MS);
       taskYIELD();
 #else
       std::this_thread::yield();
@@ -82,8 +82,7 @@ namespace fhatos {
     void halt();
 
     explicit Thread(
-        const Obj_p &thread_obj,
-        const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
+        const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
           try {
             // const ptr<Thread> current = Thread::get_state(thread_obj);
             thread_obj->obj_set("halt", dool(false));
@@ -91,25 +90,22 @@ namespace fhatos {
                 Memory::get_stack_size(thread_obj, "config/stack_size",
                                        ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
             thread_obj->obj_set("config/stack_size", jnt(stack_size));
+            const Obj_p thread_loop_obj =
+                thread_obj->is_rec() && thread_obj->has("loop")
+                    ? thread_obj->obj_get("loop")
+                    : Compiler(false, false)
+                          .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                 id_p(thread_obj->vid->extend("loop"))));
+            const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
             LOG_WRITE(INFO, thread_obj.get(),
-                      L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                        thread_obj->obj_get("loop")->toString(),
-                        thread_obj->obj_get("config/stack_size")->toString()));
-
-            const Inst_p thread_loop_inst = mmADT::delift(thread_obj->is_rec() && thread_obj->has("loop")
-                                              ? thread_obj->obj_get("loop")
-                                              : Compiler(false, false).resolve_inst(
-                                                  thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"))));
+                L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                  thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
             while(!thread_obj->obj_get("halt")->or_else_(false)) {
               FEED_WATCHDOG();
               try {
                 thread_loop_inst->apply(thread_obj);
-                if(const int delay = thread_obj->obj_get("delay")->or_else_(0); delay > 0) {
-                  Thread::delay_current_thread(delay);
-                  thread_obj->obj_set("delay", jnt(0, NAT_FURI));
-                }
               } catch(const fError &e) {
-                LOG_WRITE(ERROR, thread_obj.get(),L("!rthread error!!: {}", e.what()));
+                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread error!!: {}", e.what()));
               }
             }
             try {
@@ -118,8 +114,7 @@ namespace fhatos {
 
             } catch(const fError &e) {
               Thread::drop_state(thread_obj);
-              throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s",
-                                   e.what());
+              throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
             }
             LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
           } catch(const fError &e) {
@@ -128,23 +123,19 @@ namespace fhatos {
           }
         });
 
-    static ptr<Thread> create_state(const Obj_p &thread_obj) {
-      return make_shared<Thread>(thread_obj);
-    }
+    static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }
 
     static void *import() {
-      const Rec_p thread_t = Obj::to_rec({
-          {"loop", __()},
-          {"delay", __().else_(jnt(0, NAT_FURI))},
-          {"halt", __().else_(dool(true))}
-      });
+      const Rec_p thread_t =
+          Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}});
       Typer::singleton()->save_type(*THREAD_FURI, thread_t);
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
           ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
             ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
             return Obj::to_noobj();
-          })->save();
+          })
+          ->save();
       return nullptr;
     }
   };

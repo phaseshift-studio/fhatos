@@ -32,13 +32,13 @@ namespace fhatos {
   using namespace mmadt;
 
   void test_thread_creation() {
-    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>1,delay=>nat[10],halt=>true]]"),
-                       PROCESS("thread[[loop=>1,delay=>nat[10],halt=>true]]"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>2,delay=>nat[2],halt=>true]]"),
-                       PROCESS("thread[[loop=>2,delay=>nat[2]]]"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>3,delay=>nat[0],halt=>false]]"),
+    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>1,halt=>true]]"),
+                       PROCESS("thread[[loop=>1,halt=>true]]"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>2,halt=>true]]"),
+                       PROCESS("thread[[loop=>2]]"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>3,halt=>false]]"),
                        PROCESS("thread[[loop=>3,halt=>false]]"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>4,delay=>nat[0],halt=>true]]"),
+    FOS_TEST_OBJ_EQUAL(PROCESS("thread[[loop=>4,halt=>true]]"),
                        PROCESS("thread[[loop=>4]]"));
     FOS_TEST_ERROR("thread[[=>]]");
   }

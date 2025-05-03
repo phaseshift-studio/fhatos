@@ -17,14 +17,14 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #include "compiler.hpp"
+#include "../../model/fos/util/log.hpp"
+#include "../../structure/router.hpp"
 #include "../../util/obj_helper.hpp"
 #include "../obj.hpp"
-#include "../../structure/router.hpp"
-#include "../../model/fos/util/log.hpp"
 
+using std::make_tuple;
 using std::tuple;
 using std::vector;
-using std::make_tuple;
 
 namespace fhatos {
   // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
@@ -56,25 +56,31 @@ namespace fhatos {
       }
       int counter = 0;
       derivation_string->append(StringHelper::format(string("\n\t%")
-                                                     .append("8").append("s !y%-")
-                                                     .append(to_string(max_0)).append("s  !y%-")
-                                                     .append(to_string(max_1)).append("s    !y%-")
-                                                     .append(to_string(max_2)).append("s!!").c_str(),
-                                                     "   ",
-                                                     "lhs id",
-                                                     "inst id",
-                                                     "resolve obj"));
+                                                         .append("8")
+                                                         .append("s !y%-")
+                                                         .append(to_string(max_0))
+                                                         .append("s  !y%-")
+                                                         .append(to_string(max_1))
+                                                         .append("s    !y%-")
+                                                         .append(to_string(max_2))
+                                                         .append("s!!")
+                                                         .c_str(),
+                                                     "   ", "lhs id", "inst id", "resolve obj"));
       for(const auto &oir: *this->dt) {
         counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
         if(counter != 0) {
           string indent = StringHelper::repeat(counter, "-").append("!g>!!");
           derivation_string->append(StringHelper::format(string("\n\t!m%")
-                                                         .append("8").append("s!g[!b%-")
-                                                         .append(to_string(max_0)).append("s!g] !b%-")
-                                                         .append(to_string(max_1)).append("s!! !m=>!m !b%-")
-                                                         .append(to_string(max_2)).append("s!!").c_str(),
-                                                         indent.c_str(),
-                                                         std::get<0>(oir)->toString().c_str(),
+                                                             .append("8")
+                                                             .append("s!g[!b%-")
+                                                             .append(to_string(max_0))
+                                                             .append("s!g] !b%-")
+                                                             .append(to_string(max_1))
+                                                             .append("s!! !m=>!m !b%-")
+                                                             .append(to_string(max_2))
+                                                             .append("s!!")
+                                                             .c_str(),
+                                                         indent.c_str(), std::get<0>(oir)->toString().c_str(),
                                                          std::get<1>(oir)->toString().c_str(),
                                                          std::get<2>(oir)->toString().c_str()));
         }
@@ -85,10 +91,10 @@ namespace fhatos {
   }
 
   bool match_inst_args(const InstArgs &provided_inst, const InstArgs &resolved_inst) {
-    for(const auto &[kb,vb]: *resolved_inst->rec_value()) {
+    for(const auto &[kb, vb]: *resolved_inst->rec_value()) {
       bool found = false;
       if(vb->is_noobj()) {
-        for(const auto &[ka,va]: *provided_inst->rec_value()) {
+        for(const auto &[ka, va]: *provided_inst->rec_value()) {
           if(ka->match(kb))
             found = true;
         }
@@ -103,92 +109,87 @@ namespace fhatos {
   Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Obj_p &resolved_inst) const {
     if(resolved_inst->is_noobj())
       return Obj::to_noobj();
-    if(resolved_inst->is_inst()) {
-      const bool good = match_inst_args(provided_inst->inst_args(), resolved_inst->inst_args());
-      if(dt)
-        dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved_inst->vid_or_tid()->no_query()),
-                         resolved_inst);
-      return good ? resolved_inst : Obj::to_noobj();
-    }
-    const Inst_p inst = InstBuilder::build(provided_inst->vid_or_tid()->name())
-        ->inst_args(provided_inst->inst_args())
-        ->inst_f(resolved_inst)
-        ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(), resolved_inst->range(),
-                       resolved_inst->range_coefficient())
-        ->create();
-    LOG_WRITE(TRACE, resolved_inst.get(),
-              L("converting {} to inst {}\n", resolved_inst->toString(), inst->toString()));
-    return inst;
+    const Inst_p resolved =
+        Obj::to_inst(resolved_inst, resolved_inst->is_inst() ? resolved_inst->inst_args() : provided_inst->inst_args(),
+                     resolved_inst->is_inst() ? resolved_inst->tid : provided_inst->tid);
+    const bool good = match_inst_args(provided_inst->inst_args(), resolved->inst_args());
+    if(dt)
+      dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved->vid_or_tid()->no_query()), resolved);
+    return good ? resolved : Obj::to_noobj();
+    /* const Inst_p inst = InstBuilder::build(provided_inst->vid_or_tid()->name())
+                             ->inst_args(provided_inst->inst_args())
+                             ->inst_f(resolved_inst)
+                             ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(),
+                                            resolved_inst->range(), resolved_inst->range_coefficient())
+                             ->create();
+     //LOG_WRITE(TRACE, resolved_inst.get(), L("converting {} to inst {}\n", resolved_inst->toString(),
+     inst->toString()));
+     ///return inst;*/
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
-    //this->reset();
+    // this->reset();
     if(inst->is_noobj())
       return inst;
-    if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
-      return Obj::to_noobj();
+   // if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
+     // return Obj::to_noobj();
     Obj_p inst_obj = inst;
+    // inst_vid
+    if(inst_obj->is_inst_stub() && inst_obj->vid)
+      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(*inst->vid));
+    // obj field
     if(inst_obj->is_inst_stub()) {
-      // rec field
-      if(lhs->is_rec() && lhs->rec_get(*inst->tid)->is_code()) {
-        inst_obj = convert_to_inst(lhs, inst, lhs->rec_get(*inst->tid));
+      if(const Obj_p code = lhs->obj_get(inst->tid->name()); !code->is_noobj()) {
+        inst_obj = convert_to_inst(lhs, inst, code);
       }
-      if(inst_obj->is_inst_stub() && inst->vid && lhs->is_rec() && lhs->rec_get(*inst->vid)->is_code()) {
-        inst_obj = convert_to_inst(lhs, inst, lhs->rec_get(*inst->vid));
+    }
+    if(inst_obj->is_inst_stub() && inst_obj->vid) {
+      if(const Obj_p code = lhs->obj_get(*inst->vid); code->is_code())
+        inst_obj = convert_to_inst(lhs, inst, code);
+    }
+
+    // /obj_vid/::/inst_tid
+    if(inst_obj->is_inst_stub() && lhs->vid)
+      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->vid->add_component(inst->tid->no_query())));
+    // /obj_tid/::/inst_tid
+    if(inst_obj->is_inst_stub())
+      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->tid->add_component(inst->tid->no_query())));
+    // /obj_vid/::/resolved/inst_tid
+    const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
+    if(inst_obj->is_inst_stub() && lhs->vid)
+      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->vid->add_component(inst_type_id_resolved)));
+    // /obj_tid/::/resolved/inst_tid
+    if(inst_obj->is_inst_stub())
+      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->tid->add_component(inst_type_id_resolved)));
+    // /resolved/inst_tid
+    if(inst_obj->is_inst_stub())
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
+    // obj_tid/obj_tid (recurse)
+    if(inst_obj->is_inst_stub()) {
+      if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
+        inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
       }
-      // inst_vid
-      if(inst_obj->is_inst_stub() && inst_obj->vid)
-        inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(*inst->vid));
-      // /obj_vid/::/inst_tid
-      if(inst_obj->is_inst_stub() && lhs->vid)
+    }
+    if(inst_obj->is_inst_stub()) {
+      if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
         inst_obj = convert_to_inst(
-            lhs, inst, ROUTER_READ(lhs->vid->add_component(inst->tid->no_query())));
-      // /obj_tid/::/inst_tid
-      if(inst_obj->is_inst_stub())
-        inst_obj = convert_to_inst(
-            lhs, inst, ROUTER_READ(lhs->tid->add_component(inst->tid->no_query())));
-      // /obj_vid/::/resolved/inst_tid
-      const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
-      if(inst_obj->is_inst_stub() && lhs->vid)
-        inst_obj = convert_to_inst(
-            lhs, inst, ROUTER_READ(lhs->vid->add_component(inst_type_id_resolved)));
-      // /obj_tid/::/resolved/inst_tid
-      if(inst_obj->is_inst_stub())
-        inst_obj = convert_to_inst(
-            lhs, inst, ROUTER_READ(lhs->tid->add_component(inst_type_id_resolved)));
-      // /resolved/inst_tid
-      if(inst_obj->is_inst_stub())
-        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
-      // obj_tid/obj_tid (recurse)
-      if(inst_obj->is_inst_stub()) {
-        if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
-          inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
-        }
+            lhs, inst,
+            this->resolve_inst(
+                ROUTER_READ(ROUTER_READ(Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
+                inst_obj));
       }
-      if(inst_obj->is_inst_stub()) {
-        if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
-          inst_obj =
-              convert_to_inst(lhs,
-                              inst,
-                              this->resolve_inst(
-                                  ROUTER_READ(
-                                      ROUTER_READ(
-                                          Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
-                                  inst_obj));
-        }
+    }
+    if(this->throw_on_miss && inst_obj->is_inst_stub()) {
+      string derivation_string;
+      if(dt)
+        this->print_derivation_tree(&derivation_string);
+      else {
+        const auto c = Compiler(false, true);
+        c.resolve_inst(lhs, inst);
+        c.print_derivation_tree(&derivation_string);
       }
-      if(this->throw_on_miss && inst_obj->is_inst_stub()) {
-        string derivation_string;
-        if(dt)
-          this->print_derivation_tree(&derivation_string);
-        else {
-          const auto c = Compiler(false, true);
-          c.resolve_inst(lhs, inst);
-          c.print_derivation_tree(&derivation_string);
-        }
-        throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
-                     inst->vid_or_tid()->toString().c_str(), derivation_string.c_str());
-      }
+      throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
+                   inst->vid_or_tid()->toString().c_str(), derivation_string.c_str());
     }
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }
@@ -196,27 +197,24 @@ namespace fhatos {
   bool Compiler::in_block_list(const string &op) {
     const Lst_p block_list_obj = ROUTER_READ(MMADT_PREFIX "inst/blockers")->or_else(Obj::to_lst());
     const std::vector<Uri_p> *blocker_list = block_list_obj->lst_value().get();
-    const bool found = blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
-                                                           [&op](const Uri_p &u) {
-                                                             return u->uri_value().name() == op;
-                                                           });
-    //LOG_WRITE(INFO, str("here").get(), L("blockers {} {}: {}\n", op, dool(found)->toString(),
-    //                                     ROUTER_READ(MMADT_PREFIX "inst/blockers")->toString()));
+    const bool found =
+        blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
+                                            [&op](const Uri_p &u) { return u->uri_value().name() == op; });
+    // LOG_WRITE(INFO, str("here").get(), L("blockers {} {}: {}\n", op, dool(found)->toString(),
+    //                                      ROUTER_READ(MMADT_PREFIX "inst/blockers")->toString()));
     return found;
   }
 
   bool is_block_child(const Obj_p &obj) {
-    return (obj->is_bcode() &&
-            !obj->bcode_value()->empty() &&
+    return (obj->is_bcode() && !obj->bcode_value()->empty() &&
             Compiler::in_block_list(obj->bcode_value()->front()->inst_op())) ||
            (obj->is_inst() && Compiler::in_block_list(obj->inst_op()));
   }
 
   Obj_p get_child(const Obj_p &obj) {
-    if(obj->is_bcode() &&
-       1 == obj->bcode_value()->size() &&
-       Compiler::in_block_list(obj->bcode_value()->front()->inst_op()) && obj->bcode_value()->front()->inst_op() !=
-       "lift") {
+    if(obj->is_bcode() && 1 == obj->bcode_value()->size() &&
+       Compiler::in_block_list(obj->bcode_value()->front()->inst_op()) &&
+       obj->bcode_value()->front()->inst_op() != "lift") {
       return obj->bcode_value()->front()->inst_args()->arg(0);
     } else if(obj->is_inst() && Compiler::in_block_list(obj->inst_op()) && obj->inst_op() != "lift") {
       return obj->inst_args()->arg(0);
@@ -241,30 +239,27 @@ namespace fhatos {
         merged_args = inst_resolved_args->apply(inst_provided_args->apply(lhs));
       } else {
         int r_counter = 0;
-        for(const auto &[rk,rv]: *inst_resolved_args->rec_value()) {
+        for(const auto &[rk, rv]: *inst_resolved_args->rec_value()) {
           bool found = false;
-          for(const auto &[lk,lv]: *inst_provided_args->rec_value()) {
+          for(const auto &[lk, lv]: *inst_provided_args->rec_value()) {
             if(lk->match(rk)) {
               found = true;
-              merged_args->rec_set(
-                  rk, in_block_list(provided_inst->inst_op())
-                        ? lv
-                        : is_block_child(lv)
-                        ? get_child(lv)
-                        : rv->apply(lv->apply(lhs)));
+              merged_args->rec_set(rk, in_block_list(provided_inst->inst_op()) ? lv
+                                       : is_block_child(lv)                    ? get_child(lv)
+                                                                               : rv->apply(lv->apply(lhs)));
             }
           }
           if(!found)
             /* LOG_WRITE(INFO, rv.get(),L("\t{}\n\t{}\n\t{} ({},{})\n", rv->toString(), rv->type()->toString(),
-                                        rv->domain()->toString(), rv->domain_coefficient().first, rv->domain_coefficient().second));*/
+                                        rv->domain()->toString(), rv->domain_coefficient().first,
+               rv->domain_coefficient().second));*/
             merged_args->rec_set(
                 rk, inst_provided_args->is_indexed_args() && r_counter < inst_provided_args->rec_value()->size()
-                      ? in_block_list(provided_inst->inst_op()) || is_block_child(inst_provided_args->arg(r_counter))
-                          ? inst_provided_args->arg(r_counter)
-                          : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
-                      : rv->apply(is_else(rv)
-                                    ? Obj::to_noobj() // TODO: use pre-computed inst domain coefficent
-                                    : lhs)); // default arg
+                        ? in_block_list(provided_inst->inst_op()) || is_block_child(inst_provided_args->arg(r_counter))
+                              ? inst_provided_args->arg(r_counter)
+                              : rv->apply(inst_provided_args->arg(r_counter)->apply(lhs))
+                        : rv->apply(is_else(rv) ? Obj::to_noobj() // TODO: use pre-computed inst domain coefficent
+                                                : lhs)); // default arg
           r_counter++;
         }
       }
@@ -273,24 +268,14 @@ namespace fhatos {
           inst_resolved_args->toString().c_str(),
           inst_provided_args->toString().c_str(),
           merged_args->toString().c_str());*/
-      return Obj::to_inst(
-          resolved_inst->inst_op(),
-          merged_args,
-          resolved_inst->inst_f(),
-          resolved_inst->inst_seed_supplier(),
-          resolved_inst->tid,
-          provided_inst->vid);
+      return Obj::to_inst(resolved_inst->inst_op(), merged_args, resolved_inst->inst_f(),
+                          resolved_inst->inst_seed_supplier(), resolved_inst->tid, provided_inst->vid);
     } else {
       return Obj::to_inst(
-          provided_inst->inst_op(),
-          inst_provided_args,
+          provided_inst->inst_op(), inst_provided_args,
           InstF(make_shared<Cpp>(
-              [x = resolved_inst->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p {
-                return x->apply(lhs);
-              })),
-          provided_inst->inst_seed_supplier(),
-          provided_inst->tid,
-          provided_inst->vid);
+              [x = resolved_inst->clone()](const Obj_p &lhs, const InstArgs &) -> Obj_p { return x->apply(lhs); })),
+          provided_inst->inst_seed_supplier(), provided_inst->tid, provided_inst->vid);
     }
   }
 
@@ -322,13 +307,12 @@ namespace fhatos {
        return this->type_check(ROUTER_READ(*value_obj->range()),type_id);*/
     auto fail_reason = std::stack<string>();
     if(obj->is_noobj()) {
-      if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF);
-        !coef.empty() && stoi(coef.front()) == 0) {
+      if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {
         return true;
       }
     }
     if(obj->is_rec()) {
-      for(const auto &[k,v]: *obj->rec_value()) {
+      for(const auto &[k, v]: *obj->rec_value()) {
         if(k->is_uri() && k->uri_value().has_query()) {
           if(!this->type_check(v, k->uri_value().query()))
             return false;
@@ -344,7 +328,8 @@ namespace fhatos {
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
     // if(obj->tid->equals(type_no_query_id))
     //   return true;
-    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code
+    // equivalence
     if(obj->otype == OType::TYPE || obj->otype == OType::INST || obj->otype == OType::BCODE)
       return true;
     if(type_no_query_id.equals(*NOOBJ_FURI) && (obj->otype == OType::NOOBJ || obj->tid->equals(*OBJ_FURI)))
@@ -382,4 +367,4 @@ namespace fhatos {
     return false;
   }
 
-};
+}; // namespace fhatos

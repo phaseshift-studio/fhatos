@@ -31,15 +31,15 @@
 #define MMADT_INST_SCHEME COMPONENT_SEPARATOR MMADT_SCHEME
 #define MMADT_SCHEME "/mmadt"
 
-#include "../fhatos.hpp"
-#include "../furi.hpp"
-#include "../util/tsl/ordered_map.h"
-#include "../util/string_helper.hpp"
-#include "mmadt/compiler.hpp"
-#include <utility>
-#include <variant>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <utility>
+#include <variant>
+#include "../fhatos.hpp"
+#include "../furi.hpp"
+#include "../util/string_helper.hpp"
+#include "../util/tsl/ordered_map.h"
+#include "mmadt/compiler.hpp"
 #ifdef ESP_PLATFORM
 #include "esp_task_wdt.h"
 #endif
@@ -78,21 +78,20 @@ namespace fhatos {
     ERROR
   };
 
-  static const auto OTypes = Enums<OType>({
-      {OType::OBJ, "obj"},
-      {OType::NOOBJ, "noobj"},
-      {OType::TYPE, "type"},
-      {OType::OBJS, "objs"},
-      {OType::BOOL, "bool"},
-      {OType::INT, "int"},
-      {OType::REAL, "real"},
-      {OType::URI, "uri"},
-      {OType::STR, "str"},
-      {OType::LST, "lst"},
-      {OType::REC, "rec"},
-      {OType::INST, "inst"},
-      {OType::BCODE, "bcode"},
-      {OType::ERROR, "error"}});
+  static const auto OTypes = Enums<OType>({{OType::OBJ, "obj"},
+                                           {OType::NOOBJ, "noobj"},
+                                           {OType::TYPE, "type"},
+                                           {OType::OBJS, "objs"},
+                                           {OType::BOOL, "bool"},
+                                           {OType::INT, "int"},
+                                           {OType::REAL, "real"},
+                                           {OType::URI, "uri"},
+                                           {OType::STR, "str"},
+                                           {OType::LST, "lst"},
+                                           {OType::REC, "rec"},
+                                           {OType::INST, "inst"},
+                                           {OType::BCODE, "bcode"},
+                                           {OType::ERROR, "error"}});
 
   class Obj;
 
@@ -144,22 +143,14 @@ namespace fhatos {
   }
 
   const Map<const Pair<IntCoefficient, IntCoefficient>, string> SIGNATURE_DESCRIPTIONS = {
-      {{{0, 0}, {0, 0}}, ".->. (transient)"},
-      {{{0, 0}, {1, 1}}, ".->o (supplier)"},
-      {{{0, 0}, {0,INT_MAX}}, ".->* (initial)"},
-      {{{1, 1}, {0, 0}}, "o->. (consumer)"},
-      {{{0,INT_MAX}, {0, 0}}, "*->. (terminal)"},
-      {{{1, 1}, {1, 1}}, "o->o (map)"},
-      {{{1, 1}, {0,INT_MAX}}, "o->* (flatmap)"},
-      {{{0, 1}, {1,INT_MAX}}, "?->* (potential)"},
-      {{{0, 1}, {0, 0}}, "?->o (flip)"},
-      {{{0, 1}, {0, 0}}, "?->. (spark)"},
-      {{{0, 1}, {0, 1}}, "?->? (flux)"},
-      {{{1, 1}, {0, 1}}, "o->? (filter)"},
-      {{{0, 0}, {0, 1}}, ".->? (check)"},
-      {{{0, 1}, {0, 1}}, "?-? (strain)"},
-      {{{0,INT_MAX}, {1, 1}}, "*->o (reduce)"},
-      {{{0,INT_MAX}, {0,INT_MAX}}, "*->* (barrier)"},
+      {{{0, 0}, {0, 0}}, ".->. (transient)"},      {{{0, 0}, {1, 1}}, ".->o (supplier)"},
+      {{{0, 0}, {0, INT_MAX}}, ".->* (initial)"},  {{{1, 1}, {0, 0}}, "o->. (consumer)"},
+      {{{0, INT_MAX}, {0, 0}}, "*->. (terminal)"}, {{{1, 1}, {1, 1}}, "o->o (map)"},
+      {{{1, 1}, {0, INT_MAX}}, "o->* (flatmap)"},  {{{0, 1}, {1, INT_MAX}}, "?->* (potential)"},
+      {{{0, 1}, {0, 0}}, "?->o (flip)"},           {{{0, 1}, {0, 0}}, "?->. (spark)"},
+      {{{0, 1}, {0, 1}}, "?->? (flux)"},           {{{1, 1}, {0, 1}}, "o->? (filter)"},
+      {{{0, 0}, {0, 1}}, ".->? (check)"},          {{{0, 1}, {0, 1}}, "?-? (strain)"},
+      {{{0, INT_MAX}, {1, 1}}, "*->o (reduce)"},   {{{0, INT_MAX}, {0, INT_MAX}}, "*->* (barrier)"},
   };
   using InstArgs = Rec_p;
   using Cpp = BiFunction<const Obj_p, const InstArgs, Obj_p>;
@@ -195,18 +186,11 @@ namespace fhatos {
     fURI range;
     IntCoefficient rng_coeff;
 
-    explicit DomainRange(const fURI &domain, IntCoefficient dom_coeff, const fURI &range,
-                         IntCoefficient rng_coeff) :
-      domain{domain},
-      dom_coeff{std::move(dom_coeff)},
-      range{range},
-      rng_coeff{std::move(rng_coeff)} {
-    }
+    explicit DomainRange(const fURI &domain, IntCoefficient dom_coeff, const fURI &range, IntCoefficient rng_coeff) :
+        domain{domain}, dom_coeff{std::move(dom_coeff)}, range{range}, rng_coeff{std::move(rng_coeff)} {}
 
     [[nodiscard]] bool equals(const DomainRange &other) const {
-      return this->domain == other.domain &&
-             this->dom_coeff == other.dom_coeff &&
-             this->range == other.range &&
+      return this->domain == other.domain && this->dom_coeff == other.dom_coeff && this->range == other.range &&
              this->rng_coeff == other.rng_coeff;
     }
 
@@ -225,35 +209,32 @@ namespace fhatos {
     static DomainRange from(const fURI &furi) {
       const std::vector<string> dom_coeff_str = furi.query_values(FOS_DOM_COEF);
       const IntCoefficient dom_coeff = dom_coeff_str.empty()
-                                         ? IntCoefficient(1, 1)
-                                         : IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1)));
+                                           ? IntCoefficient(1, 1)
+                                           : IntCoefficient(stoi(dom_coeff_str.at(0)), stoi(dom_coeff_str.at(1)));
       const std::vector<string> rng_coeff_str = furi.query_values(FOS_RNG_COEF);
       const IntCoefficient rng_coeff = rng_coeff_str.empty()
-                                         ? IntCoefficient(1, 1)
-                                         : IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)));
-      const auto dr = DomainRange(fURI(furi.query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())),
-                                  dom_coeff,
-                                  fURI(furi.query_value(FOS_RANGE).value_or(furi.no_query().toString())),
-                                  rng_coeff);
+                                           ? IntCoefficient(1, 1)
+                                           : IntCoefficient(stoi(rng_coeff_str.at(0)), stoi(rng_coeff_str.at(1)));
+      const auto dr = DomainRange(fURI(furi.query_value(FOS_DOMAIN).value_or(OBJ_FURI->toString())), dom_coeff,
+                                  fURI(furi.query_value(FOS_RANGE).value_or(furi.no_query().toString())), rng_coeff);
       return dr;
     }
   };
 
-  static const std::map<OType, ID_p> OTYPE_FURI = {{
-      {OType::NOOBJ, NOOBJ_FURI},
-      {OType::OBJ, OBJ_FURI},
-      {OType::TYPE, TYPE_FURI},
-      {OType::OBJS, OBJS_FURI},
-      {OType::URI, URI_FURI},
-      {OType::BOOL, BOOL_FURI},
-      {OType::INT, INT_FURI},
-      {OType::REAL, REAL_FURI},
-      {OType::STR, STR_FURI},
-      {OType::LST, LST_FURI},
-      {OType::REC, REC_FURI},
-      {OType::INST, INST_FURI},
-      {OType::BCODE, BCODE_FURI},
-      {OType::ERROR, ERROR_FURI}}};
+  static const std::map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
+                                                    {OType::OBJ, OBJ_FURI},
+                                                    {OType::TYPE, TYPE_FURI},
+                                                    {OType::OBJS, OBJS_FURI},
+                                                    {OType::URI, URI_FURI},
+                                                    {OType::BOOL, BOOL_FURI},
+                                                    {OType::INT, INT_FURI},
+                                                    {OType::REAL, REAL_FURI},
+                                                    {OType::STR, STR_FURI},
+                                                    {OType::LST, LST_FURI},
+                                                    {OType::REC, REC_FURI},
+                                                    {OType::INST, INST_FURI},
+                                                    {OType::BCODE, BCODE_FURI},
+                                                    {OType::ERROR, ERROR_FURI}}};
 
   static const Map<ID, OType> FURI_OTYPE = {{{*NOOBJ_FURI, OType::NOOBJ},
                                              {*OBJ_FURI, OType::OBJ},
@@ -282,102 +263,60 @@ namespace fhatos {
     bool ansi;
     bool propagate;
 
-    [[nodiscard]] const ObjPrinter *next() const {
-      return this->propagate ? this : nullptr;
-    }
+    [[nodiscard]] const ObjPrinter *next() const { return this->propagate ? this : nullptr; }
 
     [[nodiscard]] unique_ptr<ObjPrinter> clone() const {
-      return make_unique<ObjPrinter>(ObjPrinter{
-          this->show_id,
-          this->show_type,
-          this->show_domain_range,
-          this->strict,
-          this->ansi,
-          this->propagate});
+      return make_unique<ObjPrinter>(ObjPrinter{this->show_id, this->show_type, this->show_domain_range, this->strict,
+                                                this->ansi, this->propagate});
     }
   };
 
-  static auto NO_ANSI_PRINTER = new ObjPrinter{
-      .show_id = true,
-      .show_type = true,
-      .show_domain_range = false,
-      .strict = false,
-      .ansi = false,
-      .propagate = false
-  };
+  static auto NO_ANSI_PRINTER = new ObjPrinter{.show_id = true,
+                                               .show_type = true,
+                                               .show_domain_range = false,
+                                               .strict = false,
+                                               .ansi = false,
+                                               .propagate = false};
   static auto SERIALIZER_PRINTER = new ObjPrinter{
-      .show_id = true,
-      .show_type = true,
-      .show_domain_range = true,
-      .strict = true,
-      .ansi = false,
-      .propagate = true
-  };
-  static auto DEFAULT_OBJ_PRINTER = new ObjPrinter{
-      .show_id = true,
-      .show_type = true,
-      .show_domain_range = false,
-      .strict = false,
-      .ansi = true,
-      .propagate = false
-  };
+      .show_id = true, .show_type = true, .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
+  static auto DEFAULT_OBJ_PRINTER = new ObjPrinter{.show_id = true,
+                                                   .show_type = true,
+                                                   .show_domain_range = false,
+                                                   .strict = false,
+                                                   .ansi = true,
+                                                   .propagate = false};
   static auto DEFAULT_INST_PRINTER = new ObjPrinter{
-      .show_id = true,
-      .show_type = true,
-      .show_domain_range = true,
-      .strict = false,
-      .ansi = true,
-      .propagate = false
-  };
+      .show_id = true, .show_type = true, .show_domain_range = true, .strict = false, .ansi = true, .propagate = false};
   static auto DEFAULT_BCODE_PRINTER = new ObjPrinter{
-      .show_id = true,
-      .show_type = true,
-      .show_domain_range = true,
-      .strict = false,
-      .ansi = true,
-      .propagate = false
-  };
-  static auto DEFAULT_NOOBJ_PRINTER = new ObjPrinter{
-      .show_id = false,
-      .show_type = false,
-      .show_domain_range = false,
-      .strict = false,
-      .ansi = true,
-      .propagate = false
-  };
+      .show_id = true, .show_type = true, .show_domain_range = true, .strict = false, .ansi = true, .propagate = false};
+  static auto DEFAULT_NOOBJ_PRINTER = new ObjPrinter{.show_id = false,
+                                                     .show_type = false,
+                                                     .show_domain_range = false,
+                                                     .strict = false,
+                                                     .ansi = true,
+                                                     .propagate = false};
   static Map<OType, ObjPrinter *> GLOBAL_PRINTERS = {
-      {OType::NOOBJ, DEFAULT_NOOBJ_PRINTER},
-      {OType::TYPE, DEFAULT_OBJ_PRINTER},
-      {OType::OBJ, DEFAULT_OBJ_PRINTER},
-      {OType::BOOL, DEFAULT_OBJ_PRINTER},
-      {OType::INT, DEFAULT_OBJ_PRINTER},
-      {OType::REAL, DEFAULT_OBJ_PRINTER},
-      {OType::STR, DEFAULT_OBJ_PRINTER},
-      {OType::URI, DEFAULT_OBJ_PRINTER},
-      {OType::LST, DEFAULT_OBJ_PRINTER},
-      {OType::REC, DEFAULT_OBJ_PRINTER},
-      {OType::INST, DEFAULT_INST_PRINTER},
-      {OType::BCODE, DEFAULT_BCODE_PRINTER},
-      {OType::OBJS, DEFAULT_OBJ_PRINTER},
-      {OType::ERROR, DEFAULT_OBJ_PRINTER},
+      {OType::NOOBJ, DEFAULT_NOOBJ_PRINTER}, {OType::TYPE, DEFAULT_OBJ_PRINTER},  {OType::OBJ, DEFAULT_OBJ_PRINTER},
+      {OType::BOOL, DEFAULT_OBJ_PRINTER},    {OType::INT, DEFAULT_OBJ_PRINTER},   {OType::REAL, DEFAULT_OBJ_PRINTER},
+      {OType::STR, DEFAULT_OBJ_PRINTER},     {OType::URI, DEFAULT_OBJ_PRINTER},   {OType::LST, DEFAULT_OBJ_PRINTER},
+      {OType::REC, DEFAULT_OBJ_PRINTER},     {OType::INST, DEFAULT_INST_PRINTER}, {OType::BCODE, DEFAULT_BCODE_PRINTER},
+      {OType::OBJS, DEFAULT_OBJ_PRINTER},    {OType::ERROR, DEFAULT_OBJ_PRINTER},
   };
 
   inline TriConsumer<LOG_TYPE, const Obj *, std::function<std::string()>> LOG_WRITE =
       [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
-    LOG(log_type, "%s", message().c_str());
-  };
+        LOG(log_type, "%s", message().c_str());
+      };
   inline Supplier<Obj_p> ROUTER_GET_FRAME_DATA = []() {
     LOG(TRACE, "!ROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
     return nullptr;
   };
-  inline Runnable ROUTER_POP_FRAME = []() {
-    LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
-  };
+  inline Runnable ROUTER_POP_FRAME = []() { LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n"); };
   inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &) {
     LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
-  inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
-      [](const ID_p &is_type_id, const ID_p &, List<ID_p> *) {
+  inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF = [](const ID_p &is_type_id,
+                                                                                           const ID_p &, List<ID_p> *) {
     LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
@@ -393,12 +332,11 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
     return furi;
   };
-  inline TriConsumer<const fURI &, const Obj_p &, const bool> ROUTER_WRITE =
-      [](const fURI &, const Obj_p &, const bool) -> void {
+  inline TriConsumer<const fURI &, const Obj_p &, const bool> ROUTER_WRITE = [](const fURI &, const Obj_p &,
+                                                                                const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
-  inline BiConsumer<const fURI &, const Obj_p &> ROUTER_APPEND =
-      [](const fURI &, const Obj_p &) -> void {
+  inline BiConsumer<const fURI &, const Obj_p &> ROUTER_APPEND = [](const fURI &, const Obj_p &) -> void {
     LOG(TRACE, "!yROUTER_APPEND!! undefined at this point in bootstrap.\n");
   };
   inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
@@ -409,14 +347,13 @@ namespace fhatos {
     LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
-  inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
-      ](const Obj_p &, const Inst_p &) {
+  inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [](const Obj_p &, const Inst_p &) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
   inline Runnable FEED_WATCHDOG = []() {
 #ifdef ESP_PLATFORM
-    //esp_task_wdt_reset();
+    // esp_task_wdt_reset();
     vTaskDelay(1); // feeds the watchdog for the task
 #endif
   };
@@ -468,16 +405,10 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<HASH, EQ>>;
     ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
-    explicit Obj(Any value, const OType otype, const ID_p &type_id,
-                 const ID_p &value_id = nullptr) :
-      Typed(type_id),
-      Valued(value_id),
-      otype(otype),
-      value_(std::move(value)) {
-    }
+    explicit Obj(Any value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
+        Typed(type_id), Valued(value_id), otype(otype), value_(std::move(value)) {}
 
-    Obj(const Obj &other) :
-      Obj(any(nullptr), other.otype, other.tid, other.vid) {
+    Obj(const Obj &other) : Obj(any(nullptr), other.otype, other.tid, other.vid) {
       switch(other.otype) {
         case OType::NOOBJ:
           this->value_ = any(nullptr);
@@ -503,7 +434,7 @@ namespace fhatos {
         }
         case OType::REC: {
           const auto record = make_shared<RecMap<>>();
-          for(const auto &[k,v]: *other.rec_value()) {
+          for(const auto &[k, v]: *other.rec_value()) {
             record->insert_or_assign(make_shared<Obj>(*k), make_shared<Obj>(*v));
           }
           this->value_ = any(record);
@@ -544,21 +475,18 @@ namespace fhatos {
                                   std::get<1>(std::any_cast<InstValue>(this->value_)),
                                   this->is_gather() ? Obj::to_objs() : Obj::to_noobj());
       }
-      if(this->otype == OType::INST && this->tid->has_query(FOS_RANGE) && this->tid->no_query().equals(
-             ID(this->tid->query_value(FOS_RANGE).value()))) {
+      if(this->otype == OType::INST && this->tid->has_query(FOS_RANGE) &&
+         this->tid->no_query().equals(ID(this->tid->query_value(FOS_RANGE).value()))) {
         throw fError("the range of an inst can not be its type: %s", this->tid->toString().c_str());
       }
       if(this->value_.has_value()) { // value token
         try {
-          if((otype == OType::REC || otype == OType::LST) &&
-             !this->tid->equals(*OTYPE_FURI.at(otype))) {
-            if((otype == OType::REC || otype == OType::LST) &&
-               !this->tid->equals(*OTYPE_FURI.at(otype)) &&
-               !this->tid->matches("/sys/#") &&
-               (this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
+          if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype))) {
+            if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&
+               !this->tid->matches("/sys/#") && (this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
                !this->tid->matches("/io/#")) {
               if(const Obj_p type_obj = ROUTER_READ(*this->tid);
-                !type_obj->is_noobj() && type_obj->otype == this->otype) {
+                 !type_obj->is_noobj() && type_obj->otype == this->otype) {
                 Obj_p plain_type_obj;
                 if(type_obj->otype == OType::REC) {
                   const auto r = std::make_shared<RecMap<>>(*type_obj->value<RecMap_p<>>());
@@ -573,7 +501,7 @@ namespace fhatos {
                 this->value_ = applied_obj->value_;
                 this->otype = applied_obj->otype;
                 if(plain_obj->is_rec() && applied_obj->is_rec()) {
-                  for(const auto &[k,v]: *plain_obj->rec_value()) {
+                  for(const auto &[k, v]: *plain_obj->rec_value()) {
                     if(!applied_obj->rec_value()->count(k))
                       applied_obj->rec_set(k, v);
                   }
@@ -582,7 +510,7 @@ namespace fhatos {
             }
           }
         } catch(std::exception &) {
-          LOG_WRITE(WARN, this,L("unable to build {} from poly type !b{}!!", this->toString(), this->tid->toString()));
+          LOG_WRITE(WARN, this, L("unable to build {} from poly type !b{}!!", this->toString(), this->tid->toString()));
         }
         Compiler(true, true).type_check(this, *this->tid);
       }
@@ -590,21 +518,27 @@ namespace fhatos {
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
-      const auto error = fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(),
-                                obj->toString().c_str(),
-                                index == string::npos ? function : string(function).replace(index, 6, "").c_str());
+      const auto error =
+          fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(), obj->toString().c_str(),
+                 index == string::npos ? function : string(function).replace(index, 6, "").c_str());
       return error;
     }
 
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
-    [[nodiscard]] virtual ID_p vid_or_tid() const {
-      return this->vid ? this->vid : this->tid;
+    [[nodiscard]] virtual ID_p vid_or_tid() const { return this->vid ? this->vid : this->tid; }
+
+    static Obj_p load(const ID &vid) {
+      return ROUTER_READ(vid);
     }
 
-    /*static Obj_p load(const ID &vid) {
-      return ROUTER_READ(vid);
-    }*/
+    static Obj_p load(const ID_p &vid) {
+      return ROUTER_READ(*vid);
+    }
+
+    static Obj_p load(const Uri_p &vid_uri) {
+      return ROUTER_READ(vid_uri->uri_value());
+    }
 
     virtual void sync(const fURI &subset) const {
       if(this->vid) {
@@ -628,9 +562,7 @@ namespace fhatos {
       }
     }
 
-    virtual void save() const {
-      this->at(this->vid);
-    }
+    virtual void save() const { this->at(this->vid); }
 
     /* virtual void save(const fURI &subset) const {
        ROUTER_WRITE(this->vid->extend(subset), this->rec_get(subset), true);
@@ -714,8 +646,8 @@ namespace fhatos {
       if(!this->is_str())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return (static_cast<size_t>(index->int_value()) >= this->str_value().length())
-               ? Obj::to_noobj()
-               : Obj::to_str(string() + (this->str_value()[index->int_value()]));
+                 ? Obj::to_noobj()
+                 : Obj::to_str(string() + (this->str_value()[index->int_value()]));
     }
 
     [[nodiscard]] LstList_p lst_value() const {
@@ -740,9 +672,7 @@ namespace fhatos {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const LstList_p l = this->lst_value();
-      l->erase(std::remove_if(l->begin(), l->end(), [obj](const Obj_p &o) {
-        return obj->equals(*o);
-      }), l->end());
+      l->erase(std::remove_if(l->begin(), l->end(), [obj](const Obj_p &o) { return obj->equals(*o); }), l->end());
     }
 
     [[nodiscard]] Obj_p deref(const Obj_p &key, const bool obj_on_fail = true) const {
@@ -757,9 +687,7 @@ namespace fhatos {
 
     [[nodiscard]] Int_p lst_size() const { return Obj::to_int(this->lst_value()->size()); }
 
-    [[nodiscard]] Obj_p lst_get(const string &index) const {
-      return this->lst_get(Obj::to_uri(index));
-    }
+    [[nodiscard]] Obj_p lst_get(const string &index) const { return this->lst_get(Obj::to_uri(index)); }
 
     [[nodiscard]] Obj_p lst_get(const FOS_INT_TYPE &index) const { return this->lst_get(Obj::to_int(index)); }
 
@@ -768,9 +696,8 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if(index->is_uri()) {
         const auto segment = string(index->uri_value().segment(0));
-        const int i = StringHelper::is_integer(segment)
-                        ? std::stoi(segment)
-                        : (StringHelper::has_wildcards(segment) ? -1 : -100);
+        const int i =
+            StringHelper::is_integer(segment) ? std::stoi(segment) : (StringHelper::has_wildcards(segment) ? -1 : -100);
         if(-100 == i)
           return Obj::to_noobj();
         //   throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
@@ -789,12 +716,12 @@ namespace fhatos {
         if(final_segment_value->is_noobj())
           return to_noobj();
         return index->uri_value().path_length() <= 1
-                 ? final_segment_value
-                 : final_segment_value->deref(Obj::to_uri(index->uri_value().subpath(1)), false);
+                   ? final_segment_value
+                   : final_segment_value->deref(Obj::to_uri(index->uri_value().subpath(1)), false);
       }
       return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
-               ? Obj::to_noobj()
-               : this->lst_value()->at(index->int_value());
+                 ? Obj::to_noobj()
+                 : this->lst_value()->at(index->int_value());
     }
 
     void lst_set(const string &index, const Obj_p &val, const bool nest = true) const {
@@ -808,15 +735,12 @@ namespace fhatos {
     void lst_set(const Obj_p &index, const Obj_p &val, const bool nest = true) const {
       const Obj_p undo = this->lst_get(index);
       ////////////////////////////////////////
-      if(nest &&
-         index->is_uri() &&
-         index->uri_value().path_length() > 1 &&
+      if(nest && index->is_uri() && index->uri_value().path_length() > 1 &&
          StringHelper::is_integer(index->uri_value().segment(0))) {
         const size_t current_index = std::strtol(index->uri_value().segment(0), nullptr, 10);
         Obj_p current_obj = this->lst_get(current_index);
         if(current_obj->is_noobj()) {
-          if(const size_t offset = ((current_index + 1) - this->lst_value()->size());
-            offset > 0) {
+          if(const size_t offset = ((current_index + 1) - this->lst_value()->size()); offset > 0) {
             for(size_t j = 0; j < offset; j++) {
               this->lst_value()->push_back(Obj::to_noobj());
             }
@@ -828,15 +752,12 @@ namespace fhatos {
         }
         current_obj->poly_set(Obj::to_uri(index->uri_value().pretract()), val);
       } else {
-        const int current_index = index->is_int()
-                                    ? index->int_value()
-                                    : index->is_uri()
-                                    ? std::stoi(index->uri_value().toString())
-                                    : -1;
+        const int current_index = index->is_int()   ? index->int_value()
+                                  : index->is_uri() ? std::stoi(index->uri_value().toString())
+                                                    : -1;
         if(-1 == current_index)
           throw fError("invalid lst index: %s\n", index->toString().c_str());
-        if(const size_t offset = (current_index + 1) - this->lst_value()->size();
-          offset > 0) {
+        if(const size_t offset = (current_index + 1) - this->lst_value()->size(); offset > 0) {
           for(size_t j = 0; j < offset; j++) {
             this->lst_value()->push_back(Obj::to_noobj());
           }
@@ -851,9 +772,8 @@ namespace fhatos {
           Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->lst_set(index, undo);
-          LOG_WRITE(WARN, this, L("!blst!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n",
-                                  index->toString(),
-                                  undo->toString())              );
+          LOG_WRITE(WARN, this,
+                    L("!blst!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n", index->toString(), undo->toString()));
           throw;
         }
       }
@@ -882,7 +802,7 @@ namespace fhatos {
       if(this->is_inst())
         return this->inst_args()->arg(index);
       size_t counter = 0;
-      for(const auto &[k,v]: *this->rec_value()) {
+      for(const auto &[k, v]: *this->rec_value()) {
         if(index == counter)
           return v;
         counter++;
@@ -903,9 +823,7 @@ namespace fhatos {
       return this->rec_get(uri_key);
     }
 
-    [[nodiscard]] bool is_inst_stub() const {
-      return this->is_noobj() || !this->has_inst_f();
-    }
+    [[nodiscard]] bool is_inst_stub() const { return this->is_noobj() || !this->has_inst_f(); }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Obj_p &or_else = nullptr) const {
       if(!this->is_rec())
@@ -913,14 +831,13 @@ namespace fhatos {
       Obj_p result;
       if(key->is_uri()) {
         const fURI key_no_query = key->uri_value().no_query();
-        const string segment = 0 == key_no_query.path_length()
-                                 ? key_no_query.toString()
-                                 : string(key_no_query.segment(0));
+        const string segment =
+            0 == key_no_query.path_length() ? key_no_query.toString() : string(key_no_query.segment(0));
         Objs_p segment_value = Obj::to_objs();
         const Uri_p segment_uri = Obj::to_uri(segment);
         const bool match_all = StringHelper::has_wildcards(segment);
         const Objs_p full_match = Obj::to_objs();
-        for(const auto &[k,v]: *this->rec_value()) {
+        for(const auto &[k, v]: *this->rec_value()) {
           const fURI_p k_furi = k->is_uri() ? furi_p(k->uri_value()) : nullptr;
           if(match_all || k->match(segment_uri)) {
             segment_value->add_obj(v);
@@ -956,7 +873,7 @@ namespace fhatos {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const Rec_p new_rec = Obj::to_rec();
-      for(const auto &[k,v]: *this->rec_value()) {
+      for(const auto &[k, v]: *this->rec_value()) {
         if(k->is_uri() && k->uri_value().has_query())
           new_rec->insert_into_position(Obj::to_uri(k->uri_value().no_query()), v);
         else
@@ -1011,11 +928,9 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool has(const fURI &key) const {
-      return this->vid
-               ? !ROUTER_READ(this->vid->extend(key))->is_noobj()
-               : this->is_poly()
-               ? !this->poly_get(Obj::to_uri(key))->is_noobj()
-               : false;
+      return this->vid         ? !ROUTER_READ(this->vid->extend(key))->is_noobj()
+             : this->is_poly() ? !this->poly_get(Obj::to_uri(key))->is_noobj()
+                               : false;
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) const {
@@ -1053,15 +968,12 @@ namespace fhatos {
 
     virtual void rec_drop(const Obj_p &key) const {
       if(key->is_uri()) {
-        drop_if<std::pair<const Obj_p, Obj_p>>(this->rec_value(),
-                                               [&key](const std::pair<const Obj_p, Obj_p> &pair) {
-                                                 if(pair.first->is_uri() &&
-                                                    pair.first->uri_value().no_query().
-                                                    matches(key->uri_value().no_query())) {
-                                                   return true;
-                                                 }
-                                                 return pair.first->match(key);
-                                               });
+        drop_if<std::pair<const Obj_p, Obj_p>>(this->rec_value(), [&key](const std::pair<const Obj_p, Obj_p> &pair) {
+          if(pair.first->is_uri() && pair.first->uri_value().no_query().matches(key->uri_value().no_query())) {
+            return true;
+          }
+          return pair.first->match(key);
+        });
       } else {
         this->rec_value()->erase(key);
       }
@@ -1096,7 +1008,7 @@ namespace fhatos {
         current_obj->poly_set(Obj::to_uri(pretracted), value);
       } else {
         // this->rec_drop(key);
-        //if(!val->is_noobj())
+        // if(!val->is_noobj())
         this->insert_into_position(key, value);
       }
       ////////////////////////////////////////
@@ -1105,8 +1017,8 @@ namespace fhatos {
           Compiler(true, false).type_check(this, *this->tid);
         } catch(const fError &) {
           this->rec_set(key, undo);
-          LOG_WRITE(WARN, this, L("!brec!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n", key->toString(),
-                                  undo->toString())              );
+          LOG_WRITE(WARN, this,
+                    L("!brec!! entry write reverted: !g[!!{} !m=>!! {}!g]!!\n", key->toString(), undo->toString()));
           throw;
         }
       }
@@ -1209,9 +1121,7 @@ namespace fhatos {
       return !(this->is_inst() ? this->inst_args().get() : this)->rec_get(key)->is_noobj();
     }
 
-    [[nodiscard]] bool has_arg(const fURI &furi_key) const {
-      return this->has_arg(Obj::to_uri(furi_key));
-    }
+    [[nodiscard]] bool has_arg(const fURI &furi_key) const { return this->has_arg(Obj::to_uri(furi_key)); }
 
     [[nodiscard]] InstF inst_f() const {
       if(!this->is_inst())
@@ -1233,9 +1143,7 @@ namespace fhatos {
       return this->value<Pair<Obj_p, Inst_p>>();
     }
 
-    [[nodiscard]] DomainRange domain_range() const {
-      return DomainRange::from(*this->tid);
-    }
+    [[nodiscard]] DomainRange domain_range() const { return DomainRange::from(*this->tid); }
 
     [[nodiscard]] ID_p domain() const {
       if(this->tid->has_query(FOS_DOMAIN)) {
@@ -1272,9 +1180,7 @@ namespace fhatos {
       if(this->is_not_empty_bcode())
         return this->bcode_value()->back()->range();
       if(this->is_inst())
-        return std::holds_alternative<Obj_p>(this->inst_f())
-                 ? std::get<Obj_p>(this->inst_f())->range()
-                 : OBJ_FURI;
+        return std::holds_alternative<Obj_p>(this->inst_f()) ? std::get<Obj_p>(this->inst_f())->range() : OBJ_FURI;
       return id_p(this->tid->no_query());
     }
 
@@ -1287,64 +1193,47 @@ namespace fhatos {
           if(!resolved->is_initial()) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         "SIGNATURE HERE");
+            throw fError("%s [%s] not in domain of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         } else if(this->is_objs()) {
           if(!resolved->is_gather()) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(OBJS_FURI)->toString().c_str(),
-                         resolved->toString().c_str(), "SIGNATURE HERE");
+            throw fError("%s [%s] not in domain of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         } else {
-          if(const auto &[a,b] = resolved->domain_coefficient(); !(a == 1 && b == 1)) {
+          if(const auto &[a, b] = resolved->domain_coefficient(); !(a == 1 && b == 1)) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(OBJ_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         "SIGNATURE HERE");
+            throw fError("%s [%s] not in domain of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         }
       } else {
-        if(const auto &[a,b] = resolved->range_coefficient(); (a == 0 && b > 0)) {
+        if(const auto &[a, b] = resolved->range_coefficient(); (a == 0 && b > 0)) {
           // do nothing
         } else if(this->is_noobj()) {
           if(!resolved->is_terminal()) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         "SIGNATURE HERE");
+            throw fError("%s [%s] not in range of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         } else if(this->is_objs()) {
           if(!resolved->is_scatter()) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(OBJS_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         "SIGNATURE HERE");
+            throw fError("%s [%s] not in range of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         } else {
-          if(const auto &[a,b] = resolved->range_coefficient(); a != 1 && b != 1) {
+          if(const auto &[a, b] = resolved->range_coefficient(); a != 1 && b != 1) {
             if(!throw_exception)
               return false;
-            throw fError("%s [%s] not in range of %s [!y%s!!]",
-                         this->toString().c_str(),
-                         Obj::to_type(OBJ_FURI)->toString().c_str(),
-                         resolved->toString().c_str(),
-                         "SIGNATURE HERE");
+            throw fError("%s [%s] not in range of %s [!y%s!!]", this->toString().c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(), resolved->toString().c_str(), "SIGNATURE HERE");
           }
         }
       }
@@ -1352,9 +1241,7 @@ namespace fhatos {
     }
 
 
-    [[nodiscard]] Obj_p type() const {
-      return ROUTER_READ(*this->tid);
-    }
+    [[nodiscard]] Obj_p type() const { return ROUTER_READ(*this->tid); }
 
     [[nodiscard]] InstList_p bcode_value() const {
       if(this->is_noobj())
@@ -1373,14 +1260,14 @@ namespace fhatos {
         new_code->push_back(inst);
       }
       return Obj::to_bcode(new_code, this->tid);
-      //return Obj::create(new_code, OType::BCODE, this->tid, this->vid);
+      // return Obj::create(new_code, OType::BCODE, this->tid, this->vid);
     }
 
     ////////////////////////////////////////////////////////////
     Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) const {
       if(!at_type && !this->vid)
         throw fError("only objs with a value id can have properties and insts");
-      //if(inst->is_code())
+      // if(inst->is_code())
       ROUTER_WRITE(this->vid->append(relative_id), inst, true);
       return this->shared_from_this();
     }
@@ -1388,7 +1275,7 @@ namespace fhatos {
     Obj_p this_add_inst(const ID &relative_id, const Obj_p &inst, const bool at_type = true) const {
       if(!at_type && !this->vid)
         throw fError("only objs with a value id can have properties and insts");
-      //if(inst->is_code())
+      // if(inst->is_code())
       ROUTER_WRITE(this->vid->add_component(relative_id), inst, true);
       return this->shared_from_this();
     }
@@ -1410,9 +1297,7 @@ namespace fhatos {
       return this->shared_from_this();
     }
 
-    Obj_p static_get(const char *key) const {
-      return ROUTER_READ(this->tid->extend(key));
-    }
+    Obj_p static_get(const char *key) const { return ROUTER_READ(this->tid->extend(key)); }
 
     ////////////////////////////////////////////////////////////
 
@@ -1470,9 +1355,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p none_one() const {
-      return this->is_objs()
-               ? (this->objs_value()->empty() ? Obj::to_noobj() : this->objs_value()->front())
-               : this->shared_from_this();
+      return this->is_objs() ? (this->objs_value()->empty() ? Obj::to_noobj() : this->objs_value()->front())
+                             : this->shared_from_this();
     }
 
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) const {
@@ -1514,9 +1398,9 @@ namespace fhatos {
             obj_string = fmt::format("{:.5f}", this->real_value());
             break;
           case OType::URI:
-            obj_string = "!_" + (obj_printer->strict
-                                   ? "<" + this->uri_value().toString() + ">"
-                                   : this->uri_value().toString()) + "!!";
+            obj_string =
+                "!_" + (obj_printer->strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) +
+                "!!";
             break;
           case OType::STR:
             obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
@@ -1562,7 +1446,7 @@ namespace fhatos {
           }
           case OType::INST: {
             bool first = true;
-            for(const auto &[k,v]: *this->inst_args()->rec_value()) {
+            for(const auto &[k, v]: *this->inst_args()->rec_value()) {
               if(first) {
                 first = false;
               } else {
@@ -1634,69 +1518,58 @@ namespace fhatos {
         }
       }
       if(!this->is_noobj() &&
-         (this->is_type() ||
-          this->is_inst() ||
-          (obj_printer->show_type && !this->is_base_type()))) {
+         (this->is_type() || this->is_inst() || (obj_printer->show_type && !this->is_base_type()))) {
         string typing;
         if(this->is_type())
           typing += "!m[!!";
-        typing += this->is_base_type() && !this->is_inst() && !this->is_type() && !this->is_uri()
-                    ? ""
-                    : string("!b")
-                    .append(obj_printer->strict ? this->tid->toString() : this->tid->name()).append("!!");
+        typing +=
+            this->is_base_type() && !this->is_inst() && !this->is_type() && !this->is_uri()
+                ? ""
+                : string("!b").append(obj_printer->strict ? this->tid->toString() : this->tid->name()).append("!!");
         // TODO: remove base_type check
         if(obj_printer->show_domain_range) {
-          const string dom_str = this->has_domain(1, 1) && !obj_printer->strict
-                                   ? ""
-                                   : this->has_domain(0, 1)
-                                   ? "?"
-                                   : this->has_domain(1,INT_MAX)
-                                   ? "+"
-                                   : this->is_initial()
-                                   ? "."
-                                   : this->is_gather()
-                                   ? "*"
-                                   : to_string(this->domain_coefficient().first)
-                                   .append(",")
-                                   .append(to_string(this->domain_coefficient().second));
-          const string rng_str = this->has_range(1, 1) && !obj_printer->strict
-                                   ? ""
-                                   : this->has_range(0, 1)
-                                   ? "?"
-                                   : this->has_range(1,INT_MAX)
-                                   ? "+"
-                                   : this->is_terminal()
-                                   ? "."
-                                   : this->is_scatter()
-                                   ? "*"
-                                   : to_string(this->range_coefficient().first)
-                                   .append(",")
-                                   .append(to_string(this->range_coefficient().second));
+          const string dom_str = this->has_domain(1, 1) && !obj_printer->strict ? ""
+                                 : this->has_domain(0, 1)                       ? "?"
+                                 : this->has_domain(1, INT_MAX)                 ? "+"
+                                 : this->is_initial()                           ? "."
+                                 : this->is_gather()                            ? "*"
+                                                     : to_string(this->domain_coefficient().first)
+                                                           .append(",")
+                                                           .append(to_string(this->domain_coefficient().second));
+          const string rng_str = this->has_range(1, 1) && !obj_printer->strict ? ""
+                                 : this->has_range(0, 1)                       ? "?"
+                                 : this->has_range(1, INT_MAX)                 ? "+"
+                                 : this->is_terminal()                         ? "."
+                                 : this->is_scatter()                          ? "*"
+                                                      : to_string(this->range_coefficient().first)
+                                                            .append(",")
+                                                            .append(to_string(this->range_coefficient().second));
 
           if(!dom_str.empty() || !rng_str.empty()) {
             typing = typing.append("!m?!!")
-                .append("!c").append(obj_printer->strict ? this->range()->toString() : this->range()->name())
-                .append(rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
-                .append("!m<=!!")
-                .append("!c").append(obj_printer->strict ? this->domain()->toString() : this->domain()->name())
-                .append(dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
+                         .append("!c")
+                         .append(obj_printer->strict ? this->range()->toString() : this->range()->name())
+                         .append(rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
+                         .append("!m<=!!")
+                         .append("!c")
+                         .append(obj_printer->strict ? this->domain()->toString() : this->domain()->name())
+                         .append(dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
           }
         }
         if(this->is_type())
           typing += "!m]!!";
         obj_string = this->is_base_type() && !this->is_inst() && !this->is_type()
-                       ? typing.append(obj_string)
-                       : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
-                       .append(obj_string)
-                       .append(this->is_inst() ? "!g)!!" : "!g]!!");
+                         ? typing.append(obj_string)
+                         : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
+                               .append(obj_string)
+                               .append(this->is_inst() ? "!g)!!" : "!g]!!");
 
         if(this->is_inst() && this->has_inst_f()) {
-          obj_string = obj_string
-              .append("!g[!!")
-              .append(std::holds_alternative<Obj_p>(this->inst_f())
-                        ? std::get<Obj_p>(this->inst_f())->toString()
-                        : "!ycpp!!")
-              .append("!g]!!");
+          obj_string =
+              obj_string.append("!g[!!")
+                  .append(std::holds_alternative<Obj_p>(this->inst_f()) ? std::get<Obj_p>(this->inst_f())->toString()
+                                                                        : "!ycpp!!")
+                  .append("!g]!!");
         }
       }
       if(obj_printer->show_id && this->vid)
@@ -1836,7 +1709,7 @@ namespace fhatos {
             return false;
           if(!a->empty()) {
             auto itty = a->cbegin();
-            for(const auto &[b1,b2]: *b) {
+            for(const auto &[b1, b2]: *b) {
               if(*itty->first != *b1 || *itty->second != *b2)
                 return false;
               ++itty;
@@ -1871,15 +1744,13 @@ namespace fhatos {
           return true;
         }
         case OType::INST:
-          return
-              *this->inst_args() == *other.inst_args() &&
-              this->has_inst_f() == other.has_inst_f() &&
-              this->inst_f().index() == other.inst_f().index() &&
-              (this->inst_f().index() == 1 ||
-               (*std::get<Obj_p>(this->inst_f()) == *std::get<Obj_p>(other.inst_f()))) &&
-              this->domain_coefficient() == other.domain_coefficient() &&
-              this->range_coefficient() == other.range_coefficient() &&
-              *this->inst_seed_supplier() == *other.inst_seed_supplier();
+          return *this->inst_args() == *other.inst_args() && this->has_inst_f() == other.has_inst_f() &&
+                 this->inst_f().index() == other.inst_f().index() &&
+                 (this->inst_f().index() == 1 ||
+                  (*std::get<Obj_p>(this->inst_f()) == *std::get<Obj_p>(other.inst_f()))) &&
+                 this->domain_coefficient() == other.domain_coefficient() &&
+                 this->range_coefficient() == other.range_coefficient() &&
+                 *this->inst_seed_supplier() == *other.inst_seed_supplier();
         // TODO: Tuple equality
         default:
           throw fError("unknown obj type in ==: %s", OTypes.to_chars(this->otype).c_str());
@@ -1887,16 +1758,14 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool equals(const Obj &other) const {
-      return this->otype == other.otype && this->tid->no_query().equals(other.tid->no_query()) && this->
-             value_equals(other);
+      return this->otype == other.otype && this->tid->no_query().equals(other.tid->no_query()) &&
+             this->value_equals(other);
     }
 
 
     bool operator!=(const Obj &other) const { return !this->equals(other); }
 
-    bool operator==(const Obj &other) const {
-      return this->equals(other);
-    }
+    bool operator==(const Obj &other) const { return this->equals(other); }
 
     Obj &operator=(const Obj &other) {
       if(&other == this)
@@ -1960,9 +1829,8 @@ namespace fhatos {
 
     [[nodiscard]] bool has_inst_f() const {
       return std::holds_alternative<Cpp_p>(this->inst_f())
-               ? std::get<Cpp_p>(this->inst_f()) != nullptr
-               : std::get<Obj_p>(this->inst_f()) != nullptr &&
-                 !std::get<Obj_p>(this->inst_f())->is_noobj();
+                 ? std::get<Cpp_p>(this->inst_f()) != nullptr
+                 : std::get<Obj_p>(this->inst_f()) != nullptr && !std::get<Obj_p>(this->inst_f())->is_noobj();
     }
 
     [[nodiscard]] bool is_applicable_inst() const { return this->is_inst() && this->has_inst_f(); }
@@ -1980,28 +1848,28 @@ namespace fhatos {
     [[nodiscard]] bool is_not_empty_bcode() const { return this->is_bcode() && !this->bcode_value()->empty(); }
 
     bool is_initial() const {
-      const auto &[dmin,dmax] = this->domain_coefficient();
+      const auto &[dmin, dmax] = this->domain_coefficient();
       return dmin == 0 && dmax == 0;
     }
 
     bool is_generative() const {
-      const auto &[dmin,dmax] = this->domain_coefficient();
+      const auto &[dmin, dmax] = this->domain_coefficient();
       return dmin == 0 && dmax > 0;
     }
 
     bool is_scatter() const {
-      const auto &[rmin,rmax] = this->range_coefficient();
+      const auto &[rmin, rmax] = this->range_coefficient();
       return rmin == 0 && rmax > 1;
     };
 
 
     bool is_gather() const {
-      const auto &[dmin,dmax] = this->domain_coefficient();
+      const auto &[dmin, dmax] = this->domain_coefficient();
       return dmin == 0 && dmax > 1;
     }
 
     bool is_terminal() const {
-      const auto &[rmin,rmax] = this->range_coefficient();
+      const auto &[rmin, rmax] = this->range_coefficient();
       return rmin == 0 && rmax == 0;
     }
 
@@ -2014,13 +1882,13 @@ namespace fhatos {
     }
 
     bool is_map() const {
-      const auto &[dmin,dmax] = this->domain_coefficient();
-      const auto &[rmin,rmax] = this->range_coefficient();
+      const auto &[dmin, dmax] = this->domain_coefficient();
+      const auto &[rmin, rmax] = this->range_coefficient();
       return 1 == dmin && 1 == dmax && 1 == rmin && 1 == rmax;
     }
 
     bool is_filter() const {
-      const auto &[rmin,rmax] = this->range_coefficient();
+      const auto &[rmin, rmax] = this->range_coefficient();
       return !this->is_initial() && rmin == 0 && rmax > 0;
     }
 
@@ -2037,9 +1905,8 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       int counter = 0;
       const auto r = *this->rec_value();
-      for(const auto &[k,v]: r) {
-        if(!(k->is_uri() &&
-             k->uri_value().toString() == to_string(counter++)))
+      for(const auto &[k, v]: r) {
+        if(!(k->is_uri() && k->uri_value().toString() == to_string(counter++)))
           return false;
       }
       return true;
@@ -2111,20 +1978,18 @@ namespace fhatos {
           try {
             if(!inst->has_inst_f()) {
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
-                           lhs->tid->name().c_str(),
-                           lhs->toString().c_str());
+                           lhs->tid->name().c_str(), lhs->toString().c_str());
             }
             const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
-                                   ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
-                                   : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
+                                     ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+                                     : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
             // TODO: does this clear all frames automatically through exception recurssion?
-            const string error_message = fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(),
-                                                     lhs->toString(),
-                                                     this->toString(),
-                                                     ROUTER_GET_FRAME_DATA()->toString());
+            const string error_message =
+                fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(), lhs->toString(), this->toString(),
+                            ROUTER_GET_FRAME_DATA()->toString());
             ROUTER_POP_FRAME();
             throw fError("%s", error_message.c_str());
           }
@@ -2134,8 +1999,8 @@ namespace fhatos {
             return lhs;
           if(!lhs->is_objs() && 1 == this->bcode_value()->size()) // TODO: this is because barriers
             return this->bcode_value()->front()->apply(lhs);
-          return BCODE_PROCESSOR(this->bcode_starts(lhs->is_noobj() || lhs->is_objs() ? lhs : to_objs({lhs})))->
-              none_one_all();
+          return BCODE_PROCESSOR(this->bcode_starts(lhs->is_noobj() || lhs->is_objs() ? lhs : to_objs({lhs})))
+              ->none_one_all();
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -2150,7 +2015,9 @@ namespace fhatos {
     }
 
     [[nodiscard]]
-    bool is_base_type() const { return this->tid->equals(*OTYPE_FURI.at(this->otype)); }
+    bool is_base_type() const {
+      return this->tid->equals(*OTYPE_FURI.at(this->otype));
+    }
 
     [[nodiscard]] bool match(const Obj_p &type_obj, std::stack<string> *fail_reason = nullptr) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
@@ -2158,10 +2025,11 @@ namespace fhatos {
         return true;
       if(type_obj->is_type()) {
         const bool result = OTYPE_FURI.at(this->otype)->equals(*type_obj->tid);
-        // const bool result = IS_TYPE_OF(this->tid, type_obj->tid, {}) && !type_obj->type_value()->apply(this->clone())->is_noobj();
+        // const bool result = IS_TYPE_OF(this->tid, type_obj->tid, {}) &&
+        // !type_obj->type_value()->apply(this->clone())->is_noobj();
         if(!result && fail_reason) {
-          fail_reason->push(fmt::format("!b{}!! is !rnot!! a subtype of !b{}!!", this->tid->toString(),
-                                        type_obj->tid->toString()));
+          fail_reason->push(
+              fmt::format("!b{}!! is !rnot!! a subtype of !b{}!!", this->tid->toString(), type_obj->tid->toString()));
         }
         return result;
       }
@@ -2181,8 +2049,7 @@ namespace fhatos {
          return true;*/
       if(this->otype != type_obj->otype) {
         if(fail_reason)
-          fail_reason->push(fmt::format("{} is !rnot!! the same base type as {}",
-                                        OTypes.to_chars(this->otype),
+          fail_reason->push(fmt::format("{} is !rnot!! the same base type as {}", OTypes.to_chars(this->otype),
                                         OTypes.to_chars(type_obj->otype)));
         return false;
       }
@@ -2248,8 +2115,8 @@ namespace fhatos {
           for(const auto &[b_key, b_obj]: RecMap<>(*pairs_b)) {
             bool found = false;
             for(const auto &[a_key, a_obj]: RecMap<>(*pairs_a)) {
-              if((b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos) || (
-                   a_key->match(b_key) && a_obj->match(b_obj))) {
+              if((b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos) ||
+                 (a_key->match(b_key) && a_obj->match(b_obj))) {
                 found = true;
                 break;
               }
@@ -2257,8 +2124,7 @@ namespace fhatos {
             if(!found) {
               if(fail_reason)
                 fail_reason->push(fmt::format("{} does !rnot!! have a corresponding match in {}",
-                                              Obj::to_rec({{b_key, b_obj}})->toString(),
-                                              this->toString()));
+                                              Obj::to_rec({{b_key, b_obj}})->toString(), this->toString()));
               return false;
             }
           }
@@ -2295,9 +2161,8 @@ namespace fhatos {
     }*/
 
     [[nodiscard]] Obj_p as(const ID_p &type_id) const {
-      return type_id->equals(*NOOBJ_FURI)
-               ? Obj::to_noobj()
-               : Obj::create(this->value_, this->otype, type_id, this->vid);
+      return type_id->equals(*NOOBJ_FURI) ? Obj::to_noobj()
+                                          : Obj::create(this->value_, this->otype, type_id, this->vid);
     }
 
     [[nodiscard]] Obj_p as(const Obj_p &type_obj) const {
@@ -2374,8 +2239,8 @@ namespace fhatos {
 
     [[nodiscard]] Option<fURI> lock() const {
       return this->vid && this->vid->query_value("lock").has_value()
-               ? Option<fURI>(fURI(this->vid->query_value("lock").value().c_str()))
-               : Option<fURI>();
+                 ? Option<fURI>(fURI(this->vid->query_value("lock").value().c_str()))
+                 : Option<fURI>();
     }
 
 
@@ -2385,12 +2250,13 @@ namespace fhatos {
       if(this->lock().has_value())
         throw fError("obj currently locked by %s: %s\n", this->vid->query_value("lock").value().c_str());
       const string new_query = strlen(this->vid->query()) == 0
-                                 ? string("lock=").append(user.toString())
-                                 : string(this->vid->query()).append("&lock=").append(user.toString());
+                                   ? string("lock=").append(user.toString())
+                                   : string(this->vid->query()).append("&lock=").append(user.toString());
       const ID new_vid = this->vid->query(new_query.c_str());
       const Obj_p new_obj = this->at(id_p(new_vid));
-      LOG_WRITE(INFO, this, L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! locked by !b{}!!\n",
-                              this->vid->no_query().toString(), user.toString()));
+      LOG_WRITE(
+          INFO, this,
+          L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! locked by !b{}!!\n", this->vid->no_query().toString(), user.toString()));
       return new_obj;
     }
 
@@ -2402,8 +2268,9 @@ namespace fhatos {
       if(this->lock().value() == user) {
         const ID new_vid = this->vid->query(""); // TODO: selectively remove lock
         const Obj_p new_obj = this->at(id_p(new_vid));
-        LOG_WRITE(INFO, this, L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! unlocked by !b{}!!\n",
-                                this->vid->no_query().toString(), user.toString()));
+        LOG_WRITE(INFO, this,
+                  L("!g[!r.!y.!c.!g]!m@!b{} !yobj!! unlocked by !b{}!!\n", this->vid->no_query().toString(),
+                    user.toString()));
         return new_obj;
       } else {
         throw fError("only the owner %s can unlock %s\n", this->vid->query_value("lock").value().c_str(),
@@ -2427,9 +2294,7 @@ namespace fhatos {
       return Obj::to_noobj();
     }
 
-    Obj_p or_else(const Obj_p &other) const {
-      return this->is_noobj() ? other : this->shared_from_this();
-    }
+    Obj_p or_else(const Obj_p &other) const { return this->is_noobj() ? other : this->shared_from_this(); }
 
     template<typename T>
     T or_else_(const T &other) const {
@@ -2547,18 +2412,15 @@ namespace fhatos {
 
     static Inst_p to_inst(const InstValue &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
       if(!std::get<0>(value)->is_rec())
-        TYPE_ERROR(std::get<0>(value).get(),__FILE__,__LINE__);
+        TYPE_ERROR(std::get<0>(value).get(), __FILE__, __LINE__);
       return Obj::create(value, OType::INST, type_id, value_id);
     }
 
     static Inst_p to_inst(const InstF &instf, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
-      return Obj::create(InstValue(Obj::to_inst_args(), instf, Obj::to_noobj()), OType::INST, type_id,
-                         value_id);
+      return Obj::create(InstValue(Obj::to_inst_args(), instf, Obj::to_noobj()), OType::INST, type_id, value_id);
     }
 
-    static InstArgs to_inst_args() {
-      return Obj::to_rec();
-    }
+    static InstArgs to_inst_args() { return Obj::to_rec(); }
 
     static InstArgs to_inst_args(const List<Obj_p> &args) {
       const Rec_p a = Obj::to_rec();
@@ -2575,13 +2437,11 @@ namespace fhatos {
 
     static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id,
                           const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id,
-                     value_id);
+      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id, value_id);
     }
 
     static Inst_p to_inst(const List<Obj_p> &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
-      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id,
-                     value_id);
+      return to_inst(type_id->name(), Obj::to_inst_args(args), InstF(Obj::to_noobj()), to_noobj(), type_id, value_id);
     }
 
     static Inst_p to_inst(const InstArgs &args, const ID_p &type_id, const ID_p &value_id = nullptr) {
@@ -2593,6 +2453,34 @@ namespace fhatos {
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(opcode.c_str()); // id_p(ROUTER_RESOLVE(fURI(opcode)));
       return to_inst(make_tuple(args, function, seed), fix, value_id);
+    }
+
+    static Inst_p to_inst(const Obj_p &obj, const InstArgs &args = Obj::to_inst_args(), const ID_p &type_id = nullptr,
+                          const ID_p &value_id = nullptr) {
+      switch(obj->otype) {
+        case OType::NOOBJ:
+          return Obj::to_noobj();
+        case OType::BOOL:
+        case OType::INT:
+        case OType::REAL:
+        case OType::STR:
+        case OType::URI:
+        case OType::LST:
+        case OType::REC:
+        case OType::OBJS:
+          return Obj::create(InstValue(args, InstF(obj), Obj::to_noobj()), OType::INST,
+                             nullptr != type_id ? type_id : id_p(obj->vid_or_tid()->extend("inst")), value_id);
+        case OType::INST:
+          return obj;
+        case OType::BCODE:
+          if(obj->bcode_value()->size() == 1 && args->rec_value()->empty())
+            return obj->bcode_value()->front();
+          else
+            return Obj::create(InstValue(args, InstF(obj), Obj::to_noobj()), OType::INST,
+                               nullptr != type_id ? type_id : id_p(obj->vid_or_tid()->extend("inst")), value_id);
+        default:
+          throw fError("cannot create an inst from %s", obj->toString().c_str());
+      }
     }
 
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &type_id = BCODE_FURI, const ID_p &value_id = nullptr) {
@@ -2636,9 +2524,7 @@ namespace fhatos {
     }
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
-    Obj_p clone() const {
-      return std::make_shared<Obj>(*this);
-    }
+    Obj_p clone() const { return std::make_shared<Obj>(*this); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2650,7 +2536,7 @@ namespace fhatos {
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      //LOG_WRITE(DEBUG, nullptr, L("deserializing bytes {} (length {})\n", bobj->second, bobj->first));
+      // LOG_WRITE(DEBUG, nullptr, L("deserializing bytes {} (length {})\n", bobj->second, bobj->first));
       const Obj_p obj = OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
       return obj;
     }
@@ -2665,9 +2551,7 @@ namespace fhatos {
       const unique_ptr<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>> internal =
           make_unique<OrderedMap<Obj_p, long, objp_hash, objp_equal_to>>();
 
-      void push_back(const Obj_p &obj, const long bulk = 1) const {
-        this->add(obj, bulk);
-      }
+      void push_back(const Obj_p &obj, const long bulk = 1) const { this->add(obj, bulk); }
 
       void add(const Obj_p &obj, const long bulk = 1) const {
         if(this->internal->count(obj)) {
@@ -2691,19 +2575,15 @@ namespace fhatos {
 
       [[nodiscard]] long bulk_size() const {
         long bulk_total = 0;
-        for(const auto &[obj,bulk]: *this->internal) {
+        for(const auto &[obj, bulk]: *this->internal) {
           bulk_total += bulk;
         }
         return bulk_total;
       }
 
-      [[nodiscard]] unsigned long size() const {
-        return this->internal->size();
-      }
+      [[nodiscard]] unsigned long size() const { return this->internal->size(); }
 
-      [[nodiscard]] bool empty() const {
-        return this->internal->empty();
-      }
+      [[nodiscard]] bool empty() const { return this->internal->empty(); }
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2785,17 +2665,14 @@ namespace fhatos {
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const string, Obj_p>> &map,
                                     const ID_p &type = REC_FURI, const ID_p &vid = nullptr) {
     Obj::RecMap<> rec_map = Obj::RecMap<>();
-    std::transform(map.begin(), map.end(),
-                   std::inserter(rec_map, rec_map.end()),
+    std::transform(map.begin(), map.end(), std::inserter(rec_map, rec_map.end()),
                    [](const auto &pair) { return std::make_pair(vri(pair.first), pair.second); });
     return rec(rec_map, type, vid);
   }
 
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }
 
-  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) {
-    return Obj::to_objs(make_shared<List<Obj_p>>(list));
-  }
+  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(make_shared<List<Obj_p>>(list)); }
 
   [[maybe_unused]] static Objs_p objs(const List_p<Obj_p> &list) { return Obj::to_objs(list); }
 
@@ -2811,7 +2688,7 @@ namespace fhatos {
     return m;
   }
 
-  inline std::ostream &operator <<(std::ostream &os, const Obj &value) {
+  inline std::ostream &operator<<(std::ostream &os, const Obj &value) {
     os << value.toString();
     return os;
   };
