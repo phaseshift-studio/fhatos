@@ -24,7 +24,7 @@
 #include "string_helper.hpp"
 #include <memory>
 #ifdef NATIVE
-#include <cpptrace/cpptrace.hpp>
+//#include <cpptrace/cpptrace.hpp>
 #include <fmt/core.h>
 #endif
 
@@ -54,13 +54,13 @@ namespace fhatos {
     }
 
     [[nodiscard]] const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
-#ifdef DNATIVE
+/*#ifdef NATIVE
       const cpptrace::stacktrace st = cpptrace::generate_trace();
       const string stack_message = string(this->message_).append("\n").append(st.to_string(true));
       return stack_message.c_str();
-#else
+#else*/
       return this->message_.c_str();
-#endif
+//#endif
     }
   };
 } // namespace fhatos

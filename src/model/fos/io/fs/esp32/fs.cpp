@@ -21,6 +21,7 @@ FhatOS: A Distributed Operating System
 #include <LittleFS.h>
 #include "../fs.hpp"
 #include "../../../../../fhatos.hpp"
+#include "../../../../../lang/mmadt/parser.hpp"
 #define FOS_FS LittleFS
 #define SPIFFS LittleFS
 
@@ -28,11 +29,8 @@ using namespace fs;
 
 namespace fhatos {
 
-  FS::FS(
-      const Pattern &pattern,
-      const ID_p &value_id,
-      const Rec_p &config) :
-    Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
+  FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
+      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
     if(!FOS_FS.begin()) {
       throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
       return;
@@ -40,18 +38,14 @@ namespace fhatos {
     LOG_WRITE(INFO, this, L("!b{} !yfile system location!! mounted\n", this->root.toString()));
   }
 
-  ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
-    return Structure::create<FS>(pattern, value_id, config);
-  }
-
-  void FS::load_boot_config(const fURI &boot_config) {
+  Obj_p FS::load_boot_config(const fURI &boot_config) {
     try {
       if(!FOS_FS.begin())
-        return;
+        return Obj::to_noobj();
       fURI boot_config_update = fURI("/").extend(boot_config); // LittleFS doesn't support relative paths
       fs::File file = FOS_FS.open(boot_config_update.toString().c_str(), "r");
       if(!file)
-        return;
+        return Obj::to_noobj();
       const String content = file.readString();
       const char *c = content.c_str();
       boot_config_obj_copy_len = content.length();
@@ -62,8 +56,19 @@ namespace fhatos {
       boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
       file.close();
       FOS_FS.end();
+      Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_parser")
+                                                ->inst_f([](const Obj_p &obj, const InstArgs &) {
+                                                  const auto proto = make_unique<mmadt::Parser>();
+                                                  const Obj_p boot_obj = proto->parse(obj->str_value().c_str());
+                                                  ROUTER_WRITE("boot/config", boot_obj, true);
+                                                  return Obj::to_noobj();
+                                                })
+                                                ->create(),
+                                            Obj::to_str((char *) boot_config_obj_copy), FOS_BOOT_CONFIG_MEM_USAGE);
+      return Router::singleton()->read("boot/config");
     } catch(std::exception &ex) {
-      LOG_WRITE(ERROR, Router::singleton().get(),L("{}", ex.what()));
+      LOG_WRITE(ERROR, Router::singleton().get(), L("{}", ex.what()));
+      return Obj::to_noobj();
     }
   }
 
@@ -88,7 +93,7 @@ namespace fhatos {
     file.close();
   }
 
-  IdObjPairs read_raw_pairs_dir(const FS& fs,  const fURI &match, fs::File &dir) {
+  IdObjPairs read_raw_pairs_dir(const FS &fs, const fURI &match, fs::File &dir) {
     IdObjPairs pairs = List<Pair<ID, Obj_p>>();
     fs::File file = dir.openNextFile();
     while(file) {
@@ -101,7 +106,7 @@ namespace fhatos {
           pairs.emplace_back(Pair<ID, Obj_p>(path, Obj::deserialize(bobj)));
         }
       } else {
-        IdObjPairs new_pairs = read_raw_pairs_dir(fs,match, file);
+        IdObjPairs new_pairs = read_raw_pairs_dir(fs, match, file);
         pairs.insert(pairs.begin(), new_pairs.begin(), new_pairs.end());
       }
       file = dir.openNextFile();
@@ -110,14 +115,14 @@ namespace fhatos {
     return pairs;
   }
 
-  IdObjPairs FS::read_raw_pairs(const fURI &match)  {
+  IdObjPairs FS::read_raw_pairs(const fURI &match) {
     fs::File root = FOS_FS.open(this->root.toString().c_str());
-    return read_raw_pairs_dir(*this,match, root);
+    return read_raw_pairs_dir(*this, match, root);
   }
 
   /*void stop() override {
     FOS_FS.end();
     BaseFS::stop();
   }*/
-}
+} // namespace fhatos
 #endif

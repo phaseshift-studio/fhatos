@@ -28,6 +28,9 @@
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
 #include "../../../../extern/fmt/include/fmt/core.h"
+#ifdef NATIVE
+#include <cpptrace/cpptrace.hpp>
+#endif
 
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");

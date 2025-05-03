@@ -38,7 +38,7 @@
 namespace fhatos {
   const static auto DSM_FURI = ID("/sys/lib/dsm");
 
-  //template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
+  // template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
   protected:
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =

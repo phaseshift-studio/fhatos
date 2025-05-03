@@ -23,11 +23,10 @@
 
 #include "../../../fhatos.hpp"
 #include "../../../furi.hpp"
-#include "../../../lang/obj.hpp"
 #include "../../../lang/mmadt/mmadt.hpp"
-#include "../../../util/memory_helper.hpp"
+#include "../../../lang/obj.hpp"
+#include "../../../model/fos/sys/scheduler/thread/mutex.hpp"
 #include "../../../util/obj_helper.hpp"
-#include "../sys/scheduler/thread/mutex.hpp"
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
@@ -37,13 +36,31 @@ namespace fhatos {
   static const ID_p LOG_FURI = id_p("/fos/util/log");
   static ptr<Trip<const LOG_TYPE, const Obj *, const std::function<std::string()>>> log_stack;
 
+  struct Entry {
+    const LOG_TYPE type;
+    const Obj *source;
+    const std::function<std::string()> message;
+
+    Entry() = delete;
+    Entry(const Entry &other) = delete;
+    Entry &operator=(const Entry &other) = delete;
+
+    Entry(const LOG_TYPE log_type, const Obj *log_source, std::function<std::string()> log_message) :
+        type(log_type), source(log_source), message(std::move(log_message)) {}
+
+    Entry(const LOG_TYPE log_type, std::function<std::string()> log_message) :
+        Entry(log_type, nullptr, std::move(log_message)) {}
+
+    void log() const { LOG_WRITE(this->type, this->source, this->message); }
+  };
+
   class Log final : public Rec {
   protected:
     Mutex log_mutex;
 
   public:
     explicit Log(const ID &value_id, const Rec_p &config) :
-      Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
+        Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
       printer<>()->printf("!g[INFO]  [!m%s!g] !yboot logger!g/!ysystem logger!! swapped\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
@@ -53,7 +70,6 @@ namespace fhatos {
 
                                              return Obj::to_noobj();
                                            })->create(), source->shared_from_this(), 8000, true);*/
-
       };
     }
 
@@ -61,10 +77,10 @@ namespace fhatos {
       const auto logging = fURI(string("config/").append(LOG_TYPES.to_chars(type)));
       const Lst_p furis = Log::singleton()->rec_get(logging)->or_else(lst());
       if(!furis->is_lst()) {
-        printer<>()->print(fmt::format(
-            "!r[ERROR] !! " OBJ_ID_WRAP " log listing not within schema specification: !b{}!!\n",
-            LOG_FURI ? LOG_FURI->toString() : "<none>",
-            Log::singleton()->toString()).c_str());
+        printer<>()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP
+                                       " log listing not within schema specification: !b{}!!\n",
+                                       LOG_FURI ? LOG_FURI->toString() : "<none>", Log::singleton()->toString())
+                               .c_str());
         return;
       }
       bool match = false;
@@ -99,12 +115,11 @@ namespace fhatos {
     }
 
     static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
-      const static auto log = std::make_shared<Log>(id, config->or_else(rec({
-                                                        {"INFO", lst({vri("#")})},
-                                                        {"ERROR", lst({vri("#")})},
-                                                        {"DEBUG", lst()},
-                                                        {"WARN", lst()},
-                                                        {"TRACE", lst()}})));
+      const static auto log = std::make_shared<Log>(id, config->or_else(rec({{"INFO", lst({vri("#")})},
+                                                                             {"ERROR", lst({vri("#")})},
+                                                                             {"DEBUG", lst()},
+                                                                             {"WARN", lst()},
+                                                                             {"TRACE", lst()}})));
       return log;
     }
 
@@ -117,7 +132,7 @@ namespace fhatos {
       string log_level_str = args->get<fURI>("level").toString();
       std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
       const LOG_TYPE log_level = LOG_TYPES.to_enum(log_level_str);
-      Log::PRIMARY_LOGGING(log_level, source_obj.get(),L("{}", args->arg("message")->toString()));
+      Log::PRIMARY_LOGGING(log_level, source_obj.get(), L("{}", args->arg("message")->toString()));
       return source_obj;
     }
 
@@ -125,30 +140,27 @@ namespace fhatos {
     static void *import() {
       ////////////////////////// TYPE ////////////////////////////////
       TYPE_SAVER(LOG_FURI->extend("level"),
-                 __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI).is(__().or_(
-                     __().eq(vri("INFO")),
-                     __().eq(vri("ERROR")),
-                     __().eq(vri("DEBUG")),
-                     __().eq(vri("WARN")),
-                     __().eq(vri("TRACE")))));
-      TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", rec({
-                                              {"INFO", Obj::to_type(LST_FURI)},
-                                              {"ERROR", Obj::to_type(LST_FURI)},
-                                              {"DEBUG", Obj::to_type(LST_FURI)},
-                                              {"WARN", Obj::to_type(LST_FURI)},
-                                              {"TRACE", Obj::to_type(LST_FURI)}})}}));
+                 __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)
+                     .is(__().or_(__().eq(vri("INFO")), __().eq(vri("ERROR")), __().eq(vri("DEBUG")),
+                                  __().eq(vri("WARN")), __().eq(vri("TRACE")))));
+      TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", rec({{"INFO", Obj::to_type(LST_FURI)},
+                                                         {"ERROR", Obj::to_type(LST_FURI)},
+                                                         {"DEBUG", Obj::to_type(LST_FURI)},
+                                                         {"WARN", Obj::to_type(LST_FURI)},
+                                                         {"TRACE", Obj::to_type(LST_FURI)}})}}));
       ////////////////////////// INSTS ////////////////////////////////
       InstBuilder::build(LOG_FURI->add_component("log"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({
-              {vri(ID("level").query(LOG_FURI->extend("level").toString().c_str())), __().else_(vri("INFO"))},
-              {vri("message?str"), Obj::to_bcode()}}))
+          ->inst_args(
+              rec({{vri(ID("level").query(LOG_FURI->extend("level").toString().c_str())), __().else_(vri("INFO"))},
+                   {vri("message?str"), Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &source, const InstArgs &args) {
             const LOG_TYPE log_level = LOG_TYPES.to_enum(args->get<fURI>("level").toString());
             const auto message = args->arg("message")->str_value();
-            Log::PRIMARY_LOGGING(log_level, source.get(),L("{}\n", message));
+            Log::PRIMARY_LOGGING(log_level, source.get(), L("{}\n", message));
             return source;
-          })->save();
+          })
+          ->save();
       return nullptr;
     }
   };

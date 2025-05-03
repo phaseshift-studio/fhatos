@@ -56,14 +56,14 @@ namespace fhatos {
     void receive(const Message_p &message) const {
       LOG_WRITE(DEBUG, this, L("{} received\n", message->toString()));
       this->subscriptions_->forEach([this,&message](const Subscription_p &sub) {
-        if(this->clients_->find([this,sub](const ID &client) {
+       /* if(this->clients_->find([this,sub](const ID &client) {
           return sub->source()->equals(client);
-        }).has_value()) {
+        }).has_value()) {*/
           if(message->target()->matches(*sub->pattern())) {
             if(sub->on_recv().get())
               sub->apply(message);
           }
-        }
+       // }
       });
     }
 
@@ -75,9 +75,7 @@ namespace fhatos {
         return Obj::to_noobj();
       }));
       this->loop();
-      if(const Option<Thread *> op = Thread::current_thread(); op.has_value()) {
-        op.value()->delay(500);
-      }
+      Thread::current_thread().value()->delay(this->obj_get("query_delay")->or_else_<int>(500));
       this->loop();
       this->unsubscribe(*source, pattern);
       return results;

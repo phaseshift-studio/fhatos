@@ -18,6 +18,8 @@ FhatOS: A Distributed Operating System
 
 #ifdef ESP_PLATFORM
 #include "../memory.hpp"
+#include <semphr.h>
+#include <esp_expression_with_stack.h>
 
 namespace fhatos {
   static thread_local auto CUSTOM_STACK = new std::stack<Obj_p>();

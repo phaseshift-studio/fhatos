@@ -21,22 +21,20 @@ FhatOS: A Distributed Operating System
 #include <fstream>
 #include "../fs.hpp"
 #include "../../../../../fhatos.hpp"
+#include "../../../../../lang/mmadt/parser.hpp"
 #define FOS_FS NTFS
 
 namespace fs = std::filesystem;
 
 namespace fhatos {
-
-  FS::FS(
-      const Pattern &pattern,
-      const ID_p &value_id,
-      const Rec_p &config) :
-    Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
+//using namespace fs;
+  
+  FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
+      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
     LOG_WRITE(INFO, this, L("!b{} !yfile system location!! mounted\n", this->root.toString()));
   }
 
-  ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id,
-                     const Rec_p &config) {
+  ptr<FS> create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
     Obj_p root = config->rec_get("root");
     if(root->is_noobj())
       root = vri(".");
@@ -48,43 +46,35 @@ namespace fhatos {
     return Structure::create<FS>(pattern, value_id, config);
   }
 
-
-  void FS::load_boot_config(const fURI &boot_config) {
-    const fs::path boot_path = fs::canonical(
-        fs::path(string(fs::current_path().c_str()) + boot_config.toString()));
-    LOG_WRITE(INFO, Router::singleton().get(),L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
+  Obj_p FS::load_boot_config(const fURI &boot_config) {
+    const fs::path boot_path = fs::canonical(fs::path(string(fs::current_path().c_str()) + boot_config.toString()));
+    LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
     if(fs::is_regular_file(boot_path)) {
       auto infile = std::ifstream(boot_path, ios::in);
       if(!infile.is_open())
         throw fError("unable to read from boot config from !b%s!!", boot_path.c_str());
       const auto content = string(std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>());
       infile.close();
-      boot_config_obj_copy_len = content.length();
-      boot_config_obj_copy = (unsigned char *) malloc((boot_config_obj_copy_len * sizeof(unsigned char)) + 1);
-      for(int i = 0; i < boot_config_obj_copy_len; i++) {
-        boot_config_obj_copy[i] = static_cast<unsigned char>(content[i]);
-      }
-      boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
-
-    } else {
-      throw fError("could not locate boot_config !b%s!! at !b%s!!", boot_config.toString().c_str());
+      const auto proto = make_unique<mmadt::Parser>();
+      const Obj_p boot_obj = proto->parse(content.c_str());
+      return boot_obj;
     }
   }
 
   void FS::write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) {
     // TODO: retain is overwrite and transient is append
     const fs::path file_path = map_fos_to_fs(id).toString();
-    //LOG(INFO, "trying to write to %s\n", file_path.c_str());
+    // LOG(INFO, "trying to write to %s\n", file_path.c_str());
     if(obj->is_noobj()) {
       if(is_regular_file(file_path))
         fs::remove(file_path);
-      //this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
+      // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
       return;
     }
     if(id.is_node()) {
       if(const fs::path parent_path = file_path.parent_path(); !fs::exists(parent_path))
         fs::create_directories(parent_path);
-      //LOG(INFO, "writing to %s -> %s\n", id->toString().c_str(), file_path.c_str());
+      // LOG(INFO, "writing to %s -> %s\n", id->toString().c_str(), file_path.c_str());
       const BObj_p bobj = obj->serialize();
       auto outfile = std::ofstream(file_path, retain ? ios::trunc : ios::app);
       if(!outfile.is_open())
@@ -101,7 +91,8 @@ namespace fhatos {
 
   void read_raw_pairs_dir(const FS &fs, const fURI &match, const fs::path &fs_path, IdObjPairs *pairs) {
     const ID fos_path = fs.map_fs_to_fos(fs_path);
-    //LOG(INFO, "matching %s with %s via %s\n", match->toString().c_str(), fos_path.toString().c_str(), fs_path.c_str());
+    // LOG(INFO, "matching %s with %s via %s\n", match->toString().c_str(), fos_path.toString().c_str(),
+    // fs_path.c_str());
     if(fos_path.is_node() && fs::is_regular_file(fs_path) && fos_path.matches(match)) {
       auto infile = std::ifstream(fs_path, ios::in);
       if(!infile.is_open())
@@ -119,9 +110,10 @@ namespace fhatos {
 
   IdObjPairs FS::read_raw_pairs(const fURI &match) {
     auto pairs = IdObjPairs();
-    // LOG(INFO, "trying to read %s starting at %s\n", match->toString().c_str(),fs::path(this->root.toString()).c_str());
+    // LOG(INFO, "trying to read %s starting at %s\n",
+    // match->toString().c_str(),fs::path(this->root.toString()).c_str());
     read_raw_pairs_dir(*this, match, fs::path(this->root.toString()), &pairs);
     return pairs;
   }
-}
+} // namespace fhatos
 #endif

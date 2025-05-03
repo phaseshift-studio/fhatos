@@ -1,6 +1,5 @@
 === standard boot config obj ===
-/boot/config -> [
- router=>[
+[router=>[
   resolve=>[
    namespace=>[:=>/mmadt/,fos:=>/fos/],
    auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
@@ -34,5 +33,5 @@
   stack_size=>16192,
   stack_trace=>true
  ],
- fs=>[root=></mnt/fs>]
+ fs=>[root=></data/fs>]
 ]@/boot/config

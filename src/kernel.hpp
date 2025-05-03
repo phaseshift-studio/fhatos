@@ -24,7 +24,6 @@
 #include "model/fos/sys/scheduler/thread/thread.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "lang/mmadt/parser.hpp"
-#include "util/memory_helper.hpp"
 #include "util/print_helper.hpp"
 #include "boot_config_loader.hpp"
 #include "model/fos/sys/memory/memory.hpp"
@@ -174,20 +173,18 @@ namespace fhatos {
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
-      bool to_free_boot = false;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
       Obj_p config_obj = Obj::to_noobj();
       // boot from header file, file system, or wifi
       if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
-        fhatos::FS::load_boot_config(boot_config_loader);
-        if(boot_config_obj_copy_len > 0) {
+       config_obj = fhatos::FS::load_boot_config(boot_config_loader);
+        if(!config_obj->is_noobj()) {
           LOG_WRITE(INFO, Router::singleton().get(),
                     L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n",
                       boot_config_loader.toString(), boot_config_obj_copy_len));
-          to_free_boot = true;
         }
       }
-      if(0 == boot_config_obj_copy_len) {
+     if(config_obj->is_noobj()) {
         if(boot_config_obj_len > 0) {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
@@ -199,15 +196,11 @@ namespace fhatos {
       if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
         Memory::singleton()->use_custom_stack(
             InstBuilder::build("boot_loader_stack")
-            ->inst_f([](const Obj_p &, const InstArgs &args) {
+            ->inst_f([](const Obj_p &, const InstArgs &) {
               mmadt::Parser::load_boot_config();
               return Obj::to_noobj();
             })->create(), Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
         config_obj = Router::singleton()->read(*config_id);
-      }
-      if(to_free_boot && boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-        free(boot_config_obj_copy);
-        boot_config_obj_len = 0;
       }
       if(config_obj->is_noobj())
         throw fError("!yboot loader config!! !rnot found!! in flash nor header");
@@ -250,7 +243,7 @@ namespace fhatos {
       esp_restart();
 #else
       exit(EXIT_SUCCESS);
-#endif*/
+#endif
     }
   };
 } // namespace fhatos

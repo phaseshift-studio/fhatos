@@ -21,8 +21,8 @@ FhatOS: A Distributed Operating System
 #define fhatos_fs_hpp
 
 #include "../../../../fhatos.hpp"
-#include "../../../../structure/structure.hpp"
 #include "../../../../structure/router.hpp"
+#include "../../../../structure/structure.hpp"
 
 namespace fhatos {
 
@@ -36,16 +36,18 @@ namespace fhatos {
     void write_raw_pairs(const ID &id, const Obj_p &obj, bool retain) override;
 
     IdObjPairs read_raw_pairs(const fURI &match) override;
+
   public:
     explicit FS(const Pattern &pattern, const ID_p &value_id = nullptr,
-                      const Rec_p &config = Obj::to_rec({{"root", vri(".")}}));/* :
-        Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
-      }*/
+                const Rec_p &config = Obj::to_rec({{"root", vri(".")}})); /* :
+   Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
+ }*/
 
-    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr,
-                          const Rec_p &config = Obj::to_rec());
+    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) {
+      return Structure::create<FS>(pattern, value_id, config);
+    }
 
-    static void load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
+    static Obj_p load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
 
     ID map_fos_to_fs(const ID &fos_id) const {
       const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());

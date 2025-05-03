@@ -35,27 +35,27 @@ namespace fhatos {
   using namespace mqtt;
 
 
-  void MqttClient::loop() {
-  }
+  void MqttClient::loop() {}
 
   MqttClient::MqttClient(const Rec_p &config) :
-    Rec(std::move(config->rec_value()), OType::REC, REC_FURI),
-    handler_(std::make_shared<async_client>(config->get<fURI>("broker").toString(),
-                                            config->get<fURI>("client").toString(),
-                                            mqtt::create_options())) {
+      Rec(std::move(config->rec_value()), OType::REC, REC_FURI),
+      handler_(std::make_shared<async_client>(config->get<fURI>("broker").toString(),
+                                              config->get<fURI>("client").toString(), mqtt::create_options())) {
     //// MQTT MESSAGE CALLBACK]
-    std::any_cast<ptr<async_client>>(this->handler_)->set_message_callback(
-        [this](const const_message_ptr &mqtt_message) {
+    std::any_cast<ptr<async_client>>(this->handler_)
+        ->set_message_callback([this](const const_message_ptr &mqtt_message) {
           const binary_ref ref = mqtt_message->get_payload_ref();
-          const auto bobj = ref.empty()
-                              ? nullptr
-                              : std::make_shared<BObj>(ref.length(),
-                                                       reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
-          const auto [payload, retained] = bobj
-                                             ? make_payload(bobj)
-                                             : make_pair(Obj::to_noobj(), mqtt_message->is_retained());
+          const auto bobj =
+              ref.empty()
+                  ? nullptr
+                  : std::make_shared<BObj>(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
+          const auto [payload, retained] =
+              bobj ? make_payload(bobj) : make_pair(Obj::to_noobj(), mqtt_message->is_retained());
           // assert(mqtt_message->is_retained() == retained); // TODO: why does this sometimes not match?
-          const Message_p message = Message::create(id_p(ID(mqtt_message->get_topic())), payload, retained);
+          LOG_WRITE(DEBUG, this,
+                    L("!b{} !ymqtt message!! received: {}\n", mqtt_message->get_topic().c_str(),
+                      mqtt_message->get_payload().c_str()));
+          const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
           this->receive(message);
         });
     /// MQTT CONNECTION ESTABLISHED CALLBACK
@@ -66,19 +66,19 @@ namespace fhatos {
 
   void MqttClient::subscribe(const Subscription_p &subscription, const bool async) const {
     this->subscriptions_->push_back(subscription);
-    const mqtt::token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->subscribe(
-        subscription->pattern()->toString(), 1);
+    const mqtt::token_ptr result =
+        std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1);
     if(!async)
       result->wait();
+    LOG_WRITE(DEBUG, this, L("!b{} !ymqtt!! {} subscribe\n", this->broker().toString(), subscription->toString()));
   }
 
   void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
-    this->subscriptions_->remove_if([this,&source,&pattern,async](const Subscription_p &sub) {
+    this->subscriptions_->remove_if([this, &source, &pattern, async](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
-
-        const mqtt::token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)
-            ->unsubscribe(sub->pattern()->toString());
+        const mqtt::token_ptr result =
+            std::any_cast<ptr<async_client>>(this->handler_)->unsubscribe(sub->pattern()->toString());
         if(!async)
           result->wait();
       }
@@ -89,18 +89,13 @@ namespace fhatos {
   void MqttClient::publish(const Message_p &message, const bool async) const {
     mqtt::token_ptr result;
     if(message->payload()->is_noobj()) {
-      result = std::any_cast<ptr<async_client>>(this->handler_)->publish(
-          message->target()->toString().c_str(),
-          const_cast<char *>(""), 0, 0,
-          message->retain());
-      if(!async)
-        result->wait();
+      result = std::any_cast<ptr<async_client>>(this->handler_)
+                   ->publish(message->target()->toString().c_str(), const_cast<char *>(""), 0, 0, message->retain());
     } else {
       const BObj_p source_payload = make_bobj(message->payload(), message->retain());
       result = std::any_cast<ptr<async_client>>(this->handler_)
-          ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0,
-                    message->retain());
-
+                   ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0,
+                             message->retain());
     }
     if(!async)
       result->wait();
@@ -119,9 +114,6 @@ namespace fhatos {
     return true;
   }
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
   bool MqttClient::is_connected() const {
     if(!this->handler_.has_value())
       return false;
@@ -139,18 +131,17 @@ namespace fhatos {
     }
     try {
       connect_options_builder pre_connection_options = connect_options_builder()
-          .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
-          .clean_start(true)
-          .clean_session(true)
-          //.mqtt_version(5)
-          .user_name(this->client().toString())
-          .keep_alive_interval(std::chrono::seconds(20))
-          .automatic_reconnect();
+                                                           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
+                                                           .clean_start(true)
+                                                           .clean_session(true)
+                                                           //.mqtt_version(5)
+                                                           .user_name(this->client().toString())
+                                                           .keep_alive_interval(std::chrono::seconds(20))
+                                                           .automatic_reconnect();
       if(!this->rec_get("config/will")->is_noobj()) {
         const BObj_p source_payload = this->rec_get("config/will")->rec_get("payload")->serialize();
         pre_connection_options = pre_connection_options.will(
-            message(this->rec_get("config/will")->rec_get("target")->uri_value().toString(),
-                    source_payload->second,
+            message(this->rec_get("config/will")->rec_get("target")->uri_value().toString(), source_payload->second,
                     this->rec_get("config/will")->rec_get("retain")->bool_value()));
       }
       const connect_options connect_options_ = pre_connection_options.finalize();
@@ -160,7 +151,7 @@ namespace fhatos {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n", this->broker().toString()));
-          std::this_thread::sleep_for(chrono::milliseconds(FOS_MQTT_RETRY_WAIT));
+          Thread::delay_current_thread(FOS_MQTT_RETRY_WAIT);
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
           this->clients_->push_back(source);
@@ -172,5 +163,5 @@ namespace fhatos {
     }
     return false;
   }
-}
+} // namespace fhatos
 #endif
