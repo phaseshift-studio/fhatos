@@ -21,11 +21,11 @@
 #define fhatos_dsm_hpp
 
 #include "../../fhatos.hpp"
-#include "../../lang/obj.hpp"
-#include "../structure.hpp"
-#include "../router.hpp"
 #include "../../lang/mmadt/mmadt_obj.hpp"
+#include "../../lang/obj.hpp"
 #include "../../util/mutex_map.hpp"
+#include "../router.hpp"
+#include "../structure.hpp"
 #include "../util/mqtt/mqtt_client.hpp"
 
 /*
@@ -44,13 +44,12 @@ namespace fhatos {
     const uptr<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>> data_ =
         make_unique<MutexMap<const ID, Obj_p, std::less<>, std::allocator<std::pair<const ID, Obj_p>>>>();
     size_t cache_size_ = 100;
+    bool async = false;
     ptr<MqttClient> mqtt{};
 
     [[nodiscard]] Subscription_p generate_sync_subscription(const Pattern &pattern) const {
       return Subscription::create(this->vid, p_p(pattern), [this](const Obj_p &obj, const InstArgs &args) {
-        this->write_raw_raw_pairs(
-            args->arg("target")->uri_value(), obj,
-            args->arg("retain")->bool_value());
+        this->write_raw_raw_pairs(args->arg("target")->uri_value(), obj, args->arg("retain")->bool_value());
         return Obj::to_noobj();
       });
     }
@@ -66,9 +65,9 @@ namespace fhatos {
 
   public:
     explicit DSM(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(DSM_FURI), value_id, config),
-      mqtt{nullptr} {
-      this->cache_size_ = config->rec_get("cache_size", jnt(100))->int_value();
+        Structure(pattern, id_p(DSM_FURI), value_id, config), mqtt{nullptr} {
+      this->cache_size_ = config->rec_get("cache_size")->or_else_(100);
+      this->async = this->rec_get("config/async")->or_else_(false);
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
@@ -90,16 +89,14 @@ namespace fhatos {
     }
 
     void setup() override {
-      this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"),
-                                             this->get<fURI>("config/client"));
-
+      this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"), this->get<fURI>("config/client"));
       if(this->mqtt->connect(*this->vid))
-        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), this->get<bool>("config/async"));
+        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), this->async);
       Structure::setup();
     }
 
     void stop() override {
-      assert(this->mqtt->disconnect(*this->vid, this->get<bool>("config/async")));
+      assert(this->mqtt->disconnect(*this->vid, this->async));
       Structure::stop();
       this->data_->clear();
     }
@@ -121,7 +118,7 @@ namespace fhatos {
 
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       this->write_raw_raw_pairs(id, obj, retain);
-      this->mqtt->publish(Message::create(id_p(id), obj, retain), this->get<bool>("config/async"));
+      this->mqtt->publish(Message::create(id_p(id), obj, retain), this->async);
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {
@@ -131,34 +128,33 @@ namespace fhatos {
         } else {
           if(-1 != this->cache_size_ && this->data_->size() >= this->cache_size_)
             this->clear_cache(this->data_->size() - 1);
-          this->mqtt->subscribe(this->generate_sync_subscription(match), this->get<bool>("config/async"));
+          this->mqtt->subscribe(this->generate_sync_subscription(match), this->async);
+          // this->loop();
+          // Thread::delay_current_thread(MQTT_WAIT_MS);
           this->loop();
-          Thread::delay_current_thread(MQTT_WAIT_MS);
-          this->loop();
-          this->mqtt->unsubscribe(*this->vid, match, this->get<bool>("config/async"));
+          this->mqtt->unsubscribe(*this->vid, match, this->async);
           if(this->data_->exists(match)) {
             const IdObjPairs pairs = {{match, this->data_->at(match)}};
             return pairs;
           }
         }
         return {};
-      } else {
-        auto list = IdObjPairs();
-        for(const auto &[id, obj]: *this->data_) {
-          if(id.matches(match)) {
-            list.emplace_back(id, obj);
-          }
-        }
-        return list;
       }
+      //////////////////////////////////////////////////////////////////
+      auto list = IdObjPairs();
+      for(const auto &[id, obj]: *this->data_) {
+        if(id.matches(match)) {
+          list.emplace_back(id, obj);
+        }
+      }
+      return list;
     }
 
     bool has(const fURI &furi) override {
       if(!furi.is_pattern() && furi.is_node())
         return this->data_->count(furi) > 0;
-      return std::any_of(this->data_->begin(), this->data_->end(), [&furi](const auto &pair) {
-        return pair.first.matches(furi);
-      });
+      return std::any_of(this->data_->begin(), this->data_->end(),
+                         [&furi](const auto &pair) { return pair.first.matches(furi); });
     }
   };
 

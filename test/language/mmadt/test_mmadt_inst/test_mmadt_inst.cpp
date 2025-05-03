@@ -124,6 +124,7 @@ namespace fhatos {
   void test_barrier_inst() {
     // objs
     FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(3), jnt(4), jnt(5)}), PROCESS_ALL("{1,2,3}.barrier(plus(2))"));
+    FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(3), jnt(4), jnt(5)}), PROCESS_ALL("{1,2,3}._]plus(2)[_"));
     // FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(4)}), PROCESS_ALL("{7,109,18,566}.barrier(count())"));
     //  FOS_TEST_OBJ_EQUAL(Objs::to_objs({jnt(7+109+18+566)}), PROCESS_ALL("{7,109,18,566}.barrier(sum())"));
   }
