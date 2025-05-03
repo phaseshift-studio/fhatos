@@ -90,6 +90,21 @@ namespace fhatos {
       this->detach();
     }
 
+    void test_mono_embedding() const {
+      ROUTER_WRITE(p("b"), dool(true), true);
+      ROUTER_WRITE(p("i"), jnt(10), true);
+      ROUTER_WRITE(p("r"), real(22.5), true);
+      ROUTER_WRITE(p("s"), str("fhatty"), true);
+      ROUTER_WRITE(p("u"), vri("fhat://pig.com:8080"), true);
+      ////////////////////////////////////////////////////
+      FOS_TEST_OBJ_EQUAL(dool(true), structure_->read(p("b")));
+      FOS_TEST_OBJ_EQUAL(jnt(10), structure_->read(p("i")));
+      FOS_TEST_OBJ_EQUAL(real(22.5), structure_->read(p("r")));
+      FOS_TEST_OBJ_EQUAL(str("fhatty"), structure_->read(p("s")));
+      FOS_TEST_OBJ_EQUAL(vri("fhat://pig.com:8080"), structure_->read(p("u")));
+      this->detach();
+    }
+
     void test_rec_embedding() const {
       ////////////////////////////
       const Rec_p recA = Obj::to_rec({{"x", jnt(1)}, {"y", jnt(2)}});
