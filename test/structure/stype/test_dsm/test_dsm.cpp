@@ -22,8 +22,8 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
 #include "../../../../src/fhatos.hpp"
+#include "../../../../src/model/fos/sys/router/structure/dsm.hpp"
 #include "../../../test_fhatos.hpp"
-#include "../../../../src/structure/stype/dsm.hpp"
 #include "../generic_structure_test.hpp"
 
 namespace fhatos {

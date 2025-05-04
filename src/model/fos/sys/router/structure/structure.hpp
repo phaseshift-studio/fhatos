@@ -20,11 +20,11 @@
 #ifndef fhatos_structure_hpp
 #define fhatos_structure_hpp
 
-#include "../fhatos.hpp"
-#include "../lang/obj.hpp"
-#include "pubsub.hpp"
-#include "q_proc.hpp"
-#include "qtype/q_sub.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../../../../structure/pubsub.hpp"
+#include "../../../../../structure/q_proc.hpp"
+#include "../../../../../structure/qtype/q_sub.hpp"
 
 
 #define FOS_TRY_META                                                                                                   \

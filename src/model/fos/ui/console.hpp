@@ -28,6 +28,7 @@
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
 #include "../../../../extern/fmt/include/fmt/core.h"
+#include "../../../util/print_helper.hpp"
 #ifdef NATIVE
 #include <cpptrace/cpptrace.hpp>
 #endif

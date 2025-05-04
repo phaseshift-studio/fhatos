@@ -25,17 +25,11 @@ FhatOS: A Distributed Operating System
 #include "../../src/lang/mmadt/parser.hpp"
 #include "../../src/lang/mmadt/mmadt_obj.hpp"
 #include "../../src/fhatos.hpp"
-#include "../../src/kernel.hpp"
-#include "../../src/structure/router.hpp"
+#include "../../src/model/fos/sys/router/router.hpp"
 #include "../../src/util/argv_parser.hpp"
 #include "../../src/model/fos/sys/scheduler/scheduler.hpp"
-#include "../../src/lang/type.hpp"
-#include "../../src/lang/mmadt/parser.hpp"
-#include "../../src/model/fos/ui/console.hpp"
-#include "../../src/model/fos/ui/terminal.hpp"
 #include "../../src/model/fos/util/log.hpp"
-//#include FOS_FILE_SYSTEM(fs.hpp)
-#include "../../src/structure/stype/heap.hpp"
+#include "../../src/model/fos/sys/router/structure/heap.hpp"
 ///////////// COMMON MODELS /////////////
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
@@ -86,7 +80,7 @@ namespace fhatos {
         ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
         ->mount(Heap<>::create(FOS_URI "/#"))
         ->import(fOS::import_q_procs())
-        ->import(mmadt::mmADT::import())
+        ->import(mmADT::import())
         ->import(fOS::import_util())
         ->import(fOS::import_ui())
         ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")

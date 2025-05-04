@@ -21,7 +21,7 @@
 #define fhatos_furi_hpp
 
 #ifndef FOS_MAX_PATH_SEGMENTS
-#define FOS_MAX_PATH_SEGMENTS 10
+#define FOS_MAX_PATH_SEGMENTS 12
 #endif
 #define COMPONENT_SEPARATOR STR(::)
 #define COEFFICIENT_SEPARATOR STR($)
@@ -675,20 +675,20 @@ namespace fhatos {
       if(0 == this->path_length_)
         return false;
       for(uint8_t i = 0; i < this->path_length_; i++) {
-        if(0 == strcmp("::", this->path_[i]))
+        if(0 == strcmp(COMPONENT_SEPARATOR, this->path_[i]))
           return true;
       }
       return false;
     }
 
     [[nodiscard]] fURI add_component(const fURI &component) const {
-      return this->extend("::").extend(component);
+      return this->extend(COMPONENT_SEPARATOR).extend(component);
     }
 
     [[nodiscard]] List<fURI> components() const {
       List<fURI> comps = {""};
       for(uint8_t i = 0; i < this->path_length_; i++) {
-        if(0 == strcmp("::", this->path_[i])) {
+        if(0 == strcmp(COMPONENT_SEPARATOR, this->path_[i])) {
           comps.emplace_back("");
         } else {
           fURI x = comps.back();
@@ -986,7 +986,7 @@ namespace fhatos {
               this->path_length_ = this->path_length_ + 1;
               token.clear();
             }
-            this->path_[this->path_length_] = strdup("::");
+            this->path_[this->path_length_] = strdup(COMPONENT_SEPARATOR);
             this->path_length_ = this->path_length_ + 1;
             if(ss.peek() == '/') {
               ss.get(); // drop /

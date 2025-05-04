@@ -17,10 +17,9 @@
  ******************************************************************************/
 
 #include "router.hpp"
-
-#include "../util/obj_helper.hpp"
-#include "../structure/stype/frame.hpp"
-#include "../util/print_helper.hpp"
+#include "../../../../util/obj_helper.hpp"
+#include "../../../../util/print_helper.hpp"
+#include "structure/frame.hpp"
 
 namespace fhatos {
 

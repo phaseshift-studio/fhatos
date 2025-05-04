@@ -20,13 +20,13 @@
 #ifndef fhatos_dsm_hpp
 #define fhatos_dsm_hpp
 
-#include "../../fhatos.hpp"
-#include "../../lang/mmadt/mmadt_obj.hpp"
-#include "../../lang/obj.hpp"
-#include "../../util/mutex_map.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../lang/mmadt/mmadt_obj.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../../../../structure/util/mqtt/mqtt_client.hpp"
+#include "../../../../../util/mutex_map.hpp"
 #include "../router.hpp"
-#include "../structure.hpp"
-#include "../util/mqtt/mqtt_client.hpp"
+#include "structure.hpp"
 
 /*
 #ifdef ESP_PLATFORM

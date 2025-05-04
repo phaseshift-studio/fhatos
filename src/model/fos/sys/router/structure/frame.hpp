@@ -19,9 +19,9 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_frame_hpp
 #define fhatos_frame_hpp
 
-#include "../../fhatos.hpp"
-#include "../../furi.hpp"
-#include "../structure.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../furi.hpp"
+#include "structure.hpp"
 
 namespace fhatos {
 

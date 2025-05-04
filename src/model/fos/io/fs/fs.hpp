@@ -21,8 +21,8 @@ FhatOS: A Distributed Operating System
 #define fhatos_fs_hpp
 
 #include "../../../../fhatos.hpp"
-#include "../../../../structure/router.hpp"
-#include "../../../../structure/structure.hpp"
+#include "../../sys/router/router.hpp"
+#include "../../sys/router/structure/structure.hpp"
 
 namespace fhatos {
 

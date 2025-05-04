@@ -17,9 +17,9 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #include "../../../src/fhatos.hpp"
+#include "../../../src/model/fos/sys/router/router.hpp"
+#include "../../../src/model/fos/sys/router/structure/structure.hpp"
 #include "../../../src/structure/qtype/q_doc.hpp"
-#include "../../../src/structure/router.hpp"
-#include "../../../src/structure/structure.hpp"
 #include "../../test_fhatos.hpp"
 
 #define FOS_MAX_PATH_SEGMENTS 15

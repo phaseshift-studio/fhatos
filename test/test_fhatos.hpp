@@ -30,22 +30,22 @@
 #define RETAIN true
 #define FOS_MAX_PATH_SEGMENTS 15
 
-#include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
-#include "../src/util/options.hpp"
-#include "../src/lang/obj.hpp"
+#include "../src/boot_config_loader.hpp"
+#include "../src/fhatos.hpp"
 #include "../src/furi.hpp"
-#include "../src/util/fhat_error.hpp"
-#include "../src/util/print_helper.hpp"
-#include "../src/structure/stype/heap.hpp"
-#include "../src/structure/router.hpp"
-#include "../src/util/logger.hpp"
-#include "../src/model/fos/util/log.hpp"
+#include "../src/lang/obj.hpp"
+#include "../src/model/fos/fos_obj.hpp"
+#include "../src/model/fos/sys/router/router.hpp"
+#include "../src/model/fos/sys/router/structure/heap.hpp"
 #include "../src/model/fos/ui/terminal.hpp"
+#include "../src/model/fos/util/log.hpp"
 #include "../src/util/ansi.hpp"
 #include "../src/util/argv_parser.hpp"
-#include "../src/boot_config_loader.hpp"
-#include "../src/model/fos/fos_obj.hpp"
+#include "../src/util/fhat_error.hpp"
+#include "../src/util/logger.hpp"
+#include "../src/util/options.hpp"
+#include "../src/util/print_helper.hpp"
 
 #define FOS_DEPLOY_PRINTER
 
@@ -78,8 +78,8 @@
 #endif
 /////////////////////////////////////////// ROUTER //////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
-#include "../src/structure/router.hpp"
 #include "../src/lang/mmadt/parser.hpp"
+#include "../src/model/fos/sys/router/router.hpp"
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
   Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
   Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
@@ -99,7 +99,7 @@
 ////////////////////////////////////////// PARSER ///////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PARSER
 #include "../src/lang/mmadt/parser.hpp"
-#include "../src/structure/stype/heap.hpp"
+#include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
   Router::singleton()->attach(Heap<>::create("/parser/#")); \
   Router::singleton()->write("/parser/", mmadt::Parser::singleton("/parser/"));
@@ -115,9 +115,9 @@
 #endif
 ////////////////////////////////////////// TYPE ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_MMADT_TYPE
-#include "../src/lang/type.hpp"
 #include "../src/lang/mmadt/mmadt_obj.hpp"
-#include "../src/structure/stype/heap.hpp"
+#include "../src/lang/type.hpp"
+#include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_MMADT_TYPE_2 \
   Router::singleton()->attach(Heap<>::create("/mmadt/#")); \
   Router::singleton()->write("/mmadt/",Typer::singleton("/mmadt/")); \
@@ -145,7 +145,7 @@ fhatos::fOS::import_sys();
 #endif
 ///////////////////////////////////////// HEAP ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SHARED_MEMORY
-#include "../src/structure/stype/heap.hpp"
+#include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
   Router::singleton()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY)) ? \
   "+/#" : \

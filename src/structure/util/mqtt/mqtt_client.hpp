@@ -21,8 +21,8 @@ FhatOS: A Distributed Operating System
 #define fhatos_mqtt_client_hpp
 
 #include "../../../fhatos.hpp"
-#include "../../structure.hpp"
 #include "../../../lang/obj.hpp"
+#include "../../../model/fos/sys/router/structure/structure.hpp"
 #include "../../../model/fos/util/log.hpp"
 
 namespace fhatos {

@@ -17,8 +17,8 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #include "compiler.hpp"
+#include "../../model/fos/sys/router/router.hpp"
 #include "../../model/fos/util/log.hpp"
-#include "../../structure/router.hpp"
 #include "../../util/obj_helper.hpp"
 #include "../obj.hpp"
 

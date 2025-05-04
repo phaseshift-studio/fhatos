@@ -20,10 +20,10 @@
 #ifndef fhatos_router_hpp
 #define fhatos_router_hpp
 
-#include "../fhatos.hpp"
-#include "structure.hpp"
-#include "../lang/obj.hpp"
-#include "stype/frame.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/obj.hpp"
+#include "structure/frame.hpp"
+#include "structure/structure.hpp"
 
 #define FOS_ROUTER_STRUCTURE "structure"
 #define FOS_ROUTER_QUERY "query"

@@ -20,12 +20,12 @@
 #ifndef fhatos_heaped_hpp
 #define fhatos_heaped_hpp
 
-#include "../../fhatos.hpp"
 #include <shared_mutex>
-#include "../../lang/obj.hpp"
-#include "../structure.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../scheduler/thread/mutex.hpp"
 #include "../router.hpp"
-#include "../../model/fos/sys/scheduler/thread/mutex.hpp"
+#include "structure.hpp"
 
 #ifdef ESP_PLATFORM
 #include "../../util/esp32/psram_allocator.hpp"

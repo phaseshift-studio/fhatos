@@ -20,10 +20,10 @@
 #ifndef fhatos_bus_hpp
 #define fhatos_bus_hpp
 
-#include "../../../../fhatos.hpp"
-#include "../../../../lang/obj.hpp"
-#include "../../../../structure/structure.hpp"
-#include "../scheduler/thread/mutex.hpp"
+#include "../../../../../fhatos.hpp"
+#include "../../../../../lang/obj.hpp"
+#include "../../scheduler/thread/mutex.hpp"
+#include "structure.hpp"
 
 namespace fhatos {
   const static ID BUS_FURI = ID("/sys/lib/bus");

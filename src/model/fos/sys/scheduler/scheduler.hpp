@@ -23,8 +23,8 @@
 //
 #include <atomic>
 #include "../../../../furi.hpp"
-#include "../../../../structure/router.hpp"
 #include "../../../../util/mutex_deque.hpp"
+#include "../router/router.hpp"
 #include "thread/thread.hpp"
 
 namespace fhatos {
