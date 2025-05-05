@@ -19,28 +19,28 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_test_kernel_cpp
 #define fhatos_test_kernel_cpp
 
-#include "../../src/furi.hpp"
-#include "../test_fhatos.hpp"
-#include "../../src/kernel.hpp"
-#include "../../src/lang/mmadt/parser.hpp"
-#include "../../src/lang/mmadt/mmadt_obj.hpp"
 #include "../../src/fhatos.hpp"
+#include "../../src/furi.hpp"
+#include "../../src/kernel.hpp"
+#include "../../src/lang/mmadt/mmadt_obj.hpp"
+#include "../../src/lang/mmadt/parser.hpp"
 #include "../../src/model/fos/sys/router/router.hpp"
-#include "../../src/util/argv_parser.hpp"
+#include "../../src/model/fos/sys/router/structure/heap.hpp"
 #include "../../src/model/fos/sys/scheduler/scheduler.hpp"
 #include "../../src/model/fos/util/log.hpp"
-#include "../../src/model/fos/sys/router/structure/heap.hpp"
+#include "../../src/util/argv_parser.hpp"
+#include "../test_fhatos.hpp"
 ///////////// COMMON MODELS /////////////
-//#include <model/driver/gpio/arduino_gpio_driver.hpp>
-//#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
-// #include <model/pin/gpio.hpp>
-// #include <model/pin/interrupt.hpp>
-// #include <model/pin/pwm.hpp>
+// #include <model/driver/gpio/arduino_gpio_driver.hpp>
+// #include <model/driver/i2c/arduino_i2c_master_driver.hpp>
+//  #include <model/pin/gpio.hpp>
+//  #include <model/pin/interrupt.hpp>
+//  #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
-#include "../../src/util/esp/psram_allocator.hpp"
 #include "../../src/model/soc/esp/wifi.hpp"
 #include "../../src/model/soc/memory/esp32/memory.hpp"
+#include "../../src/util/esp/psram_allocator.hpp"
 #endif
 
 #ifdef NATIVE
@@ -56,7 +56,7 @@ namespace fhatos {
 
   void test_basic_kernel() {
     load_processor(); // TODO: remove
-    const ptr<Kernel> kp = Kernel::build()
+    Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_ansi_color(true)
         ->with_log_level(LOG_TYPES.to_enum("INFO"))
@@ -68,8 +68,8 @@ namespace fhatos {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
         ->using_router(Router::singleton("/sys/router"))
         ////////////////// SYS STRUCTURE
-        ->mount(Heap<ALLOC>::create("/boot/#"))
-        ->mount(Heap<ALLOC>::create("/sys/#"))
+        ->mount(Heap<>::create("/boot/#"))
+        ->mount(Heap<>::create("/sys/#"))
         ->import(Heap<>::import("/sys/lib/heap"))
         ->using_boot_config()
         ->import(Router::import())
@@ -85,30 +85,37 @@ namespace fhatos {
         ->import(fOS::import_ui())
         ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
-        ->install(Log::create("/io/log",
-                              Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
-                              ->or_else(Obj::to_rec({
-                                  {"INFO", lst({vri("#")})},
-                                  {"ERROR", lst({vri("#")})},
-                                  {"WARN", lst()},
-                                  {"DEBUG", lst()},
-                                  {"TRACE", lst()}}))))
-        ->install(mmadt::Parser::singleton("/io/parser"));
-    //->import(mmadt::Parser::import("/io/lib/parser"))
-    //->mount(Heap<>::create("+/#"))
-    // TODO: ->with_bcode(OBJ_PARSER(string(
-    //            "print('!r.!go!bO !yloading !buser !yobjs!! !bO!go!r.!!');"
-    //          "|<+/#>./fos/lib/heap/create(_);")));
-
+        ->install(Log::create("/io/log", Router::singleton()
+                                             ->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
+                                             ->or_else(Obj::to_rec({{"INFO", lst({vri("#")})},
+                                                                    {"ERROR", lst({vri("#")})},
+                                                                    {"WARN", lst()},
+                                                                    {"DEBUG", lst()},
+                                                                    {"TRACE", lst()}}))))
+        ->install(mmadt::Parser::singleton("/io/parser"))
+        ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+        ->drop_config("console");
+    // ->loop();
+    // Router::singleton()->loop();
+    // Scheduler::singleton()->loop();
     FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID)));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router")));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(1),
+                       jnt(Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()->size()));
+    FOS_TEST_OBJ_EQUAL(Obj::to_uri("/io/console"), Scheduler::singleton()->obj_get("spawn")->lst_value()->at(0));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(0),
+                       jnt(Scheduler::singleton()->obj_get("bundle")->or_else(lst())->lst_value()->size()));
+    ROUTER_WRITE("/io/console/halt", dool(true), true);
+    ROUTER_WRITE(SCHEDULER_ID->extend("halt"), dool(true), true);
+    Router::singleton()->loop();
+    Scheduler::singleton()->loop();
+    Scheduler::singleton()->stop();
   }
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_basic_kernel); //
-      )
+  )
 } // namespace fhatos
 
 SETUP_AND_LOOP();
-
 #endif
