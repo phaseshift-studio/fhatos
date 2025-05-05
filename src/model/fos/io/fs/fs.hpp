@@ -50,6 +50,10 @@ namespace fhatos {
 
     void setup() override;
 
+    void stop() override {
+      Structure::stop();
+    }
+
     ID map_fos_to_fs(const ID &fos_id) const {
       const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
       return this->root.extend(fs_retracted_id);

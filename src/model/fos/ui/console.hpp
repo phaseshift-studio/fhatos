@@ -119,7 +119,6 @@ namespace fhatos {
                           {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
       const ptr<Thread> console_state = Console::create_state(console_obj);
       MODEL_STATES::singleton()->store(id,console_state);
-      Scheduler::singleton()->spawn_thread(console_obj);
       // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
       return console_obj;
     }
@@ -204,7 +203,6 @@ namespace fhatos {
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI, Obj::to_rec({
-              {"delay", __().isa(*NAT_FURI)},
               {"loop", __()},
               {"halt", __().isa(*BOOL_FURI)}
           }));

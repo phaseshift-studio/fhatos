@@ -31,15 +31,13 @@ namespace fhatos {
     return router_p;
   }
 
-  ptr<Frame<>> Router::get_frame() {
-    return THREAD_FRAME_STACK;
-  }
+  ptr<Frame<>> Router::get_frame() { return THREAD_FRAME_STACK; }
 
   Router::Router(const ID &id) :
-    Rec(rmap({{"structure", to_lst()}}),
-        //stop and attach
-        OType::REC, REC_FURI, id_p(id)),
-    structures_(make_shared<MutexDeque<Structure_p>>()) {
+      Rec(rmap({{"structure", to_lst()}}),
+          // stop and attach
+          OType::REC, REC_FURI, id_p(id)),
+      structures_(make_shared<MutexDeque<Structure_p>>()) {
     load_logger();
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_ID = id_p(id);
@@ -47,36 +45,24 @@ namespace fhatos {
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
       this->push_frame(pattern, frame_data);
     };
-    ROUTER_POP_FRAME = [this] {
-      this->pop_frame();
-    };
-    ROUTER_GET_FRAME_DATA = [this] {
-      return this->get_frame()->full_frame();
-    };
+    ROUTER_POP_FRAME = [this] { this->pop_frame(); };
+    ROUTER_GET_FRAME_DATA = [this] { return this->get_frame()->full_frame(); };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_RESOLVE = [this](const fURI &furi) -> fURI {
-      return this->resolve(furi);
-    };
+    ROUTER_RESOLVE = [this](const fURI &furi) -> fURI { return this->resolve(furi); };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_READ = [this](const fURI &furi) -> Obj_p {
-      return this->read(furi);
-    };
+    ROUTER_READ = [this](const fURI &furi) -> Obj_p { return this->read(furi); };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_WRITE = [this](const fURI &furi, const Obj_p &obj, const bool retain) {
-      this->write(furi, obj, retain);
-    };
+    ROUTER_WRITE = [this](const fURI &furi, const Obj_p &obj, const bool retain) { this->write(furi, obj, retain); };
     ////////////////////////////////////////////////////////////////////////////////////
-    ROUTER_APPEND = [this](const fURI &furi, const Obj_p &obj) {
-      this->append(furi, obj);
-    };
+    ROUTER_APPEND = [this](const fURI &furi, const Obj_p &obj) { this->append(furi, obj); };
     ////////////////////////////////////////////////////////////////////////////////////
     LOG_WRITE(INFO, this, L("!yrouter!! started\n"));
   }
 
   void Router::push_frame(const Pattern &pattern, const Rec_p &frame_data) {
     THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-    //LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
-    //        THREAD_FRAME_STACK->full_frame()->toString().c_str());
+    // LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
+    //         THREAD_FRAME_STACK->full_frame()->toString().c_str());
   }
 
   void Router::pop_frame() {
@@ -114,12 +100,12 @@ namespace fhatos {
       });
       this->save();
     }
-    //this->load();
+    // this->load();
   }
 
   void Router::stop() {
     auto map = make_shared<Map<string, int>>();
-    this->structures_->forEach([map](const Structure_p &structure) {
+    this->structures_->forEach([&map](const Structure_p &structure) {
       const string name = structure->tid->name();
       int count = map->count(name) ? map->at(name) : 0;
       count++;
@@ -130,22 +116,29 @@ namespace fhatos {
     for(const auto &[name, count]: *map) {
       LOG_WRITE(INFO, this, L("!b{} !y{}!!(s) closing\n", to_string(count), name));
     }
-    while(!this->structures_->empty()) {
-      this->structures_->pop_back().value()->stop();
-    }
+    this->structures_->forEach([](const Structure_p &structure) {
+      if(structure->available()) {
+       // structure->stop();
+      }
+    });
+    // while(!this->structures_->empty()) {
+    // std::optional<Structure_p> op = this->structures_->pop_back();
+    // if(op.has_value()) {
+    // op.value()->stop(); TODO: why seg fault?
+    //  }
+    // }
     LOG_WRITE(INFO, this, L("!yrouter !b{}!! stopped\n", this->vid->toString()));
   }
 
   void Router::attach(const Structure_p &structure) const {
     if(structure->pattern->equals(Pattern(""))) {
-      LOG_WRITE(INFO, this, L("!b{} !yempty structure!! ignored\n", structure->pattern->toString(),
-                              structure->tid->name())          );
+      LOG_WRITE(INFO, this,
+                L("!b{} !yempty structure!! ignored\n", structure->pattern->toString(), structure->tid->name()));
     } else {
       this->structures_->forEach([structure, this](const Structure_p &s) {
         if(structure->pattern->bimatches(*s->pattern)) {
           // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
-          throw fError(ROUTER_FURI_WRAP
-                       " only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
+          throw fError(ROUTER_FURI_WRAP " only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
                        this->vid->toString().c_str(), s->pattern->toString().c_str(),
                        structure->pattern->toString().c_str());
         }
@@ -153,14 +146,13 @@ namespace fhatos {
       this->structures_->push_back(structure);
       structure->setup();
       if(structure->available()) {
-        LOG_WRITE(INFO, this, L("!y{} !b{} !yspanning !b{}!! mounted\n",
-                                structure->tid->name(),
-                                structure->vid ? structure->vid->toString().c_str() : "<none>",
-                                structure->pattern->toString())            );
+        LOG_WRITE(INFO, this,
+                  L("!y{} !b{} !yspanning !b{}!! mounted\n", structure->tid->name(),
+                    structure->vid ? structure->vid->toString().c_str() : "<none>", structure->pattern->toString()));
       } else {
-        LOG_WRITE(ERROR, this, L("!runable to mount!! {}: {} at {}!!\n", structure->pattern->toString(),
-                                 structure->tid->name(),
-                                 structure->vid ? structure->vid->toString(): "<none>"));
+        LOG_WRITE(ERROR, this,
+                  L("!runable to mount!! {}: {} at {}!!\n", structure->pattern->toString(), structure->tid->name(),
+                    structure->vid ? structure->vid->toString() : "<none>"));
         this->structures_->pop_back();
       }
     }
@@ -170,9 +162,8 @@ namespace fhatos {
 
   void Router::save() const {
     const Lst_p structures = Obj::to_lst();
-    this->structures_->forEach([structures](const Structure_p &structure) {
-      structures->lst_add(vri(structure->pattern));
-    });
+    this->structures_->forEach(
+        [structures](const Structure_p &structure) { structures->lst_add(vri(structure->pattern)); });
     this->rec_set(FOS_ROUTER_STRUCTURE, structures);
     Obj::save();
   }
@@ -186,8 +177,7 @@ namespace fhatos {
   [[nodiscard]] Objs_p Router::read(const fURI &furi) {
     try {
       if(THREAD_FRAME_STACK) {
-        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi);
-          nullptr != frame_obj)
+        if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi); nullptr != frame_obj)
           return frame_obj;
       }
       const fURI resolved_furi = this->resolve(furi);
@@ -210,9 +200,9 @@ namespace fhatos {
   void Router::append(const fURI &furi, const Obj_p &obj) const {
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      //LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-      //                        "obj", retain ? "retained" : "transient",
-      //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
+      // LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
+      //                         "obj", retain ? "retained" : "transient",
+      //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->append(furi, obj);
     } catch(const fError &e) {
       LOG_WRITE(ERROR, this, L("{}", e.what()));
@@ -227,9 +217,9 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Structure_p structure = this->get_structure(furi, obj);
-      //LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-      //                        "obj", retain ? "retained" : "transient",
-      //                       furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
+      // LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
+      //                         "obj", retain ? "retained" : "transient",
+      //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_WRITE(ERROR, this, L("{}", e.what()));
@@ -239,18 +229,18 @@ namespace fhatos {
   }
 
   void *Router::import() {
-    //Typer::singleton()->save_type(*ROUTER_FURI,Obj::to_rec());
-    Router::singleton()->write(*Router::singleton()->vid, Router::singleton(),RETAIN);
-    Router::singleton()->write(FRAME_FURI, Obj::to_type(REC_FURI),RETAIN);
+    // Typer::singleton()->save_type(*ROUTER_FURI,Obj::to_rec());
+    Router::singleton()->write(*Router::singleton()->vid, Router::singleton(), RETAIN);
+    Router::singleton()->write(FRAME_FURI, Obj::to_type(REC_FURI), RETAIN);
     Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
-    Router::singleton()->write(Router::singleton()->vid->retract().extend("lib/msg"),
-                               Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                            {"payload", Obj::to_bcode()},
-                                            {"retain", Obj::to_type(BOOL_FURI)}}));
-    Router::singleton()->write(Router::singleton()->vid->retract().extend("lib/sub"),
-                               Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                            {"pattern", Obj::to_type(URI_FURI)},
-                                            {":on_recv", Obj::to_bcode()}}));
+    Router::singleton()->write(
+        Router::singleton()->vid->retract().extend("lib/msg"),
+        Obj::to_rec(
+            {{"target", Obj::to_type(URI_FURI)}, {"payload", Obj::to_bcode()}, {"retain", Obj::to_type(BOOL_FURI)}}));
+    Router::singleton()->write(
+        Router::singleton()->vid->retract().extend("lib/sub"),
+        Obj::to_rec(
+            {{"source", Obj::to_type(URI_FURI)}, {"pattern", Obj::to_type(URI_FURI)}, {":on_recv", Obj::to_bcode()}}));
     /*  InstBuilder::build(Router::singleton()->vid->extend(":detach"))
           ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
           ->type_args(x(0, ___()))
@@ -269,22 +259,23 @@ namespace fhatos {
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p obj = args->arg(0);
-          if(obj->lock().has_value() && !obj->lock().value().equals(
-                 Thread::current_thread().has_value()
-                   ? *Thread::current_thread().value()->thread_obj_->vid
-                   : *obj->vid)) {
-            throw fError("!runable write obj!! locked by !b%s!!: %s",
-                         obj->lock().value().toString().c_str(),
+          if(obj->lock().has_value() &&
+             !obj->lock().value().equals(Thread::current_thread().has_value()
+                                             ? *Thread::current_thread().value()->thread_obj_->vid
+                                             : *obj->vid)) {
+            throw fError("!runable write obj!! locked by !b%s!!: %s", obj->lock().value().toString().c_str(),
                          obj->toString().c_str());
           }
           return obj;
-        })->save();
+        })
+        ->save();
     InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("sub"))
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
           LOG_WRITE(ERROR, Router::singleton().get(), L("sub query processor to be implemented\n"));
           return obj;
-        })->save();
+        })
+        ->save();
     //  Router::singleton()->load();
     return nullptr;
   }
@@ -311,8 +302,7 @@ namespace fhatos {
           related->lst_add(vri(s->pattern));
         }
       }
-      throw fError("!rno mounted structure!! for !b%s!! %s %s\n",
-                   pattern.toString().c_str(),
+      throw fError("!rno mounted structure!! for !b%s!! %s %s\n", pattern.toString().c_str(),
                    related->lst_value()->empty() ? "" : "\n" FOS_TAB_2 "!yavailable !bsub-structures!!:",
                    related->lst_value()->empty() ? "" : PrintHelper::pretty_print_obj(related, 1).c_str());
     }
@@ -343,8 +333,8 @@ namespace fhatos {
       for(const auto &prefix: *prefixes) {
         const fURI x = prefix->uri_value().extend(c);
         if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
-          //LOG_WRITE(TRACE, this, L("located !b{}!! in {} and resolved to !b{}!!\n",
-          //                         furi.toString(), structure->toString(), x.toString()));
+          // LOG_WRITE(TRACE, this, L("located !b{}!! in {} and resolved to !b{}!!\n",
+          //                          furi.toString(), structure->toString(), x.toString()));
           found = furi_p(x);
           break;
         }

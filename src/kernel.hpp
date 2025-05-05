@@ -157,7 +157,7 @@ namespace fhatos {
 
     static ptr<Kernel> process(const Obj_p &thread) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      // Scheduler::singleton()->spawn_thread(thread);
+      Scheduler::singleton()->spawn_thread(thread);
       return Kernel::build();
     }
 

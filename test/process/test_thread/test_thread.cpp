@@ -71,7 +71,7 @@ namespace fhatos {
       std::this_thread::yield();
     }
     PROCESS("z/halt -> true");
-    std::this_thread::sleep_for(chrono::milliseconds(10)); // give scheduler time to dismantle thread
+    std::this_thread::sleep_for(chrono::milliseconds(20)); // give scheduler time to dismantle thread
 	  std::this_thread::yield();
     Scheduler::singleton()->loop();
     Router::singleton()->loop();
