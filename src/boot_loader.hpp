@@ -79,7 +79,7 @@ namespace fhatos {
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
         if(args_parser->option_string("--boot:config", "NONE") == "NONE")
-          args_parser->set_option("--boot:config", "/mnt/boot/boot_config.obj");
+          args_parser->set_option("--boot:config", "/data/boot/boot_config.obj");
         const ptr<Kernel> kp = Kernel::build()
             ->using_printer(Ansi<>::singleton())
             ->with_ansi_color(args_parser->option_bool("--ansi", true))
@@ -188,8 +188,8 @@ namespace fhatos {
             ->drop_config("mqtt")
             //->mount(
             //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
-            ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            ->drop_config("console")
+          //  ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+          //  ->drop_config("console")
             ->display_memory()
             ->eval([args_parser] {
               // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition

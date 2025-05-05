@@ -127,6 +127,13 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("http://www.fhatos.org"), PROCESS("<http://www.fhatos.org>"));
     FOS_TEST_OBJ_EQUAL(vri(""), PROCESS("<>"));
     FOS_TEST_OBJ_EQUAL(vri(":"), PROCESS("<:>"));
+    FOS_TEST_OBJ_EQUAL(vri("a/b/+"), PROCESS("<a/b/+>"));
+    FOS_TEST_OBJ_EQUAL(vri("a/+/c"), PROCESS("<a/+/c>"));
+    FOS_TEST_OBJ_EQUAL(vri("+/b/c"), PROCESS("<+/b/c>"));
+    FOS_TEST_OBJ_EQUAL(vri("+/+/c"), PROCESS("<+/+/c>"));
+    FOS_TEST_OBJ_EQUAL(vri("+/+/+"), PROCESS("<+/+/+>"));
+    FOS_TEST_OBJ_EQUAL(vri("+/#"), PROCESS("<+/#>"));
+    FOS_TEST_OBJ_EQUAL(vri("#"), PROCESS("<#>"));
     FOS_TEST_OBJ_EQUAL(vri("a"), PROCESS("a"));
     FOS_TEST_OBJ_EQUAL(vri("../../a"), PROCESS("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), PROCESS("abc/cba"));

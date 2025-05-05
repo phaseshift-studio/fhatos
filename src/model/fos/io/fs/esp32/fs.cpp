@@ -35,7 +35,11 @@ namespace fhatos {
       throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
       return;
     }
-    LOG_WRITE(INFO, this, L("!b{} !yfile system location!! mounted\n", this->root.toString()));
+  }
+
+  void FS::setup() {
+    LOG_WRITE(INFO, this, L("!b{} !ylocation!! mounted\n", this->root.toString()));
+    Structure::setup();
   }
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {

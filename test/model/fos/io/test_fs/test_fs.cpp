@@ -23,20 +23,22 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_SCHEDULER
-//#define FOS_DEPLOY_SHARED_MEMORY /io/#
+// #define FOS_DEPLOY_SHARED_MEMORY /io/#
 #include "../../../../src/fhatos.hpp"
-#include "../../../../test_fhatos.hpp"
 #include "../../../../src/model/fos/io/fs/fs.hpp"
 #include "../../../../structure/stype/generic_structure_test.hpp"
+#include "../../../../test_fhatos.hpp"
 
 namespace fhatos {
   using namespace mmadt;
 
-  Structure_p test_structure = std::make_shared<FS>("/fs/xyz/#",id_p("/sys/test"),Obj::to_rec({{"root",vri("./fs")}}));
+  Structure_p test_structure =
+      std::make_shared<FS>("/fs/xyz/#", id_p("/sys/test"), Obj::to_rec({{"root", vri("./fs")}}));
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
+  void test_generic_clear() { GenericStructureTest(test_structure).test_clear(); }
 
   void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
 
@@ -55,15 +57,16 @@ namespace fhatos {
   void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_generic_clear); //
       FOS_RUN_TEST(test_generic_write); //
       FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //
-      //FOS_RUN_TEST(test_generic_mono_embedding); //
+      FOS_RUN_TEST(test_generic_mono_embedding); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
       FOS_RUN_TEST(test_generic_rec_embedding); //
-    //  FOS_RUN_TEST(test_generic_q_sub); //
-    //  FOS_RUN_TEST(test_generic_q_doc); //
-      );
+      //  FOS_RUN_TEST(test_generic_q_sub); //
+      //  FOS_RUN_TEST(test_generic_q_doc); //
+  );
 } // namespace fhatos
 
 SETUP_AND_LOOP();

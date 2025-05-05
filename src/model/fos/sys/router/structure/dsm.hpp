@@ -91,12 +91,12 @@ namespace fhatos {
     void setup() override {
       this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"), this->get<fURI>("config/client"));
       if(this->mqtt->connect(*this->vid))
-        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), this->async);
+        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), false);
       Structure::setup();
     }
 
     void stop() override {
-      assert(this->mqtt->disconnect(*this->vid, this->async));
+      assert(this->mqtt->disconnect(*this->vid, false));
       Structure::stop();
       this->data_->clear();
     }

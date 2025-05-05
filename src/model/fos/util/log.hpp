@@ -30,6 +30,7 @@
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
+#define NONE_ID_WRAP "!g[!r{}!g]!! "
 
 namespace fhatos {
   using namespace mmadt;
@@ -75,26 +76,27 @@ namespace fhatos {
 
     static void PRIMARY_LOGGING(const LOG_TYPE type, const Obj *source, const std::function<std::string()> &message) {
       const auto logging = fURI(string("config/").append(LOG_TYPES.to_chars(type)));
-      const Lst_p furis = Log::singleton()->rec_get(logging)->or_else(lst());
+      const Lst_p furis = Log::singleton()->obj_get(logging)->or_else(lst());
       if(!furis->is_lst()) {
-        printer<>()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP
+        printer()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP
                                        " log listing not within schema specification: !b{}!!\n",
                                        LOG_FURI ? LOG_FURI->toString() : "<none>", Log::singleton()->toString())
                                .c_str());
         return;
       }
       bool match = false;
-      const bool source_is_null = nullptr == source;
       const auto furis_list = std::vector<Obj_p>(*furis->lst_value());
-      for(const auto &a: furis_list) {
-        if(!source_is_null && source->vid_or_tid()->matches(a->uri_value())) {
-          match = true;
-          break;
+      if(nullptr != source) {
+        for(const auto &a: furis_list) {
+          if(source->vid_or_tid()->matches(a->uri_value())) {
+            match = true;
+            break;
+          }
         }
       }
       if(!match)
         return;
-      auto lock = lock_guard<Mutex>(Log::singleton()->log_mutex);
+      //auto lock = lock_guard<Mutex>(Log::singleton()->log_mutex);
       if(type == NONE)
         printer()->print("");
       else if(type == INFO)
@@ -109,8 +111,10 @@ namespace fhatos {
         printer()->print("!r[TRACE]!! ");
       if(source->vid && source->vid->has_path("sys"))
         printer()->print(fmt::format(SYS_ID_WRAP, source->vid_or_tid()->toString()).c_str());
-      else
+      else if(source->vid)
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString()).c_str());
+      else
+        printer()->print(fmt::format(NONE_ID_WRAP, "<none>").c_str());
       printer()->print(message().c_str());
     }
 

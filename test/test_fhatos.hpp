@@ -46,6 +46,7 @@
 #include "../src/util/logger.hpp"
 #include "../src/util/options.hpp"
 #include "../src/util/print_helper.hpp"
+#include "../src/model/fos/sys/scheduler/scheduler.hpp"
 
 #define FOS_DEPLOY_PRINTER
 
@@ -67,7 +68,6 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #define FOS_STOP_ON_BOOT  \
-  Router::singleton()->stop(); \
   Scheduler::singleton("/sys/scheduler")->stop();
 #define FOS_DEPLOY_SCHEDULER_2  \
   Scheduler::singleton("/sys/scheduler/"); \
@@ -175,7 +175,7 @@ using namespace fhatos;
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      LOG(ERROR, "failed test due to %s\n", e.what());                                                                 \
+      Ansi<>::singleton()->println(string("failed test due to ").append(e.what()).c_str());                            \
       TEST_FAIL_MESSAGE("failed test");                                                                                \
     }                                                                                                                  \
   }
@@ -196,7 +196,7 @@ using namespace fhatos;
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
-      ROUTER_WRITE(SCHEDULER_ID->extend("halt"),dool(true),true);                                                      \
+      FOS_STOP_ON_BOOT                                                                                                 \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
       TEST_FAIL_MESSAGE(e.what());                                                                                     \
@@ -266,14 +266,14 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
 #define PROCESS(bcode_string) BCODE_PROCESSOR(serialization_check(OBJ_PARSER((bcode_string))))->objs_value(0)
 
 #define FOS_TEST_MESSAGE(format, ...) \
-  if (fhatos::LOG_TYPE::FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
-    Ansi<>::singleton()->printf((format), ##__VA_ARGS__);                                                                          \
-    Ansi<>::singleton()->println();                                                                                                \
-    Ansi<>::singleton()->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                                         \
+  if (fhatos::LOG_TYPE::FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                       \
+    Ansi<>::singleton()->printf((format), ##__VA_ARGS__);                                                              \
+    Ansi<>::singleton()->println();                                                                                    \
+    Ansi<>::singleton()->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                           \
 }
 
-#define FOS_TEST_FURI_EQUAL(x, y)                                                                               \
-  FOS_TEST_MESSAGE("!ytesting equality!!: <!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
+#define FOS_TEST_FURI_EQUAL(x, y)                                                                                      \
+  FOS_TEST_MESSAGE("!ytesting equality!!: <!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",  \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
   TEST_ASSERT_TRUE_MESSAGE((x).equals(y),"Not equals()");                                                              \
@@ -281,7 +281,7 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   TEST_ASSERT_EQUAL_STRING((x).toString().c_str(), (y).toString().c_str());
 
 #define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
-  FOS_TEST_MESSAGE("!ytesting non equal!!: <!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                       \
+  FOS_TEST_MESSAGE("!ytesting non equal!!: <!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",\
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
   TEST_ASSERT_FALSE((x).equals(y));                                                                                    \
@@ -299,12 +299,12 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   TEST_ASSERT_FALSE((x).matches(y));
 
 #define FOS_TEST_COMPILER_TRUE(x,y,compiler_f)                                                                         \
-  FOS_TEST_MESSAGE("!b%s!! =!rcompiler true!!= !b%s!!", (x)->toString().c_str(), (y).toString().c_str());             \
+  FOS_TEST_MESSAGE("!b%s!! =!rcompiler true!!= !b%s!!", (x)->toString().c_str(), (y).toString().c_str());              \
   TEST_ASSERT_TRUE(compiler_f(x,y));
 
 #define FOS_TEST_COMPILER_FALSE(x,y,compiler_f)                                                                        \
   FOS_TEST_MESSAGE("!b%s!! =!r%s false!!= !b%s!!",                                                                     \
-     (x)->toString().c_str(), "compiler", (y).toString().c_str());                                                    \
+     (x)->toString().c_str(), "compiler", (y).toString().c_str());                                                     \
   TEST_ASSERT_FALSE(compiler_f(x,y));
 
 #define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \
@@ -396,7 +396,8 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     PROCESS(monoid)->objs_value();
     TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
-    LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());
+    LOG(INFO, "expected !rexception thrown!!: {}\n", error.what());
+    //LOG_WRITE(INFO, Scheduler::singleton().get(), L("expected !rexception thrown!!: {}\n", error.what()));
     TEST_ASSERT_TRUE(true);
   }
 }

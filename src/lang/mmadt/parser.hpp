@@ -404,7 +404,7 @@ namespace mmadt {
       //////////////////////////////////////////////////////////////////////////
       auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
-          LOG(TRACE, "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+         // LOG_WRITE(TRACE, nullptr, L("entering rule !b{}!! with token !y{}!!\n", rule, s));
         };
       };
       //////////////////////////////////////////////////////////////////////////

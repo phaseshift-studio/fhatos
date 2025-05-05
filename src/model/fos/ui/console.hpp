@@ -52,7 +52,6 @@ namespace fhatos {
       const Obj_p console_obj =
           Obj::to_rec({
                           {"halt", dool(false)},
-                          {"delay", jnt(0, NAT_FURI)},
                           {"loop", InstBuilder::build(THREAD_FURI->extend("loop"))
                            ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
                            ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
@@ -178,7 +177,7 @@ namespace fhatos {
       }
       /////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////
-      LOG_WRITE(DEBUG, this, L("line to parse: {}\n", line));
+      //LOG_WRITE(DEBUG, this, L("line to parse: {}\n", line));
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
       if(line[0] == '\n')

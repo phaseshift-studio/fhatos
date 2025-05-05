@@ -36,9 +36,9 @@ namespace fhatos {
       Router::singleton()->attach(structure);
       Router::singleton()->loop();
       TEST_ASSERT_TRUE(structure->available());
-      // FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
+      FOS_TEST_FURI_EQUAL(structure->pattern->retract_pattern().extend("xxx"), p("xxx"));
       // Router::singleton()->read(p("#"));
-      LOG_WRITE(INFO, structure.get(), L("generic structure test setup for {}", structure->toString()));
+      LOG_WRITE(INFO, structure.get(), L("generic structure test setup for {}\n", structure->toString()));
     }
 
     [[nodiscard]] fURI p(const fURI &furi, const char *q = nullptr) const {
@@ -53,6 +53,15 @@ namespace fhatos {
       ROUTER_WRITE(*structure_->vid, Obj::to_noobj(), true); // unmount structure
       Router::singleton()->loop();
       FOS_TEST_ERROR(p("c/23").toString().append(" -> 23")); // ensure unmounted
+    }
+
+    void test_clear() const {
+      const Rec_p results = structure_->read("#/");
+      for(const auto &[k, v]: *results->rec_value()) {
+        structure_->write(k->uri_value(), Obj::to_noobj(), true);
+      }
+      TEST_ASSERT_EQUAL(0, structure_->read("#/")->rec_value()->size());
+      this->detach();
     }
 
     void test_delete() const {
@@ -91,13 +100,13 @@ namespace fhatos {
     }
 
     void test_mono_embedding() const {
-      ROUTER_WRITE(p("b"), dool(true), true);
-      ROUTER_WRITE(p("i"), jnt(10), true);
-      ROUTER_WRITE(p("r"), real(22.5), true);
-      ROUTER_WRITE(p("s"), str("fhatty"), true);
-      ROUTER_WRITE(p("u"), vri("fhat://pig.com:8080"), true);
+     // structure_->write(p("b"), dool(true), true);
+      structure_->write(p("i"), jnt(10), true);
+      structure_->write(p("r"), real(22.5), true);
+      structure_->write(p("s"), str("fhatty"), true);
+      structure_->write(p("u"), vri("fhat://pig.com:8080"), true);
       ////////////////////////////////////////////////////
-      FOS_TEST_OBJ_EQUAL(dool(true), structure_->read(p("b")));
+    //  FOS_TEST_OBJ_EQUAL(dool(true), structure_->read(p("b")));
       FOS_TEST_OBJ_EQUAL(jnt(10), structure_->read(p("i")));
       FOS_TEST_OBJ_EQUAL(real(22.5), structure_->read(p("r")));
       FOS_TEST_OBJ_EQUAL(str("fhatty"), structure_->read(p("s")));

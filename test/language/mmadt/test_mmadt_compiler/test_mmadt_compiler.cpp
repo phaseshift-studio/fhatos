@@ -132,7 +132,7 @@ namespace fhatos {
                         compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid->no_query());
     string ds;
     compiler.print_derivation_tree(&ds);
-    LOG_OBJ(INFO, jnt(10), "%s\n", ds.c_str());
+    LOG_WRITE(INFO, jnt(10).get(), L("%s\n", ds.c_str()));
   }
 
   void test_derived_type_inst_resolution() {

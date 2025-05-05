@@ -19,18 +19,18 @@
 #ifndef fhatos_kernel_hpp
 #define fhatos_kernel_hpp
 
-#include "fhatos.hpp"
-#include "model/fos/io/fs/fs.hpp"
-#include "model/fos/sys/scheduler/thread/thread.hpp"
-#include "model/fos/sys/scheduler/scheduler.hpp"
-#include "lang/mmadt/parser.hpp"
-#include "util/print_helper.hpp"
 #include "boot_config_loader.hpp"
+#include "fhatos.hpp"
+#include "lang/mmadt/parser.hpp"
+#include "model/fos/io/fs/fs.hpp"
 #include "model/fos/sys/memory/memory.hpp"
+#include "model/fos/sys/scheduler/scheduler.hpp"
+#include "model/fos/sys/scheduler/thread/thread.hpp"
+#include "util/print_helper.hpp"
 #ifdef ESP_PLATFORM
+#include <esp_freertos_hooks.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <esp_freertos_hooks.h>
 #endif
 
 namespace fhatos {
@@ -75,8 +75,8 @@ namespace fhatos {
       StringHelper::lower_case(machine_sub_os);
       StringHelper::lower_case(machine_arch);
       StringHelper::lower_case(machine_model);
-      printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n",
-                          fhatos.c_str(), machine_sub_os.c_str(), machine_arch.c_str());
+      printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n", fhatos.c_str(), machine_sub_os.c_str(),
+                          machine_arch.c_str());
       if(!machine_model.empty())
         printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
       return Kernel::build();
@@ -125,13 +125,9 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
-      return Kernel::build();
-    }
+    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) { return Kernel::build(); }
 
-    static ptr<Kernel> using_router(const ptr<Router> &router) {
-      return Kernel::build();
-    }
+    static ptr<Kernel> using_router(const ptr<Router> &router) { return Kernel::build(); }
 
     static ptr<Kernel> import(const void *) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
@@ -153,7 +149,7 @@ namespace fhatos {
     static ptr<Kernel> install(const Obj_p &obj) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       if(obj->vid) {
-        Router::singleton()->write(*obj->vid, obj,RETAIN);
+        Router::singleton()->write(*obj->vid, obj, RETAIN);
         LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !yobj!! loaded\n", obj->vid->toString()));
       }
       return Kernel::build();
@@ -161,7 +157,7 @@ namespace fhatos {
 
     static ptr<Kernel> process(const Obj_p &thread) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      //Scheduler::singleton()->spawn_thread(thread);
+      // Scheduler::singleton()->spawn_thread(thread);
       return Kernel::build();
     }
 
@@ -175,16 +171,17 @@ namespace fhatos {
       boot_config_obj_copy_len = 0;
       const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
       Obj_p config_obj = Obj::to_noobj();
-      // boot from header file, file system, or wifi
+      // boot from obj encoded file system file
       if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
-       config_obj = fhatos::FS::load_boot_config(boot_config_loader);
+        config_obj = fhatos::FS::load_boot_config(boot_config_loader);
         if(!config_obj->is_noobj()) {
           LOG_WRITE(INFO, Router::singleton().get(),
-                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n",
-                      boot_config_loader.toString(), boot_config_obj_copy_len));
+                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", boot_config_loader.toString(),
+                      config_obj->toString(NO_ANSI_PRINTER).size()));
         }
       }
-     if(config_obj->is_noobj()) {
+      /// boot from binary encoded header file
+      if(config_obj->is_noobj()) {
         if(boot_config_obj_len > 0) {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
@@ -192,15 +189,16 @@ namespace fhatos {
                     L("!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: {} bytes)\n",
                       boot_config_obj_copy_len));
         }
-      }
-      if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-        Memory::singleton()->use_custom_stack(
-            InstBuilder::build("boot_loader_stack")
-            ->inst_f([](const Obj_p &, const InstArgs &) {
-              mmadt::Parser::load_boot_config();
-              return Obj::to_noobj();
-            })->create(), Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
-        config_obj = Router::singleton()->read(*config_id);
+        if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
+          Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
+                                                    ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                      mmadt::Parser::load_boot_config();
+                                                      return Obj::to_noobj();
+                                                    })
+                                                    ->create(),
+                                                Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
+          config_obj = Router::singleton()->read(*config_id);
+        }
       }
       if(config_obj->is_noobj())
         throw fError("!yboot loader config!! !rnot found!! in flash nor header");
@@ -219,24 +217,19 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static bool main_loop() {
-
-      return true;
-    }
-
-    static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
+    static void loop() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
-      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop start!!\n", "main"));
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! started\n", "main"));
       BOOTING = false;
-      while(!Scheduler::singleton()->rec_get("halt")->or_else(dool(false))->bool_value()) {
+      while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
         Scheduler::singleton()->loop();
         Router::singleton()->loop();
         FEED_WATCHDOG();
-        Thread::delay_current_thread(750);
+        Thread::delay_current_thread(750); // todo: look into setting priorities for threads
       }
-      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!g{}!m>-loop end!!\n", "main"));
+      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
       Scheduler::singleton()->stop();
       printer()->printf("\n" FOS_TAB_8 "%s\n\n", Ansi<>::silly_print("Fare thee well FhatOS...").c_str());
 #ifdef ESP_PLATFORM

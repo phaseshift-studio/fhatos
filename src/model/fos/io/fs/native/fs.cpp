@@ -17,37 +17,40 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 #ifdef NATIVE
 
+#include "../fs.hpp"
 #include <filesystem>
 #include <fstream>
-#include "../fs.hpp"
-#include "../../../../../fhatos.hpp"
 #include "../../../../../lang/mmadt/parser.hpp"
 #define FOS_FS NTFS
 
 namespace fs = std::filesystem;
 
 namespace fhatos {
-//using namespace fs;
-  
+  // using namespace fs;
+
   FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
-    LOG_WRITE(INFO, this, L("!b{} !yfile system location!! mounted\n", this->root.toString()));
+      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {}
+
+  void FS::setup() {
+    Structure::setup();
+    LOG_WRITE(INFO, this, L("!b{} !ylocation!! mounted\n", this->root.toString()));
   }
 
-  ptr<FS> create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
-    Obj_p root = config->rec_get("root");
-    if(root->is_noobj())
-      root = vri(".");
+  ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
+    const Obj_p root = config->rec_get("root")->or_else(vri("."));
     string root_path_str = root->uri_value().toString();
-    const auto root_path = fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "."));
+    const auto root_path =
+        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, ".")));
     if(!fs::exists(root_path))
       fs::create_directories(root_path);
-    config->rec_value()->insert_or_assign(vri("root"), vri(fs::canonical(root_path)));
+    config->rec_value()->insert_or_assign(vri("root"), vri(root_path));
     return Structure::create<FS>(pattern, value_id, config);
   }
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {
-    const fs::path boot_path = fs::canonical(fs::path(string(fs::current_path().c_str()) + boot_config.toString()));
+    const fs::path boot_path = fs::canonical(
+        fs::path(ID(fs::path(boot_config.is_relative() ? boot_config.toString() : boot_config.toString().substr(1)))
+                     .toString()));
     LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
     if(fs::is_regular_file(boot_path)) {
       auto infile = std::ifstream(boot_path, ios::in);
@@ -59,14 +62,14 @@ namespace fhatos {
       const Obj_p boot_obj = proto->parse(content.c_str());
       return boot_obj;
     }
+    return Obj::to_noobj();
   }
 
   void FS::write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) {
     // TODO: retain is overwrite and transient is append
     const fs::path file_path = map_fos_to_fs(id).toString();
-    // LOG(INFO, "trying to write to %s\n", file_path.c_str());
     if(obj->is_noobj()) {
-      if(is_regular_file(file_path))
+      if(fs::is_regular_file(file_path))
         fs::remove(file_path);
       // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
       return;
@@ -74,11 +77,10 @@ namespace fhatos {
     if(id.is_node()) {
       if(const fs::path parent_path = file_path.parent_path(); !fs::exists(parent_path))
         fs::create_directories(parent_path);
-      // LOG(INFO, "writing to %s -> %s\n", id->toString().c_str(), file_path.c_str());
       const BObj_p bobj = obj->serialize();
       auto outfile = std::ofstream(file_path, retain ? ios::trunc : ios::app);
       if(!outfile.is_open())
-        throw fError("unable to write to !b%s!! via !b%s!!", id.toString().c_str(), file_path.c_str());
+        LOG_WRITE(WARN, this, L("unable to write to !b%s!! via !b%s!!\n", id.toString().c_str(), file_path.c_str()));
       outfile << bobj->second;
       outfile.flush();
       outfile.close();

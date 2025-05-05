@@ -39,15 +39,16 @@ namespace fhatos {
 
   public:
     explicit FS(const Pattern &pattern, const ID_p &value_id = nullptr,
-                const Rec_p &config = Obj::to_rec({{"root", vri(".")}})); /* :
-   Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
- }*/
+                const Rec_p &config = Obj::to_rec({{"root", vri(".")}}));
 
-    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) {
+    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec());
+     /*{
       return Structure::create<FS>(pattern, value_id, config);
-    }
+    }*/
 
     static Obj_p load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
+
+    void setup() override;
 
     ID map_fos_to_fs(const ID &fos_id) const {
       const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());

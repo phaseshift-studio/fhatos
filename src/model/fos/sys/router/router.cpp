@@ -311,7 +311,7 @@ namespace fhatos {
           related->lst_add(vri(s->pattern));
         }
       }
-      throw fError("!rno mounted structure!! for !b%s!! %s %s",
+      throw fError("!rno mounted structure!! for !b%s!! %s %s\n",
                    pattern.toString().c_str(),
                    related->lst_value()->empty() ? "" : "\n" FOS_TAB_2 "!yavailable !bsub-structures!!:",
                    related->lst_value()->empty() ? "" : PrintHelper::pretty_print_obj(related, 1).c_str());
