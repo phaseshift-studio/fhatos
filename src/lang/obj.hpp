@@ -483,7 +483,9 @@ namespace fhatos {
         try {
           if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype))) {
             if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&
-               !this->tid->matches("/sys/#") && (this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
+               !this->tid->matches("/sys/#") &&
+               (this->tid->matches("/fos/ui/terminal") || this->tid->matches("/fos/ui/console") ||
+                this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
                !this->tid->matches("/io/#")) {
               if(const Obj_p type_obj = ROUTER_READ(*this->tid);
                  !type_obj->is_noobj() && type_obj->otype == this->otype) {
@@ -509,8 +511,10 @@ namespace fhatos {
               }
             }
           }
-        } catch(std::exception &) {
-          LOG_WRITE(WARN, this, L("unable to build {} from poly type !b{}!!", this->toString(), this->tid->toString()));
+        } catch(const fError &e) {
+          LOG_WRITE(
+              WARN, this,
+              L("unable to build {} from poly type !b{}!!: {}\n", this->toString(), this->tid->toString(), e.what()));
         }
         Compiler(true, true).type_check(this, *this->tid);
       }
@@ -528,17 +532,11 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     [[nodiscard]] virtual ID_p vid_or_tid() const { return this->vid ? this->vid : this->tid; }
 
-    static Obj_p load(const ID &vid) {
-      return ROUTER_READ(vid);
-    }
+    static Obj_p load(const ID &vid) { return ROUTER_READ(vid); }
 
-    static Obj_p load(const ID_p &vid) {
-      return ROUTER_READ(*vid);
-    }
+    static Obj_p load(const ID_p &vid) { return ROUTER_READ(*vid); }
 
-    static Obj_p load(const Uri_p &vid_uri) {
-      return ROUTER_READ(vid_uri->uri_value());
-    }
+    static Obj_p load(const Uri_p &vid_uri) { return ROUTER_READ(vid_uri->uri_value()); }
 
     virtual void sync(const fURI &subset) const {
       if(this->vid) {
@@ -2025,8 +2023,6 @@ namespace fhatos {
         return true;
       if(type_obj->is_type()) {
         const bool result = OTYPE_FURI.at(this->otype)->equals(*type_obj->tid);
-        // const bool result = IS_TYPE_OF(this->tid, type_obj->tid, {}) &&
-        // !type_obj->type_value()->apply(this->clone())->is_noobj();
         if(!result && fail_reason) {
           fail_reason->push(
               fmt::format("!b{}!! is !rnot!! a subtype of !b{}!!", this->tid->toString(), type_obj->tid->toString()));
@@ -2036,30 +2032,39 @@ namespace fhatos {
       if(type_obj->is_code() && !this->is_code()) {
         try {
           const Obj_p result = type_obj->apply(this->clone());
-          return result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
+          const bool r = result->is_noobj() && type_obj->range_coefficient().first == 0 ? true : !result->is_noobj();
+          if(!r and fail_reason) {
+            fail_reason->push(
+                fmt::format("!b{}!! is not applicable with !b{}!!", this->toString(), type_obj->tid->toString()));
+          }
+          return r;
         } catch(std::exception &e) {
           if(fail_reason)
             fail_reason->push(e.what());
           return false;
         }
       }
-      /* if(type_obj->is_code())
-         return true;
-       if(this->is_code())
-         return true;*/
-      if(this->otype != type_obj->otype) {
-        if(fail_reason)
-          fail_reason->push(fmt::format("{} is !rnot!! the same base type as {}", OTypes.to_chars(this->otype),
-                                        OTypes.to_chars(type_obj->otype)));
-        return false;
+      if(!this->is_code() || !type_obj->is_code()) { // bcode and inst are compared in switch below
+        if(this->otype != type_obj->otype) {
+          if(fail_reason)
+            fail_reason->push(fmt::format("!b{}!! is !rnot!! the same base type as !b{}!!",
+                                          OTypes.to_chars(this->otype), OTypes.to_chars(type_obj->otype)));
+          return false;
+        }
+        if(!this->is_base_type() && !type_obj->is_base_type() && *this->tid != *type_obj->tid) {
+          if(!ROUTER_RESOLVE(fURI(*this->tid)).equals(ROUTER_RESOLVE(fURI(*type_obj->tid)))) {
+            if(fail_reason)
+              fail_reason->push(fmt::format("!b{}!! is !rnot!! the same type as !b{}!!", this->tid->toString(),
+                                            type_obj->tid->toString()));
+            return false;
+          }
+        }
       }
-      if(!this->is_base_type() && !type_obj->is_base_type() && *this->tid != *type_obj->tid)
-        return false;
-      const string does_not_equal = "{} does !rnot!! equal {}";
+      static constexpr char *does_not_equal = "{} does !rnot!! equal {}";
       switch(this->otype) {
         case OType::TYPE:
           return this->type_value()->match(type_obj->is_type() ? type_obj->type_value() : type_obj, fail_reason);
-        case OType::NOOBJ:
+        case OType::NOOBJ: // everything matches noobj
           return true;
         case OType::BOOL: {
           const bool match = this->bool_value() == type_obj->bool_value();
@@ -2113,12 +2118,14 @@ namespace fhatos {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
           for(const auto &[b_key, b_obj]: RecMap<>(*pairs_b)) {
-            bool found = false;
-            for(const auto &[a_key, a_obj]: RecMap<>(*pairs_a)) {
-              if((b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos) ||
-                 (a_key->match(b_key) && a_obj->match(b_obj))) {
-                found = true;
-                break;
+            bool found = b_key->is_uri() && b_key->uri_value().toString().find(':') != string::npos;
+            if(!found) {
+              for(const auto &[a_key, a_obj]: RecMap<>(*pairs_a)) {
+                if(a_key->match(b_key)) {
+                  found = a_obj->match(b_obj, fail_reason);
+                  if(found)
+                    break;
+                }
               }
             }
             if(!found) {
@@ -2131,24 +2138,41 @@ namespace fhatos {
           return true;
         }
         case OType::INST: {
+          if(type_obj->is_bcode() && type_obj->bcode_value()->size() == 1)
+            return this->match(type_obj->bcode_value()->front());
+
+          if(!type_obj) {
+            if(fail_reason)
+              fail_reason->push(fmt::format("!b{}!! is !rnot!! the same base type as !b{}!!",
+                                            OTypes.to_chars(this->otype), OTypes.to_chars(type_obj->otype)));
+            return false;
+          }
           const auto args_a = this->inst_args();
-          if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b, fail_reason))
+          if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b, fail_reason)) {
+            if(fail_reason)
+              fail_reason->push(fmt::format("!yarguments!! {} do !rnot!! match {}", args_a->toString(), args_b->toString()));
             return false;
-          if(this->domain_coefficient() != type_obj->domain_coefficient() ||
-             this->range_coefficient() != type_obj->range_coefficient())
+          }
+          if(this->domain_coefficient() != type_obj->domain_coefficient()) {
+            if(fail_reason)
+              fail_reason->push(fmt::format("!ydomain coefficient!! {{{},{}}} do !rnot!! match {{{},{}}}",
+                                            this->domain_coefficient().first, this->domain_coefficient().second,
+                                            type_obj->domain_coefficient().first,
+                                            type_obj->domain_coefficient().second));
             return false;
+          }
+          if(this->range_coefficient() != type_obj->range_coefficient()) {
+            if(fail_reason)
+              fail_reason->push(fmt::format("!yrange coefficient!! {{{},{}}} !rdoesn't match!! {{{},{}}}",
+                                            this->range_coefficient().first, this->range_coefficient().second,
+                                            type_obj->range_coefficient().first, type_obj->range_coefficient().second));
+            return false;
+          }
           return true;
         }
         case OType::BCODE: {
-          /*const auto insts_a = this->bcode_value();
-          const auto insts_b = type_obj->bcode_value();
-          if (insts_a->size() != insts_b->size())
-            return false;
-          const auto b = insts_b->begin();
-          for (const auto &a: *insts_a) {
-            if (!a->match(*b))
-              return false;
-          }*/
+          /*if(type_obj->is_inst() && this->bcode_value()->size() == 1)
+            return this->bcode_value()->front()->match(type_obj);*/
           return true;
         }
         default:

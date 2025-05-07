@@ -356,14 +356,14 @@ namespace fhatos {
           fail_reason.pop();
           count++;
         }
-        throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", "/sys/lang/parser",
+        throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s %s", "/mmadt/parser",
                      obj->toString(p.get()).c_str(), type_id.toString().c_str(), type->toString().c_str(),
                      fail.c_str());
       }
       return false;
     }
     if(this->throw_on_miss)
-      throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", "/sys/lang/parser", type_id.toString().c_str());
+      throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", "/mmadt/parser", type_id.toString().c_str());
     return false;
   }
 

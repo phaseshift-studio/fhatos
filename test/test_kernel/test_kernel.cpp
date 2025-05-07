@@ -54,6 +54,8 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
+  void test_user_boot_loader() {}
+
   void test_basic_kernel() {
     load_processor(); // TODO: remove
     Kernel::build()
@@ -79,7 +81,7 @@ namespace fhatos {
         ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
         ->mount(Structure::create<Heap<>>(MMADT_SCHEME "/#"))
         ->mount(Heap<>::create(FOS_URI "/#"))
-        ->import(fOS::import_q_procs())
+        ->import(fOS::import_q_proc())
         ->import(mmADT::import())
         ->import(fOS::import_util())
         ->import(fOS::import_ui())
@@ -113,6 +115,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_user_boot_loader); //
       FOS_RUN_TEST(test_basic_kernel); //
   )
 } // namespace fhatos

@@ -54,7 +54,7 @@ namespace fhatos {
           } else {
             ROUTER_WRITE(type_id, type_def, true);
             if(current->is_noobj()) {
-              LOG_WRITE(INFO, this, L("{} !ytype!! defined\n", type_id.toString().c_str()));
+              LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString()));
             } else {
               LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
             }

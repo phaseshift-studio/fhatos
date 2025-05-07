@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_boot_loader_hpp
-#define fhatos_boot_loader_hpp
+#ifndef fhatos_boot_loader_mmadt_hpp
+#define fhatos_boot_loader_mmadt_hpp
 
 #include "fhatos.hpp"
 #include "kernel.hpp"
@@ -65,7 +65,7 @@
 ////////////////////////////////////////
 
 namespace fhatos {
-  class BootLoader {
+  class BootLoaderMMADT {
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
@@ -102,85 +102,46 @@ namespace fhatos {
         kp->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#"))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
+            ->mount(Heap<>::create("+/#", id_p("/mnt/var")))
+            ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
             ->import(Router::import())
             ->drop_config("router")
             ->import(Scheduler::import())
-            ->drop_config("scheduler");
+            ->drop_config("scheduler")
+            ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
+            ->mount(Structure::add_qproc(Heap<>::create(MMADT_URI "/#", id_p("/mnt/mmadt")),
+                                         QDoc::create("/mnt/mmadt/q/doc")))
+            ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
+            ->import(fOS::import_sys())
+            ->import(fOS::import_structure())
+            ->import(fOS::import_io())
+            ->import(fOS::import_q_proc())
+            ->import(fOS::import_ui())
+            ->import(fOS::import_util())
+            ->import(mmADT::import())
+            ->import(mmADT::import_ext_types())
+            ->install(
+                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
+            ->eval([]() {
+              Router::singleton()->write("/sys/vm/config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/vm"));
+            });
         ////////////////////////////////////////////////////////////
         ////////////////// USER IMPORT(S) //////////////////////////
         ////////////////////////////////////////////////////////////
-        return kp
-            ////////////////// USER STRUCTURE(S)
-            ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
-            ->import(fOS::import_sys())
-            ->import(fOS::import_structure())
-            ->import(fOS::import_q_proc())
-            ->import(Processor::import())
-            ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
-            ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
-                                         QDoc::create("/mnt/mmadt/q/doc")))
-            ->import(mmADT::import())
-            ->import(mmADT::import_ext_types())
+
+        return kp->import(Processor::import())
+            ->display_note("\n!g[!mSTART!g] !r.!go!bO !yloading !bboot config !yobjs!! !bO!go!r.!!\n")
             ->eval([]() {
-              Router::singleton()->write("/sys/vm/config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/vm"));
+              const Obj_p boot = FS::load_boot_config("/data/boot/full_boot_config.obj")->clone();
+              LOG_WRITE(INFO, boot.get(), L("{}\n", boot->toString()));
+              const Obj_p result = Processor::compute(boot);
+              LOG_WRITE(INFO, result.get(), L(FOS_TAB_4 "\\_ !yboot loader!! result: {}\n", result->toString()));
             })
-            ->drop_config("vm")
-            ////////
-            ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
-            ->import(fOS::import_io())
-            ->import(fOS::import_sensor())
-            ->import(fOS::import_ui())
-            ->import(fOS::import_util())
-            /////////
-            ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->install(
-                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
+            ->display_note("\n!g[!mEND!g] !r.!go!bO !yloading !bboot config !yobjs!! !bO!go!r.!!\n")
+            ////////////////// USER STRUCTURE(S)
             ->drop_config("parser")
-            ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
-            ->drop_config("log")
-            ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
-            ->mount(FS::create("/fs/#", id_p("/mnt/fs"), Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
-            ->drop_config("fs")
-#ifdef ESP_PLATFORM
-            ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
-            ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
-            ->install(
-                *__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
-                                            {"config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/wifi")}}),
-                               "/io/wifi"))
-                     .inst("connect")
-                     .compute()
-                     .begin())
-            ->drop_config("wifi")
-            /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                     {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
-                                   "/io/ota")).inst("start").compute().begin())*/
-            ->drop_config("ota")
-        //->mount(HeapPSRAM::create("/psram/#"))
-#endif
-            ->mount(Structure::add_qproc(
-                DSM::create(
-                    "/shared/#", id_p("/mnt/dsm"),
-                    Router::singleton()
-                        ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
-                        ->or_else(Obj::to_rec(
-                            {{"async", dool(true)},
-                             {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                             {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
-                QSubMqtt::create(
-                    Router::singleton()
-                        ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
-                        ->or_else(Obj::to_rec(
-                            {{"async", dool(true)},
-                             {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                             {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
-                    id_p("/mnt/dsm/"))))
             ->drop_config("mqtt")
-            //->mount(
-            //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
-            ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            ->drop_config("console")
             ->display_memory()
             ->eval([args_parser] {
               // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition

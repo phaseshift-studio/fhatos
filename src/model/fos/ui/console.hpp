@@ -19,16 +19,16 @@
 #ifndef fhatos_ui_console_hpp
 #define fhatos_ui_console_hpp
 
+#include "../../../../extern/fmt/include/fmt/core.h"
 #include "../../../fhatos.hpp"
-#include "../../../lang/obj.hpp"
 #include "../../../lang/mmadt/parser.hpp"
-#include "../../model.hpp"
-#include "terminal.hpp"
+#include "../../../lang/obj.hpp"
 #include "../../../lang/type.hpp"
+#include "../../../util/print_helper.hpp"
+#include "../../model.hpp"
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
-#include "../../../../extern/fmt/include/fmt/core.h"
-#include "../../../util/print_helper.hpp"
+#include "terminal.hpp"
 #ifdef NATIVE
 #include <cpptrace/cpptrace.hpp>
 #endif
@@ -44,83 +44,10 @@ namespace fhatos {
     bool first = true;
 
   public:
-    explicit Console(const Obj_p &console_obj) :
-      Thread(console_obj), Rec(*console_obj) {
-    }
+    explicit Console(const Obj_p &console_obj) : Thread(console_obj), Rec(*console_obj) {}
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
-      const Obj_p console_obj =
-          Obj::to_rec({
-                          {"halt", dool(false)},
-                          {"loop", InstBuilder::build(THREAD_FURI->extend("loop"))
-                           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
-                           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-                             // static_cast necessary for esp32
-                             const auto console_state = static_cast<Console *>(get_state<Thread>(console_obj).get());
-                             if(console_state->first) {
-                               console_state->first = false;
-                               Thread::delay_current_thread(300);
-                               printer()->println();
-                             }
-                             try {
-                               /// WRITE TO PROMPT
-                               if(console_obj->has("config/terminal/stdout")) {
-                                 if(console_state->new_input_)
-                                   console_state->print_prompt(!console_state->line_.empty());
-                                 console_state->new_input_ = false;
-                               }
-                               if(console_obj->has("config/terminal/stdin")) {
-                                 //// READ FROM PROMPT
-                                 if(const string x = console_state->read_stdin('\n')->str_value();
-                                   x.find(":clear") == 0) {
-                                   console_state->clear();
-                                   return noobj();
-                                 } else {
-                                   console_state->tracker_.track(x);
-                                   if(console_state->tracker_.closed()) {
-                                     console_state->new_input_ = true;
-                                     console_state->line_ += x;
-                                   } else {
-                                     console_state->line_ += x;
-                                     return Obj::to_noobj();
-                                   }
-                                   StringHelper::trim(console_state->line_);
-                                   if(console_state->line_.empty() ||
-                                      console_state->line_[console_state->line_.length() - 1] == ';' ||
-                                      // specific to end-step and imperative simulation
-                                      !console_state->tracker_.closed()) {
-                                     ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                                     return noobj();
-                                   }
-                                 }
-                                 // prepare the user input for processing
-                                 console_state->tracker_.clear();
-                                 StringHelper::trim(console_state->line_);
-                                 console_state->process_line(console_state->line_);
-                                 console_state->line_.clear();
-                               }
-                             } catch(const fError &e) {
-                               console_state->print_exception(e);
-#ifdef NATIVE
-                                if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
-                                  console_state->write_stdout(str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
-                                  string response = console_state->read_stdin('\0')->str_value();
-                                  StringHelper::lower_case(response);
-                                  if(response[0] == 'y') {
-                                    const cpptrace::stacktrace st = cpptrace::generate_trace();
-                                    console_state->write_stdout(str(st.to_string(true).append("\n")));
-                                  }
-                                }
-#endif
-                               console_state->clear();
-                             }
-                             return Obj::to_noobj();
-                           })->create()},
-                          {"config", console_config->clone()}}, CONSOLE_FURI, id_p(id));
-      const ptr<Thread> console_state = Console::create_state(console_obj);
-      MODEL_STATES::singleton()->store(id,console_state);
-      // __().inst(Scheduler::singleton()->vid->add_component("spawn"), __().block(console_obj)).compute();
-      return console_obj;
+      return Obj::to_rec({{"config", console_config}}, CONSOLE_FURI, id_p(id));
     }
 
     static ptr<Thread> create_state(const Obj_p &console_obj) {
@@ -138,7 +65,7 @@ namespace fhatos {
     void write_stdout(const Str_p &s) const {
       if(this->has("config/terminal/stdout")) {
         if(const fURI out = this->get<fURI>("config/terminal/stdout");
-          Terminal::singleton()->vid->extend(":stdout") == out) {
+           Terminal::singleton()->vid->extend(":stdout") == out) {
           Terminal::STD_OUT_DIRECT(s, this->rec_get("config/ellipsis"));
         } else
           ROUTER_WRITE(out, s, TRANSIENT);
@@ -150,9 +77,8 @@ namespace fhatos {
     [[nodiscard]] Str_p read_stdin(const char until) const {
       // if(console_obj->has("config/terminal/stdin")) {
       const fURI in = this->get<fURI>("config/terminal/stdin");
-      return Terminal::singleton()->vid->extend(":stdin") == in
-               ? Terminal::STD_IN_LINE_DIRECT(until)
-               : Router::singleton()->exec(in, noobj());
+      return Terminal::singleton()->vid->extend(":stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
+                                                                : Router::singleton()->exec(in, noobj());
       //}
     }
 
@@ -176,7 +102,7 @@ namespace fhatos {
       }
       /////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////
-      //LOG_WRITE(DEBUG, this, L("line to parse: {}\n", line));
+      // LOG_WRITE(DEBUG, this, L("line to parse: {}\n", line));
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
       if(line[0] == '\n')
@@ -189,7 +115,7 @@ namespace fhatos {
 
       Obj_p result;
       const static Uri_p processor_uri = Obj::to_uri(*PROCESSOR_FURI);
-      if(const Uri_p proc = this->rec_get("config/processor"); !proc->equals(*processor_uri))
+      if(const Uri_p proc = this->rec_get("config/processor")->or_else(vri(PROCESSOR_FURI)); !proc->equals(*processor_uri))
         result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
       else
         result = Processor::compute(line);
@@ -200,19 +126,88 @@ namespace fhatos {
     }
 
     static void *import() {
+      MODEL_CREATOR->insert_or_assign(*CONSOLE_FURI,
+                                      [](const Obj_p &console_obj) { return Console::create_state(console_obj); });
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
-          *CONSOLE_FURI, Obj::to_rec({
-              {"loop", __()},
-              {"halt", __().isa(*BOOL_FURI)}
-          }));
+          *CONSOLE_FURI,
+          Obj::to_rec(
+              {{"loop", __().lift(InstBuilder::build(THREAD_FURI->extend("loop"))
+                                      ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                                      ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
+                                        // static_cast necessary for esp32
+                                        const auto console_state =
+                                            static_cast<Console *>(get_state<Thread>(console_obj).get());
+                                        if(console_state->first) {
+                                          console_state->first = false;
+                                          Thread::delay_current_thread(300);
+                                          printer()->println();
+                                        }
+                                        try {
+                                          /// WRITE TO PROMPT
+                                          if(console_obj->has("config/terminal/stdout")) {
+                                            if(console_state->new_input_)
+                                              console_state->print_prompt(!console_state->line_.empty());
+                                            console_state->new_input_ = false;
+                                          }
+                                          if(console_obj->has("config/terminal/stdin")) {
+                                            //// READ FROM PROMPT
+                                            if(const string x = console_state->read_stdin('\n')->str_value();
+                                               x.find(":clear") == 0) {
+                                              console_state->clear();
+                                              return noobj();
+                                            } else {
+                                              console_state->tracker_.track(x);
+                                              if(console_state->tracker_.closed()) {
+                                                console_state->new_input_ = true;
+                                                console_state->line_ += x;
+                                              } else {
+                                                console_state->line_ += x;
+                                                return Obj::to_noobj();
+                                              }
+                                              StringHelper::trim(console_state->line_);
+                                              if(console_state->line_.empty() ||
+                                                 console_state->line_[console_state->line_.length() - 1] == ';' ||
+                                                 // specific to end-step and imperative simulation
+                                                 !console_state->tracker_.closed()) {
+                                                ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                                return noobj();
+                                              }
+                                            }
+                                            // prepare the user input for processing
+                                            console_state->tracker_.clear();
+                                            StringHelper::trim(console_state->line_);
+                                            console_state->process_line(console_state->line_);
+                                            console_state->line_.clear();
+                                          }
+                                        } catch(const fError &e) {
+                                          console_state->print_exception(e);
+#ifdef NATIVE
+                                          if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
+                                            console_state->write_stdout(
+                                                str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
+                                            string response = console_state->read_stdin('\0')->str_value();
+                                            StringHelper::lower_case(response);
+                                            if(response[0] == 'y') {
+                                              const cpptrace::stacktrace st = cpptrace::generate_trace();
+                                              console_state->write_stdout(str(st.to_string(true).append("\n")));
+                                            }
+                                          }
+#endif
+                                          console_state->clear();
+                                        }
+                                        return Obj::to_noobj();
+                                      })
+                                      ->create())},
+               {"halt", __().else_(dool(false))}}));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
             const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
             static_cast<Console *>(console_state.get())->clear();
             return console_obj;
-          })->save();
+          })
+          ->save();
       InstBuilder::build(CONSOLE_FURI->add_component("eval"))
           ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
           ->inst_args(rec({{"code", Obj::to_bcode()}}))

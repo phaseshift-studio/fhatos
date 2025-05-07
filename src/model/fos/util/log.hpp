@@ -132,13 +132,13 @@ namespace fhatos {
       return log;
     }
 
-    static Obj_p log_inst(const Obj_p &source_obj, const InstArgs &args) {
+   /* static Obj_p log_inst(const Obj_p &source_obj, const InstArgs &args) {
       string log_level_str = args->get<fURI>("level").toString();
       std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
       const LOG_TYPE log_level = LOG_TYPES.to_enum(log_level_str);
       Log::PRIMARY_LOGGING(log_level, source_obj.get(), L("{}", args->arg("message")->toString()));
       return source_obj;
-    }
+    }*/
 
   public:
     static void *import() {

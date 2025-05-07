@@ -20,18 +20,21 @@
 #define fhatos_fos_obj_hpp
 
 #include "../../fhatos.hpp"
+#include "../../lang/mmadt/mmadt.hpp"
 #include "../../lang/obj.hpp"
+#include "../../lang/processor/processor.hpp"
 #include "../../lang/type.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
-#include "../../lang/mmadt/mmadt.hpp"
+#include "sys/memory/memory.hpp"
+#include "sys/router/structure/dsm.hpp"
+#include "sys/router/structure/heap.hpp"
+#include "sys/scheduler/thread/thread.hpp"
+#include "ui/button/button.hpp"
+#include "io/fs/fs.hpp"
+#include "ui/console.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
-#include "sys/scheduler/thread/thread.hpp"
-#include "sys/memory/memory.hpp"
-#include "../../lang/processor/processor.hpp"
-#include "ui/console.hpp"
-#include "ui/button/button.hpp"
 #ifdef ARDUINO
 #include "net/wifi.hpp"
 #include "net/ota.hpp"
@@ -49,33 +52,23 @@ namespace fhatos {
 
   class fOS {
   public:
-    static void *import_types() {
-      load_processor();
-      Typer::singleton()->start_progress_bar(10);
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    static void *import_q_proc() {
+      Typer::singleton()->start_progress_bar(5);
       Typer::singleton()->save_type(
-          *MESSAGE_FURI, Obj::to_rec({
-              {"target", Obj::to_type(URI_FURI)},
-              {"payload", Obj::to_bcode()},
-              {"retain", Obj::to_type(BOOL_FURI)}}));
+        *MESSAGE_FURI, Obj::to_rec({
+            {"target", Obj::to_type(URI_FURI)},
+            {"payload", Obj::to_bcode()},
+            {"retain", Obj::to_type(BOOL_FURI)}}));
       Typer::singleton()->save_type(
           *SUBSCRIPTION_FURI, Obj::to_rec({
               {"source", Obj::to_type(URI_FURI)},
               {"pattern", Obj::to_type(URI_FURI)},
               {"on_recv", Obj::to_bcode()}}));
       Typer::singleton()->save_type(*Q_PROC_FURI, Obj::to_rec());
-
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ycommon types!! loaded!g]!! \n",FOS_URI "/+"));
-      return nullptr;
-    }
-
-    static void *import_q_procs() {
-      Typer::singleton()->start_progress_bar(14);
       Typer::singleton()->save_type(Q_PROC_FURI->extend("sub"), Obj::to_rec());
       Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yquery processors!! loaded!g]!! \n",FOS_URI "/q/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yquery types!! imported!g]!! \n",FOS_URI "/q/+"));
       return nullptr;
     }
 
@@ -89,7 +82,7 @@ namespace fhatos {
       OTA::import();
 #endif
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! loaded!g]!! \n",FOS_URI "/io/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! imported!g]!! \n",FOS_URI "/io/+"));
       return nullptr;
     }
 
@@ -98,7 +91,17 @@ namespace fhatos {
       Memory::import();
       Thread::import();
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! loaded!g]!! \n",FOS_URI "/sys/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! imported!g]!! \n",FOS_URI "/sys/+"));
+      return nullptr;
+    }
+
+    static void *import_structure() {
+      Typer::singleton()->start_progress_bar(3);
+      Heap<>::import(FOS_URI "/sys/router/lib/heap");
+      DSM::import(FOS_URI "/sys/router/lib/dsm");
+      FS::import(FOS_URI "/sys/router/lib/fs");
+      Typer::singleton()->end_progress_bar(
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ystructure types!! loaded!g]!! \n",FOS_URI "/sys/router/lib/+"));
       return nullptr;
     }
 
@@ -128,11 +131,10 @@ namespace fhatos {
     }
 
     static void *import_util() {
-      Typer::singleton()->start_progress_bar(6);
+      Typer::singleton()->start_progress_bar(3);
       Log::import();
       Poll::import();
       Text::import();
-
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n",FOS_URI "/util/+"));
       return nullptr;

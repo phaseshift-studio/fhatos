@@ -1,16 +1,17 @@
 #ifndef fhatos_model_hpp
 #define fhatos_model_hpp
 
-#include "../lang/obj.hpp"
-#include "../fhatos.hpp"
 #include <shared_mutex>
+#include "../fhatos.hpp"
+#include "../lang/obj.hpp"
 
 namespace fhatos {
   class MODEL_STATES;
-
+  static uptr<Map<ID, Function<Obj_p, Any>>> MODEL_CREATOR = make_unique<Map<ID, Function<Obj_p, Any>>>();
   class MODEL_STATES {
     std::shared_mutex map_mutex;
     const ptr<Map<ID, Any, furi_less>> data_ = make_shared<Map<ID, Any, furi_less>>();
+
 
   public:
     static ptr<MODEL_STATES> singleton() {
@@ -60,31 +61,34 @@ namespace fhatos {
 
     static ptr<MODEL_STATE> create_state(const Obj_p &model_obj);
 
-    template<typename FORCED_MODEL_STATE=MODEL_STATE>
+    template<typename FORCED_MODEL_STATE = MODEL_STATE>
     static void drop_state(const Obj_p &model_obj) {
       if(!model_obj->vid)
         throw fError("!ystateful objs !rmust have !ya value id!!: %s", model_obj->toString().c_str());
       if(MODEL_STATES::singleton()->exists(*model_obj->vid))
         MODEL_STATES::singleton()->drop(*model_obj->vid);
       else
-        LOG_WRITE(WARN, model_obj.get(),L("model {} already removed", model_obj->vid->toString()));
+        LOG_WRITE(WARN, model_obj.get(), L("model {} already removed", model_obj->vid->toString()));
     }
 
-    template<typename FORCED_MODEL_STATE=MODEL_STATE>
+    template<typename FORCED_MODEL_STATE = MODEL_STATE>
     static ptr<FORCED_MODEL_STATE> get_state(const ID &model_id) {
       if(MODEL_STATES::singleton()->exists(model_id))
         return MODEL_STATES::singleton()->load<ptr<FORCED_MODEL_STATE>>(model_id);
       return nullptr;
     }
 
-    template<typename FORCED_MODEL_STATE=MODEL_STATE>
+    template<typename FORCED_MODEL_STATE = MODEL_STATE>
     static ptr<FORCED_MODEL_STATE> get_state(const Obj_p &model_obj) {
       if(!model_obj->vid)
         throw fError("!ystateful objs !rmust have !ya value id!!: %s", model_obj->toString().c_str());
       if(MODEL_STATES::singleton()->exists(*model_obj->vid))
         return MODEL_STATES::singleton()->load<ptr<FORCED_MODEL_STATE>>(*model_obj->vid);
       else {
-        const ptr<FORCED_MODEL_STATE> model_state = FORCED_MODEL_STATE::create_state(model_obj);
+        const ptr<FORCED_MODEL_STATE> model_state =
+            MODEL_CREATOR->count(*model_obj->tid)
+                ? any_cast<ptr<FORCED_MODEL_STATE>>(MODEL_CREATOR->at(*model_obj->tid)(model_obj))
+                : FORCED_MODEL_STATE::create_state(model_obj);
         MODEL_STATES::singleton()->store(*model_obj->vid, model_state);
         return model_state;
       }
@@ -92,6 +96,6 @@ namespace fhatos {
 
     static void *import();
   };
-}
+} // namespace fhatos
 
 #endif

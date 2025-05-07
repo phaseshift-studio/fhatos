@@ -25,6 +25,7 @@
 #include "../obj.hpp"
 #include "../mmadt/rewriter.hpp"
 #include "../mmadt/compiler.hpp"
+#include "../../model/fos/sys/scheduler/thread/thread.hpp"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////

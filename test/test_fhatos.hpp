@@ -90,8 +90,8 @@
   Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);                                                          \
   Router::singleton()->import();                                                                                       \
   Router::singleton()->attach(Heap<>::create("/fos/#"));                                                               \
-  fOS::import_types();                                                                                                 \
-  fOS::import_q_procs();                                                                                               \
+  fOS::import_q_proc();                                                                                                \
+  fOS::import_structure();                                                                                             \
   Router::singleton()->attach(Heap<>::create("/io/log/#"));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;

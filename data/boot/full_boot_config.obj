@@ -1,0 +1,5 @@
+terminal[[=>]]@/io/terminal;
+console[[config=>[terminal=>[stdout=>/io/terminal/:stdout, stdin=>/io/terminal/:stdin],
+                    nest=>2, ellipsis=>50, prompt=>'!mfhatos!g>!! ', strict=>false, log=>INFO,
+                    stack_size=>24288, stack_trace=>true]]]@/io/console;
+/sys/scheduler::spawn(@/io/console)
