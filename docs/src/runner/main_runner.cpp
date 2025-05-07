@@ -20,20 +20,20 @@
 #define fhatos_main_runner_cpp
 
 #include <chrono>
+#include <thread>
+#include "../../../src/boot_loader.hpp"
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
 #include "../../../src/lang/mmadt/mmadt_obj.hpp"
 #include "../../../src/lang/mmadt/parser.hpp"
 #include "../../../src/lang/processor/processor.hpp"
 #include "../../../src/lang/type.hpp"
+#include "../../../src/model/fos/sys/scheduler/scheduler.hpp"
 #include "../../../src/model/fos/ui/console.hpp"
 #include "../../../src/model/fos/ui/terminal.hpp"
-#include "../../../src/model/fos/sys/scheduler/scheduler.hpp"
-#include <thread>
 #include "../../../src/util/ansi.hpp"
-#include "../../../src/util/print_helper.hpp"
 #include "../../../src/util/options.hpp"
-#include "../../../src/boot_loader.hpp"
+#include "../../../src/util/print_helper.hpp"
 
 using namespace fhatos;
 using namespace mmadt;
@@ -66,35 +66,37 @@ int main(int arg, char **argsv) {
     BootLoader::primary_boot(argv_parser);
     Router::singleton()->write("/io/console/config/terminal", Obj::to_noobj(), true);
     Router::singleton()->write("/io/console/config/stack_trace", dool(false), true);
+
+    LOG(INFO, "processing %i expressions\n", arg);
+    const Console *console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
+    Router::singleton()->loop();
+    printer()->printer_switch(true);
+    for(int i = 1; i < arg; i++) {
+      try {
+        auto x = string(argsv[i]);
+        StringHelper::trim(x);
+        const bool has_thread = x.find("spawn") != string::npos;
+        printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
+        printer()->println(x.c_str());
+        Router::singleton()->loop();
+        // StringHelper::replace(&x, "'", "\\'"); // escape quotes
+        // StringHelper::replace(&x, "{", "{");
+        // StringHelper::replace(&x, "}", "}");
+        console->process_line(x);
+        // TODO: using this access point as issues with {} in print() being intercepted by fmt package
+        // Processor::compute(string("*/io/console.eval('").append(x).append("')"));
+        Router::singleton()->loop();
+        std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
+        Router::singleton()->write(SCHEDULER_ID->extend("halt"), dool(true));
+      } catch(const fError &e) {
+        printer()->print("[ERROR] ");
+        printer()->println(e.what());
+      }
+    }
   } catch(const std::exception &e) {
+    printer()->printer_switch(true);
     fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
     throw;
-  }
-  LOG(INFO, "processing %i expressions\n", arg);
-  const Console *console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
-  printer()->printer_switch(true);
-  Router::singleton()->loop();
-  for(int i = 1; i < arg; i++) {
-    try {
-      auto x = string(argsv[i]);
-      StringHelper::trim(x);
-      const bool has_thread = x.find("spawn") != string::npos;
-      printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
-      printer()->println(x.c_str());
-      Router::singleton()->loop();
-      //StringHelper::replace(&x, "'", "\\'"); // escape quotes
-      //StringHelper::replace(&x, "{", "{");
-      //StringHelper::replace(&x, "}", "}");
-      console->process_line(x);
-      // TODO: using this access point as issues with {} in print() being intercepted by fmt package
-      //Processor::compute(string("*/io/console.eval('").append(x).append("')"));
-      Router::singleton()->loop();
-      std::this_thread::sleep_for(std::chrono::milliseconds(has_thread ? 2500 : 10));
-      Router::singleton()->write(SCHEDULER_ID->extend("halt"), dool(true));
-    } catch(const fError &e) {
-      printer()->print("[ERROR] ");
-      printer()->println(e.what());
-    }
   }
   printer()->printer_switch(false);
 
