@@ -29,7 +29,7 @@
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
-  if (meta.has_value())                                                                                                \
+  if(meta.has_value())                                                                                                 \
     return meta.value();
 
 
@@ -58,25 +58,22 @@ namespace fhatos {
   public:
     const Pattern_p pattern{};
 
-    explicit Structure(const Pattern &pattern,
-                       const ID_p &type_id,
-                       const ID_p &value_id = nullptr,
+    explicit Structure(const Pattern &pattern, const ID_p &type_id, const ID_p &value_id = nullptr,
                        const Rec_p &config = Obj::to_rec()) :
-      Rec(config->rec_value()->empty()
-            ? Obj::to_rec({
-                {"pattern", vri(pattern)},
-                {"q_proc",
-                 rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")}, {"#", QType::create()}})},
-            })->
-            rec_value()
-            : Obj::to_rec({
-                {"pattern", vri(pattern)},
-                {"q_proc",
-                 rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")}, {"#", QType::create()}})},
-                {"config", config->clone()}})->rec_value(),
-          OType::REC, type_id,
-          value_id),
-      pattern(p_p(pattern)) {
+        Rec(config->rec_value()->empty()
+                ? Obj::to_rec({
+                                  {"pattern", vri(pattern)},
+                                  {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")},
+                                                  {"#", QType::create()}})},
+                              })
+                      ->rec_value()
+                : Obj::to_rec({{"pattern", vri(pattern)},
+                               {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")},
+                                               {"#", QType::create()}})},
+                               {"config", config->clone()}})
+                      ->rec_value(),
+            OType::REC, type_id, value_id),
+        pattern(p_p(pattern)) {
       this->q_procs_ = this->Obj::rec_get("q_proc");
     }
 
@@ -94,17 +91,16 @@ namespace fhatos {
     }
 
     static Structure_p add_qproc(const Structure_p &structure, const ptr<QProc> &qprocA,
-                                 const ptr<QProc> &qprocB = nullptr,
-                                 const ptr<QProc> &qprocC = nullptr) {
+                                 const ptr<QProc> &qprocB = nullptr, const ptr<QProc> &qprocC = nullptr) {
       structure->q_procs_->rec_set(vri(qprocA->q_key()), qprocA);
-      LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocA->vid_or_tid()->toString()));
+      LOG_WRITE(INFO, structure.get(), L("!yquery processor!! !b{}!! attached\n", qprocA->vid_or_tid()->toString()));
       if(qprocB) {
         structure->q_procs_->rec_set(vri(qprocB->q_key()), qprocB);
-        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocB->vid_or_tid()->toString()));
+        LOG_WRITE(INFO, structure.get(), L("!yquery processor!! !b{}!! attached\n", qprocB->vid_or_tid()->toString()));
       }
       if(qprocC) {
         structure->q_procs_->rec_set(vri(qprocB->q_key()), qprocB);
-        LOG_WRITE(INFO, structure.get(),L("!yquery processor!! !b{}!! attached\n", qprocC->vid_or_tid()->toString()));
+        LOG_WRITE(INFO, structure.get(), L("!yquery processor!! !b{}!! attached\n", qprocC->vid_or_tid()->toString()));
       }
       structure->save();
       return structure;
@@ -114,8 +110,9 @@ namespace fhatos {
 
     virtual void setup() {
       if(this->available_.load()) {
-        LOG_WRITE(WARN, this, L("!ystructure!! !b{}!! spanning !b{}!! already mounted\n",
-                                this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
+        LOG_WRITE(WARN, this,
+                  L("!ystructure!! !b{}!! spanning !b{}!! already mounted\n",
+                    this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
         return;
       }
       this->available_.store(true);
@@ -125,8 +122,9 @@ namespace fhatos {
 
     virtual void stop() {
       if(!this->available_.load())
-        LOG_WRITE(WARN, this, L("!ystructure!! !b{}!! spanning !b{}!! already stopped\n",
-                                this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
+        LOG_WRITE(WARN, this,
+                  L("!ystructure!! !b{}!! spanning !b{}!! already stopped\n",
+                    this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
       this->available_ = false;
     }
 
@@ -140,11 +138,11 @@ namespace fhatos {
       if(furi.has_query()) {
         const Objs_p results = Obj::to_objs();
         bool found = false;
-        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+        for(const auto &[k, o]: *this->q_procs_->rec_value()) {
           QProc *q = (QProc *) o.get();
           const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
-          if(QProc::ON_RESULT::NO_Q != on_result && (
-               furi.has_query(q->q_key().toString().c_str()) || q->q_key().toString() == "#")) {
+          if(QProc::ON_RESULT::NO_Q != on_result &&
+             (furi.has_query(q->q_key().toString().c_str()) || q->q_key().toString() == "#")) {
             found = true;
             const Obj_p q_obj = q->read(pos, furi, obj);
             if(QProc::ON_RESULT::ONLY_Q == on_result)
@@ -155,8 +153,12 @@ namespace fhatos {
           FEED_WATCHDOG();
         }
         if(!found) {
-          throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
-                               furi.query());
+          // TODO: should a non-find qproc read just fail silently (WARN message)?
+          if(!furi.has_query(FOS_DOMAIN) && !furi.has_query(FOS_RANGE)) {
+            LOG_WRITE(WARN, this, L("!rno query processor!! for !y%s!! on read\n", furi.query()));
+            /* throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
+                                  furi.query());*/
+          }
         }
         return {QProc::ON_RESULT::INCLUDE_Q, results->none_one_all()};
       } else {
@@ -165,10 +167,9 @@ namespace fhatos {
     }
 
     [[nodiscard]] QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi,
-                                                       const Obj_p &obj,
-                                                       const bool retain) const {
+                                                       const Obj_p &obj, const bool retain) const {
       if(QProc::POSITION::Q_LESS == position) {
-        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+        for(const auto &[k, o]: *this->q_procs_->rec_value()) {
           auto q = (QProc *) o.get();
           if(QProc::ON_RESULT::NO_Q != q->is_q_less_write()) {
             q->write(position, furi, obj, retain);
@@ -176,11 +177,10 @@ namespace fhatos {
         }
       } else if(furi.has_query()) {
         bool found = false;
-        for(const auto &[k,o]: *this->q_procs_->rec_value()) {
+        for(const auto &[k, o]: *this->q_procs_->rec_value()) {
           const auto q = (QProc *) o.get();
           QProc::ON_RESULT on_result = position == QProc::POSITION::PRE ? q->is_pre_write() : q->is_post_write();
-          if(QProc::ON_RESULT::NO_Q != on_result && (
-               furi.has_query(q->q_key().toString().c_str()))) {
+          if(QProc::ON_RESULT::NO_Q != on_result && (furi.has_query(q->q_key().toString().c_str()))) {
             found = true;
             q->write(position, furi, obj, retain);
             if(QProc::ON_RESULT::ONLY_Q == on_result)
@@ -228,9 +228,8 @@ namespace fhatos {
         auto pc_new_furi = make_unique<fURI>(new_furi);
         pc_furi.swap(pc_new_furi);
       }
-      return obj->is_poly() || obj->is_objs()
-               ? Option<Pair<ID, Poly_p>>(Pair<ID, Poly_p>(ID(*pc_furi), obj))
-               : Option<Pair<ID, Poly_p>>();
+      return obj->is_poly() || obj->is_objs() ? Option<Pair<ID, Poly_p>>(Pair<ID, Poly_p>(ID(*pc_furi), obj))
+                                              : Option<Pair<ID, Poly_p>>();
     }
 
   protected:

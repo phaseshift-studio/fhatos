@@ -48,17 +48,12 @@ namespace mmadt {
 
   class mmADT {
   public:
-    static void import_base_types();
-
-    static void *import_ext_types();
 
     static Obj_p isa_arg(const ID_p &id) {
       return __().isa(*id);
     }
 
-    static void import_base_inst();
-
-    static void *import();
+    static void *import(const std::vector<fURI>& patterns = {});
 
     static Obj_p delift(const Obj_p &obj) {
       if(obj->is_not_empty_bcode() && obj->bcode_value()->front()->tid->equals(MMADT_PREFIX "lift"))

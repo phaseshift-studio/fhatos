@@ -77,20 +77,50 @@ namespace fhatos {
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
-        if(args_parser->option_string("--boot:config", "NONE") == "NONE")
-          args_parser->set_option("--boot:config", "/data/boot/boot_config.obj");
-        const ptr<Kernel> kp = Kernel::build()
-                                   ->using_printer(Ansi<>::singleton())
-                                   ->with_ansi_color(args_parser->option_bool("--ansi", true))
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
+        const ptr<Kernel> kp = Kernel::build();
+        kp->using_printer(Ansi<>::singleton())
+            ->with_ansi_color(args_parser->option_bool("--ansi", true))
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
           kp->display_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
               ->display_reset_reason()
-              ->display_architecture()
-              ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
+              ->display_architecture();
         }
-        ////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+        kp->display_memory()
+            ->mount(Heap<>::create("/sys/#"))
+            ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
+            ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
+            ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/full_boot_config.obj"))
+            ->display_memory();
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        kp->display_note("!r.!go!bO !yloading !bsystem !ytypes!! !bO!go!r.!!")
+            ->using_scheduler("sys/scheduler")
+            ->drop_config("sys/scheduler")
+            ->using_router("sys/router")
+            ->drop_config("sys/router")
+            ->display_memory();
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        load_processor();
+        kp->display_note("!r.!go!bO !yloading !bfos/mmadt !ytypes!! !bO!go!r.!!")
+            ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
+            ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
+            ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
+            ->import2("import")
+            ->import(Processor::import())
+            ->install(
+                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
+            ->display_memory();
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        kp->display_note("!r.!go!bO !yfinalizing boot w/ !bsetup !yinst!! !bO!go!r.!!");
+        LOG_WRITE(INFO, Kernel::boot().get(),
+                  L("!yloading setup!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
+        Kernel::boot()->rec_get("setup")->apply(Obj::to_noobj());
+        // Terminal::singleton("/io/terminal");
+        // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));
+        /*kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"));
         if(args_parser->option_bool("--headers", true)) {
@@ -156,37 +186,37 @@ namespace fhatos {
             /*->install(*__(OTA::obj({{"halt", dool(false)},
                                      {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
                                    "/io/ota")).inst("start").compute().begin())*/
-            ->drop_config("ota")
+        // ->drop_config("ota")
         //->mount(HeapPSRAM::create("/psram/#"))
-#endif
-            ->mount(Structure::add_qproc(
-                DSM::create(
-                    "/shared/#", id_p("/mnt/dsm"),
-                    Router::singleton()
-                        ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
-                        ->or_else(Obj::to_rec(
-                            {{"async", dool(true)},
-                             {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                             {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
-                QSubMqtt::create(
-                    Router::singleton()
-                        ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
-                        ->or_else(Obj::to_rec(
-                            {{"async", dool(true)},
-                             {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
-                             {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
-                    id_p("/mnt/dsm/"))))
-            ->drop_config("mqtt")
-            //->mount(
-            //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
-            ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
-            ->drop_config("console")
-            ->display_memory()
-            ->eval([args_parser] {
-              // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
-              // Router::singleton()->loop();
-              delete args_parser;
-            });
+        // #endif
+        /* ->mount(Structure::add_qproc(
+             DSM::create(
+                 "/shared/#", id_p("/mnt/dsm"),
+                 Router::singleton()
+                     ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
+                     ->or_else(Obj::to_rec(
+                         {{"async", dool(true)},
+                          {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                          {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}}))),
+             QSubMqtt::create(
+                 Router::singleton()
+                     ->read(FOS_BOOT_CONFIG_VALUE_ID "/mqtt")
+                     ->or_else(Obj::to_rec(
+                         {{"async", dool(true)},
+                          {"broker", vri(args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER)))},
+                          {"client", vri(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)))}})),
+                 id_p("/mnt/dsm/"))))
+         ->drop_config("mqtt")
+         //->mount(
+         //    Bus::create("/bus/#", id_p("/mnt/bus"), rec({{"source", vri("/bus")}, {"target", vri("//io")}})))
+         ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
+         ->drop_config("console")
+         ->display_memory()
+         ->eval([args_parser] {
+           // Router::singleton()->write("/mnt/boot", Obj::to_noobj()); // shutdown the boot partition
+           // Router::singleton()->loop();
+           delete args_parser;
+         });*/
       } catch(const fError &e) {
         LOG_WRITE(ERROR, Obj::to_noobj().get(),
                   L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));

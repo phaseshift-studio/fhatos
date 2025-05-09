@@ -51,8 +51,7 @@ namespace fhatos {
   }
   void Scheduler::spawn_thread(const Obj_p &thread_obj) {
     if(!thread_obj->vid)
-      fError::create(this->vid->toString(), "!ythread !rmust have!y a vid!!: %s",
-                     thread_obj->toString().c_str());
+      fError::create(this->vid->toString(), "!ythread !rmust have!y a vid!!: %s", thread_obj->toString().c_str());
     auto lock = std::lock_guard<Mutex>(mutex);
     thread_obj->obj_set("halt", dool(false));
     const Lst_p thread_uris = this->obj_get("spawn")->or_else(lst());
@@ -65,34 +64,32 @@ namespace fhatos {
     this->obj_set("spawn", thread_uris);
     Thread::get_state(thread_obj);
     LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
-    /*Subscription::create(this->vid, p_p(thread_obj->vid->extend("halt")),
-                         [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
-                           if(obj->is_bool() && obj->bool_value()) {
-                             // LOG_WRITE(INFO,Scheduler::singleton().get(),L("HERE: {} {} -> {}\n", obj->toString(),
-                             // this->rec_get("thread")->toString(),
-                             // args->arg("target")->toString()));
-                             const Lst_p new_thread_ids = Obj::to_lst();
-                             for(const Uri_p &thread_id:
-                                 *Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()) {
-                               if(!thread_id->uri_value().matches(args->arg("target")->uri_value().retract())) {
-                                 new_thread_ids->lst_add(thread_id);
-                               } else {
-                                 ROUTER_WRITE(args->arg("target")->uri_value().query("sub"), Obj::to_noobj(), true);
-                                 LOG_WRITE(INFO, Scheduler::singleton().get(),
-                                           L("!ythread !b{}!! unscheduled\n", thread_id->toString()));
-                               }
-                             }
-                             Scheduler::singleton()->obj_set("spawn", new_thread_ids);
-                           }
-                           return Obj::to_noobj();
-                         })
-        ->post();*/
-
+    Subscription::create(
+        this->vid, p_p(thread_obj->vid->extend("halt")),
+        [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
+          if(obj->is_bool() && obj->bool_value()) {
+            // LOG_WRITE(INFO,Scheduler::singleton().get(),L("HERE: {} {} -> {}\n", obj->toString(),
+            // this->rec_get("thread")->toString(),
+            // args->arg("target")->toString()));
+            const Lst_p new_thread_ids = Obj::to_lst();
+            auto lock = std::lock_guard<Mutex>(Scheduler::singleton()->mutex);
+            for(const Uri_p &thread_id: *Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()) {
+              if(!thread_id->uri_value().matches(args->arg("target")->uri_value().retract())) {
+                new_thread_ids->lst_add(thread_id);
+              } else {
+                ROUTER_WRITE(args->arg("target")->uri_value().query("sub"), Obj::to_noobj(), true);
+                LOG_WRITE(INFO, Scheduler::singleton().get(), L("!ythread !b{}!! killed\n", thread_id->toString()));
+              }
+            }
+            Scheduler::singleton()->obj_set("spawn", new_thread_ids);
+          }
+          return Obj::to_noobj();
+        })
+        ->post();
   }
   void Scheduler::bundle_fiber(const Obj_p &fiber_obj) {
     if(!fiber_obj->vid)
-      fError::create(this->vid->toString(), "!yfiber !rmust have!y a vid!!: %s",
-                     fiber_obj->toString().c_str());
+      fError::create(this->vid->toString(), "!yfiber !rmust have!y a vid!!: %s", fiber_obj->toString().c_str());
     auto lock = std::lock_guard<Mutex>(mutex);
     const Lst_p fiber_uris = this->obj_get("bundle")->or_else(lst());
     fiber_uris->lst_value()->push_back(Obj::to_uri(*fiber_obj->vid));

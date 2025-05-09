@@ -24,9 +24,9 @@ FhatOS: A Distributed Operating System
 
 template<typename T>
 class Coefficient;
+using std::make_tuple;
 using std::tuple;
 using std::vector;
-using std::make_tuple;
 
 
 namespace fhatos {
@@ -52,9 +52,18 @@ namespace fhatos {
 
     explicit Compiler(bool throw_on_miss = true, bool with_derivation = false);
 
-    //Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
-    //Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
-    //void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
+    // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
+    // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
+    // void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
+
+    static ID_p generate_domain_range_type(const ID &inst_id, const ID &domain, const IntCoefficient &dom_coefficient,
+                                           const ID &range, const IntCoefficient &rng_coefficient) {
+      return id_p(inst_id.query(
+          {{FOS_DOMAIN, domain.toString()},
+           {FOS_DOM_COEF, to_string(dom_coefficient.first).append(",").append(to_string(dom_coefficient.second))},
+           {FOS_RANGE, range.toString()},
+           {FOS_RNG_COEF, to_string(rng_coefficient.first).append(",").append(to_string(rng_coefficient.second))}}));
+    }
 
     void print_derivation_tree(string *derivation_string) const;
 
@@ -93,5 +102,5 @@ namespace fhatos {
 
     [[nodiscard]] Inst_p merge_inst(const Obj_p &lhs, const Inst_p &inst_provided, const Inst_p &inst_resolved) const;
   };
-}
+} // namespace fhatos
 #endif

@@ -19,9 +19,9 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_print_helper_hpp
 #define fhatos_print_helper_hpp
 
-#include  "../fhatos.hpp"
-#include "../lang/obj.hpp"
 #include <fmt/core.h>
+#include "../fhatos.hpp"
+#include "../lang/obj.hpp"
 
 namespace fhatos {
   class PrintHelper {
@@ -51,9 +51,8 @@ namespace fhatos {
       return result.substr(0, result.length() - 1);
     }
 
-    static void pretty_print_obj(const Obj_p &obj, const FOS_INT_TYPE depth,
-                                 const FOS_INT_TYPE max_depth, const bool parent_rec, std::streambuf *sb,
-                                 const bool char_indent = true,
+    static void pretty_print_obj(const Obj_p &obj, const FOS_INT_TYPE depth, const FOS_INT_TYPE max_depth,
+                                 const bool parent_rec, std::streambuf *sb, const bool char_indent = true,
                                  ObjPrinter *obj_printer = nullptr) {
       auto ss = std::ostream(sb);
       if(obj->is_objs()) {
@@ -66,20 +65,21 @@ namespace fhatos {
           // if(char_indent && 0 == depth)
           //   indentation += '=';
           ss << "!m" << indentation << (char_indent ? ">" : " ") << "!b"
-              << (obj->is_base_type() ? "" : obj->tid->name().c_str());
+             << (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
-        for(const auto &e: *obj->lst_value()) {
+        for(int i = 0; i < obj->lst_value()->size(); i++) {
+          const auto &e = obj->lst_value()->at(i);
           if(!e->is_poly()) {
             string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
             // if(char_indent && 0 == depth)
             //   indentation += '=';
-            ss << StringHelper::format("%s%s!!\n",
-                                       (string("!m") + indentation + (
-                                          char_indent ? "==>!!" : "   !!")).c_str(),
-                                       e->toString().c_str());
+            ss << StringHelper::format(
+                i == obj->lst_value()->size() - 1 ? "%s%s!!\n"
+                                                  : "%s%s!m,!!\n",
+                (string("!m") + indentation + (char_indent ? "==>!!" : "   !!")).c_str(), e->toString().c_str());
           } else {
-            //to_out->append("!m,!!");
+            // to_out->append("!m,!!");
             pretty_print_obj(e, depth + 1, max_depth, false, sb, char_indent);
           }
         }
@@ -93,25 +93,20 @@ namespace fhatos {
           const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
           //  if(char_indent && 0 == depth)
           //    indentation += '=';
-          ss << "!m" << indentation << (char_indent ? ">" : " ") << "!b" <<
-              (obj->is_base_type() ? "" : obj->tid->name().c_str());
+          ss << "!m" << indentation << (char_indent ? ">" : " ") << "!b"
+             << (obj->is_base_type() ? "" : obj->tid->name().c_str());
         }
         ss << "!m[!!\n";
-        for(const auto &[key, value]: *obj->rec_value()) {
-          if(!value->is_poly()) {
-            const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
-            ss << fmt::format(
-                "{}!c{}!y=>!!{}!!\n",
-                (string("!m") + indentation + (char_indent ? "==>!!" : "   !!")),
-                key->toString(),
-                value->toString());
-          } else {
-            const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
-            ss << fmt::format(
-                "{}!c{}!y=>!!", (string("!m") + indentation + (char_indent ? "==>!!" : "   !!")),
-                key->toString());
+        for(const auto &[key, value]: *obj->rec_value()) { // TODO: comma after every key/value pair save the last
+          const string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
+          string format_style = "{}"; // {}!c{}!y=>!!{}!!
+          format_style.append("!c"); // depth == 0 ? "!c" : "!m");
+          format_style.append("{}!y=>!!");
+          format_style.append(value->is_poly() ? "" : "{}!!\n");
+          ss << fmt::format(format_style, string("!m") + indentation + (char_indent ? "==>!!" : "   !!"),
+                            key->toString(), value->is_poly() ? "" : value->toString());
+          if(value->is_poly())
             pretty_print_obj(value, depth + 1, max_depth, true, sb, char_indent);
-          }
         }
         string indentation = StringHelper::repeat(depth, char_indent ? "=" : " ");
         //  if(char_indent && 0 == depth)
@@ -146,58 +141,43 @@ namespace fhatos {
         ss << "!r" STR(FOS_NOOBJ_TOKEN) "!!";
       else {
         bool type_printed = false;
-        if(!obj->is_noobj() &&
-           (obj->is_type() ||
-            obj->is_inst() ||
-            !obj->domain_range().is_single() ||
-            (obj_printer->show_type && !obj->is_base_type()))) {
+        if(!obj->is_noobj() && (obj->is_type() || obj->is_inst() || !obj->domain_range().is_single() ||
+                                (obj_printer->show_type && !obj->is_base_type()))) {
           if(obj->is_type()) {
             ss << "!m[!!";
             type_printed = true;
           }
-          if(!obj->domain_range().is_single() || !obj->is_base_type() || obj->is_inst() || obj->is_type() || obj->
-             is_uri()) {
+          if(!obj->domain_range().is_single() || !obj->is_base_type() || obj->is_inst() || obj->is_type() ||
+             obj->is_uri()) {
             type_printed = true;
             ss << string("!b").append(obj_printer->strict ? obj->tid->toString() : obj->tid->name()).append("!!");
           }
           // TODO: remove base_type check
           if(!obj->domain_range().is_single() || obj_printer->show_domain_range) {
-            const string dom_str = obj->has_domain(1, 1) && !obj_printer->strict
-                                     ? ""
-                                     : obj->has_domain(0, 1)
-                                     ? "?"
-                                     : obj->has_domain(1,INT_MAX)
-                                     ? "+"
-                                     : obj->is_initial()
-                                     ? "."
-                                     : obj->is_gather()
-                                     ? "*"
-                                     : to_string(obj->domain_coefficient().first)
-                                     .append(",")
-                                     .append(to_string(obj->domain_coefficient().second));
-            const string rng_str = obj->has_range(1, 1) && !obj_printer->strict
-                                     ? ""
-                                     : obj->is_filter()
-                                     ? "?"
-                                     : obj->has_range(1,INT_MAX)
-                                     ? "+"
-                                     : obj->is_terminal()
-                                     ? "."
-                                     : obj->is_scatter()
-                                     ? "*"
-                                     : to_string(obj->range_coefficient().first)
-                                     .append(",")
-                                     .append(to_string(obj->range_coefficient().second));
+            const string dom_str = obj->has_domain(1, 1) && !obj_printer->strict ? ""
+                                   : obj->has_domain(0, 1)                       ? "?"
+                                   : obj->has_domain(1, INT_MAX)                 ? "+"
+                                   : obj->is_initial()                           ? "."
+                                   : obj->is_gather()                            ? "*"
+                                                      : to_string(obj->domain_coefficient().first)
+                                                            .append(",")
+                                                            .append(to_string(obj->domain_coefficient().second));
+            const string rng_str = obj->has_range(1, 1) && !obj_printer->strict ? ""
+                                   : obj->is_filter()                           ? "?"
+                                   : obj->has_range(1, INT_MAX)                 ? "+"
+                                   : obj->is_terminal()                         ? "."
+                                   : obj->is_scatter()                          ? "*"
+                                                       : to_string(obj->range_coefficient().first)
+                                                             .append(",")
+                                                             .append(to_string(obj->range_coefficient().second));
 
-            if(!dom_str.empty() || !rng_str.empty() || !obj->range()->equals(obj->tid->no_query()) || !obj->domain()->
-               equals(*OBJ_FURI)) {
+            if(!dom_str.empty() || !rng_str.empty() || !obj->range()->equals(obj->tid->no_query()) ||
+               !obj->domain()->equals(*OBJ_FURI)) {
               ss << "!m?!!"
-                  << "!c" << (obj_printer->strict ? obj->range()->toString() : obj->range()->name())
-                  << (rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
-                  << "!m<=!!"
-                  << "!c"
-                  << (obj_printer->strict ? obj->domain()->toString() : obj->domain()->name())
-                  << (dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
+                 << "!c" << (obj_printer->strict ? obj->range()->toString() : obj->range()->name())
+                 << (rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!")) << "!m<=!!"
+                 << "!c" << (obj_printer->strict ? obj->domain()->toString() : obj->domain()->name())
+                 << (dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
             }
           }
           if(obj->is_type())
@@ -217,9 +197,8 @@ namespace fhatos {
             ss << fmt::format("{:f}", obj->real_value());
             break;
           case OType::URI:
-            ss << "!_" + (obj_printer->strict
-                            ? "<" + obj->uri_value().toString() + ">"
-                            : obj->uri_value().toString()) + "!!";
+            ss << "!_" + (obj_printer->strict ? "<" + obj->uri_value().toString() + ">" : obj->uri_value().toString()) +
+                      "!!";
             break;
           case OType::STR:
             ss << "!m'!!!~" + obj->str_value() + "!m'!!";
@@ -266,7 +245,7 @@ namespace fhatos {
           case OType::INST: {
             bool first = true;
             ss << "!g(!!";
-            for(const auto &[k,v]: *obj->inst_args()->rec_value()) {
+            for(const auto &[k, v]: *obj->inst_args()->rec_value()) {
               if(first) {
                 first = false;
               } else {
@@ -354,9 +333,9 @@ namespace fhatos {
       if(obj_printer->show_id && obj->vid)
         ss << "!m@!b" << obj->vid->toString() << "!!";
 
-      //obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
+      // obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
     }
   };
-}
+} // namespace fhatos
 
 #endif

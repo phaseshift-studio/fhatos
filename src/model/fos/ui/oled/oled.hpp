@@ -7,7 +7,7 @@
 
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
-#include "../../../../structure/router.hpp"
+#include "../../sys/router/router.hpp"
 #include "ext/SSD1306Ascii.h"
 #include "ext/SSD1306AsciiWire.h"
 #include <Wire.h>

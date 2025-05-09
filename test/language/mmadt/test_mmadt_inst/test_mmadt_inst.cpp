@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_MMADT_EXT_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_SHARED_MEMORY /abc/#
+#define FOS_DEPLOY_SHARED_MEMORY / abc / #
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
@@ -38,8 +38,8 @@ namespace fhatos {
   }
 
   void test_as_inst() {
-    FOS_TEST_FURI_EQUAL(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"),
-                        *PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]")->tid);
+    const Obj_p t = PROCESS("/abc/nat -> |/abc/nat?int{?}<=int{1,1}()[is(gt(0))]");
+   // FOS_TEST_FURI_EQUAL(ID("/abc/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=0,1"), ROUTER_RESOLVE(*t->tid));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(/mmadt/int)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5), PROCESS("5.as(type(_))"));

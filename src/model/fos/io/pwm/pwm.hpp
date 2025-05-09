@@ -24,7 +24,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include "../../../../structure/router.hpp"
+#include "../../sys/router/router.hpp"
 //
 #ifdef ARDUINO
 #include <Arduino.h>

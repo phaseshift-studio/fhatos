@@ -308,47 +308,47 @@ namespace fhatos {
         LOG(log_type, "%s", message().c_str());
       };
   inline Supplier<Obj_p> ROUTER_GET_FRAME_DATA = []() {
-    LOG(TRACE, "!ROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
+    LOG(ERROR, "!ROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
     return nullptr;
   };
-  inline Runnable ROUTER_POP_FRAME = []() { LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n"); };
+  inline Runnable ROUTER_POP_FRAME = [] { LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n"); };
   inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &) {
-    LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
+    LOG(DEBUG, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
   inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF = [](const ID_p &is_type_id,
                                                                                            const ID_p &, List<ID_p> *) {
-    LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
+    LOG(DEBUG, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
-  inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &) {
-    LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
+  inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &code) {
+    LOG(ERROR, "!yOBJ_PARSER!! undefined at this point in bootstrap: %s\n", code.c_str());
     return nullptr;
   };
   inline Function<BCode_p, Objs_p> BCODE_PROCESSOR = [](const BCode_p &) {
-    LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
+    LOG(ERROR, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap\n");
     return nullptr;
   };
   inline Function<const fURI, const fURI> ROUTER_RESOLVE = [](const fURI &furi) {
-    LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
+    LOG(DEBUG, "!yROUTER_RESOLVE!! undefined at this point in bootstrap\n");
     return furi;
   };
   inline TriConsumer<const fURI &, const Obj_p &, const bool> ROUTER_WRITE = [](const fURI &, const Obj_p &,
                                                                                 const bool) -> void {
-    LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
+    LOG(DEBUG, "!yROUTER_WRITE!! undefined at this point in bootstrap\n");
   };
   inline BiConsumer<const fURI &, const Obj_p &> ROUTER_APPEND = [](const fURI &, const Obj_p &) -> void {
-    LOG(TRACE, "!yROUTER_APPEND!! undefined at this point in bootstrap.\n");
+    LOG(DEBUG, "!yROUTER_APPEND!! undefined at this point in bootstrap\n");
   };
-  inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &) -> Obj_p {
-    LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
+  inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &furi) -> Obj_p {
+    LOG(ERROR, "!yROUTER_READ!! undefined at this point in bootstrap: !b%s!!\n", furi.toString().c_str());
     return nullptr;
   };
   inline BiConsumer<const ID, const Obj_p> TYPE_SAVER = [](const ID &type_id, const Obj_p &obj) {
-    LOG(TRACE, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
+    LOG(DEBUG, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
   inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [](const Obj_p &, const Inst_p &) {
-    LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
+    LOG(ERROR, "!RESOLVE_INST!! undefined at this point in bootstrap\n");
     return nullptr;
   };
   inline Runnable FEED_WATCHDOG = []() {
@@ -483,9 +483,10 @@ namespace fhatos {
         try {
           if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype))) {
             if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&
-               !this->tid->matches("/sys/#") &&
+               !this->tid->matches("/sys/#") && // TODO: REMOVE WHEN ALL TYPES HAVE BEEN WRITTEN USING QUERY TYPES
                (this->tid->matches("/fos/ui/terminal") || this->tid->matches("/fos/ui/console") ||
-                this->tid->matches("/fos/thread") || !this->tid->matches("/fos/#")) &&
+                this->tid->matches("/fos/util/log") || this->tid->matches("/fos/thread") ||
+                !this->tid->matches("/fos/#")) &&
                !this->tid->matches("/io/#")) {
               if(const Obj_p type_obj = ROUTER_READ(*this->tid);
                  !type_obj->is_noobj() && type_obj->otype == this->otype) {
@@ -499,15 +500,30 @@ namespace fhatos {
                   plain_type_obj = make_shared<Obj>(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
                 }
                 const Obj_p plain_obj = make_shared<Obj>(this->value_, this->otype, OTYPE_FURI.at(this->otype));
+                // TODO: localize code for uniquness with no_query on inst arg keys
+                if(plain_obj->is_rec() && plain_type_obj->is_rec()) {
+                  for(const auto &[k1, v1]: *plain_type_obj->rec_value()) {
+                    for(const auto &[k2, v2]: *plain_obj->rec_value()) {
+                      if(k1->is_uri() && k2->is_uri() &&
+                         k1->uri_value().no_query().equals(k2->uri_value().no_query())) {
+                        if(k1->uri_value().has_query() && !k2->uri_value().has_query()) {
+                          const_cast<Obj *>(k2.get())->value_ = k1->uri_value();
+                        } else if(!k1->uri_value().has_query() && k2->uri_value().has_query()) {
+                          const_cast<Obj *>(k1.get())->value_ = k2->uri_value();
+                        }
+                      }
+                    }
+                  }
+                }
                 const Obj_p applied_obj = plain_type_obj->apply(plain_obj);
-                this->value_ = applied_obj->value_;
-                this->otype = applied_obj->otype;
                 if(plain_obj->is_rec() && applied_obj->is_rec()) {
                   for(const auto &[k, v]: *plain_obj->rec_value()) {
                     if(!applied_obj->rec_value()->count(k))
                       applied_obj->rec_set(k, v);
                   }
                 }
+                this->value_ = applied_obj->value_;
+                this->otype = applied_obj->otype;
               }
             }
           }
@@ -652,6 +668,17 @@ namespace fhatos {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<LstList_p>();
+    }
+
+    template<typename T>
+    [[nodiscard]] std::vector<T> lst_value(const Function<const Obj_p, T> transformer) const {
+      if(!this->is_lst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      std::vector<T> r;
+      for(const Obj_p &o: *this->value<LstList_p>()) {
+        r.push_back(transformer(o));
+      }
+      return r;
     }
 
     [[nodiscard]] Obj_p type_value() const {
@@ -1182,8 +1209,10 @@ namespace fhatos {
       return id_p(this->tid->no_query());
     }
 
-    bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
-                                     const bool throw_exception = true) const {
+    [[nodiscard]] bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
+                                                   const bool throw_exception = true) const {
+      this->resolve();
+      resolved->resolve();
       if(domain_or_range) {
         if(resolved->is_generative()) {
           // do nothing
@@ -1756,6 +1785,8 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool equals(const Obj &other) const {
+      this->resolve();
+      other.resolve();
       return this->otype == other.otype && this->tid->no_query().equals(other.tid->no_query()) &&
              this->value_equals(other);
     }
@@ -1925,8 +1956,51 @@ namespace fhatos {
     Obj_p try_apply(const Obj_p &lhs, const Obj_p &or_else = Obj::to_noobj()) const {
       try {
         return this->apply(lhs)->or_else(or_else);
-      } catch(std::exception &e) {
+      } catch(std::exception &) {
         return or_else;
+      }
+    }
+
+    void resolve() const {
+      const_cast<Obj *>(this)->tid = id_p(ROUTER_RESOLVE(fURI(*this->tid)));
+      switch(this->otype) {
+        case OType::REC: {
+          for(const auto &[k, v]: *this->rec_value()) {
+            k->resolve();
+            v->resolve();
+          }
+          break;
+        }
+        case OType::LST: {
+          for(const auto &e: *this->lst_value()) {
+            e->resolve();
+          }
+          break;
+        }
+        case OType::BCODE: {
+          for(const auto &e: *this->bcode_value()) {
+            e->resolve();
+          }
+          break;
+        }
+        case OType::INST: {
+          for(const auto &[k, v]: *std::get<0>(this->inst_value())->rec_value()) {
+            k->resolve();
+            v->resolve();
+          }
+          if(std::holds_alternative<Obj_p>(this->inst_f()))
+            std::get<Obj_p>(this->inst_f())->resolve();
+          break;
+        }
+        case OType::OBJS: {
+          for(const auto &e: *this->objs_value()) {
+            e->resolve();
+          }
+          break;
+        }
+        default: {
+          // do nothing
+        }
       }
     }
 
@@ -2150,7 +2224,8 @@ namespace fhatos {
           const auto args_a = this->inst_args();
           if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b, fail_reason)) {
             if(fail_reason)
-              fail_reason->push(fmt::format("!yarguments!! {} do !rnot!! match {}", args_a->toString(), args_b->toString()));
+              fail_reason->push(
+                  fmt::format("!yarguments!! {} do !rnot!! match {}", args_a->toString(), args_b->toString()));
             return false;
           }
           if(this->domain_coefficient() != type_obj->domain_coefficient()) {

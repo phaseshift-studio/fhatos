@@ -57,9 +57,7 @@ namespace fhatos {
 
     virtual void right(uint16_t columns);
 
-    virtual void home() {
-      this->teleport(0, 0);
-    }
+    virtual void home() { this->teleport(0, 0); }
 
     virtual void clear();
 
@@ -73,8 +71,7 @@ namespace fhatos {
 
     virtual void print(char character);
 
-    virtual void flush() {
-    }
+    virtual void flush() {}
   };
 
   class CPrinter {
@@ -92,24 +89,14 @@ namespace fhatos {
       return length;
     }
 
-    static int read() {
-      return getchar();
-    }
+    static int read() { return getchar(); }
 
-    static void flush() {
-      fflush(stdout);
-    }
+    static void flush() { fflush(stdout); }
 #else
-    static int print(const char *c_str) {
-      return Serial.print(c_str);
-    }
-    static void flush() {
-      Serial.flush();
-    }
+    static int print(const char *c_str) { return Serial.print(c_str); }
+    static void flush() { Serial.flush(); }
 
-    static int read() {
-      return Serial.available() <= 0 ? -1 : Serial.read();
-    }
+    static int read() { return Serial.available() <= 0 ? -1 : Serial.read(); }
 #endif
   };
 
@@ -121,7 +108,7 @@ namespace fhatos {
       static shared_ptr<Ansi<PRINTER>> ansi_p = std::make_shared<Ansi<PRINTER>>();
 #ifndef NATIVE
       static bool _setup = false;
-      if (!_setup) {
+      if(!_setup) {
         _setup = true;
         Serial.begin(FOS_SERIAL_BAUDRATE);
         Serial.setTimeout(FOS_SERIAL_TIMEOUT);
@@ -159,7 +146,7 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if('!' == j)
             this->normal();
-            ////////////////////////////////// POSITION !^d = down
+          ////////////////////////////////// POSITION !^d = down
           else if('^' == j) {
             const char dir = buffer[i + 2];
             string s;
@@ -253,16 +240,11 @@ namespace fhatos {
     }
 
   public:
-    Ansi() :
-      Ansi(*CPrinter::singleton()) {
-    }
+    Ansi() : Ansi(*CPrinter::singleton()) {}
 
-    explicit Ansi(string *str) :
-      Ansi(StringPrinter(str)) {
-    }
+    explicit Ansi(string *str) : Ansi(StringPrinter(str)) {}
 
-    explicit Ansi(const PRINTER &printer) :
-      printer(printer) {
+    explicit Ansi(const PRINTER &printer) : printer(printer) {
       for(auto &slot: this->slots) {
         uint16_t t[2] = {0, 0};
         slot = t;
@@ -296,9 +278,7 @@ namespace fhatos {
 
     PRINTER get_printer() { return this->printer; }
 
-    [[nodiscard]] int read() const {
-      return this->printer.read();
-    }
+    [[nodiscard]] int read() const { return this->printer.read(); }
 
     void flush() {
       this->printer.flush();
@@ -421,13 +401,9 @@ namespace fhatos {
 
     /////////////// CURSOR MOVEMENT ///////////////
 
-    void left(const uint16_t columns = 1) {
-      this->move('D', columns);
-    }
+    void left(const uint16_t columns = 1) { this->move('D', columns); }
 
-    void right(const uint16_t columns = 1) {
-      this->move('C', columns);
-    }
+    void right(const uint16_t columns = 1) { this->move('C', columns); }
 
     void down(const uint16_t rows = 1) {
       /*for (int i = 0; i < rows; i++) {
@@ -436,9 +412,7 @@ namespace fhatos {
       this->move('B', rows);
     }
 
-    void up(const uint16_t rows = 1) {
-      this->move('A', rows);
-    }
+    void up(const uint16_t rows = 1) { this->move('A', rows); }
 
     void teleport(const uint16_t row, const uint16_t column) {
       if(this->ansi_on_) {
@@ -456,9 +430,7 @@ namespace fhatos {
       }
     }
 
-    void to_column(const uint16_t column) {
-      this->move('G', column);
-    }
+    void to_column(const uint16_t column) { this->move('G', column); }
 
     void move(const char direction, const uint16_t columns_or_rows) {
       if(this->ansi_on_) {
@@ -553,12 +525,11 @@ namespace fhatos {
     Ansi<> *ansi_;
     const uint8_t total_counts_;
     uint8_t current_counts_;
+    uint8_t current_dropped_;
     const char *meter_icon_;
 
     ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
-      ansi_(ansi),
-      total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
-    }
+        ansi_(ansi), total_counts_(total_counts), current_counts_(0), current_dropped_(0), meter_icon_(meter_icon) {}
 
   public:
     static shared_ptr<ProgressBar> start(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") {
@@ -574,15 +545,38 @@ namespace fhatos {
       this->ansi_->cursor(true);
     }
 
+    void incr_dropped_count(const string &message = "") {
+      uint8_t percentage =
+          0 == this->current_counts_
+              ? 0
+              : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
+      this->current_dropped_++;
+      if(this->ansi_->is_ansi_on()) {
+        const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
+        this->ansi_->print("!g[WARN]  [!b");
+        for(int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
+          // + 2 to make bar half as long
+          this->ansi_->print(this->meter_icon_);
+        }
+        this->ansi_->print("!!");
+        for(int j = percentage; j < 99; j = j + 2) {
+          this->ansi_->print(' ');
+        }
+        this->ansi_->printf("!g] !y%i%%!! %-25s\r", percentage, message.c_str());
+      }
+    }
+
     void incr_count(const string &message = "") {
       uint8_t percentage =
           0 == this->current_counts_
-            ? 0
-            : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
+              ? 0
+              : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
       if(percentage >= 100) {
         percentage = 100;
         this->ansi_->clear_line();
+      //  if(this->current_dropped_ > 0)
+         // this->ansi_->printf("!^d1^           \\_!g[!rdropped!!: %i !yout of!! %i!g]!!!^u1^", this->current_dropped_, this->total_counts_);
       }
       if(this->ansi_->is_ansi_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
@@ -595,7 +589,6 @@ namespace fhatos {
         for(int j = percentage; j < 99; j = j + 2) {
           this->ansi_->print(' ');
         }
-
         this->ansi_->printf("!g] !y%i%%!! %-25s\r", percentage, message.c_str());
       }
     }
@@ -605,13 +598,12 @@ namespace fhatos {
   ///////////////////////////////////// TREE BAR /////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  struct ObjTree {
-  };
+  struct ObjTree {};
 
 
   template<typename PRINTER = Ansi<>>
   shared_ptr<PRINTER> printer() {
-    return Ansi<>::singleton(); //Options::singleton()->printer<PRINTER>();
+    return Ansi<>::singleton(); // Options::singleton()->printer<PRINTER>();
   }
 } // namespace fhatos
 

@@ -24,11 +24,11 @@ FhatOS: A Distributed Operating System
 #include "../../sys/router/router.hpp"
 #include "../../sys/router/structure/structure.hpp"
 
+#define FS_TID "/fos/s/fs"
+
 namespace fhatos {
 
-  const static auto FS_FURI = ID("/sys/lib/fs");
-
-  class FS : public Structure {
+  class FS final : public Structure {
 
   protected:
     ID root;
@@ -42,32 +42,21 @@ namespace fhatos {
                 const Rec_p &config = Obj::to_rec({{"root", vri(".")}}));
 
     static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec());
-     /*{
-      return Structure::create<FS>(pattern, value_id, config);
-    }*/
 
     static Obj_p load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
 
+    static void list_files_utility(const char *path);
+
     void setup() override;
 
-    void stop() override {
-      Structure::stop();
-    }
+    void stop() override { Structure::stop(); }
 
-    ID map_fos_to_fs(const ID &fos_id) const {
-      const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
-      return this->root.extend(fs_retracted_id);
-    }
+    ID map_fos_to_fs(const ID &fos_id) const;
 
-    ID map_fs_to_fos(const string &fs_id) const {
-      const auto fos_id = ID(fs_id);
-      const fURI fos_retracted_id = fos_id.remove_subpath(this->root.toString());
-      const fURI retracted_pattern = this->pattern->retract_pattern();
-      return retracted_pattern.extend(fos_retracted_id);
-    }
+    ID map_fs_to_fos(const string &fs_id) const;
 
-    static void *import(const ID &import_id) {
-      Router::import_structure<FS>(import_id, FS_FURI);
+    static void *import() {
+      Router::import_structure<FS>(FOS_URI "/s/fs");
       return nullptr;
     }
   };

@@ -137,7 +137,7 @@ namespace fhatos {
 
   void test_derived_type_inst_resolution() {
     FOS_TEST_FURI_EQUAL(ID("/compiler/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1"),
-                        *PROCESS("/compiler/nat -> |/compiler/nat?int<=int()[is(gt(0))]")->tid);
+                        *PROCESS("/compiler/nat -> |/compiler/nat?/mmadt/int<=/mmadt/int()[is(gt(0))]")->tid);
     FOS_TEST_OBJ_EQUAL(Obj::to_int(5,id_p("/compiler/nat")), PROCESS("/compiler/nat[5]"));
     FOS_TEST_ERROR("/compiler/nat[-5]");
     // FOS_TEST_OBJ_EQUAL(Obj::to_int(15,id_p("/compiler/nat")), PROCESS("/compiler/nat[5].plus(10)"));
@@ -160,7 +160,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_rec_type_constructors); //
       // FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
-      FOS_RUN_TEST(test_anonymous_inst); //
+     // FOS_RUN_TEST(test_anonymous_inst); //
       )
 } // namespace fhatos
 

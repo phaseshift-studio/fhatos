@@ -34,9 +34,9 @@
 #endif*/
 
 #define MQTT_WAIT_MS 250
+#define DSM_TID "/fos/s/dsm"
 
 namespace fhatos {
-  const static auto DSM_FURI = ID("/sys/lib/dsm");
 
   // template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class DSM final : public Structure {
@@ -65,7 +65,7 @@ namespace fhatos {
 
   public:
     explicit DSM(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-        Structure(pattern, id_p(DSM_FURI), value_id, config), mqtt{nullptr} {
+        Structure(pattern, id_p(DSM_TID), value_id, config), mqtt{nullptr} {
       this->cache_size_ = config->rec_get("cache_size")->or_else_(100);
       this->async = this->rec_get("config/async")->or_else_(false);
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
@@ -78,8 +78,8 @@ namespace fhatos {
       return Structure::create<DSM>(pattern, value_id, config);
     }
 
-    static void *import(const ID &import_id) {
-      Router::import_structure<DSM>(import_id, DSM_FURI);
+    static void *import() {
+      Router::import_structure<DSM>(DSM_TID);
       return nullptr;
     }
 

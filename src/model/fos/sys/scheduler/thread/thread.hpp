@@ -29,7 +29,7 @@ namespace fhatos {
   using namespace mmadt;
   class Thread;
   static auto this_thread = atomic<Thread *>(nullptr);
-  static ID_p THREAD_FURI = id_p(FOS_URI "/thread");
+  static ID_p THREAD_FURI = id_p(FOS_URI "/sys/thread");
 
   class Thread : public Model<Thread> {
   public:
@@ -105,7 +105,7 @@ namespace fhatos {
               try {
                 thread_loop_inst->apply(thread_obj);
               } catch(const fError &e) {
-                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread error!!: {}", e.what()));
+                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread error!!: {}\n", e.what()));
               }
             }
             try {

@@ -19,9 +19,9 @@
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 
-//#ifndef FOS_LOGGING
+// #ifndef FOS_LOGGING
 #define FOS_LOGGING INFO
-//#endif
+// #endif
 
 #ifndef FOS_TEST_SERIALIZATION
 #define FOS_TEST_SERIALIZATION false
@@ -30,6 +30,7 @@
 #define RETAIN true
 #define FOS_MAX_PATH_SEGMENTS 15
 
+#include "../../src/kernel.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
 #include "../src/boot_config_loader.hpp"
 #include "../src/fhatos.hpp"
@@ -38,6 +39,7 @@
 #include "../src/model/fos/fos_obj.hpp"
 #include "../src/model/fos/sys/router/router.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
+#include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #include "../src/model/fos/ui/terminal.hpp"
 #include "../src/model/fos/util/log.hpp"
 #include "../src/util/ansi.hpp"
@@ -46,32 +48,27 @@
 #include "../src/util/logger.hpp"
 #include "../src/util/options.hpp"
 #include "../src/util/print_helper.hpp"
-#include "../src/model/fos/sys/scheduler/scheduler.hpp"
 
 #define FOS_DEPLOY_PRINTER
 
 ////////////////////////////////////////////// PRINTER ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PRINTER
-#define FOS_DEPLOY_PRINTER_2                              \
-  Options::singleton()->printer<>(Ansi<>::singleton());
+#define FOS_DEPLOY_PRINTER_2 Options::singleton()->printer<>(Ansi<>::singleton());
 #else
 #define FOS_DEPLOY_PRINTER_2 ;
 #endif
 /////////////////////////////////////////// PROCESSOR ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PROCESSOR
 #include "../src/lang/processor/processor.hpp"
-#define FOS_DEPLOY_PROCESSOR_2 load_processor();
+#define FOS_DEPLOY_PROCESSOR_2 Processor::import();
 #else
 #define FOS_DEPLOY_PROCESSOR_2 ;
 #endif
 /////////////////////////////////////////// SCHEDULER ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
-#define FOS_STOP_ON_BOOT  \
-  Scheduler::singleton("/sys/scheduler")->stop();
-#define FOS_DEPLOY_SCHEDULER_2  \
-  Scheduler::singleton("/sys/scheduler/"); \
-  Scheduler::import();
+#define FOS_STOP_ON_BOOT Scheduler::singleton("/sys/scheduler")->stop();
+#define FOS_DEPLOY_SCHEDULER_2 Kernel::using_scheduler("/sys/scheduler");
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #define FOS_STOP_ON_BOOT ;
@@ -81,18 +78,15 @@
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/model/fos/sys/router/router.hpp"
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
-  Router::singleton()->attach(Heap<>::create("/sys/#"));                                                               \
-  Router::singleton()->attach(Heap<>::create("/boot/#"));                                                              \
-  Heap<>::import("/sys/lib/heap");                                                                                     \
-  boot_config_obj_copy_len = boot_config_obj_len;                                                                      \
-  boot_config_obj_copy = boot_config_obj;                                                                              \
-  mmadt::Parser::load_boot_config();                                                                                   \
-  Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);                                                          \
-  Router::singleton()->import();                                                                                       \
-  Router::singleton()->attach(Heap<>::create("/fos/#"));                                                               \
+  Kernel::mount_core_structures()->mount(Heap<>::create("/io/#", id_p("/mnt/io")));                                    \
+  Kernel::using_boot_config(FOS_BOOT_CONFIG_HEADER_URI);                                                               \
+  Kernel::using_router("/sys/router");                                                                                 \
   fOS::import_q_proc();                                                                                                \
   fOS::import_structure();                                                                                             \
-  Router::singleton()->attach(Heap<>::create("/io/log/#"));
+  Kernel::import2("import")                                                                                            \
+      ->import(Processor::import())                                                                                    \
+      ->install(                                                                                                       \
+          mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
@@ -100,9 +94,9 @@
 #ifdef FOS_DEPLOY_PARSER
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
-#define FOS_DEPLOY_PARSER_2  \
-  Router::singleton()->attach(Heap<>::create("/parser/#")); \
-  Router::singleton()->write("/parser/", mmadt::Parser::singleton("/parser/"));
+#define FOS_DEPLOY_PARSER_2                                                                                            \
+  Router::singleton()->attach(Heap<>::create("/parser/#"));                                                            \
+  mmadt::Parser::singleton("/parser");
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -118,19 +112,15 @@
 #include "../src/lang/mmadt/mmadt_obj.hpp"
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
-#define FOS_DEPLOY_MMADT_TYPE_2 \
-  Router::singleton()->attach(Heap<>::create("/mmadt/#")); \
-  Router::singleton()->write("/mmadt/",Typer::singleton("/mmadt/")); \
-  mmadt::mmADT::import();
+#define FOS_DEPLOY_MMADT_TYPE_2 mmadt::mmADT::import({"/mmadt/+"});
 #else
 #define FOS_DEPLOY_MMADT_TYPE_2 ;
 #endif
 ////////////////////////////////////////// EXT ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_MMADT_EXT_TYPE
-#include "../src/lang/type.hpp"
 #include "../src/lang/mmadt/mmadt_obj.hpp"
-#define FOS_DEPLOY_MMADT_EXT_TYPE_2 \
-mmadt::mmADT::import_ext_types();
+#include "../src/lang/type.hpp"
+#define FOS_DEPLOY_MMADT_EXT_TYPE_2 mmadt::mmADT::import({"/mmadt/ext/+"});
 #else
 #define FOS_DEPLOY_MMADT_EXT_TYPE_2 ;
 #endif
@@ -138,27 +128,25 @@ mmadt::mmADT::import_ext_types();
 #ifdef FOS_DEPLOY_FOS_TYPE
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/fos_obj.hpp"
-#define FOS_DEPLOY_FOS_TYPE_2 \
-fhatos::fOS::import_sys();
+#define FOS_DEPLOY_FOS_TYPE_2 fhatos::fOS::import({});
 #else
 #define FOS_DEPLOY_FOS_TYPE_2 ;
 #endif
 ///////////////////////////////////////// HEAP ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include "../src/model/fos/sys/router/structure/heap.hpp"
-#define FOS_DEPLOY_SHARED_MEMORY_2 \
-  Router::singleton()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY)) ? \
-  "+/#" : \
-  STR(FOS_DEPLOY_SHARED_MEMORY)))));
+#define FOS_DEPLOY_SHARED_MEMORY_2                                                                                     \
+  Router::singleton()->attach(Heap<>::create(                                                                          \
+      Pattern((0 == strcmp("", STR(FOS_DEPLOY_SHARED_MEMORY)) ? "+/#" : STR(FOS_DEPLOY_SHARED_MEMORY)))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
 ////////////////////////////////////// FILE SYSTEM ////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
-#define FOS_DEPLOY_FILE_SYSTEM_2 \
-  /*ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp");*/ \
-  /*Router::singleton()->attach(fs);*/ \
+#define FOS_DEPLOY_FILE_SYSTEM_2                                                                                       \
+  /*ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp");*/                       \
+  /*Router::singleton()->attach(fs);*/                                                                                 \
   /*fs->setup();*/
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
@@ -174,7 +162,7 @@ using namespace fhatos;
   {                                                                                                                    \
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
-    } catch (const std::exception &e) {                                                                                \
+    } catch(const std::exception &e) {                                                                                 \
       Ansi<>::singleton()->println(string("failed test due to ").append(e.what()).c_str());                            \
       TEST_FAIL_MESSAGE("failed test");                                                                                \
     }                                                                                                                  \
@@ -184,21 +172,21 @@ using namespace fhatos;
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
-      FOS_DEPLOY_PROCESSOR_2                                                                                           \
       FOS_DEPLOY_ROUTER_2                                                                                              \
       FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_PARSER_2                                                                                              \
+      FOS_DEPLOY_COMPILER_2                                                                                            \
+      FOS_DEPLOY_PROCESSOR_2                                                                                           \
+      FOS_DEPLOY_FOS_TYPE_2                                                                                            \
       FOS_DEPLOY_MMADT_TYPE_2                                                                                          \
       FOS_DEPLOY_MMADT_EXT_TYPE_2                                                                                      \
-      FOS_DEPLOY_FOS_TYPE_2                                                                                            \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
-      FOS_DEPLOY_COMPILER_2                                                                                            \
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       FOS_STOP_ON_BOOT                                                                                                 \
       UNITY_END();                                                                                                     \
-    } catch (const std::exception &e) {                                                                                \
+    } catch(const std::exception &e) {                                                                                 \
       TEST_FAIL_MESSAGE(e.what());                                                                                     \
     }                                                                                                                  \
   }
@@ -209,11 +197,11 @@ using namespace fhatos;
 ////////////////////////////////////////////////////////
 #ifdef NATIVE
 #define SETUP_AND_LOOP_2                                                                                               \
-int main(int argc, char ** argv) {                                                                                     \
-  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());                                                          \
-  auto *args_parser = new fhatos::ArgvParser();                                                                        \
-  args_parser->init(argc, argv);                                                                                       \
-  fhatos::LOG_LEVEL = fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING)));
+  int main(int argc, char **argv) {                                                                                    \
+    Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());                                                        \
+    auto *args_parser = new fhatos::ArgvParser();                                                                      \
+    args_parser->init(argc, argv);                                                                                     \
+    fhatos::LOG_LEVEL = fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING)));
 /////////////////////////////////////////////////////////
 //////////////////////// ESPXX //////////////////////////
 /////////////////////////////////////////////////////////
@@ -225,20 +213,18 @@ int main(int argc, char ** argv) {                                              
 #endif
 
 #define SETUP_AND_LOOP()                                                                                               \
-  using namespace fhatos; \
+  using namespace fhatos;                                                                                              \
   SETUP_AND_LOOP_2                                                                                                     \
   RUN_UNITY_TESTS();                                                                                                   \
   FOS_STOP_ON_BOOT;                                                                                                    \
-};
+  }                                                                                                                    \
+  ;
 
-void loop() {
-}
+void loop() {}
 
-void setUp() {
-}
+void setUp() {}
 
-void tearDown() {
-}
+void tearDown() {}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,31 +245,31 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   return obj;
 };
 
-#define PROCESS_ALL(bcode_string) \
-  BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))
+#define PROCESS_ALL(bcode_string) BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))
 
 
 #define PROCESS(bcode_string) BCODE_PROCESSOR(serialization_check(OBJ_PARSER((bcode_string))))->objs_value(0)
 
-#define FOS_TEST_MESSAGE(format, ...) \
-  if (fhatos::LOG_TYPE::FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                       \
+#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
+  if(fhatos::LOG_TYPE::FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                        \
     Ansi<>::singleton()->printf((format), ##__VA_ARGS__);                                                              \
     Ansi<>::singleton()->println();                                                                                    \
     Ansi<>::singleton()->printf("  !rline %s:%i!!\t\n", __FILE__, __LINE__);                                           \
-}
+  }
 
 #define FOS_TEST_FURI_EQUAL(x, y)                                                                                      \
   FOS_TEST_MESSAGE("!ytesting equality!!: <!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",  \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
-  TEST_ASSERT_TRUE_MESSAGE((x).equals(y),"Not equals()");                                                              \
+  TEST_ASSERT_TRUE_MESSAGE((x).equals(y), "Not equals()");                                                             \
   TEST_ASSERT_TRUE_MESSAGE((x) == (y), "Not ==");                                                                      \
   TEST_ASSERT_EQUAL_STRING((x).toString().c_str(), (y).toString().c_str());
 
 #define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
-  FOS_TEST_MESSAGE("!ytesting non equal!!: <!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",\
-                   (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
-                   (x).path_length(), (y).path_length());                                                              \
+  FOS_TEST_MESSAGE(                                                                                                    \
+      "!ytesting non equal!!: <!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",             \
+      (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),                \
+      (x).path_length(), (y).path_length());                                                                           \
   TEST_ASSERT_FALSE((x).equals(y));                                                                                    \
   TEST_ASSERT_TRUE((x) != (y));                                                                                        \
   TEST_ASSERT_TRUE((x).toString() != (y).toString());
@@ -298,20 +284,19 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   FOS_TEST_MESSAGE("!b%s!! =!r/~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
   TEST_ASSERT_FALSE((x).matches(y));
 
-#define FOS_TEST_COMPILER_TRUE(x,y,compiler_f)                                                                         \
+#define FOS_TEST_COMPILER_TRUE(x, y, compiler_f)                                                                       \
   FOS_TEST_MESSAGE("!b%s!! =!rcompiler true!!= !b%s!!", (x)->toString().c_str(), (y).toString().c_str());              \
-  TEST_ASSERT_TRUE(compiler_f(x,y));
+  TEST_ASSERT_TRUE(compiler_f(x, y));
 
-#define FOS_TEST_COMPILER_FALSE(x,y,compiler_f)                                                                        \
-  FOS_TEST_MESSAGE("!b%s!! =!r%s false!!= !b%s!!",                                                                     \
-     (x)->toString().c_str(), "compiler", (y).toString().c_str());                                                     \
-  TEST_ASSERT_FALSE(compiler_f(x,y));
+#define FOS_TEST_COMPILER_FALSE(x, y, compiler_f)                                                                      \
+  FOS_TEST_MESSAGE("!b%s!! =!r%s false!!= !b%s!!", (x)->toString().c_str(), "compiler", (y).toString().c_str());       \
+  TEST_ASSERT_FALSE(compiler_f(x, y));
 
 #define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \
   try {                                                                                                                \
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
-  } catch (const fError &e) {                                                                                          \
+  } catch(const fError &e) {                                                                                           \
     FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                     \
     TEST_ASSERT(true);                                                                                                 \
   }
@@ -321,42 +306,44 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
   try {                                                                                                                \
     (fn)();                                                                                                            \
     TEST_FAIL_MESSAGE("!rno exception occurred!!: " STR(__FILE__) ":" STR(__LINE__));                                  \
-  } catch (const fError &e) {                                                                                          \
+  } catch(const fError &e) {                                                                                           \
     FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                 \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
 
-#define FOS_TEST_REC_KEYS(recA,list_of_keys)                                                                           \
-{                                                                                                                      \
-  for(const Obj_p& e : list_of_keys) {                                                                                 \
-    bool found = false;                                                                                                \
-    for(const auto& [k,v] : *recA->rec_value())  {                                                                     \
-      if(e->equals(*k))                                                                                                \
-        found = true;                                                                                                  \
+#define FOS_TEST_REC_KEYS(recA, list_of_keys)                                                                          \
+  {                                                                                                                    \
+    for(const Obj_p &e: list_of_keys) {                                                                                \
+      bool found = false;                                                                                              \
+      for(const auto &[k, v]: *recA->rec_value()) {                                                                    \
+        if(e->equals(*k))                                                                                              \
+          found = true;                                                                                                \
+      }                                                                                                                \
+      if(!found)                                                                                                       \
+        TEST_FAIL_MESSAGE((string("key:") + e->toString() + " not found in " + recA->toString()).c_str());             \
     }                                                                                                                  \
-    if(!found)                                                                                                         \
-     TEST_FAIL_MESSAGE((string("key:") + e->toString() + " not found in " + recA->toString()).c_str());                \
-}                                                                                                                      \
-}
+  }
 
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
-    FOS_TEST_MESSAGE("!ytesting equality!! : %s %s %s", (objA)->toString().c_str(), test ? "==" : "!=", (objB)->toString().c_str());  \
-    if (!test) TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                         \
+    FOS_TEST_MESSAGE("!ytesting equality!! : %s %s %s", (objA)->toString().c_str(),                                    \
+                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
+    if(!test)                                                                                                          \
+      TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                  \
   }
-#define FOS_TEST_OBJ_NTEQL(objA, objB) FOS_TEST_OBJ_NOT_EQUAL((objA),(objB))
+#define FOS_TEST_OBJ_NTEQL(objA, objB) FOS_TEST_OBJ_NOT_EQUAL((objA), (objB))
 #define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \
     FOS_TEST_MESSAGE("!ytesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
                      test ? "==" : "!=", (objB)->toString().c_str());                                                  \
-    if (test)                                                                                                          \
-     TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                   \
+    if(test)                                                                                                           \
+      TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                  \
   }
 
-//#ifdef FOS_DEPLOY_PARSER
+// #ifdef FOS_DEPLOY_PARSER
 static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_result = true) {
   FOS_TEST_MESSAGE("!ytesting!!: %s", bcode->toString().c_str());
   if(!bcode->is_bcode())
@@ -372,32 +359,32 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   return result;
 }
 
-//#endif
+// #endif
 
 #define FOS_TEST_OBJ_GT(obj_a, obj_b)                                                                                  \
   FOS_TEST_MESSAGE("!ytesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
                    (*obj_a > *obj_b) ? ">" : "!=", obj_b->toString().c_str());                                         \
-  if (!(*obj_a > *obj_b))                                                                                              \
+  if(!(*obj_a > *obj_b))                                                                                               \
     TEST_FAIL();
 
 #define FOS_TEST_OBJ_LT(obj_a, obj_b)                                                                                  \
   FOS_TEST_MESSAGE("!ytesting less than!! : %s %s %s", obj_a->toString().c_str(),                                      \
-  (*obj_a < *obj_b) ? "<" : "!=", obj_b->toString().c_str());                                                          \
-  if (!(*obj_a < *obj_b))                                                                                              \
+                   (*obj_a < *obj_b) ? "<" : "!=", obj_b->toString().c_str());                                         \
+  if(!(*obj_a < *obj_b))                                                                                               \
     TEST_FAIL();
 
-#define FOS_PRINT_OBJ(obj) \
-  FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
+#define FOS_PRINT_OBJ(obj)                                                                                             \
+  FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),                            \
                    OTypes.to_chars(obj->otype).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
 
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
     PROCESS(monoid)->objs_value();
-    TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
+    TEST_ASSERT_TRUE_MESSAGE(false, ("!rno exception thrown!! in " + monoid).c_str());
   } catch(const fError &error) {
-    LOG(INFO, "expected !rexception thrown!!: {}\n", error.what());
-    //LOG_WRITE(INFO, Scheduler::singleton().get(), L("expected !rexception thrown!!: {}\n", error.what()));
+    FOS_TEST_MESSAGE("!gexpected !rexception thrown!!: %s", error.what());
+    // LOG_WRITE(INFO, Scheduler::singleton().get(), L("expected !rexception thrown!!: {}\n", error.what()));
     TEST_ASSERT_TRUE(true);
   }
 }

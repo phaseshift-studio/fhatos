@@ -15,7 +15,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-#include  "obj_helper.hpp"
+#include "obj_helper.hpp"
 #include "../lang/obj.hpp"
 
 namespace fhatos {
@@ -33,7 +33,7 @@ namespace fhatos {
     return true;
   }
 
-  IntCoefficient ObjHelper::calculate_domain(const BCode_p& bcode) {
+  IntCoefficient ObjHelper::calculate_domain(const BCode_p &bcode) {
     if(bcode->is_bcode() && !bcode->bcode_value()->empty()) {
       return bcode->bcode_value()->front()->domain_coefficient();
     } else
@@ -45,18 +45,14 @@ namespace fhatos {
     return coef.empty() || stoi(coef.front()) == 0;
   }
 
-  InstBuilder::InstBuilder(TypeO_p type) :
-    type_(std::move(type)), args_(Obj::to_rec()), seed_(nullptr) {
-  }
+  InstBuilder::InstBuilder(TypeO_p type) : type_(std::move(type)), args_(Obj::to_rec()), seed_(nullptr) {}
 
 
   InstBuilder *InstBuilder::build(const ID &type_id) {
     return new InstBuilder(id_p(ROUTER_RESOLVE(static_cast<fURI>(type_id))));
   }
 
-  InstBuilder *InstBuilder::build(const fURI_p &type_id) {
-    return new InstBuilder(id_p(type_id));
-  }
+  InstBuilder *InstBuilder::build(const fURI_p &type_id) { return new InstBuilder(id_p(type_id)); }
 
 
   InstBuilder *InstBuilder::inst_args(const Poly_p &args) {
@@ -64,8 +60,19 @@ namespace fhatos {
     return this;
   }
 
-  InstBuilder *InstBuilder::type_args(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2,
-                                      const Obj_p &arg3, const Obj_p &arg4) {
+  InstBuilder *InstBuilder::inst_args(const char *arg1_name, const Obj_p &arg1_obj, const char *arg2_name,
+                                      const Obj_p &arg2_obj, const char *arg3_name, const Obj_p &arg3_obj) {
+    this->args_ = Obj::to_inst_args();
+    this->args_->rec_set(arg1_name, arg1_obj);
+    if(arg2_name)
+      this->args_->rec_set(arg2_name, arg2_obj);
+    if(arg3_name)
+      this->args_->rec_set(arg3_name, arg3_obj);
+    return this;
+  }
+
+  InstBuilder *InstBuilder::type_args(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2, const Obj_p &arg3,
+                                      const Obj_p &arg4) {
     this->args_->rec_set(vri("0"), arg0);
     if(arg1)
       this->args_->rec_set(vri("1"), arg1);
@@ -83,13 +90,12 @@ namespace fhatos {
   }
 
   InstBuilder *InstBuilder::domain_range(const ID_p &domain, const IntCoefficient &domain_coefficient,
-                                         const ID_p &range,
-                                         const IntCoefficient &range_coefficient) {
-    this->type_ = id_p(this->type_->query({
-        {FOS_DOMAIN, domain->toString()},
-        {FOS_DOM_COEF, to_string(domain_coefficient.first).append(",").append(to_string(domain_coefficient.second))},
-        {FOS_RANGE, range->toString()},
-        {FOS_RNG_COEF, to_string(range_coefficient.first).append(",").append(to_string(range_coefficient.second))}}));
+                                         const ID_p &range, const IntCoefficient &range_coefficient) {
+    this->type_ = id_p(this->type_->query(
+        {{FOS_DOMAIN, domain->toString()},
+         {FOS_DOM_COEF, to_string(domain_coefficient.first).append(",").append(to_string(domain_coefficient.second))},
+         {FOS_RANGE, range->toString()},
+         {FOS_RNG_COEF, to_string(range_coefficient.first).append(",").append(to_string(range_coefficient.second))}}));
     if(!this->seed_)
       this->seed_ = domain_coefficient.second > 1 ? Obj::to_objs() : Obj::to_noobj();
     return this;
@@ -120,12 +126,9 @@ namespace fhatos {
       if(const Inst_p maybe = ROUTER_READ(*value_id); !maybe->is_noobj())
         return maybe;
     }
-    const Inst_p inst = Inst::create(InstValue(
-                                         this->args_,
-                                         this->function_supplier_,
-                                         this->seed_ ? this->seed_ : Obj::to_noobj()),
-                                     OType::INST, this->type_,
-                                     root ? id_p(root->vid->extend(*value_id)) : value_id);
+    const Inst_p inst =
+        Inst::create(InstValue(this->args_, this->function_supplier_, this->seed_ ? this->seed_ : Obj::to_noobj()),
+                     OType::INST, this->type_, root ? id_p(root->vid->extend(*value_id)) : value_id);
     // if(!this->doc_.empty())
     // inst->doc_write(this->doc_);
     auto to_delete = unique_ptr<const InstBuilder>(this);

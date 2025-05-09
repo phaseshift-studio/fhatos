@@ -19,7 +19,7 @@
 #ifndef fhatos_obj_helper_hpp
 #define fhatos_obj_helper_hpp
 
-#include  "../fhatos.hpp"
+#include "../fhatos.hpp"
 #include "../lang/obj.hpp"
 
 namespace fhatos {
@@ -33,18 +33,14 @@ namespace fhatos {
     static bool check_coefficients(const IntCoefficient &a, const IntCoefficient &b, const bool throw_on_error = true);
 
     static bool check_noobj(const ID_p &type_id);
-    static IntCoefficient calculate_domain(const BCode_p& bcode);
-
+    static IntCoefficient calculate_domain(const BCode_p &bcode);
   };
 
   class OBJ_PROXY {
     ID_p vid;
 
   public:
-    explicit OBJ_PROXY(const Obj_p &local):
-      vid{local->vid} {
-
-    }
+    explicit OBJ_PROXY(const Obj_p &local) : vid{local->vid} {}
 
     [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
       return ROUTER_READ(this->vid->extend(uri_key))->or_else(or_else);
@@ -70,6 +66,10 @@ namespace fhatos {
     static InstBuilder *build(const ID &type_id = *INST_FURI);
 
     static InstBuilder *build(const fURI_p &type_id = INST_FURI);
+
+    InstBuilder *inst_args(const char *arg1_name, const Obj_p &arg1_obj, const char *arg2_name = nullptr,
+                           const Obj_p &arg2_obj = nullptr, const char *arg3_name = nullptr,
+                           const Obj_p &arg3_obj = nullptr);
 
     InstBuilder *inst_args(const Rec_p &args);
 

@@ -24,8 +24,11 @@
 namespace mmadt {
   using namespace fhatos;
 
-  void mmADT::import_base_types() {
+
+
+  void import_base_types(const std::vector<fURI> &patterns) {
     Typer::singleton()->start_progress_bar(14);
+    //Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
     Typer::singleton()->save_type(*OBJ_FURI, Obj::to_type(OBJ_FURI));
     Typer::singleton()->save_type(*NOOBJ_FURI, Obj::to_type(NOOBJ_FURI));
     Typer::singleton()->save_type(*BOOL_FURI, Obj::to_type(BOOL_FURI));
@@ -39,12 +42,14 @@ namespace mmadt {
     Typer::singleton()->save_type(*BCODE_FURI, Obj::to_type(BCODE_FURI));
     Typer::singleton()->save_type(*INST_FURI, Obj::to_type(INST_FURI));
     Typer::singleton()->save_type(*ERROR_FURI, Obj::to_type(ERROR_FURI));
+    //Typer::singleton()->clear_filters();
     Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ !g[!b%s !ybase types!! loaded!g]!! \n", MMADT_SCHEME "/+"));
   }
 
-  void *mmADT::import_ext_types() {
+  void import_ext_types(const std::vector<fURI> &patterns) {
     Typer::singleton()->start_progress_bar(13);
+    Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     Typer::singleton()->save_type(*CHAR_FURI,
                                   __(*CHAR_FURI, *INT_FURI, *STR_FURI).merge(jnt(2)).count().is(__().eq(jnt(1))));
@@ -83,18 +88,19 @@ namespace mmadt {
         })
         ->save();
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    Typer::singleton()->clear_filters();
     Typer::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1^ !g[!b%s !yextension types!! loaded!g]!! \n", MMADT_PREFIX "ext/+"));
-    return nullptr;
   }
 
-  void mmADT::import_base_inst() {
+  void import_base_inst(const std::vector<fURI> &patterns) {
     ROUTER_WRITE("/mmadt/inst/blockers",
                  Obj::to_lst({vri("block"), vri("each"), vri("within"), vri("isa"), vri("split"), vri("lift"),
                               // vri("drop"),
                               vri("apply"), vri("choose"), vri("chain")}),
                  true);
     Typer::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
+    Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
     InstBuilder::build(MMADT_PREFIX "embed")
         ->domain_range(OBJ_FURI, {1, 1}, REC_FURI, {1, 1})
         ->inst_f([](const Obj_p &obj, const InstArgs &args) { return obj->embedding(); })
@@ -233,7 +239,7 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "bool/" MMADT_INST_SCHEME "/as")
         ->domain_range(BOOL_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           // uri or obj (for type obj)
           if(args->arg(0)->is_uri()) {
@@ -256,7 +262,7 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/as")
         ->domain_range(INT_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           // uri or obj (for type obj)
           if(args->arg(0)->is_uri()) {
@@ -279,7 +285,7 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "real/" MMADT_INST_SCHEME "/as")
         ->domain_range(REAL_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           // uri or obj (for type obj)
           if(args->arg(0)->is_uri()) {
@@ -302,7 +308,7 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "str/" MMADT_INST_SCHEME "/as")
         ->domain_range(STR_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           // uri or obj (for type obj)
           if(args->arg(0)->is_uri()) {
@@ -325,7 +331,7 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "uri/" MMADT_INST_SCHEME "/as")
         ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           // uri or obj (for type obj)
           if(args->arg(0)->is_uri()) {
@@ -347,7 +353,7 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "at")
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(args->arg(0)->uri_value()) : lhs;
@@ -368,7 +374,7 @@ namespace mmadt {
     InstBuilder::build(MMADT_PREFIX "rshift")->save();
 
     InstBuilder::build(MMADT_PREFIX "rec/" MMADT_INST_SCHEME "/lshift")
-        ->inst_args(lst({isa_arg(INT_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(INT_FURI)}))
         ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const auto new_rec = make_shared<Obj::RecMap<>>();
@@ -450,7 +456,7 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "rec/" MMADT_INST_SCHEME "/rshift")
-        ->inst_args(lst({isa_arg(URI_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(URI_FURI)}))
         ->domain_range(REC_FURI, {1, 1}, REC_FURI, {1, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const fURI prefix = args->arg(0)->uri_value();
@@ -557,10 +563,10 @@ namespace mmadt {
            return lhs;
          })->save();*/
 
-    InstBuilder::build(MMADT_PREFIX "each")->inst_args(lst({isa_arg(OBJ_FURI)}))->save();
+    InstBuilder::build(MMADT_PREFIX "each")->inst_args(lst({mmADT::isa_arg(OBJ_FURI)}))->save();
 
     InstBuilder::build(MMADT_PREFIX "lst/" MMADT_INST_SCHEME "/each")
-        ->inst_args(lst({isa_arg(LST_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(LST_FURI)}))
         ->domain_range(LST_FURI, LST_FURI)
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const Lst_p ret = Obj::to_lst();
@@ -577,7 +583,7 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "rec/" MMADT_INST_SCHEME "/each")
-        ->inst_args(lst({isa_arg(REC_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(REC_FURI)}))
         ->domain_range(REC_FURI, REC_FURI)
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const Rec_p ret = Obj::to_rec();
@@ -653,8 +659,9 @@ namespace mmadt {
         ->save();
 
     InstBuilder::build(MMADT_PREFIX "merge")
-        ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
-        // ->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
+        ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, INT_MAX})
+        // ->inst_args(lst({Obj::to_rec({{mmADT::isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(),
+        // jnt(INT32_MAX)}})}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const int max = args->rec_value()->empty() ? INT32_MAX : args->arg(0)->int_value();
           return max > 0 ? lhs : Obj::to_noobj();
@@ -687,7 +694,8 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "uri/" MMADT_INST_SCHEME "/merge")
         ->domain_range(URI_FURI, {1, 1}, OBJS_FURI, {0, INT_MAX})
-        //->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
+        //->inst_args(lst({Obj::to_rec({{mmADT::isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(),
+        //jnt(INT32_MAX)}})}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const int max = args->rec_value()->empty() ? INT32_MAX : args->arg(0)->int_value();
           const Objs_p objs = Obj::to_objs();
@@ -701,7 +709,8 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "str/" MMADT_INST_SCHEME "/merge")
         ->domain_range(STR_FURI, {1, 1}, OBJS_FURI, {0, INT_MAX})
-        //->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
+        //->inst_args(lst({Obj::to_rec({{mmADT::isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(),
+        //jnt(INT32_MAX)}})}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const int max = args->rec_value()->empty() ? INT32_MAX : args->arg(0)->int_value();
           const Objs_p objs = Obj::to_objs();
@@ -739,7 +748,8 @@ namespace mmadt {
 
     InstBuilder::build(MMADT_PREFIX "rec/" MMADT_INST_SCHEME "/merge")
         ->domain_range(REC_FURI, {1, 1}, OBJS_FURI, {0, INT_MAX})
-        //->inst_args(lst({Obj::to_rec({{isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(), jnt(INT32_MAX)}})}))
+        //->inst_args(lst({Obj::to_rec({{mmADT::isa_arg(INT_FURI), Obj::to_bcode()}, {Obj::to_bcode(),
+        //jnt(INT32_MAX)}})}))
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
           const int max = args->rec_value()->empty() ? INT32_MAX : args->arg(0)->int_value();
           const Objs_p objs = Obj::to_objs();
@@ -876,7 +886,7 @@ namespace mmadt {
 
     /// TODO: this is for play -- can remove
     InstBuilder::build(MMADT_PREFIX "lst/" MMADT_INST_SCHEME "/split")
-        ->inst_args(lst({isa_arg(LST_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(LST_FURI)}))
         ->inst_f([](const Obj_p &obj, const InstArgs &args) {
           const Obj_p rhs = args->arg(0);
           Lst_p list = Obj::to_lst();
@@ -1001,7 +1011,7 @@ namespace mmadt {
         ->domain_range(BOOL_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           return rec;
         })
         ->save();
@@ -1010,7 +1020,7 @@ namespace mmadt {
         ->domain_range(INT_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           rec->rec_set("value/encoding", vri(STR(FOS_INT_TYPE)));
           return rec;
         })
@@ -1020,7 +1030,7 @@ namespace mmadt {
         ->domain_range(REAL_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           rec->rec_set("value/encoding", vri(STR(FOS_REAL_TYPE)));
           return rec;
         })
@@ -1030,7 +1040,7 @@ namespace mmadt {
         ->domain_range(STR_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           rec->rec_set("value/length", jnt(args->arg(0)->str_value().size()));
           rec->rec_set("value/encoding", vri(string("UTF") + to_string(8 * sizeof(char))));
           return rec;
@@ -1041,7 +1051,7 @@ namespace mmadt {
         ->domain_range(URI_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           const fURI furi = args->arg(0)->uri_value();
           if(furi.has_scheme())
             rec->rec_set("value/scheme", vri(furi.scheme()));
@@ -1082,7 +1092,7 @@ namespace mmadt {
         ->domain_range(LST_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           args->arg(0)->lst_set("value/size", args->arg(0)->lst_size());
           bool embeddable = true;
           //   for(const auto &element: *args->arg(0)->lst_value()) {
@@ -1101,7 +1111,7 @@ namespace mmadt {
         ->domain_range(REC_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           rec->rec_set("value/size", args->arg(0)->rec_size());
           bool embeddable = true;
           for(const auto &[k, v]: *args->arg(0)->rec_value()) {
@@ -1119,7 +1129,7 @@ namespace mmadt {
         ->domain_range(INST_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::mmADT::build_inspect_rec(args->arg(0));
           rec->rec_set("op", str(args->arg(0)->inst_op().c_str()));
           rec->rec_set("args", args->arg(0)->inst_args());
           // rec->rec_set("f", str(ITypeDescriptions.to_chars(args->arg(0)->itype())));
@@ -1137,7 +1147,7 @@ namespace mmadt {
         ->domain_range(BCODE_FURI, REC_FURI)
         ->inst_args(lst({Obj::to_bcode()}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Rec_p rec = build_inspect_rec(args->arg(0));
+          const Rec_p rec = mmADT::build_inspect_rec(args->arg(0));
           const Lst_p l = lst();
           for(const Inst_p &i: *args->arg(0)->bcode_value()) {
             l->lst_add(i);
@@ -1148,31 +1158,31 @@ namespace mmadt {
         ->save();
 
     //////////////////////////////// MODULO ////////////////////////////////////
-    InstBuilder::build(MMADT_PREFIX "mod")->inst_args(lst({isa_arg(INT_FURI)}))->save();
+    InstBuilder::build(MMADT_PREFIX "mod")->inst_args(lst({mmADT::isa_arg(INT_FURI)}))->save();
 
     InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/mod")
         ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
-        ->inst_args(lst({isa_arg(INT_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(INT_FURI)}))
         ->inst_f(
             [](const Obj_p &lhs, const InstArgs &args) { return jnt(lhs->int_value() % args->arg(0)->int_value()); })
         ->save();
     ////////////////////////////// NEGATIVE /////////////////////////////////////
-    InstBuilder::build(MMADT_PREFIX "neg")->inst_args(lst({isa_arg(OBJ_FURI)}))->save();
+    InstBuilder::build(MMADT_PREFIX "neg")->inst_args(lst({mmADT::isa_arg(OBJ_FURI)}))->save();
 
     InstBuilder::build(MMADT_PREFIX "bool/" MMADT_INST_SCHEME "/neg")
-        ->inst_args(lst({isa_arg(BOOL_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(BOOL_FURI)}))
         ->domain_range(BOOL_FURI, {1, 1}, BOOL_FURI, {1, 1})
         ->inst_f(
             [](const Obj_p &, const InstArgs &args) { return dool(!args->arg(0)->bool_value(), args->arg(0)->vid); })
         ->save();
     InstBuilder::build(MMADT_PREFIX "int/" MMADT_INST_SCHEME "/neg")
-        ->inst_args(lst({isa_arg(INT_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(INT_FURI)}))
         ->domain_range(INT_FURI, {1, 1}, INT_FURI, {1, 1})
         ->inst_f(
             [](const Obj_p &, const InstArgs &args) { return jnt(args->arg(0)->int_value() * -1, args->arg(0)->vid); })
         ->save();
     InstBuilder::build(MMADT_PREFIX "real/" MMADT_INST_SCHEME "/neg")
-        ->inst_args(lst({isa_arg(REAL_FURI)}))
+        ->inst_args(lst({mmADT::isa_arg(REAL_FURI)}))
         ->domain_range(REAL_FURI, {1, 1}, REAL_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           return real(args->arg(0)->real_value() * -1.0f, args->arg(0)->vid);
@@ -1358,13 +1368,18 @@ namespace mmadt {
           ->save();
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    Typer::singleton()->clear_filters();
     Typer::singleton()->end_progress_bar(StringHelper::format("\n\t\t!^u1^ !g[!b%s !yobj insts!! loaded!g]!! \n",
                                                               MMADT_PREFIX "+/" COMPONENT_SEPARATOR MMADT_PREFIX "+"));
   }
 
-  void *mmADT::import() {
-    mmADT::import_base_types();
-    mmADT::import_base_inst();
+
+  void *mmADT::import(const std::vector<fURI> &patterns) {
+    import_base_types(patterns);
+    import_base_inst(patterns);
+    import_ext_types(patterns);
     return nullptr;
   }
+
+
 } // namespace mmadt

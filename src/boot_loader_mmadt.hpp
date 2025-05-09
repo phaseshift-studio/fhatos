@@ -90,12 +90,12 @@ namespace fhatos {
               ->display_note("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+       /* kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
             ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"));
         if(args_parser->option_bool("--headers", true)) {
           kp->display_memory();
-        }
+        }*/
         ////////////////////////////////////////////////////////////
         ////////////////// SYS STRUCTURE ///////////////////////////
         ///////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ namespace fhatos {
             ->import(fOS::import_ui())
             ->import(fOS::import_util())
             ->import(mmADT::import())
-            ->import(mmADT::import_ext_types())
+           // ->import(mmADT::import_ext_types())
             ->install(
                 mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
             ->eval([]() {

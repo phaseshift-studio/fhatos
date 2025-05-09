@@ -305,9 +305,9 @@ namespace mmadt {
         const auto [rf, rc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[0] : vs[1]);
         const auto [df, dc] = any_cast<Pair<fURI_p, IntCoefficient>>(anonymous ? vs[1] : vs[2]);
         const fURI_p dom_rng = furi_p(name->query({
-            {FOS_DOMAIN, ROUTER_RESOLVE(*df).toString()},
+            {FOS_DOMAIN, df->toString()},
             {FOS_DOM_COEF, to_string(dc.first).append(",").append(to_string(dc.second))},
-            {FOS_RANGE, ROUTER_RESOLVE(*rf).toString()},
+            {FOS_RANGE, rf->toString()},
             {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
@@ -357,7 +357,7 @@ namespace mmadt {
       auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         switch(vs.choice()) {
           case 0: { // [a][b]@xyz
-            const ID_p type_id = id_p(ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::to_type(type_id,
                                 Obj::create(v, o, type_id),
@@ -387,7 +387,7 @@ namespace mmadt {
             return any_cast<Inst_p>(vs[0]);
           }
           case 3: { // a[b]@xyz
-            const ID_p type_id = id_p(ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
             const auto [v,o] = any_cast<Pair<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id,
                                vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);

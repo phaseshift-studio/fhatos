@@ -114,14 +114,14 @@ namespace fhatos {
       FEED_WATCHDOG();
 
       Obj_p result;
-      const static Uri_p processor_uri = Obj::to_uri(*PROCESSOR_FURI);
-      if(const Uri_p proc = this->rec_get("config/processor")->or_else(vri(PROCESSOR_FURI)); !proc->equals(*processor_uri))
+      if(const Uri_p proc = this->rec_get("config/processor")->or_else(vri(PROCESSOR_TID));
+         !proc->uri_value().equals(PROCESSOR_TID))
         result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
       else
         result = Processor::compute(line);
       std::stringbuf to_out;
       FEED_WATCHDOG();
-      PrintHelper::pretty_print_obj(result, 0, this->get<int>("config/nest"), false, &to_out);
+      PrintHelper::pretty_print_obj(result, 0, this->obj_get("config/nest")->or_else_<int>(2), false, &to_out);
       this->write_stdout(str(to_out.str()));
     }
 
@@ -199,7 +199,17 @@ namespace fhatos {
                                         return Obj::to_noobj();
                                       })
                                       ->create())},
-               {"halt", __().else_(dool(false))}}));
+               {"halt", __().else_(dool(false))},
+               {"config", __().else_(Obj::to_rec(
+                              {{"nest", jnt(2)},
+                               {"prompt", str("!mfhatos!g>!! ")},
+                               {"stack_size", jnt(24288)},
+                               {"stack_trace", dool(true)},
+                               {"strict", dool(false)},
+                               {"log", vri(LOG_TYPES.to_chars(INFO))},
+                               {"ellipsis", jnt(50)},
+                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/:stdout")},
+                                                         {"stdin", Obj::to_uri("/io/terminal/:stdin")}})}}))}}));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {

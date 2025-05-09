@@ -43,8 +43,6 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    void load_config(const ID &config_id);
-
     static ptr<Router> &singleton(const ID &value_id = "/sys/router/");
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
@@ -74,11 +72,11 @@ namespace fhatos {
     static void *import();
 
     template<typename STRUCTURE>
-    static void *import_structure(const ID &import_id, const ID &type_id) {
+    static void *import_structure(const ID &type_id) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      Router::singleton()->write(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-      InstBuilder::build(id_p(import_id.extend(":create")))
-          ->inst_args(Obj::to_inst_args({{"pattern?uri", __()}, {"id", __()}, {"config", __().else_(Obj::to_rec())}}))
+      Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
+      InstBuilder::build(id_p(type_id.add_component("mount")))
+          ->inst_args("pattern?uri", __(), "id", __(), "config", __().else_(Obj::to_rec()))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             const Pattern pattern = args->arg("pattern")->uri_value();

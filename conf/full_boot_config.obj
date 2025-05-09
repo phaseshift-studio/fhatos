@@ -1,5 +1,29 @@
-terminal[[=>]]@/io/terminal;
-console[[config=>[terminal=>[stdout=>/io/terminal/:stdout, stdin=>/io/terminal/:stdin],
-                    nest=>2, ellipsis=>50, prompt=>'!mfhatos!g>!! ', strict=>false, log=>INFO,
-                    stack_size=>24288, stack_trace=>true]]]@/io/console;
-/sys/scheduler::spawn(@/io/console)
+===
+basic boot_config obj
+===
+[sys=>[scheduler=>[id=>/sys/scheduler,
+                   config=>[def_stack_size=>16192]],
+       router=>[id=>/sys/router,
+                config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
+                         auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                       /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]],
+ import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
+ -------------------------------------------------------------------------------------
+ setup=>setup?obj{?}<=obj{.}()[
+    heap::mount(id=>/mnt/var,pattern=><+/#>);
+    fs::mount(id=>/mnt/fs,pattern=>/fs/#,config=>[root=>/fs]);
+    [=>]-<[
+        as(|log).at(|/io/log),
+        as(|terminal).at(|/io/terminal),
+        as(|console).at(|/io/console)-<[/sys/scheduler::spawn(_)],
+        +[pin=>gpio[5],on_push=>^(print('button pushed'))].as(|button).at(|z)-<[/sys/scheduler::bundle(_)]];
+    ===
+    log[[=>]]@/io/log;
+    terminal[[=>]]@/io/terminal;
+    console[[=>]]@/io/console;
+    button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@z;
+    /sys/scheduler::spawn(@/io/console);
+    /sys/scheduler::bundle(@z);
+    ===
+ ]
+]@/boot/config

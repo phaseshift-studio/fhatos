@@ -28,8 +28,13 @@ namespace fs = std::filesystem;
 namespace fhatos {
   // using namespace fs;
 
+  void FS::list_files_utility(const char *path) {
+    LOG_WRITE(ERROR, Obj::to_noobj().get(), L("FS::list_files_utility not implemented"));
+  }
+
   FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {}
+      Structure(pattern, id_p(FS_TID), value_id, config),
+      root(fURI("data").extend(config->rec_get("root")->uri_value())) {}
 
   void FS::setup() {
     Structure::setup();
@@ -48,20 +53,23 @@ namespace fhatos {
   }
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {
-    const fs::path boot_path = fs::canonical(
-        fs::path(ID(fs::path(boot_config.is_relative() ? boot_config.toString() : boot_config.toString().substr(1)))
-                     .toString()));
-    LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
-    if(fs::is_regular_file(boot_path)) {
-      auto infile = std::ifstream(boot_path, ios::in);
-      if(!infile.is_open())
-        throw fError("unable to read from boot config from !b%s!!", boot_path.c_str());
-      const auto content = string(std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>());
-      infile.close();
-      const auto proto = make_unique<mmadt::Parser>();
-      const Obj_p boot_obj = proto->parse(content.c_str());
-      return boot_obj;
-    }
+    const fs::path data_extend_path = fs::path(string("data").append(boot_config.toString()));
+    try {
+     const fs::path boot_path = fs::canonical(data_extend_path);
+     LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
+     if(fs::is_regular_file(boot_path)) {
+       auto infile = std::ifstream(boot_path, ios::in);
+       if(!infile.is_open())
+         throw fError("unable to read from boot config from !b%s!!", boot_path.c_str());
+       const auto content = string(std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>());
+       infile.close();
+       const auto proto = make_unique<mmadt::Parser>();
+       const Obj_p boot_obj = proto->parse(content.c_str());
+       return boot_obj;
+     }
+   } catch(std::exception&) {
+     LOG_WRITE(ERROR,Obj::to_noobj().get(), L("!yboot config!! file !rnot found!!: !b!-{}!!\n", data_extend_path.c_str()));
+   }
     return Obj::to_noobj();
   }
 
@@ -117,5 +125,18 @@ namespace fhatos {
     read_raw_pairs_dir(*this, match, fs::path(this->root.toString()), &pairs);
     return pairs;
   }
+
+  ID FS::map_fos_to_fs(const ID &fos_id) const {
+    const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
+    return this->root.extend(fs_retracted_id);
+  }
+
+  ID FS::map_fs_to_fos(const string &fs_id) const {
+    const auto fos_id = ID(fs_id);
+    const fURI fos_retracted_id = fos_id.remove_subpath(this->root.toString());
+    const fURI retracted_pattern = this->pattern->retract_pattern();
+    return retracted_pattern.extend(fos_retracted_id);
+  }
+
 } // namespace fhatos
 #endif

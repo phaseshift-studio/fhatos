@@ -24,9 +24,9 @@
 
 #define HELP "  --!b%-15s!!= %5s\n"
 
+using fhatos::Ansi;
 using fhatos::ArgvParser;
 using fhatos::BootLoader;
-using fhatos::Ansi;
 auto *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -47,6 +47,7 @@ int main(const int argc, char **argv) {
     const auto ansi = new Ansi();
     ansi->printf("%s: A Distributed Operating System\n", ansi->silly_print("FhatOS", true, true).c_str());
     ansi->printf(HELP, "help", "!rnoobj!!");
+    ansi->printf(HELP, "boot:config", "!guri!!?!ylocal_dir_path!!");
     ansi->printf(HELP, "ansi", "!gbool!!?!ycolorize!!");
     ansi->printf(HELP, "log", "!guri!!?{!gINFO!!,!yWARN!!,!rERROR!!,!mDEBUG!!,!cTRACE!!,!bALL!!,!cNONE!!}");
     ansi->printf(HELP, "fs:mount", "!guri!!?!ylocal_dir_path!!");

@@ -368,6 +368,7 @@ elif [[ $1 == "partition" ]]; then
   edit_partition
 elif [[ $1 == "upload" ]]; then
   build_boot_config
+  build_esp32
   # clean_esp32
   if [[ -z ${fs} ]]; then
     echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}flash memory partition${NC}\n"

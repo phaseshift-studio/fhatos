@@ -1,5 +1,19 @@
-terminal[[=>]]@/io/terminal;
-console[[config=>[terminal=>[stdout=>/io/terminal/:stdout, stdin=>/io/terminal/:stdin],
-                    nest=>2, ellipsis=>50, prompt=>'!mfhatos!g>!! ', strict=>false, log=>INFO,
-                    stack_size=>24288, stack_trace=>true]]]@/io/console;
-/sys/scheduler::spawn(@/io/console)
+===
+basic boot_config obj
+===
+[sys=>[scheduler=>[id=>/sys/scheduler,
+                   config=>[def_stack_size=>16192]],
+       router=>[id=>/sys/router,
+                config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
+                         auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                       /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]],
+ import=>[/fos/q/sub,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
+ -------------------------------------------------------------------------------------
+ setup=>setup?obj{?}<=obj{.}()[
+    terminal[[=>]]@/io/terminal;
+    /sys/scheduler::spawn(console[[=>]]@/io/console);
+    /sys/scheduler::bundle(button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@/io/z);
+    fs::mount(id=>/mnt/fs,pattern=>/fs/#,config=>[root=>/fs]);
+ ]
+]@/boot/config
+

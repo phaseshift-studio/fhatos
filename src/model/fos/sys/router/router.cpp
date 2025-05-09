@@ -71,17 +71,6 @@ namespace fhatos {
     THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous_;
   }
 
-  void Router::load_config(const ID &config_id) {
-    const Obj_p config = this->read(config_id);
-    if(config->is_noobj())
-      LOG_WRITE(WARN, this, L("!b{}!! does not reference a config obj\n", config_id.toString()));
-    if(!config->is_noobj()) {
-      const Rec_p router_config = config->rec_get(vri("router"));
-      this->rec_set("config", router_config);
-    }
-  }
-
-
   void Router::loop() const {
     bool remove = false;
     for(const Structure_p &s: *this->structures_) {
@@ -118,7 +107,7 @@ namespace fhatos {
     }
     this->structures_->forEach([](const Structure_p &structure) {
       if(structure->available()) {
-       // structure->stop();
+        // structure->stop();
       }
     });
     // while(!this->structures_->empty()) {
@@ -188,7 +177,7 @@ namespace fhatos {
                                objs->toString(), structure->pattern->toString())          );*/
       return objs->none_one_all();
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}", e.what()));
+      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
       return noobj();
     }
   }
@@ -205,7 +194,7 @@ namespace fhatos {
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->append(furi, obj);
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}", e.what()));
+      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
     }
   }
 
@@ -222,25 +211,24 @@ namespace fhatos {
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}", e.what()));
+      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
     }
     /*if(furi->matches(this->vid->extend("#")))
       this->stale = true;*/
   }
 
   void *Router::import() {
-    // Typer::singleton()->save_type(*ROUTER_FURI,Obj::to_rec());
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(), RETAIN);
-    Router::singleton()->write(FRAME_FURI, Obj::to_type(REC_FURI), RETAIN);
-    Router::singleton()->load_config(FOS_BOOT_CONFIG_VALUE_ID);
-    Router::singleton()->write(
-        Router::singleton()->vid->retract().extend("lib/msg"),
-        Obj::to_rec(
-            {{"target", Obj::to_type(URI_FURI)}, {"payload", Obj::to_bcode()}, {"retain", Obj::to_type(BOOL_FURI)}}));
-    Router::singleton()->write(
-        Router::singleton()->vid->retract().extend("lib/sub"),
-        Obj::to_rec(
-            {{"source", Obj::to_type(URI_FURI)}, {"pattern", Obj::to_type(URI_FURI)}, {":on_recv", Obj::to_bcode()}}));
+    Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
+    /*  Router::singleton()->write(
+          Router::singleton()->vid->retract().extend("lib/msg"),
+          Obj::to_rec(
+              {{"target", Obj::to_type(URI_FURI)}, {"payload", Obj::to_bcode()}, {"retain", Obj::to_type(BOOL_FURI)}}));
+      Router::singleton()->write(
+          Router::singleton()->vid->retract().extend("lib/sub"),
+          Obj::to_rec(
+              {{"source", Obj::to_type(URI_FURI)}, {"pattern", Obj::to_type(URI_FURI)}, {":on_recv",
+      Obj::to_bcode()}}));*/
     /*  InstBuilder::build(Router::singleton()->vid->extend(":detach"))
           ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
           ->type_args(x(0, ___()))
@@ -255,12 +243,12 @@ namespace fhatos {
            return Obj::to_noobj();
          })->save();*/
     /// query extensions
-    InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
+    /*InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p obj = args->arg(0);
           if(obj->lock().has_value() &&
-             !obj->lock().value().equals(Thread::current_thread().has_value()
+            \\!\\obj->lock().value().equals(Thread::current_thread().has_value()
                                              ? *Thread::current_thread().value()->thread_obj_->vid
                                              : *obj->vid)) {
             throw fError("!runable write obj!! locked by !b%s!!: %s", obj->lock().value().toString().c_str(),
@@ -275,7 +263,7 @@ namespace fhatos {
           LOG_WRITE(ERROR, Router::singleton().get(), L("sub query processor to be implemented\n"));
           return obj;
         })
-        ->save();
+        ->save();*/
     //  Router::singleton()->load();
     return nullptr;
   }
@@ -302,7 +290,7 @@ namespace fhatos {
           related->lst_add(vri(s->pattern));
         }
       }
-      throw fError("!rno mounted structure!! for !b%s!! %s %s\n", pattern.toString().c_str(),
+      throw fError("!rno mounted structure!! for !b%s!! %s %s", pattern.toString().c_str(),
                    related->lst_value()->empty() ? "" : "\n" FOS_TAB_2 "!yavailable !bsub-structures!!:",
                    related->lst_value()->empty() ? "" : PrintHelper::pretty_print_obj(related, 1).c_str());
     }
@@ -313,7 +301,7 @@ namespace fhatos {
     if(furi.empty() || (!furi.headless() && !furi.has_components()))
       return furi;
     static auto mutex = Mutex();
-    auto lock = lock_guard<Mutex>(mutex);
+    auto lock = shared_lock<Mutex>(mutex);
     if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
       return furi;
     List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
@@ -324,10 +312,10 @@ namespace fhatos {
     }
     bool first = true;
     fURI_p test = nullptr;
-    const List_p<Uri_p> prefixes = this->rec_get("config/resolve/auto_prefix")->clone()->or_else(lst())->lst_value();
+    const List_p<Uri_p> prefixes = this->rec_get("config/auto_prefix")->clone()->or_else(lst())->lst_value();
     for(const auto &c: components) {
       if(prefixes->empty())
-        LOG_WRITE(WARN, this, L("!bauto-prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
+        LOG_WRITE(WARN, this, L("!bauto_prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;
       for(const auto &prefix: *prefixes) {
@@ -349,6 +337,11 @@ namespace fhatos {
         test = furi_p(test->add_component(found ? *found : c));
       }
     }
-    return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ *test;
+    if(furi.has_query(FOS_DOMAIN) && furi.has_query(FOS_RANGE)) {
+      const fURI::DomainRange dm = furi.dom_rng();
+      test = Compiler::generate_domain_range_type(test->no_query(), this->resolve(std::get<0>(dm)), std::get<1>(dm),
+                                                  this->resolve(std::get<2>(dm)), std::get<3>(dm));
+    }
+    return *test;
   }
 } // namespace fhatos

@@ -25,15 +25,16 @@
 #include "../../scheduler/thread/mutex.hpp"
 #include "structure.hpp"
 
+#define BUS_TID  "/fos/s/bus"
+
 namespace fhatos {
-  const static ID BUS_FURI = ID("/sys/lib/bus");
 
   class Bus final : public Structure {
     Mutex map_mutex;
 
   public:
     explicit Bus(const Pattern &pattern, const ID_p &value_id = nullptr,
-                 const Rec_p &config = Obj::to_rec()) : Structure(pattern, id_p(BUS_FURI), value_id, config) {
+                 const Rec_p &config = Obj::to_rec()) : Structure(pattern, id_p(BUS_TID), value_id, config) {
       // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
       LOG_WRITE(INFO, this, L("!ymapping !c{}!m==>!g{}!!\n",
                               config->get<fURI>("source").toString(),
@@ -45,8 +46,8 @@ namespace fhatos {
       return Structure::create<Bus>(pattern, value_id, config);
     }
 
-    static void *import(const ID &import_id) {
-      Router::import_structure<Bus>(import_id, BUS_FURI);
+    static void *import() {
+      Router::import_structure<Bus>(BUS_TID);
       return nullptr;
     }
 

@@ -30,7 +30,7 @@ FhatOS: A Distributed Operating System
 #endif
 
 namespace fhatos {
-  static ID_p MEMORY_FURI = id_p("/sys/memory_t");
+  static ID_p MEMORY_FURI = id_p("/sys/memory");
 
   class Memory final : public Rec {
   protected:

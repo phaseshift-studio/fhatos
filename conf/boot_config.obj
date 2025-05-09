@@ -1,4 +1,17 @@
-=== standard boot config obj ===
+===
+basic boot_config obj
+===
+[sys=>[scheduler=>[id=>/sys/scheduler,
+                   config=>[def_stack_size=>16192]],
+       router=>[id=>/sys/router,
+                config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
+                         auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                       /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]],
+ import=>[/fos/#,/mmadt/#],
+ -------------------------------------------------------------------------------------
+ setup=>setup?obj{?}<=obj{.}()[]
+]@/boot/config
+===
 [router=>[
   resolve=>[
    namespace=>[:=>/mmadt/,fos:=>/fos/],
@@ -35,3 +48,4 @@
  ],
  fs=>[root=></data/fs>]
 ]@/boot/config
+===

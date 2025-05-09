@@ -17,9 +17,9 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 #ifdef ESP_PLATFORM
 
+#include "../fs.hpp"
 #include <FS.h>
 #include <LittleFS.h>
-#include "../fs.hpp"
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/mmadt/parser.hpp"
 #define FOS_FS LittleFS
@@ -29,11 +29,58 @@ using namespace fs;
 
 namespace fhatos {
 
-  FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(FS_FURI), value_id, config), root(config->rec_get("root")->uri_value()) {
-    if(!FOS_FS.begin()) {
-      throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
+  static bool FS_MOUNTED = false;
+  void FS::list_files_utility(const char *path) {
+    if(!FS_MOUNTED) {
+      if(FS_MOUNTED = FOS_FS.begin())
+        LOG_WRITE(INFO, Router::singleton().get(), L("{} mounted successfully\n", STR(FOS_FS)));
+      else
+        LOG_WRITE(INFO, Router::singleton().get(), L("{} failed to mount\n", STR(FOS_FS)));
+    }
+    File root = FOS_FS.open(path);
+    if(!root) {
+      Serial.println("Failed to open directory");
       return;
+    }
+    if(!root.isDirectory()) {
+      Serial.println("Not a directory");
+      return;
+    }
+
+    File file = root.openNextFile();
+    while(file) {
+      if(file.isDirectory()) {
+        Serial.print("dir: ");
+        Serial.println(file.name());
+        list_files_utility(file.path());
+      } else {
+        Serial.print("\tfile: ");
+        Serial.println(file.name());
+      }
+      file = root.openNextFile();
+    }
+  }
+
+  ID FS::map_fos_to_fs(const ID &fos_id) const {
+    const fURI fs_retracted_id = fos_id.remove_subpath(this->pattern->retract_pattern().toString());
+    return this->root.extend(fs_retracted_id);
+  }
+
+  ID FS::map_fs_to_fos(const string &fs_id) const {
+    const auto fos_id = ID(fs_id);
+    const fURI fos_retracted_id = fos_id.remove_subpath(this->root.toString());
+    const fURI retracted_pattern = this->pattern->retract_pattern();
+    return retracted_pattern.extend(fos_retracted_id);
+  }
+
+  FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
+      Structure(pattern, id_p(FS_TID), value_id, config), root(config->rec_get("root")->uri_value()) {
+    if(!FS_MOUNTED) {
+      if(!FOS_FS.begin()) {
+        throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
+        return;
+      }
+      FS_MOUNTED = true;
     }
   }
 
@@ -44,9 +91,14 @@ namespace fhatos {
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {
     try {
-      if(!FOS_FS.begin())
-        return Obj::to_noobj();
-      fURI boot_config_update = fURI("/").extend(boot_config); // LittleFS doesn't support relative paths
+      if(!FS_MOUNTED) {
+        if(!FOS_FS.begin())
+          return Obj::to_noobj();
+        FS_MOUNTED = true;
+      }
+      const fURI boot_config_update = boot_config.toString()[0] == '/'
+                                    ? boot_config
+                                    : fURI("/").extend(boot_config); // LittleFS doesn't support relative paths
       fs::File file = FOS_FS.open(boot_config_update.toString().c_str(), "r");
       if(!file)
         return Obj::to_noobj();
@@ -60,16 +112,17 @@ namespace fhatos {
       boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
       file.close();
       FOS_FS.end();
+      FS_MOUNTED = false;
       Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_parser")
                                                 ->inst_f([](const Obj_p &obj, const InstArgs &) {
                                                   const auto proto = make_unique<mmadt::Parser>();
                                                   const Obj_p boot_obj = proto->parse(obj->str_value().c_str());
-                                                  ROUTER_WRITE("boot/config", boot_obj, true);
+                                                  ROUTER_WRITE("/boot/config", boot_obj, true);
                                                   return Obj::to_noobj();
                                                 })
                                                 ->create(),
                                             Obj::to_str((char *) boot_config_obj_copy), FOS_BOOT_CONFIG_MEM_USAGE);
-      return Router::singleton()->read("boot/config");
+      return Router::singleton()->read("/boot/config");
     } catch(std::exception &ex) {
       LOG_WRITE(ERROR, Router::singleton().get(), L("{}", ex.what()));
       return Obj::to_noobj();

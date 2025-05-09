@@ -235,6 +235,7 @@ namespace fhatos {
 #define FOS_TAB_6 "      "
 #define FOS_TAB_7 "       "
 #define FOS_TAB_8 "        "
+#define FOS_TAB_12 "            "
 #define FOS_TAB "  "
 #define FOS_I2C_ADDR_STR "0x%x/%i"
 #define FOS_I2C_ADDR(a) a, a

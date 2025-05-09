@@ -79,9 +79,9 @@ namespace fhatos {
       const Lst_p furis = Log::singleton()->obj_get(logging)->or_else(lst());
       if(!furis->is_lst()) {
         printer()->print(fmt::format("!r[ERROR] !! " OBJ_ID_WRAP
-                                       " log listing not within schema specification: !b{}!!\n",
-                                       LOG_FURI ? LOG_FURI->toString() : "<none>", Log::singleton()->toString())
-                               .c_str());
+                                     " log listing not within schema specification: !b{}!!\n",
+                                     LOG_FURI ? LOG_FURI->toString() : "<none>", Log::singleton()->toString())
+                             .c_str());
         return;
       }
       bool match = false;
@@ -96,7 +96,7 @@ namespace fhatos {
       }
       if(!match)
         return;
-      //auto lock = lock_guard<Mutex>(Log::singleton()->log_mutex);
+      // auto lock = lock_guard<Mutex>(Log::singleton()->log_mutex);
       if(type == NONE)
         printer()->print("");
       else if(type == INFO)
@@ -132,13 +132,13 @@ namespace fhatos {
       return log;
     }
 
-   /* static Obj_p log_inst(const Obj_p &source_obj, const InstArgs &args) {
-      string log_level_str = args->get<fURI>("level").toString();
-      std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
-      const LOG_TYPE log_level = LOG_TYPES.to_enum(log_level_str);
-      Log::PRIMARY_LOGGING(log_level, source_obj.get(), L("{}", args->arg("message")->toString()));
-      return source_obj;
-    }*/
+    /* static Obj_p log_inst(const Obj_p &source_obj, const InstArgs &args) {
+       string log_level_str = args->get<fURI>("level").toString();
+       std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
+       const LOG_TYPE log_level = LOG_TYPES.to_enum(log_level_str);
+       Log::PRIMARY_LOGGING(log_level, source_obj.get(), L("{}", args->arg("message")->toString()));
+       return source_obj;
+     }*/
 
   public:
     static void *import() {
@@ -147,11 +147,11 @@ namespace fhatos {
                  __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)
                      .is(__().or_(__().eq(vri("INFO")), __().eq(vri("ERROR")), __().eq(vri("DEBUG")),
                                   __().eq(vri("WARN")), __().eq(vri("TRACE")))));
-      TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", rec({{"INFO", Obj::to_type(LST_FURI)},
-                                                         {"ERROR", Obj::to_type(LST_FURI)},
-                                                         {"DEBUG", Obj::to_type(LST_FURI)},
-                                                         {"WARN", Obj::to_type(LST_FURI)},
-                                                         {"TRACE", Obj::to_type(LST_FURI)}})}}));
+      TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", __().else_(rec({{"INFO", __().else_(lst({vri("#")}))},
+                                                                    {"ERROR", __().else_(lst({vri("#")}))},
+                                                                    {"DEBUG", __().else_(lst())},
+                                                                    {"WARN", __().else_(lst())},
+                                                                    {"TRACE", __().else_(lst())}}))}}));
       ////////////////////////// INSTS ////////////////////////////////
       InstBuilder::build(LOG_FURI->add_component("log"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})

@@ -134,9 +134,11 @@ namespace fhatos {
    // if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
      // return Obj::to_noobj();
     Obj_p inst_obj = inst;
+    inst_obj->resolve();
+    //inst_obj->resolve();
     // inst_vid
     if(inst_obj->is_inst_stub() && inst_obj->vid)
-      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(*inst->vid));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
     // obj field
     if(inst_obj->is_inst_stub()) {
       if(const Obj_p code = lhs->obj_get(inst->tid->name()); !code->is_noobj()) {
@@ -150,17 +152,17 @@ namespace fhatos {
 
     // /obj_vid/::/inst_tid
     if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->vid->add_component(inst->tid->no_query())));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
     // /obj_tid/::/inst_tid
     if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->tid->add_component(inst->tid->no_query())));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
     // /obj_vid/::/resolved/inst_tid
     const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
     if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->vid->add_component(inst_type_id_resolved)));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
     // /obj_tid/::/resolved/inst_tid
     if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, ROUTER_READ(lhs->tid->add_component(inst_type_id_resolved)));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
     // /resolved/inst_tid
     if(inst_obj->is_inst_stub())
       inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
@@ -175,7 +177,7 @@ namespace fhatos {
         inst_obj = convert_to_inst(
             lhs, inst,
             this->resolve_inst(
-                ROUTER_READ(ROUTER_READ(Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
+                Router::singleton()->read(Router::singleton()->read(Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
                 inst_obj));
       }
     }
@@ -195,13 +197,13 @@ namespace fhatos {
   }
 
   bool Compiler::in_block_list(const string &op) {
-    const Lst_p block_list_obj = ROUTER_READ(MMADT_PREFIX "inst/blockers")->or_else(Obj::to_lst());
+    const Lst_p block_list_obj = Router::singleton()->read(MMADT_PREFIX "inst/blockers")->or_else(Obj::to_lst());
     const std::vector<Uri_p> *blocker_list = block_list_obj->lst_value().get();
     const bool found =
         blocker_list->end() != std::find_if(blocker_list->begin(), blocker_list->end(),
                                             [&op](const Uri_p &u) { return u->uri_value().name() == op; });
     // LOG_WRITE(INFO, str("here").get(), L("blockers {} {}: {}\n", op, dool(found)->toString(),
-    //                                      ROUTER_READ(MMADT_PREFIX "inst/blockers")->toString()));
+    //                                      Router::singleton()->read(MMADT_PREFIX "inst/blockers")->toString()));
     return found;
   }
 
@@ -304,7 +306,7 @@ namespace fhatos {
     if(Compiler::boot_loading)
       return true;
     /* if(value_obj->is_inst())
-       return this->type_check(ROUTER_READ(*value_obj->range()),type_id);*/
+       return this->type_check(Router::singleton()->read(*value_obj->range()),type_id);*/
     auto fail_reason = std::stack<string>();
     if(obj->is_noobj()) {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {
@@ -334,7 +336,7 @@ namespace fhatos {
       return true;
     if(type_no_query_id.equals(*NOOBJ_FURI) && (obj->otype == OType::NOOBJ || obj->tid->equals(*OBJ_FURI)))
       return true;
-    if(const Obj_p type = ROUTER_READ(type_no_query_id); !type->is_noobj()) {
+    if(const Obj_p type = Router::singleton()->read(type_no_query_id); !type->is_noobj()) {
       Compiler::coefficient_check(obj->range_coefficient(), type->domain_coefficient());
       //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
       // if(type->is_type() && !obj->apply(type)->is_noobj())

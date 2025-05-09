@@ -9,7 +9,7 @@
 #include "../../../../lang/obj.hpp"
 #include "../../io/gpio/gpio.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include "../../../../structure/router.hpp"
+#include "../../sys/router/router.hpp"
 
 namespace fhatos {
   static ID_p RGBLED_FURI = id_p(FOS_URI "/rgbled");

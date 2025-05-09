@@ -27,13 +27,14 @@
 #include "../router.hpp"
 #include "structure.hpp"
 
+/*
 #ifdef ESP_PLATFORM
 #include "../../util/esp32/psram_allocator.hpp"
-#endif
+#endif*/
+
+#define HEAP_TID  "/fos/s/heap"
 
 namespace fhatos {
-  const static auto HEAP_FURI = ID("/sys/lib/heap");
-
   template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
   class Heap final : public Structure {
   protected:
@@ -42,18 +43,16 @@ namespace fhatos {
     Mutex map_mutex;
 
   public:
-    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr,
-                  const Rec_p &config = Obj::to_rec()) :
-      Structure(pattern, id_p(HEAP_FURI), value_id, config) {
-    }
+    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
+        Structure(pattern, id_p(HEAP_TID), value_id, config) {}
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
                               const Rec_p &config = Obj::to_rec()) {
       return Structure::create<Heap<ALLOCATOR>>(pattern, value_id, config);
     }
 
-    static void *import(const ID &import_id) {
-      Router::import_structure<Heap>(import_id, HEAP_FURI);
+    static void *import() {
+      Router::import_structure<Heap>(HEAP_TID);
       return nullptr;
     }
 
@@ -80,12 +79,11 @@ namespace fhatos {
       auto lock = std::shared_lock<Mutex>(this->map_mutex);
       if(!match.is_pattern()) {
         if(this->data_->count(match))
-          list.push_back(
-              std::make_pair<const ID,  Obj_p>(ID(match), this->data_->at(match)->clone()));
+          list.push_back(std::make_pair<const ID, Obj_p>(ID(match), this->data_->at(match)->clone()));
       } else {
         for(const auto &[id, obj]: *this->data_) {
           if(id.matches(match)) {
-            list.push_back(std::make_pair<const ID,  Obj_p>(ID(id), obj->clone())); // TODO: clone?
+            list.push_back(std::make_pair<const ID, Obj_p>(ID(id), obj->clone())); // TODO: clone?
           }
         }
       }
@@ -105,8 +103,8 @@ namespace fhatos {
     }
   };
 
-#ifdef ESP_PLATFORM
-  using HeapPSRAM = Heap<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
-#endif
+  /*#ifdef ESP_PLATFORM
+    using HeapPSRAM = Heap<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
+  #endif*/
 } // namespace fhatos
 #endif

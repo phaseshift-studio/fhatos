@@ -20,9 +20,9 @@
 #define fhatos_types_hpp
 
 #include "../fhatos.hpp"
-#include "obj.hpp"
 #include "../model/fos/util/log.hpp"
 #include "mmadt/compiler.hpp"
+#include "obj.hpp"
 
 #define FOS_URI "/fos"
 
@@ -36,15 +36,16 @@ namespace fhatos {
 
   class Typer final : public Obj {
   protected:
+    std::vector<fURI>* filters = nullptr;
+
+
     explicit Typer(const ID &value_id, const ID &type_id) :
-      Obj(std::make_shared<RecMap<>>(),
-          OType::REC,
-          id_p(type_id),
-          id_p(value_id)) {
+        Obj(std::make_shared<RecMap<>>(), OType::REC, id_p(type_id), id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) {
-        try {
+        this->save_type(type_id, type_def);
+      /*  try {
           const Obj_p current = ROUTER_READ(type_id);
           if(type_progress_bar_) {
             ROUTER_WRITE(type_id, type_def, true);
@@ -60,8 +61,8 @@ namespace fhatos {
             }
           }
         } catch(const fError &e) {
-          LOG_WRITE(ERROR, this,L("{}", e.what()));
-        }
+          LOG_WRITE(ERROR, this, L("{}", e.what()));
+        }*/
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,10 +87,9 @@ namespace fhatos {
             /////////////////////////////// INST VIA ID RESOLVE ///////////////////////////////
             /////////////////////////////// INST VIA VALUE ///////////////////////////////
             if(current_obj->vid) {
-              LOG_WRITE(DEBUG, Typer::singleton().get(), L("!m==>!!searching for !yinst!! !b{}!!\n",
-                                                           inst_type_id.toString()));
-              const ID next_inst_type_id =
-                  current_obj->vid->add_component(inst_type_id);
+              LOG_WRITE(DEBUG, Typer::singleton().get(),
+                        L("!m==>!!searching for !yinst!! !b{}!!\n", inst_type_id.toString()));
+              const ID next_inst_type_id = current_obj->vid->add_component(inst_type_id);
               maybe = ROUTER_READ(next_inst_type_id);
               if(dt)
                 dt->emplace_back(current_obj->vid, id_p(next_inst_type_id), maybe);
@@ -101,8 +101,8 @@ namespace fhatos {
             LOG_WRITE(DEBUG, Typer::singleton().get(),
                       L("!m==>!!searching for !yinst!! !b{}!!\n", inst_type_id.toString()));
             const ID next_inst_type_id = current_obj->tid->no_query().equals(*OBJ_FURI)
-                                           ? inst_type_id // drop back to flat namespace
-                                           : ID(current_obj->tid->no_query().add_component(inst_type_id));
+                                             ? inst_type_id // drop back to flat namespace
+                                             : ID(current_obj->tid->no_query().add_component(inst_type_id));
             maybe = ROUTER_READ(next_inst_type_id);
             if(dt)
               dt->emplace_back(id_p(current_obj->tid->no_query()), id_p(next_inst_type_id), maybe);
@@ -110,7 +110,7 @@ namespace fhatos {
               return maybe;
             /////////////////////////////////////////////////////////////////////////////
             if(current_obj->tid->no_query().equals(
-                (current_obj = ROUTER_READ(current_obj->tid->no_query()))->tid->no_query())) {
+                   (current_obj = ROUTER_READ(current_obj->tid->no_query()))->tid->no_query())) {
               // infinite loop (i.e. base type)
               return noobj();
             }
@@ -119,7 +119,7 @@ namespace fhatos {
         //////////////////////////////////////
         //////////////////////////////////////
         /////////////////////////////////////
-        DerivationTree *dt = nullptr; //make_unique<DerivationTree>();
+        DerivationTree *dt = nullptr; // make_unique<DerivationTree>();
         if(dt)
           dt->emplace_back(id_p(""), id_p(""), Obj::to_noobj());
         const ID inst_type_id = ROUTER_RESOLVE(static_cast<fURI>(*inst->tid));
@@ -150,12 +150,10 @@ namespace fhatos {
                   counter = std::get<1>(oir)->empty() ? 0 : counter + 1;
                   if(counter != 0) {
                     string indent = StringHelper::repeat(counter, "-").append("!g>!!");
-                    derivation_string.append(StringHelper::format(
-                        "\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
-                        indent.c_str(),
-                        std::get<0>(oir)->toString().c_str(),
-                        std::get<1>(oir)->toString().c_str(),
-                        std::get<2>(oir)->toString().c_str()));
+                    derivation_string.append(StringHelper::format("\n\t!m%-8s!g[!b%-15s!g] !b%-30s!! !m=>!m !b%-35s!!",
+                                                                  indent.c_str(), std::get<0>(oir)->toString().c_str(),
+                                                                  std::get<1>(oir)->toString().c_str(),
+                                                                  std::get<2>(oir)->toString().c_str()));
                   }
                 }
               }
@@ -167,13 +165,11 @@ namespace fhatos {
           ////////////////////////////////////////////////////////////////////////////////
         }
         if(final_inst->is_inst()) {
-          LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n",
-              final_inst->toString().c_str(),
-              inst->toString().c_str(),
-              "SIGNATURE HERE");
+          LOG(TRACE, "merging resolved inst into provide inst\n\t\t%s => %s [!m%s!!]\n", final_inst->toString().c_str(),
+              inst->toString().c_str(), "SIGNATURE HERE");
           const auto merged_args = Obj::to_inst_args();
           int counter = 0;
-          for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
+          for(const auto &[k, v]: *final_inst->inst_args()->rec_value()) {
             if(inst->has_arg(k))
               merged_args->rec_value()->insert({k, inst->arg(k)});
             else if(inst->is_indexed_args() && counter < inst->inst_args()->rec_value()->size())
@@ -184,24 +180,16 @@ namespace fhatos {
             ++counter;
           }
           // TODO: recurse off inst for all inst_arg getter/setters
-          final_inst = Obj::to_inst(
-              final_inst->inst_op(),
-              merged_args,
-              final_inst->inst_f(),
-              final_inst->inst_seed_supplier(),
-              final_inst->tid,
-              final_inst->vid);
+          final_inst = Obj::to_inst(final_inst->inst_op(), merged_args, final_inst->inst_f(),
+                                    final_inst->inst_seed_supplier(), final_inst->tid, final_inst->vid);
           /// TODO ^--- inst->vid);
         } else {
           final_inst = Obj::to_inst(
-              inst->inst_op(),
-              inst->inst_args(),
-              InstF(make_shared<Cpp>(
-                  [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
-                    return x->apply(lhs);
-                  })),
-              inst->inst_seed_supplier(),
-              inst->tid, inst->vid);
+              inst->inst_op(), inst->inst_args(),
+              InstF(make_shared<Cpp>([x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                return x->apply(lhs);
+              })),
+              inst->inst_seed_supplier(), inst->tid, inst->vid);
         }
         LOG_WRITE(DEBUG, lhs.get(), L(" !gresolved!! !yinst!! {} [!gEND!!]\n", final_inst->toString()));
         return final_inst;
@@ -213,6 +201,14 @@ namespace fhatos {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
       Compiler::boot_loading = false;
       return types_p;
+    }
+
+    void set_filters(std::vector<fURI>*filters) {
+      this->filters = filters;
+    }
+
+    void clear_filters() {
+      this->filters = nullptr;
     }
 
     void start_progress_bar(const uint16_t size) {
@@ -230,24 +226,37 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void save_type(const ID &type_id, const Obj_p &type_def) const {
-      try {
-        const Obj_p current = ROUTER_READ(type_id);
-        if(type_progress_bar_) {
-          ROUTER_WRITE(type_id, type_def, true);
-          type_progress_bar_->incr_count(type_id.toString());
-          if(type_progress_bar_->done())
-            ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()), true);
-        } else {
-          ROUTER_WRITE(type_id, type_def, true);
-          if(current->is_noobj()) {
-            LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString()));
-          } else {
-            LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
+      bool allow = nullptr == this->filters || this->filters->empty();
+      if(!allow) {
+        for(const fURI &furi: *this->filters) {
+          if(type_id.matches(furi)) {
+            allow = true;
+            break;
           }
         }
-      } catch(const fError &e) {
-        LOG_WRITE(ERROR, this, L("{}", e.what()));
       }
+      if(allow) {
+        try {
+          const Obj_p current = ROUTER_READ(type_id);
+          if(type_progress_bar_) {
+            ROUTER_WRITE(type_id, type_def, true);
+            type_progress_bar_->incr_count(type_id.toString());
+          } else {
+            ROUTER_WRITE(type_id, type_def, true);
+            if(current->is_noobj()) {
+              LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString()));
+            } else {
+              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
+            }
+          }
+        } catch(const fError &e) {
+          LOG_WRITE(ERROR, this, L("{}", e.what()));
+        }
+      } else if(type_progress_bar_) {
+        type_progress_bar_->incr_dropped_count(type_id.toString());
+      }
+      if(type_progress_bar_ && type_progress_bar_->done())
+        ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()), true);
     }
 
     bool is_type_of(const ID_p &is_type_id, const ID_p &of_type_id, List<ID_p> *derivation_tree = nullptr) {

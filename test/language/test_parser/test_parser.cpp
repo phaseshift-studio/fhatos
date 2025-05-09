@@ -19,11 +19,12 @@
 #ifndef fhatos_test_parser_hpp
 #define fhatos_test_parser_hpp
 
-#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_COMPILER
 #define FOS_DEPLOY_SHARED_MEMORY
 
 #include "../../test_fhatos.hpp"

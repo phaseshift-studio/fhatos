@@ -22,6 +22,7 @@
 #include "boot_config_loader.hpp"
 #include "fhatos.hpp"
 #include "lang/mmadt/parser.hpp"
+#include "model/fos/fos_obj.hpp"
 #include "model/fos/io/fs/fs.hpp"
 #include "model/fos/sys/memory/memory.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
@@ -36,10 +37,14 @@
 namespace fhatos {
   class Kernel {
   public:
+    Obj_p boot_config;
+
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
       return kernel_p;
     }
+
+    static Obj_p &boot() { return Kernel::build().get()->boot_config; }
 
     static ptr<Kernel> with_log_level(const LOG_TYPE level) {
       LOG_LEVEL = level;
@@ -125,12 +130,60 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) { return Kernel::build(); }
+    static ptr<Kernel> mount_core_structures(const Pattern &sys_pattern = "/sys/#",
+                                             const Pattern &mnt_pattern = "/mnt/#",
+                                             const Pattern &boot_pattern = "/boot/#",
+                                             const Pattern &fos_pattern = "/fos/#",
+                                             const Pattern &mmadt_pattern = "/mmadt/#") {
+      Kernel::mount(Heap<>::create(sys_pattern))
+          ->mount(Heap<>::create(mnt_pattern))
+          ->mount(Heap<>::create(boot_pattern, id_p(mnt_pattern.retract_pattern().extend("boot"))))
+          ->mount(Heap<>::create(fos_pattern, id_p(mnt_pattern.retract_pattern().extend("fos"))))
+          ->mount(Heap<>::create(mmadt_pattern, id_p(mnt_pattern.retract_pattern().extend("mmadt"))));
+      return Kernel::build();
+    }
 
-    static ptr<Kernel> using_router(const ptr<Router> &router) { return Kernel::build(); }
+    static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
+      const Obj_p config = Kernel::boot()->rec_get(scheduler_config_id);
+      const ptr<Scheduler> scheduler = Scheduler::singleton(config->rec_get("id")->uri_value());
+      scheduler->obj_set("config", config->rec_get("config"));
+      Scheduler::singleton()->import();
+      LOG_WRITE(INFO, Scheduler::singleton().get(),
+                L("!yscheduler configured!!\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      Scheduler::import();
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> using_router(const ID &router_config_id) {
+      const Obj_p config = Kernel::boot()->rec_get(router_config_id);
+      const ptr<Router> router = Router::singleton(config->rec_get("id")->uri_value());
+      router->obj_set("config", config->rec_get("config"));
+      Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
+      Router::singleton()->import();
+      LOG_WRITE(INFO, Router::singleton().get(),
+                L("!yrouter configured!!\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> drop_config(const ID &id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+      Kernel::boot()->obj_set(id, Obj::to_noobj());
+      LOG_WRITE(INFO, Kernel::boot().get(), L("!b{} !yboot config!! dropped\n", id.toString()));
+      return Kernel::build();
+    }
 
     static ptr<Kernel> import(const void *) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+      // TODO: arg should take a tid
+      // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> import2(const ID &import_id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+      const Lst_p uris = Kernel::boot()->rec_get(import_id);
+      fOS::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
+      mmADT::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
       // TODO: arg should take a tid
       // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
       return Kernel::build();
@@ -166,13 +219,21 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> using_boot_config(const Obj_p &boot_config) {
+      Kernel::build().get()->boot_config = boot_config;
+      LOG_WRITE(INFO, Kernel::boot().get(), L("!yboot loader config!!:\n"));
+      string boot_str = PrintHelper::pretty_print_obj(boot_config, 4);
+      StringHelper::prefix_each_line(FOS_TAB_2, &boot_str);
+      LOG_WRITE(INFO, Kernel::boot().get(), L("\n{}\n", boot_str));
+      return Kernel::build();
+    }
+
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       boot_config_obj_copy_len = 0;
-      const ID_p config_id = id_p(FOS_BOOT_CONFIG_VALUE_ID);
       Obj_p config_obj = Obj::to_noobj();
-      // boot from obj encoded file system file
-      if(!boot_config_loader.equals(fURI(FOS_BOOT_CONFIG_HEADER_URI))) {
+      // boot from obj encoded in filesystem
+      if(!boot_config_loader.equals(FOS_BOOT_CONFIG_HEADER_URI)) {
         config_obj = fhatos::FS::load_boot_config(boot_config_loader);
         if(!config_obj->is_noobj()) {
           LOG_WRITE(INFO, Router::singleton().get(),
@@ -185,42 +246,33 @@ namespace fhatos {
         if(boot_config_obj_len > 0) {
           boot_config_obj_copy = boot_config_obj;
           boot_config_obj_copy_len = boot_config_obj_len;
-          LOG_WRITE(INFO, Router::singleton().get(),
-                    L("!b" FOS_BOOT_CONFIG_HEADER_URI " !yboot config header!! loaded (size: {} bytes)\n",
-                      boot_config_obj_copy_len));
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-          Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
-                                                    ->inst_f([](const Obj_p &, const InstArgs &) {
-                                                      mmadt::Parser::load_boot_config();
-                                                      return Obj::to_noobj();
-                                                    })
-                                                    ->create(),
-                                                Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
-          config_obj = Router::singleton()->read(*config_id);
+          config_obj =
+              Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
+                                                        ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                          mmadt::Parser::load_boot_config();
+                                                          return Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
+                                                        })
+                                                        ->create(),
+                                                    Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
+          Router::singleton()->write(FOS_BOOT_CONFIG_VALUE_ID, config_obj, true);
+          LOG_WRITE(INFO, Router::singleton().get(),
+                    L("!b{} !yboot config header!! loaded !g[!msize!!: {} bytes!g]!!\n", FOS_BOOT_CONFIG_HEADER_URI,
+                      boot_config_obj_copy_len));
         }
       }
       if(config_obj->is_noobj())
-        throw fError("!yboot loader config!! !rnot found!! in flash nor header");
-      /////
-      string boot_str = PrintHelper::pretty_print_obj(config_obj, 1);
-      StringHelper::prefix_each_line(FOS_TAB_1, &boot_str);
-      LOG_WRITE(INFO, Router::singleton().get(), L("\n{}\n", boot_str));
+        throw fError("!yboot loader config!! !rnot found!! in file system nor header");
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      return Kernel::build();
+      return Kernel::using_boot_config(config_obj);
     }
 
-    static ptr<Kernel> drop_config(const string &id) {
-      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID) + "/" + id, noobj());
-      LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot config!! dropped\n", id));
-      return Kernel::build();
-    }
 
     static void loop() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
-      LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
+      // Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
+      // LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! started\n", "main"));
       BOOTING = false;
       while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
