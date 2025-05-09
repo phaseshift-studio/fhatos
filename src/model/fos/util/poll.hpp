@@ -35,10 +35,6 @@ namespace fhatos {
       Thread(poll_obj, function) {
     }
 
-    static ptr<Poll> get_state(const Obj_p &poll_obj) {
-      return Model::get_state<Poll>(poll_obj);
-    }
-
     static ptr<Poll> create_state(const Obj_p &poll_obj) {
       return make_shared<Poll>(poll_obj, [](const Obj_p &poll_obj) {
         try {
@@ -71,7 +67,7 @@ namespace fhatos {
           }));
       InstBuilder::build(POLL_FURI->add_component("poll"))
           ->inst_f([](const Obj_p &poll, const InstArgs &) {
-            Poll::get_state(poll);
+            poll->get_model<Poll>();
             return poll;
           })
           ->save();

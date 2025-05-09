@@ -87,6 +87,7 @@ namespace fhatos {
               ->display_architecture();
         }
         kp->display_memory()
+            ->display_note("!r.!go!bO !ymounting !bkernel !ystructures!! !bO!go!r.!!")
             ->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
@@ -94,7 +95,7 @@ namespace fhatos {
             ->display_memory();
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yloading !bsystem !ytypes!! !bO!go!r.!!")
+        kp->display_note("!r.!go!bO !yconfiguring !bkernel !yobjs!! !bO!go!r.!!")
             ->using_scheduler("sys/scheduler")
             ->drop_config("sys/scheduler")
             ->using_router("sys/router")
@@ -103,10 +104,11 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
-        kp->display_note("!r.!go!bO !yloading !bfos/mmadt !ytypes!! !bO!go!r.!!")
+        kp->display_note("!r.!go!bO !ymounting !bfos/mmadt !ystructures!! !bO!go!r.!!")
             ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
             ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
+            ->display_note("!r.!go!bO !yimporting !bfos/mmadt !ytypes!! !bO!go!r.!!")
             ->import2("import")
             ->import(Processor::import())
             ->install(
@@ -116,8 +118,8 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         kp->display_note("!r.!go!bO !yfinalizing boot w/ !bsetup !yinst!! !bO!go!r.!!");
         LOG_WRITE(INFO, Kernel::boot().get(),
-                  L("!yloading setup!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
-        Kernel::boot()->rec_get("setup")->apply(Obj::to_noobj());
+                  L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
+        mmADT::delift(Kernel::boot()->rec_get("setup"))->apply(Obj::to_noobj());
         // Terminal::singleton("/io/terminal");
         // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));
         /*kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")

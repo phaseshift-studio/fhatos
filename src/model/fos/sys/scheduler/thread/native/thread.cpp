@@ -16,31 +16,29 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #ifdef NATIVE
+#include "../thread.hpp"
 #include <chrono>
 #include <thread>
-#include "../thread.hpp"
 #include "../../../../../../fhatos.hpp"
 #include "../../../../../../lang/obj.hpp"
 
 namespace fhatos {
 
   Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
-    thread_obj_(thread_obj),
-    thread_function_(thread_function),
-    handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {
-  }
+      Obj(*thread_obj), thread_function_(thread_function),
+      handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {}
 
   void Thread::halt() {
     if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {
       try {
         if(this->get_handler<std::thread *>()->get_id() != std::this_thread::get_id()
-          /*&& std::this_thread::get_id() == *scheduler_thread*/)
+           /*&& std::this_thread::get_id() == *scheduler_thread*/)
           xthread->join();
         else
           xthread->detach();
         delete xthread;
       } catch(const std::runtime_error &e) {
-        fError::create(this->thread_obj_->toString(), "unable to halt thread: %s", e.what());
+        fError::create(this->toString(), "unable to halt thread: %s", e.what());
       }
     }
   }
@@ -49,8 +47,6 @@ namespace fhatos {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
   }
 
-  void Thread::yield() {
-    std::this_thread::yield();
-  }
-}
+  void Thread::yield() { std::this_thread::yield(); }
+} // namespace fhatos
 #endif

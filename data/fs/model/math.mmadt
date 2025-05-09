@@ -1,4 +1,0 @@
-/type/int/even  -> |is(mod(2).eq(0))
-/type/int/odd   -> |is(mod(2).neq(0))
-/type/lst/cmplx -> |[real[_],real[_]]
---- /type/inst/add  -> |-<[is(cmplx),add(_)]>-

@@ -220,22 +220,17 @@ namespace fhatos {
   void *Router::import() {
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(), RETAIN);
     Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
-    /*  Router::singleton()->write(
-          Router::singleton()->vid->retract().extend("lib/msg"),
-          Obj::to_rec(
-              {{"target", Obj::to_type(URI_FURI)}, {"payload", Obj::to_bcode()}, {"retain", Obj::to_type(BOOL_FURI)}}));
-      Router::singleton()->write(
-          Router::singleton()->vid->retract().extend("lib/sub"),
-          Obj::to_rec(
-              {{"source", Obj::to_type(URI_FURI)}, {"pattern", Obj::to_type(URI_FURI)}, {":on_recv",
-      Obj::to_bcode()}}));*/
-    /*  InstBuilder::build(Router::singleton()->vid->extend(":detach"))
-          ->domain_range(URI_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-          ->type_args(x(0, ___()))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            Router::singleton()->get_structure(p_p(args->arg(0)->uri_value()))->stop();
-            return noobj();
-          })->save();*/
+    InstBuilder::build(Router::singleton()->vid->add_component("mount"))
+        ->inst_args(rec({{"structure", Obj::to_bcode()}}))
+        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const Obj_p structure_obj = args->arg("structure");
+          const Structure_p s = structure_obj->get_model<Structure>()->shared_from_this();
+          Router::singleton()->attach(s);
+          return s;
+          throw fError("!b%s!! is not a structure", structure_obj->tid->toString().c_str());
+        })
+        ->save();
     /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
          ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
          ->inst_f([](const Obj_p &, const InstArgs &args) {

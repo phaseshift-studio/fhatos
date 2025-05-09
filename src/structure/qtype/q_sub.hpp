@@ -58,7 +58,7 @@ namespace fhatos {
       if(retain && POSITION::PRE == pos) {
         // unsubscribe
         const ID source_id =
-            Thread::current_thread().has_value() ? *Thread::current_thread().value()->thread_obj_->vid : *SCHEDULER_ID;
+            Thread::current_thread().has_value() ? *Thread::current_thread().value()->vid : *SCHEDULER_ID;
         this->subscriptions_->remove_if([this, &furi_no_query, &source_id](const Subscription_p &sub) {
           const bool removing = sub->source()->equals(source_id) && (sub->pattern()->matches(furi_no_query));
           if(removing)
@@ -73,7 +73,7 @@ namespace fhatos {
             this->subscriptions_->push_back(make_shared<Subscription>(obj));
           } else {
             this->subscriptions_->push_back(Subscription::create(
-                (Thread::current_thread().has_value() ? Thread::current_thread().value()->thread_obj_->vid
+                (Thread::current_thread().has_value() ? Thread::current_thread().value()->vid
                                                       : SCHEDULER_ID),
                 p_p(furi_no_query), obj));
           }

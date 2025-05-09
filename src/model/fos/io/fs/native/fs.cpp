@@ -34,7 +34,14 @@ namespace fhatos {
 
   FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
       Structure(pattern, id_p(FS_TID), value_id, config),
-      root(fURI("data").extend(config->rec_get("root")->uri_value())) {}
+      root(fURI("data").extend(config->rec_get("root")->uri_value())) {
+    string root_path_str = this->root.toString();
+    const auto root_path =
+        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "./")));
+    if(!fs::exists(root_path))
+      fs::create_directories(root_path);
+    //this->rec_value()->insert_or_assign(vri("config/root"), vri(root_path));
+  }
 
   void FS::setup() {
     Structure::setup();
@@ -45,7 +52,7 @@ namespace fhatos {
     const Obj_p root = config->rec_get("root")->or_else(vri("."));
     string root_path_str = root->uri_value().toString();
     const auto root_path =
-        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, ".")));
+        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "./")));
     if(!fs::exists(root_path))
       fs::create_directories(root_path);
     config->rec_value()->insert_or_assign(vri("root"), vri(root_path));
@@ -55,21 +62,22 @@ namespace fhatos {
   Obj_p FS::load_boot_config(const fURI &boot_config) {
     const fs::path data_extend_path = fs::path(string("data").append(boot_config.toString()));
     try {
-     const fs::path boot_path = fs::canonical(data_extend_path);
-     LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
-     if(fs::is_regular_file(boot_path)) {
-       auto infile = std::ifstream(boot_path, ios::in);
-       if(!infile.is_open())
-         throw fError("unable to read from boot config from !b%s!!", boot_path.c_str());
-       const auto content = string(std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>());
-       infile.close();
-       const auto proto = make_unique<mmadt::Parser>();
-       const Obj_p boot_obj = proto->parse(content.c_str());
-       return boot_obj;
-     }
-   } catch(std::exception&) {
-     LOG_WRITE(ERROR,Obj::to_noobj().get(), L("!yboot config!! file !rnot found!!: !b!-{}!!\n", data_extend_path.c_str()));
-   }
+      const fs::path boot_path = fs::canonical(data_extend_path);
+      LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
+      if(fs::is_regular_file(boot_path)) {
+        auto infile = std::ifstream(boot_path, ios::in);
+        if(!infile.is_open())
+          throw fError("unable to read from boot config from !b%s!!", boot_path.c_str());
+        const auto content = string(std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>());
+        infile.close();
+        const auto proto = make_unique<mmadt::Parser>();
+        const Obj_p boot_obj = proto->parse(content.c_str());
+        return boot_obj;
+      }
+    } catch(std::exception &) {
+      LOG_WRITE(ERROR, Obj::to_noobj().get(),
+                L("!yboot config!! file !rnot found!!: !b!-{}!!\n", data_extend_path.c_str()));
+    }
     return Obj::to_noobj();
   }
 

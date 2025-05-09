@@ -36,7 +36,7 @@
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class Console final : public Thread, public Rec {
+  class Console final : public Thread {
   protected:
     string line_;
     bool new_input_ = true;
@@ -44,7 +44,7 @@ namespace fhatos {
     bool first = true;
 
   public:
-    explicit Console(const Obj_p &console_obj) : Thread(console_obj), Rec(*console_obj) {}
+    explicit Console(const Obj_p &console_obj) : Thread(console_obj) {}
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
       return Obj::to_rec({{"config", console_config}}, CONSOLE_FURI, id_p(id));
@@ -59,6 +59,10 @@ namespace fhatos {
       this->tracker_.clear();
       this->line_.clear();
       this->new_input_ = true;
+    }
+
+    ptr<Console> shared_from_this() {
+      return std::dynamic_pointer_cast<Console>(const_pointer_cast<Obj>(Obj::shared_from_this()));
     }
 
     ///// printers
@@ -126,8 +130,8 @@ namespace fhatos {
     }
 
     static void *import() {
-      MODEL_CREATOR->insert_or_assign(*CONSOLE_FURI,
-                                      [](const Obj_p &console_obj) { return Console::create_state(console_obj); });
+      MODEL_CREATOR2->insert_or_assign(*CONSOLE_FURI,
+                                       [](const Obj_p &console_obj) { return make_shared<Console>(console_obj); });
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI,
@@ -136,8 +140,7 @@ namespace fhatos {
                                       ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
                                       ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
                                         // static_cast necessary for esp32
-                                        const auto console_state =
-                                            static_cast<Console *>(get_state<Thread>(console_obj).get());
+                                        Console *console_state = console_obj->get_model<Console>();
                                         if(console_state->first) {
                                           console_state->first = false;
                                           Thread::delay_current_thread(300);
@@ -213,8 +216,8 @@ namespace fhatos {
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
-            static_cast<Console *>(console_state.get())->clear();
+            Console *console_state = console_obj->get_model<Console>();
+            console_state->clear();
             return console_obj;
           })
           ->save();
@@ -224,8 +227,8 @@ namespace fhatos {
           ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
             string code = args->arg("code")->str_value();
             StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            const ptr<Thread> console_state = Model::get_state<Thread>(console_obj);
-            static_cast<Console *>(console_state.get())->process_line(code);
+            const Console *console_state = console_obj->get_model<Console>();
+            console_state->process_line(code);
             return Obj::to_noobj();
           })
           ->save();

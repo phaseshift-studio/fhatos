@@ -10,20 +10,23 @@ basic boot_config obj
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
-    heap::mount(id=>/mnt/var,pattern=><+/#>);
-    fs::mount(id=>/mnt/fs,pattern=>/fs/#,config=>[root=>/fs]);
+    heap[[pattern=><+/#>]]@/mnt/var;
+    fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs;
+
+    /sys/router::mount(@/mnt/var);
+    /sys/router::mount(@/mnt/fs);
     [=>]-<[
         as(|log).at(|/io/log),
         as(|terminal).at(|/io/terminal),
-        as(|console).at(|/io/console)-<[/sys/scheduler::spawn(_)],
-        +[pin=>gpio[5],on_push=>^(print('button pushed'))].as(|button).at(|z)-<[/sys/scheduler::bundle(_)]];
+        as(|console).at(|/io/console)./sys/scheduler::spawn(_),
+        +[pin=>gpio[5],on_push=>^(print('button pushed'))].as(|button).at(|/io/z)./sys/scheduler::bundle(_)];
     ===
     log[[=>]]@/io/log;
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
-    button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@z;
+    button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@/io/z;
     /sys/scheduler::spawn(@/io/console);
-    /sys/scheduler::bundle(@z);
-    ===
+    /sys/scheduler::bundle(@/io/z);
+            ===
  ]
 ]@/boot/config

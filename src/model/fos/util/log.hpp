@@ -27,6 +27,7 @@
 #include "../../../lang/obj.hpp"
 #include "../../../model/fos/sys/scheduler/thread/mutex.hpp"
 #include "../../../util/obj_helper.hpp"
+#include "../../model.hpp"
 
 #define OBJ_ID_WRAP "!g[!m{}!g]!! "
 #define SYS_ID_WRAP "!g[!y{}!g]!! "
@@ -142,6 +143,8 @@ namespace fhatos {
 
   public:
     static void *import() {
+      MODEL_CREATOR->insert_or_assign(*LOG_FURI,
+                                     [](const Obj_p &log_obj) { return make_shared<Log>(*log_obj->vid, log_obj->rec_get("config")); });
       ////////////////////////// TYPE ////////////////////////////////
       TYPE_SAVER(LOG_FURI->extend("level"),
                  __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)

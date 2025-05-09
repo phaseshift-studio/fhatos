@@ -62,7 +62,7 @@ namespace fhatos {
     }*/
     thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
     this->obj_set("spawn", thread_uris);
-    Thread::get_state(thread_obj);
+    // Thread::get_state(thread_obj);
     LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
     Subscription::create(
         this->vid, p_p(thread_obj->vid->extend("halt")),
@@ -137,13 +137,24 @@ namespace fhatos {
     Scheduler::singleton()->obj_set("config", ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID "/scheduler")->or_else(noobj()));
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
-        ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p thread_obj = args->arg("thread");
-          Scheduler::singleton()->spawn_thread(thread_obj);
-          return thread_obj;
+          ptr<Thread> thread = thread_obj->get_model<Thread>()->shared_from_this();
+          Scheduler::singleton()->spawn_thread(thread);
+          return thread;
         })
         ->save();
+
+    /* InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
+         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
+         ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
+         ->inst_f([](const Obj_p &, const InstArgs &args) {
+           const Obj_p thread_obj = args->arg("thread");
+           Scheduler::singleton()->spawn_thread(thread_obj);
+           return thread_obj;
+         })
+         ->save();*/
     InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_args(rec({{"fiber", Obj::to_bcode()}}))

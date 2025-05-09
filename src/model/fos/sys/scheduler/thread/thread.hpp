@@ -31,9 +31,8 @@ namespace fhatos {
   static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p(FOS_URI "/sys/thread");
 
-  class Thread : public Model<Thread> {
+  class Thread : public Obj {
   public:
-    Obj_p thread_obj_;
     Consumer<Obj_p> thread_function_;
     Any handler_;
 
@@ -81,6 +80,10 @@ namespace fhatos {
 
     void halt();
 
+    ptr<Thread> shared_from_this() {
+      return std::dynamic_pointer_cast<Thread>(const_pointer_cast<Obj>(Obj::shared_from_this()));
+    }
+
     explicit Thread(
         const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
           try {
@@ -98,8 +101,8 @@ namespace fhatos {
                                                                  id_p(thread_obj->vid->extend("loop"))));
             const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
             LOG_WRITE(INFO, thread_obj.get(),
-                L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                  thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
+                      L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                        thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
             while(!thread_obj->obj_get("halt")->or_else_(false)) {
               FEED_WATCHDOG();
               try {
@@ -109,25 +112,26 @@ namespace fhatos {
               }
             }
             try {
-              Thread::get_state(thread_obj)->halt();
-              MODEL_STATES::singleton()->remove(*thread_obj->vid);
+              thread_obj->get_model<Thread>()->halt();
+              thread_obj->delete_model();
 
             } catch(const fError &e) {
-              Thread::drop_state(thread_obj);
+              thread_obj->delete_model();
               throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
             }
             LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
           } catch(const fError &e) {
-            Thread::drop_state(thread_obj);
+            thread_obj->delete_model();
             throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
           }
         });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }
 
+
     static void *import() {
-      const Rec_p thread_t =
-          Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}});
+      MODEL_CREATOR2->insert_or_assign(*THREAD_FURI, [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });
+      const Rec_p thread_t = Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}});
       Typer::singleton()->save_type(*THREAD_FURI, thread_t);
       InstBuilder::build(THREAD_FURI->add_component("spawn"))
           ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})

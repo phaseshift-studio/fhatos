@@ -74,16 +74,19 @@ namespace fhatos {
     template<typename STRUCTURE>
     static void *import_structure(const ID &type_id) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern", Obj::to_type(URI_FURI)}}));
-      InstBuilder::build(id_p(type_id.add_component("mount")))
-          ->inst_args("pattern?uri", __(), "id", __(), "config", __().else_(Obj::to_rec()))
-          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+      Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern?uri", __()}}));
+      MODEL_CREATOR2->insert_or_assign(type_id, [](const Obj_p &structure_obj) {
+        return Structure::create<STRUCTURE>(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
+                                            structure_obj->rec_get("config")->or_else(Obj::to_rec()));
+      });
+      InstBuilder::build(Router::singleton()->vid->add_component("mount"))
+          ->inst_args(rec({{"structure", Obj::to_bcode()}}))
+          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Pattern pattern = args->arg("pattern")->uri_value();
-            const ID_p id = args->arg("id")->is_noobj() ? nullptr : id_p(args->arg("id")->uri_value());
-            const Rec_p config = args->arg("config");
-            const ptr<STRUCTURE> structure = Structure::create<STRUCTURE>(pattern, id, config);
+            const Obj_p structure_obj = args->arg("structure");
+            const ptr<Structure> structure = structure_obj->get_model<Structure>()->shared_from_this();
             Router::singleton()->attach(structure);
+            Router::singleton()->loop();
             return structure;
           })
           ->save();
