@@ -31,10 +31,11 @@ namespace fhatos {
   static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p(FOS_URI "/sys/thread");
 
-  class Thread : public Obj {
+  class Thread {
   public:
-    Consumer<Obj_p> thread_function_;
+    Consumer<std::pair<Thread *, Obj_p>> thread_function_;
     Any handler_;
+    Obj_p thread_obj_;
 
     static Option<Thread *> current_thread() {
       if(this_thread.load())
@@ -45,7 +46,7 @@ namespace fhatos {
     }
 
     template<typename HANDLER>
-    HANDLER get_handler() {
+    HANDLER get_handler() const {
       return std::any_cast<HANDLER>(this->handler_);
     }
 
@@ -78,59 +79,51 @@ namespace fhatos {
 #endif
     }
 
-    void halt();
-
-    ptr<Thread> shared_from_this() {
-      return std::dynamic_pointer_cast<Thread>(const_pointer_cast<Obj>(Obj::shared_from_this()));
-    }
+    void halt() const;
 
     explicit Thread(
-        const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function = [](const Obj_p &thread_obj) {
-          try {
-            // const ptr<Thread> current = Thread::get_state(thread_obj);
-            thread_obj->obj_set("halt", dool(false));
-            const int stack_size =
-                Memory::get_stack_size(thread_obj, "config/stack_size",
-                                       ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
-            thread_obj->obj_set("config/stack_size", jnt(stack_size));
-            const Obj_p thread_loop_obj =
-                thread_obj->is_rec() && thread_obj->has("loop")
-                    ? thread_obj->obj_get("loop")
-                    : Compiler(false, false)
-                          .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
-                                                                 id_p(thread_obj->vid->extend("loop"))));
-            const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
-            LOG_WRITE(INFO, thread_obj.get(),
-                      L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                        thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
-            while(!thread_obj->obj_get("halt")->or_else_(false)) {
-              FEED_WATCHDOG();
+        const Obj_p &thread_obj,
+        const Consumer<std::pair<Thread *, Obj_p>> &thread_function =
+            [](const std::pair<const Thread *, const Obj_p &> &pair) {
               try {
-                thread_loop_inst->apply(thread_obj);
+                // const ptr<Thread> current = Thread::get_state(thread_obj);
+                pair.second->obj_set("halt", dool(false));
+                const int stack_size =
+                    Memory::get_stack_size(pair.second, "config/stack_size",
+                                           ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
+                pair.second->obj_set("config/stack_size", jnt(stack_size));
+                const Obj_p thread_loop_obj =
+                    pair.second->is_rec() && !pair.second->rec_get("loop")->is_noobj()
+                        ? pair.second->obj_get("loop")
+                        : Compiler(false, false)
+                              .resolve_inst(pair.second, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                      id_p(pair.second->vid->extend("loop"))));
+                const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
+                LOG_WRITE(INFO, pair.second.get(),
+                          L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                            thread_loop_inst->toString(), pair.second->obj_get("config/stack_size")->toString()));
+                while(!pair.second->obj_get("halt")->or_else_(false)) {
+                  FEED_WATCHDOG();
+                  try {
+                    thread_loop_inst->apply(pair.second);
+                  } catch(const fError &e) {
+                    LOG_WRITE(ERROR, pair.second.get(), L("!rthread loop error!!: {}\n", e.what()));
+                  }
+                }
               } catch(const fError &e) {
-                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread error!!: {}\n", e.what()));
+                LOG_WRITE(ERROR, pair.second.get(), L("!rthread construction error!!: {}\n", e.what()));
               }
-            }
-            try {
-              thread_obj->get_model<Thread>()->halt();
-              thread_obj->delete_model();
-
-            } catch(const fError &e) {
-              thread_obj->delete_model();
-              throw fError::create(thread_obj->vid->toString(), "unable to stop thread: %s", e.what());
-            }
-            LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
-          } catch(const fError &e) {
-            thread_obj->delete_model();
-            throw fError::create(thread_obj->vid->toString(), "unable to process thread: %s", e.what());
-          }
-        });
+              pair.second->delete_model();
+              LOG_WRITE(INFO, pair.second.get(), L("!ythread!! stopped\n"));
+              pair.first->halt();
+            });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }
 
 
     static void *import() {
-      MODEL_CREATOR2->insert_or_assign(*THREAD_FURI, [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });
+      MODEL_CREATOR2->insert_or_assign(*THREAD_FURI,
+                                       [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });
       const Rec_p thread_t = Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}});
       Typer::singleton()->save_type(*THREAD_FURI, thread_t);
       InstBuilder::build(THREAD_FURI->add_component("spawn"))

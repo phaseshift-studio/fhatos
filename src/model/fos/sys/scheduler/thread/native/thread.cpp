@@ -24,11 +24,12 @@
 
 namespace fhatos {
 
-  Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
-      Obj(*thread_obj), thread_function_(thread_function),
-      handler_(std::make_any<std::thread *>(new std::thread(thread_function, thread_obj))) {}
+  Thread::Thread(const Obj_p &thread_obj, const Consumer<std::pair<Thread *, Obj_p>> &thread_function) :
+      thread_obj_(thread_obj), thread_function_(thread_function),
+      handler_(std::make_any<std::thread *>(
+          new std::thread(thread_function, std::pair<Thread *, Obj_p>(this, thread_obj)))) {}
 
-  void Thread::halt() {
+  void Thread::halt() const {
     if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {
       try {
         if(this->get_handler<std::thread *>()->get_id() != std::this_thread::get_id()
@@ -38,9 +39,10 @@ namespace fhatos {
           xthread->detach();
         delete xthread;
       } catch(const std::runtime_error &e) {
-        fError::create(this->toString(), "unable to halt thread: %s", e.what());
+        fError::create(this->thread_obj_->toString(), "unable to halt thread: %s", e.what());
       }
     }
+    delete this;
   }
 
   void Thread::delay(const uint64_t milliseconds) {

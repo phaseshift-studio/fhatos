@@ -28,11 +28,11 @@
 namespace fhatos {
   const ID_p POLL_FURI = id_p(FOS_URI "/util/poll");
 
-  class Poll final : public Thread {
+  class Poll final : public Rec {
 
   public:
     explicit Poll(const Obj_p &poll_obj, const Consumer<Obj_p> &function) :
-      Thread(poll_obj, function) {
+      Rec(*poll_obj) {
     }
 
     static ptr<Poll> create_state(const Obj_p &poll_obj) {

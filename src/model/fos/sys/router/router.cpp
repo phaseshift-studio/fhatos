@@ -194,7 +194,7 @@ namespace fhatos {
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->append(furi, obj);
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
+      LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
   }
 
@@ -211,7 +211,7 @@ namespace fhatos {
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       structure->write(furi, obj, retain);
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
+      LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
     /*if(furi->matches(this->vid->extend("#")))
       this->stale = true;*/

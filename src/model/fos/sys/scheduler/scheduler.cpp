@@ -62,6 +62,7 @@ namespace fhatos {
     }*/
     thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
     this->obj_set("spawn", thread_uris);
+    const Thread *thread = new Thread(thread_obj);
     // Thread::get_state(thread_obj);
     LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +80,7 @@ namespace fhatos {
                 new_thread_ids->lst_add(thread_id);
               } else {
                 ROUTER_WRITE(args->arg("target")->uri_value().query("sub"), Obj::to_noobj(), true);
-                LOG_WRITE(INFO, Scheduler::singleton().get(), L("!ythread !b{}!! killed\n", thread_id->toString()));
+                LOG_WRITE(INFO, Scheduler::singleton().get(), L("!ythread !b{}!! stopped\n", thread_id->toString()));
               }
             }
             Scheduler::singleton()->obj_set("spawn", new_thread_ids);
@@ -141,9 +142,9 @@ namespace fhatos {
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p thread_obj = args->arg("thread");
-          ptr<Thread> thread = thread_obj->get_model<Thread>()->shared_from_this();
-          Scheduler::singleton()->spawn_thread(thread);
-          return thread;
+          // ptr<Thread> thread = thread_obj->get_model<Thread>()->shared_from_this();
+          Scheduler::singleton()->spawn_thread(thread_obj);
+          return thread_obj;
         })
         ->save();
 

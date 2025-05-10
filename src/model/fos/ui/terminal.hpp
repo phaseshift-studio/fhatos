@@ -26,15 +26,15 @@ namespace fhatos {
   static const ID_p TERMINAL_FURI = id_p(FOS_URI "/ui/terminal");
 
   class Terminal final : public Rec {
-  protected:
-    explicit Terminal(const ID &id) :
-      Rec({}, OType::REC, TERMINAL_FURI, id_p(id)) {
-    }
-
   public:
+    explicit Terminal(const ID &id) : Rec({}, OType::REC, TERMINAL_FURI, id_p(id)) {}
+
+
     static void *import() {
+      MODEL_CREATOR2->insert_or_assign(
+          *TERMINAL_FURI, [](const Obj_p &console_obj) { return make_shared<Terminal>(*console_obj->vid); });
       Typer::singleton()->save_type(*TERMINAL_FURI, Obj::to_rec());
-      InstBuilder::build(TERMINAL_FURI->add_component(":stdout"))
+      InstBuilder::build(TERMINAL_FURI->add_component("stdout"))
           ->domain_range(TERMINAL_FURI, {0, 1}, OBJ_FURI, {0, 0})
           ->inst_args(rec({{"output?str", Obj::to_bcode()}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
@@ -42,12 +42,22 @@ namespace fhatos {
             const Str_p output = args->arg("output")->clone();
             STD_OUT_DIRECT(output);
             return noobj();
-          })->save();
-      InstBuilder::build(TERMINAL_FURI->add_component(":stdin"))
+          })
+          ->save();
+      InstBuilder::build(TERMINAL_FURI->add_component("stdin"))
           ->domain_range(TERMINAL_FURI, {0, 1}, STR_FURI, {0, 1})
           ->inst_args(rec({{"until?str", __().else_(str("\n"))}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
             return STD_IN_LINE_DIRECT(args->arg("until")->str_value()[0]);
+          })
+          ->save();
+      InstBuilder::build(TERMINAL_FURI->add_component("loop"))
+          ->domain_range(TERMINAL_FURI, {1, 1}, OBJ_FURI, {0, 1})
+          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+            if(const int c = printer<>()->read(); c > -1) {
+              STD_OUT_DIRECT(str(string(c, 1)));
+            }
+            return Obj::to_noobj();
           })
           ->save();
       return nullptr;
@@ -62,8 +72,8 @@ namespace fhatos {
       static auto mutex_ = Mutex();
       auto lock = std::lock_guard(mutex_);
       auto output = string(str->str_value());
-      //if(!ellipsis->is_noobj())
-      //  StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
+      // if(!ellipsis->is_noobj())
+      //   StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
       printer<>()->print(output.c_str());
     }
 
@@ -80,8 +90,8 @@ namespace fhatos {
       int c = EOF;
       while(c != until) {
         while(/*!ROUTER_READ(SCHEDULER_ID->extend("halt"))->or_else(dool(false))->bool_value() &&*/
-          // TODO: create a global shutdown flag at /sys/halt
-          -1 == (c = printer<>()->read())) {
+              // TODO: create a global shutdown flag at /sys/halt
+              -1 == (c = printer<>()->read())) {
           FEED_WATCHDOG();
           Thread::delay_current_thread(1);
         }

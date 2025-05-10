@@ -69,7 +69,7 @@ namespace fhatos {
 
     Obj_p query(const fURI &pattern) {
       const Objs_p results;
-      const ID_p source = Thread::current_thread().value()->vid;
+      const ID_p source = Thread::current_thread().value()->thread_obj_->vid;
       this->subscribe(Subscription::create(source, p_p(pattern), [&results](const Obj_p &obj, const InstArgs &) {
         results->add_obj(obj);
         return Obj::to_noobj();

@@ -36,7 +36,7 @@
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class Console final : public Thread {
+  class Console final : public Rec {
   protected:
     string line_;
     bool new_input_ = true;
@@ -44,14 +44,14 @@ namespace fhatos {
     bool first = true;
 
   public:
-    explicit Console(const Obj_p &console_obj) : Thread(console_obj) {}
+    explicit Console(const Obj_p &console_obj) : Rec(*console_obj) {}
 
     static Obj_p create(const ID &id, const Rec_p &console_config) {
       return Obj::to_rec({{"config", console_config}}, CONSOLE_FURI, id_p(id));
     }
 
-    static ptr<Thread> create_state(const Obj_p &console_obj) {
-      ptr<Thread> console_state = make_shared<Console>(console_obj);
+    static ptr<Console> create_state(const Obj_p &console_obj) {
+      const auto console_state = make_shared<Console>(console_obj);
       return console_state;
     }
 
@@ -69,7 +69,7 @@ namespace fhatos {
     void write_stdout(const Str_p &s) const {
       if(this->has("config/terminal/stdout")) {
         if(const fURI out = this->get<fURI>("config/terminal/stdout");
-           Terminal::singleton()->vid->extend(":stdout") == out) {
+           Terminal::singleton()->vid->extend("stdout") == out) {
           Terminal::STD_OUT_DIRECT(s, this->rec_get("config/ellipsis"));
         } else
           ROUTER_WRITE(out, s, TRANSIENT);
@@ -81,7 +81,7 @@ namespace fhatos {
     [[nodiscard]] Str_p read_stdin(const char until) const {
       // if(console_obj->has("config/terminal/stdin")) {
       const fURI in = this->get<fURI>("config/terminal/stdin");
-      return Terminal::singleton()->vid->extend(":stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
+      return Terminal::singleton()->vid->extend("stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
                                                                 : Router::singleton()->exec(in, noobj());
       //}
     }
@@ -211,8 +211,8 @@ namespace fhatos {
                                {"strict", dool(false)},
                                {"log", vri(LOG_TYPES.to_chars(INFO))},
                                {"ellipsis", jnt(50)},
-                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/:stdout")},
-                                                         {"stdin", Obj::to_uri("/io/terminal/:stdin")}})}}))}}));
+                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/stdout")},
+                                                         {"stdin", Obj::to_uri("/io/terminal/stdin")}})}}))}}));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
