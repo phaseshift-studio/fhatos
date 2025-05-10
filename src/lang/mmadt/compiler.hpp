@@ -41,7 +41,6 @@ namespace fhatos {
 
   class Compiler {
   public:
-    static bool boot_loading;
 
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 

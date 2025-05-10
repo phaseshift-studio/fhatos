@@ -48,7 +48,7 @@
 
 #ifdef ESP_PLATFORM
 #include <Arduino.h>
-//#include <esp_heap_caps.h>
+// #include <esp_heap_caps.h>
 #ifndef FOS_SERIAL_BAUDRATE
 #define FOS_SERIAL_BAUDRATE 115200
 #endif
@@ -67,8 +67,8 @@
 #include <memory>
 #include <optional>
 #include <set>
-#include <string>
 #include <stack>
+#include <string>
 #ifdef NATIVE
 #include "../extern/fmt/include/fmt/format.h"
 #else
@@ -78,39 +78,38 @@
 #include "util/tsl/ordered_map.h"
 
 namespace fhatos {
-  using std::string;
-  using std::to_string;
-  using std::shared_ptr;
-  using std::weak_ptr;
-  using std::unique_ptr;
-  using std::make_pair;
-  using std::make_tuple;
-  using std::make_shared;
-  using std::make_unique;
-  using std::atomic_int;
-  using std::atomic;
-  using std::thread;
-  using std::initializer_list;
-  using std::stringstream;
-  using std::fstream;
-  using std::ios;
-  using std::enable_shared_from_this;
-  using std::stack;
   using fmt::format;
+  using std::atomic;
+  using std::atomic_int;
+  using std::enable_shared_from_this;
+  using std::fstream;
+  using std::initializer_list;
+  using std::ios;
+  using std::make_pair;
+  using std::make_shared;
+  using std::make_tuple;
+  using std::make_unique;
+  using std::shared_ptr;
+  using std::stack;
+  using std::string;
+  using std::stringstream;
+  using std::thread;
+  using std::to_string;
+  using std::unique_ptr;
+  using std::weak_ptr;
 
 
-  [[maybe_unused]] static auto ANSI_ART =
-      "!r            !_PhaseShift Studio Presents!! \n"
-      "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
-      "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
-      "___\\!! \n"
-      "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
-      "\\___  \\!! \n"
-      "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
-      "\\_____\\/\\_____\\!! \n"
-      "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
-      "!b\\/_____/\\/_____/!! \n"
-      "!r                                   !_A Dogturd Stynx Production!! \n";
+  [[maybe_unused]] static auto ANSI_ART = "!r            !_PhaseShift Studio Presents!! \n"
+                                          "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+                                          "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+                                          "___\\!! \n"
+                                          "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+                                          "\\___  \\!! \n"
+                                          "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+                                          "\\_____\\/\\_____\\!! \n"
+                                          "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+                                          "!b\\/_____/\\/_____/!! \n"
+                                          "!r                                   !_A Dogturd Stynx Production!! \n";
 
   ////////////////////
   /// LAMBDA TYPES ///
@@ -174,12 +173,8 @@ namespace fhatos {
   using Map = std::map<K, V, C, A>;
   template<typename K, typename V, typename C = std::less<>, typename A = std::allocator<std::pair<const K, V>>>
   using Map_p = ptr<std::map<K, V, C, A>>;
-  template<
-    typename KEY,
-    typename VALUE,
-    typename HASH = std::hash<KEY>,
-    typename EQ = std::equal_to<KEY>>
-  //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
+  template<typename KEY, typename VALUE, typename HASH = std::hash<KEY>, typename EQ = std::equal_to<KEY>>
+  // typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
   using OrderedMap = tsl::ordered_map<KEY, VALUE, HASH, EQ>;
 
   using string = std::string;
@@ -213,15 +208,15 @@ namespace fhatos {
 #define FOS_BOOT_CONFIG_MEM_USAGE 24576
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
-    if ((p) != nullptr)                                                                                                \
+    if((p) != nullptr)                                                                                                 \
       (void) free((void *) (p));                                                                                       \
     (p) = nullptr;                                                                                                     \
   }
 
 #define FOS_SAFE_DELETE(p)                                                                                             \
   {                                                                                                                    \
-    if (p)                                                                                                             \
-      delete (p);                                                                                                      \
+    if(p)                                                                                                              \
+      delete(p);                                                                                                       \
   }
 #define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
 #define FOS_NOOBJ_TOKEN noobj
@@ -244,15 +239,15 @@ namespace fhatos {
 #define XCONCAT(a, b) a##b
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
-#define L(a, ...) [=](){ return fmt::format((string((a))), ##__VA_ARGS__); }
+#define L(a, ...) [=]() { return fmt::format((string((a))), ##__VA_ARGS__); }
 #define FURI_WRAP "!g[!b%s!g]!!"
-#define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
+#define FURI_WRAP_C(color) STR(!g[!color % s !g] !!)
 #define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) (a)) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_OBJ(logtype, obj, format, ...)                                                                     \
-LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_OBJ(logtype, obj, format, ...)                                                                             \
+  LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
 #define FOS_DOMAIN "dom"
 #define FOS_DOM_COEF "dc"
 #define FOS_RANGE "rng"
@@ -278,10 +273,10 @@ LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp32
 #endif
-#define ALLOC(FIRST,SECOND) PSRAMAllocator<Pair<(FIRST), (SECOND)>>
+#define ALLOC(FIRST, SECOND) PSRAMAllocator<Pair<(FIRST), (SECOND)>>
 #ifndef FOS_MACHINE_MODEL
 #if CONFIG_IDF_TARGET_ESP32
-  #define FOS_MACHINE_MODEL ESP32
+#define FOS_MACHINE_MODEL ESP32
 #elif CONFIG_IDF_TARGET_ESP32S2
 #define FOS_MACHINE_MODEL ESP32S2
 #elif CONFIG_IDF_TARGET_ESP32C3
@@ -314,24 +309,24 @@ LOG((logtype), (string("!g[!y%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define FOS_MACHINE_NAME fhatos_nanopi
 #elif defined(ORANGEPI)
 #define FOS_MACHINE_NAME fhatos_orangepi
-#elif defined (RASPBERRYPI)
+#elif defined(RASPBERRYPI)
 #define FOS_MACHINE_NAME fhatos_raspberrypi
 #else
 #define FOS_MACHINE_NAME fhatos_native
-#define ALLOC(FIRST,SECOND) std::allocator<std::pair<FIRST,SECOND>>
+#define ALLOC(FIRST, SECOND) std::allocator<std::pair<FIRST, SECOND>>
 #endif
 #endif
 #ifndef FOS_MACHINE_MODEL
 #define FOS_MACHINE_MODEL
 #endif
 #define HARDWARE native
-#define FOS_FILE_SYSTEM(__fs__) STR(model/fs/native/__fs__)
+#define FOS_FILE_SYSTEM(__fs__) STR(model / fs / native / __fs__)
 #define DRAM_ATTR
 #define IRAM_ATTR
 #else
-#error "Unknown architecture."
+#error "unknown architecture"
 #endif
 
-  inline bool BOOTING = true;
+   inline bool BOOTING = true;
 } // namespace fhatos
 #endif

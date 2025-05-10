@@ -86,40 +86,42 @@ namespace fhatos {
               ->display_reset_reason()
               ->display_architecture();
         }
-        kp->display_memory()
-            ->display_note("!r.!go!bO !ymounting !bkernel !ystructures!! !bO!go!r.!!")
+        kp->display_note("!r.!go!bO !ymounting !bkernel !ystructures!! !bO!go!r.!!")
+            ->display_memory()
             ->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
-            ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/full_boot_config.obj"))
-            ->display_memory();
+            ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/full_boot_config.obj"));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         kp->display_note("!r.!go!bO !yconfiguring !bkernel !yobjs!! !bO!go!r.!!")
-            ->using_scheduler("sys/scheduler")
-            ->drop_config("sys/scheduler")
+            ->display_memory()
             ->using_router("sys/router")
             ->drop_config("sys/router")
-            ->display_memory();
+            ->using_scheduler("sys/scheduler")
+            ->drop_config("sys/scheduler");
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
         kp->display_note("!r.!go!bO !ymounting !bfos/mmadt !ystructures!! !bO!go!r.!!")
+            ->display_memory()
             ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
             ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->display_note("!r.!go!bO !yimporting !bfos/mmadt !ytypes!! !bO!go!r.!!")
+            ->display_note("!r.!go!bO !yimporting !bfos/mmadt !ytypes!! !bO!go!r.!!");
+
+        kp->display_memory()
             ->import2("import")
             ->import(Processor::import())
             ->install(
-                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
+                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        kp->display_note("!r.!go!bO !yfinalizing boot w/ !bsetup !yinst!! !bO!go!r.!!")
+            ->display_memory()
+            ->evaluating_boot_setup()
             ->display_memory();
-        //////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yfinalizing boot w/ !bsetup !yinst!! !bO!go!r.!!");
-        LOG_WRITE(INFO, Kernel::boot().get(),
-                  L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
-        mmADT::delift(Kernel::boot()->rec_get("setup"))->apply(Obj::to_noobj());
+
         // Terminal::singleton("/io/terminal");
         // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));
         /*kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")

@@ -2035,7 +2035,7 @@ namespace fhatos {
     }
 
 
-    Obj_p apply(const Obj_p &lhs) const {
+    [[nodiscard]] Obj_p apply(const Obj_p &lhs) const {
       switch(this->otype) {
         case OType::BOOL:
         case OType::INT:

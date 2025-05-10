@@ -177,7 +177,7 @@ namespace fhatos {
                                objs->toString(), structure->pattern->toString())          );*/
       return objs->none_one_all();
     } catch(const fError &e) {
-      LOG_WRITE(ERROR, this, L("{}\n", e.what()));
+      LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
       return noobj();
     }
   }
@@ -227,8 +227,25 @@ namespace fhatos {
           const Obj_p structure_obj = args->arg("structure");
           const Structure_p s = structure_obj->get_model<Structure>()->shared_from_this();
           Router::singleton()->attach(s);
+          //////////////////////////////////////////////////////////////////////////////////////////////////////////
+          Subscription::create(
+              Router::singleton()->vid, p_p(*s->vid),
+              [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
+                if(obj->is_noobj()) {
+                  Router::singleton()->structures_->remove_if([&args](const Structure_p &structure) {
+                    if(structure->vid->equals(args->arg("target")->uri_value())) {
+                      LOG_WRITE(INFO, Router::singleton().get(),
+                                L("!ystructure !b{}!! unmounted\n", args->arg("target")->uri_value().toString()));
+                      return true;
+                    }
+                    return false;
+                  });
+                  Router::singleton()->save();
+                }
+                return Obj::to_noobj();
+              })
+              ->post();
           return s;
-          throw fError("!b%s!! is not a structure", structure_obj->tid->toString().c_str());
         })
         ->save();
     /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
@@ -309,7 +326,7 @@ namespace fhatos {
     fURI_p test = nullptr;
     const List_p<Uri_p> prefixes = this->rec_get("config/auto_prefix")->clone()->or_else(lst())->lst_value();
     for(const auto &c: components) {
-      if(prefixes->empty())
+      if(prefixes->empty() && !BOOTING)
         LOG_WRITE(WARN, this, L("!bauto_prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
       // TODO: make this an exposed property of /sys/router
       fURI_p found = nullptr;

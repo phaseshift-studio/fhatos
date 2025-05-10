@@ -24,8 +24,6 @@
 namespace mmadt {
   using namespace fhatos;
 
-
-
   void import_base_types(const std::vector<fURI> &patterns) {
     Typer::singleton()->start_progress_bar(14);
     //Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));

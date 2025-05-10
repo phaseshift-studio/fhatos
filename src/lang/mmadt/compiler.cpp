@@ -30,8 +30,6 @@ namespace fhatos {
   // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
   // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
   // void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
-  bool Compiler::boot_loading = true;
-
   Compiler::Compiler(const bool throw_on_miss, const bool with_derivation) {
     this->throw_on_miss = throw_on_miss;
     this->dt = with_derivation ? make_shared<DerivationTree>() : nullptr;
@@ -303,7 +301,7 @@ namespace fhatos {
   }
 
   bool Compiler::type_check(const Obj *obj, const ID &type_id) const {
-    if(Compiler::boot_loading)
+    if(BOOTING)
       return true;
     /* if(value_obj->is_inst())
        return this->type_check(Router::singleton()->read(*value_obj->range()),type_id);*/

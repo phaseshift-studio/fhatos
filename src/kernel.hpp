@@ -71,6 +71,15 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> evaluating_boot_setup() {
+      BOOTING = false;
+      LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
+      LOG_WRITE(INFO, Kernel::boot().get(),
+                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
+      mmADT::delift(Kernel::boot()->rec_get("setup"))->apply(Obj::to_noobj());
+      return Kernel::build();
+    }
+
     static ptr<Kernel> display_architecture() {
       string fhatos = STR(FOS_NAME) "-" STR(FOS_VERSION);
       string machine_sub_os = STR(FOS_MACHINE_SUBOS);
@@ -274,6 +283,7 @@ namespace fhatos {
       // Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! started\n", "main"));
+      // booting complete, tighter type constraints enforced
       BOOTING = false;
       while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
         Scheduler::singleton()->loop();

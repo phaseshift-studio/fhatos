@@ -182,6 +182,7 @@ using namespace fhatos;
       FOS_DEPLOY_MMADT_EXT_TYPE_2                                                                                      \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
+      BOOTING = false;                                                                                                 \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       FOS_STOP_ON_BOOT                                                                                                 \

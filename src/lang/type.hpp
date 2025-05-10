@@ -199,7 +199,6 @@ namespace fhatos {
   public:
     static ptr<Typer> &singleton(const ID &id = "/sys/type") {
       static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
-      Compiler::boot_loading = false;
       return types_p;
     }
 

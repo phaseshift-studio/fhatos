@@ -64,6 +64,7 @@ namespace fhatos {
     this->obj_set("spawn", thread_uris);
     // Thread::get_state(thread_obj);
     LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     Subscription::create(
         this->vid, p_p(thread_obj->vid->extend("halt")),
         [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
