@@ -225,7 +225,7 @@ namespace fhatos {
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p structure_obj = args->arg("structure");
-          const Structure_p s = structure_obj->get_model<Structure>()->shared_from_this();
+          const Structure_p s = ptr<Structure>(structure_obj->get_model<Structure>());
           Router::singleton()->attach(s);
           //////////////////////////////////////////////////////////////////////////////////////////////////////////
           Subscription::create(

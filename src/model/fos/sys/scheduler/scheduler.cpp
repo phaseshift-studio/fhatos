@@ -11,9 +11,7 @@ namespace fhatos {
     static auto scheduler = std::make_shared<Scheduler>(id);
     return scheduler;
   }
-  bool Scheduler::shutting_down() {
-    return ROUTER_READ(SCHEDULER_ID->extend("halt"))->or_else(dool(false))->bool_value();
-  }
+
   void Scheduler::stop() {
     for(const Uri_p &bundle_uri: *this->obj_get("bundle")->or_else(lst())->lst_value()) {
       LOG_WRITE(INFO, this, L("!b{} !yfiber!! closing\n", bundle_uri->toString()));
@@ -55,24 +53,22 @@ namespace fhatos {
     auto lock = std::lock_guard<Mutex>(mutex);
     thread_obj->obj_set("halt", dool(false));
     const Lst_p thread_uris = this->obj_get("spawn")->or_else(lst());
-    /*for(const auto &id: *thread_uris->lst_value()) {
-      if(thread_obj->vid->equals(id->uri_value()))
-        throw fError("!g[!b%s!g] !ralready spawned!!: %s", thread_obj->vid->toString().c_str(),
-                     thread_obj->toString().c_str());
-    }*/
+    const auto itty =
+        std::find_if(thread_uris->lst_value()->begin(), thread_uris->lst_value()->end(),
+                     [&thread_obj](const Uri_p &u) -> bool { return thread_obj->vid->equals(u->uri_value()); });
+    if(itty != thread_uris->lst_value()->end()) {
+      throw fError::create(this->tid->toString(), "!ythread !b%s !ralready!! spawned",
+                           thread_obj->vid->toString().c_str());
+    }
     thread_uris->lst_value()->push_back(Obj::to_uri(*thread_obj->vid));
     this->obj_set("spawn", thread_uris);
     const Thread *thread = new Thread(thread_obj);
-    // Thread::get_state(thread_obj);
     LOG_WRITE(INFO, this, L("!b{} !ythread!! spawned\n", thread_obj->vid->toString()));
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     Subscription::create(
         this->vid, p_p(thread_obj->vid->extend("halt")),
         [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
           if(obj->is_bool() && obj->bool_value()) {
-            // LOG_WRITE(INFO,Scheduler::singleton().get(),L("HERE: {} {} -> {}\n", obj->toString(),
-            // this->rec_get("thread")->toString(),
-            // args->arg("target")->toString()));
             const Lst_p new_thread_ids = Obj::to_lst();
             auto lock = std::lock_guard<Mutex>(Scheduler::singleton()->mutex);
             for(const Uri_p &thread_id: *Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()) {
@@ -94,6 +90,13 @@ namespace fhatos {
       fError::create(this->vid->toString(), "!yfiber !rmust have!y a vid!!: %s", fiber_obj->toString().c_str());
     auto lock = std::lock_guard<Mutex>(mutex);
     const Lst_p fiber_uris = this->obj_get("bundle")->or_else(lst());
+    const auto itty =
+        std::find_if(fiber_uris->lst_value()->begin(), fiber_uris->lst_value()->end(),
+                     [&fiber_obj](const Uri_p &u) -> bool { return fiber_obj->vid->equals(u->uri_value()); });
+    if(itty != fiber_uris->lst_value()->end()) {
+      throw fError::create(this->tid->toString(), "!yfiber !b%s !ralready!! bundled",
+                           fiber_obj->vid->toString().c_str());
+    }
     fiber_uris->lst_value()->push_back(Obj::to_uri(*fiber_obj->vid));
     this->obj_set("bundle", fiber_uris);
     LOG_WRITE(INFO, this, L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
@@ -135,28 +138,17 @@ namespace fhatos {
       this->obj_set("bundle", bundle_uris);
   }
   void *Scheduler::import() {
-    Scheduler::singleton()->save();
     Scheduler::singleton()->obj_set("config", ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID "/scheduler")->or_else(noobj()));
+    Scheduler::singleton()->save();
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p thread_obj = args->arg("thread");
-          // ptr<Thread> thread = thread_obj->get_model<Thread>()->shared_from_this();
           Scheduler::singleton()->spawn_thread(thread_obj);
           return thread_obj;
         })
         ->save();
-
-    /* InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
-         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
-         ->domain_range(OBJ_FURI, {0, 1}, THREAD_FURI, {1, 1})
-         ->inst_f([](const Obj_p &, const InstArgs &args) {
-           const Obj_p thread_obj = args->arg("thread");
-           Scheduler::singleton()->spawn_thread(thread_obj);
-           return thread_obj;
-         })
-         ->save();*/
     InstBuilder::build(Scheduler::singleton()->vid->add_component("bundle"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_args(rec({{"fiber", Obj::to_bcode()}}))

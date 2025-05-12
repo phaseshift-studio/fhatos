@@ -363,7 +363,7 @@ namespace mmadt {
         ->inst_args(Obj::to_inst_args({{"millis?nat", __()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
         ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-          Thread::delay_current_thread(args->arg("millis")->int_value());
+          Thread::delay(args->arg("millis")->int_value());
           return lhs;
         })
         ->save();

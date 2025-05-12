@@ -16,10 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #ifdef ARDUINO
-#include "../../../../../../fhatos.hpp"
-#include "../../../../../../lang/obj.hpp"
 #include "../thread.hpp"
 #include <any>
+#include "../../../../../../fhatos.hpp"
+#include "../../../../../../lang/obj.hpp"
 
 namespace fhatos {
 
@@ -34,38 +34,37 @@ namespace fhatos {
    }*/
 
   static void THREAD_FUNCTION(void *vptr_thread) {
-    const auto *fthread = static_cast<Thread *>(vptr_thread);
+    auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
-      LOG_WRITE(ERROR,Obj::to_noobj().get(), L("unable to acquire thread state"));
+      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread state"));
       return;
     }
     if(!fthread->thread_obj_) {
-      LOG_WRITE(ERROR,Obj::to_noobj().get(), L("unable to acquire thread obj"));
+      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread obj"));
       return;
     }
     if(!fthread->thread_function_) {
-      LOG_WRITE(ERROR,fthread->thread_obj_.get(),L(
-                    "unable to acquire thread function: {}", fthread->thread_obj_->toString()));
+      LOG_WRITE(ERROR, fthread->thread_obj_.get(),
+                L("unable to acquire thread function: {}", fthread->thread_obj_->toString()));
       return;
     }
     try {
-      fthread->thread_function_(fthread->thread_obj_);
+      fthread->thread_function_(std::make_pair<>(fthread, fthread->thread_obj_));
       vTaskDelete(nullptr);
     } catch(const std::exception &e) {
-      LOG_WRITE(ERROR,fthread->thread_obj_.get(), L("{}",e.what()));
+      LOG_WRITE(ERROR, fthread->thread_obj_.get(), L("{}", e.what()));
     }
   }
 
-  Thread::Thread(const Obj_p &thread_obj, const Consumer<Obj_p> &thread_function) :
-    thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
-    int stack_size =  Memory::get_stack_size(thread_obj, "config/stack_size",
-                                       ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
+  Thread::Thread(const Obj_p &thread_obj, const Consumer<std::pair<Thread *, Obj_p>> &thread_function) :
+      thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
+    int stack_size = Memory::get_stack_size(thread_obj, "config/stack_size",
+                                            ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
     if(0 == stack_size)
       throw fError("thread stack size must be greater than 0");
     LOG_WRITE(INFO, thread_obj.get(),
-                     L("!g[!besp32!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                       thread_obj_->obj_get("loop")->toString(),
-                       stack_size));
+              L("!g[!besp32!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                thread_obj_->obj_get("loop")->toString(), stack_size));
     const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                                             this->thread_obj_->vid->toString().c_str(),
                                                             // Name of the task (for debugging)
@@ -79,16 +78,10 @@ namespace fhatos {
   }
 
 
-  void Thread::halt() {
-    vTaskDelete(nullptr);
-  }
+  void Thread::halt() const { vTaskDelete(nullptr); }
 
-  void Thread::yield() {
-    taskYIELD();
-  }
+  void Thread::yield() { taskYIELD(); }
 
-  void Thread::delay(const uint64_t milliseconds) {
-    vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-  }
-}
+  void Thread::delay(const uint64_t milliseconds) { vTaskDelay(milliseconds / portTICK_PERIOD_MS); }
+} // namespace fhatos
 #endif

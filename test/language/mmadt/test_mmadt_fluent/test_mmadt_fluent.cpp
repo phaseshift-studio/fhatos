@@ -18,10 +18,9 @@
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_FOS_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
-#define FOS_DEPLOY_PROCESSOR
-#include "../../../../src/lang/mmadt/mmadt.hpp"
 #include "../../../test_fhatos.hpp"
 
 namespace fhatos {

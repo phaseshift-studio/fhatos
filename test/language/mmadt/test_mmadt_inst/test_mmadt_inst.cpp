@@ -16,14 +16,14 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#define FOS_DEPLOY_PRINTER
-#define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_MMADT_TYPE
-#define FOS_DEPLOY_MMADT_EXT_TYPE
+#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_FOS_TYPE
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_SHARED_MEMORY / abc / #
-#include "../../../../src/fhatos.hpp"
+#define FOS_DEPLOY_SHARED_MEMORY /abc/#
 #include "../../../test_fhatos.hpp"
 
 namespace fhatos {

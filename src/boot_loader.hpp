@@ -21,29 +21,17 @@
 
 #include "fhatos.hpp"
 #include "kernel.hpp"
-#include "lang/mmadt/mmadt_obj.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "lang/obj.hpp"
 #include "lang/processor/processor.hpp"
-#include "lang/type.hpp"
 #include "model/fos/fos_obj.hpp"
-#include "model/fos/io/fs/fs.hpp"
 #include "model/fos/sys/router/router.hpp"
-#include "model/fos/sys/router/structure/bus.hpp"
-#include "model/fos/sys/router/structure/dsm.hpp"
 #include "model/fos/sys/router/structure/heap.hpp"
-#include "model/fos/sys/scheduler/thread/thread.hpp"
-#include "model/fos/ui/terminal.hpp"
-#include "model/fos/util/log.hpp"
-#include "structure/qtype/q_doc.hpp"
-#include "structure/qtype/q_sub.hpp"
-#include "structure/qtype/q_sub_mqtt.hpp"
 #include "util/argv_parser.hpp"
 /////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
 /////////////////////////////////////////
 
-#include "model/fos/util/text.hpp"
 #ifdef NATIVE
 //// FOS MODELS
 #include "model/fos/io/gpio/gpio.hpp"
@@ -86,7 +74,7 @@ namespace fhatos {
               ->display_reset_reason()
               ->display_architecture();
         }
-        kp->display_note("!r.!go!bO !ymounting !bkernel !ystructures!! !bO!go!r.!!")
+        kp->display_note("!ymounting !bkernel !ystructures!!")
             ->display_memory()
             ->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
@@ -94,21 +82,21 @@ namespace fhatos {
             ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/full_boot_config.obj"));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yconfiguring !bkernel !yobjs!! !bO!go!r.!!")
+        kp->display_note("!yconfiguring !bkernel !yobjs!!")
             ->display_memory()
-            ->using_router("sys/router")
-            ->drop_config("sys/router")
-            ->using_scheduler("sys/scheduler")
-            ->drop_config("sys/scheduler");
+            ->using_router("/sys/router")
+            ->drop_config("/sys/router")
+            ->using_scheduler("/sys/scheduler")
+            ->drop_config("/sys/scheduler");
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
-        kp->display_note("!r.!go!bO !ymounting !bfos/mmadt !ystructures!! !bO!go!r.!!")
+        kp->display_note("!ymounting !bfos/mmadt !ystructures!!")
             ->display_memory()
             ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
             ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->display_note("!r.!go!bO !yimporting !bfos/mmadt !ytypes!! !bO!go!r.!!");
+            ->display_note("!yimporting !bfos/mmadt !ytypes!!");
 
         kp->display_memory()
             ->import2("import")
@@ -117,7 +105,7 @@ namespace fhatos {
                 mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!r.!go!bO !yfinalizing boot w/ !bsetup !yinst!! !bO!go!r.!!")
+        kp->display_note("!yfinalizing boot w/ !bsetup !yinst!!")
             ->display_memory()
             ->evaluating_boot_setup()
             ->display_memory();

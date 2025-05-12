@@ -116,7 +116,7 @@ namespace fhatos {
       FS::import();
       Typer::singleton()->clear_filters();
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ystructure types!! loaded!g]!! \n", FOS_URI "/+"));
+          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ystructure types!! loaded!g]!! \n", FOS_URI "/s/+"));
       return nullptr;
     }
 

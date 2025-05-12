@@ -45,9 +45,7 @@ namespace fhatos {
     delete this;
   }
 
-  void Thread::delay(const uint64_t milliseconds) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-  }
+  void Thread::delay(const uint64_t milliseconds) { std::this_thread::sleep_for(chrono::milliseconds(milliseconds)); }
 
   void Thread::yield() { std::this_thread::yield(); }
 } // namespace fhatos

@@ -76,20 +76,9 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
       Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern?uri", __()}}));
       MODEL_CREATOR2->insert_or_assign(type_id, [](const Obj_p &structure_obj) {
-        return Structure::create<STRUCTURE>(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
+        return STRUCTURE::create(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
                                             structure_obj->rec_get("config")->or_else(Obj::to_rec()));
       });
-      InstBuilder::build(Router::singleton()->vid->add_component("mount"))
-          ->inst_args(rec({{"structure", Obj::to_bcode()}}))
-          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const Obj_p structure_obj = args->arg("structure");
-            const ptr<Structure> structure = structure_obj->get_model<Structure>()->shared_from_this();
-            Router::singleton()->attach(structure);
-            Router::singleton()->loop();
-            return structure;
-          })
-          ->save();
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !ytype!! imported\n", type_id.toString()));
       return nullptr;
     }

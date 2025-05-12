@@ -37,7 +37,7 @@
 namespace fhatos {
   class Kernel {
   public:
-    Obj_p boot_config;
+    Obj_p boot_config = Obj::to_rec();
 
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
@@ -66,8 +66,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> display_note(const char *notes) {
-      printer<>()->printf(FOS_TAB_6 "%s\n", notes);
+    static ptr<Kernel> display_note(const char *note) {
+      printer<>()->printf(FOS_TAB_6 "!r.!go!bO!! %s !bO!go!r.!!\n", note);
       return Kernel::build();
     }
 
@@ -75,8 +75,11 @@ namespace fhatos {
       BOOTING = false;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, Kernel::boot().get(),
-                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
-      mmADT::delift(Kernel::boot()->rec_get("setup"))->apply(Obj::to_noobj());
+                L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
+      const Inst_p setup_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
+      std::holds_alternative<Obj_p>(setup_inst->inst_f())
+                                     ? std::get<Obj_p>(setup_inst->inst_f())->apply(Obj::to_noobj())
+                                     : (*std::get<Cpp_p>(setup_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
       return Kernel::build();
     }
 
@@ -144,16 +147,18 @@ namespace fhatos {
                                              const Pattern &boot_pattern = "/boot/#",
                                              const Pattern &fos_pattern = "/fos/#",
                                              const Pattern &mmadt_pattern = "/mmadt/#") {
-      Kernel::mount(Heap<>::create(sys_pattern))
+      return Kernel::mount(Heap<>::create(sys_pattern))
           ->mount(Heap<>::create(mnt_pattern))
           ->mount(Heap<>::create(boot_pattern, id_p(mnt_pattern.retract_pattern().extend("boot"))))
-          ->mount(Heap<>::create(fos_pattern, id_p(mnt_pattern.retract_pattern().extend("fos"))))
+          //->mount(Heap<>::create(fos_pattern, id_p(mnt_pattern.retract_pattern().extend("fos"))))
           ->mount(Heap<>::create(mmadt_pattern, id_p(mnt_pattern.retract_pattern().extend("mmadt"))));
-      return Kernel::build();
     }
 
     static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
+      SCHEDULER_ID = id_p(scheduler_config_id);
       const Obj_p config = Kernel::boot()->rec_get(scheduler_config_id);
+      if(config->is_noobj())
+        throw fError("!yscheduler config!! !rnot found!!");
       const ptr<Scheduler> scheduler = Scheduler::singleton(config->rec_get("id")->uri_value());
       scheduler->obj_set("config", config->rec_get("config"));
       Scheduler::singleton()->import();
@@ -165,6 +170,8 @@ namespace fhatos {
 
     static ptr<Kernel> using_router(const ID &router_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(router_config_id);
+      if(config->is_noobj())
+        throw fError("!yrouter config!! !rnot found!!");
       const ptr<Router> router = Router::singleton(config->rec_get("id")->uri_value());
       router->obj_set("config", config->rec_get("config"));
       Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
@@ -244,11 +251,6 @@ namespace fhatos {
       // boot from obj encoded in filesystem
       if(!boot_config_loader.equals(FOS_BOOT_CONFIG_HEADER_URI)) {
         config_obj = fhatos::FS::load_boot_config(boot_config_loader);
-        if(!config_obj->is_noobj()) {
-          LOG_WRITE(INFO, Router::singleton().get(),
-                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", boot_config_loader.toString(),
-                      config_obj->toString(NO_ANSI_PRINTER).size()));
-        }
       }
       /// boot from binary encoded header file
       if(config_obj->is_noobj()) {
@@ -257,14 +259,17 @@ namespace fhatos {
           boot_config_obj_copy_len = boot_config_obj_len;
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-          config_obj =
-              Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
-                                                        ->inst_f([](const Obj_p &, const InstArgs &) {
-                                                          mmadt::Parser::load_boot_config();
-                                                          return Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
-                                                        })
-                                                        ->create(),
-                                                    Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
+          config_obj = Memory::singleton()->use_custom_stack(
+              InstBuilder::build("boot_loader_stack")
+                  ->inst_f([](const Obj_p &, const InstArgs &) {
+                    string temp = string((char *) boot_config_obj_copy);
+                    StringHelper::trim(temp);
+                    const Obj_p ret = mmadt::Parser::singleton()->parse(temp.c_str());
+                    return ret;
+                    //  return Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
+                  })
+                  ->create(),
+              Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
           Router::singleton()->write(FOS_BOOT_CONFIG_VALUE_ID, config_obj, true);
           LOG_WRITE(INFO, Router::singleton().get(),
                     L("!b{} !yboot config header!! loaded !g[!msize!!: {} bytes!g]!!\n", FOS_BOOT_CONFIG_HEADER_URI,
@@ -289,7 +294,7 @@ namespace fhatos {
         Scheduler::singleton()->loop();
         Router::singleton()->loop();
         FEED_WATCHDOG();
-        Thread::delay_current_thread(750); // todo: look into setting priorities for threads
+        Thread::delay(500); // todo: look into setting priorities for threads
       }
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
       Scheduler::singleton()->stop();

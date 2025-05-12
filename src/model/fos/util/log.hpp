@@ -61,8 +61,7 @@ namespace fhatos {
     Mutex log_mutex;
 
   public:
-    explicit Log(const ID &value_id, const Rec_p &config) :
-        Rec(rmap({{"config", config->clone()}}), OType::REC, LOG_FURI, id_p(value_id)) {
+    explicit Log(const Obj_p &log_obj) : Rec(*log_obj) {
       printer<>()->printf("!g[INFO]  [!m%s!g] !yboot logger!g/!ysystem logger!! swapped\n",
                           this->Obj::vid_or_tid()->toString().c_str());
       LOG_WRITE = [](const LOG_TYPE log_type, const Obj *source, const std::function<std::string()> &message) {
@@ -119,17 +118,13 @@ namespace fhatos {
       printer()->print(message().c_str());
     }
 
-    static ptr<Log> create(const ID &id, const Rec_p &config = noobj()) {
-      const static auto log = std::make_shared<Log>(id, config->or_else(rec({{"INFO", lst({vri("#")})},
-                                                                             {"ERROR", lst({vri("#")})},
-                                                                             {"DEBUG", lst()},
-                                                                             {"WARN", lst()},
-                                                                             {"TRACE", lst()}})));
-      return log;
-    }
-
     static ptr<Log> singleton(const ID &id = "/io/log") {
-      const static ptr<Log> log = Log::create(id, Obj::to_noobj());
+      const static auto log = make_shared<Log>(Obj::to_rec({{"config", rec({{"INFO", lst({vri("#")})},
+                                                                            {"ERROR", lst({vri("#")})},
+                                                                            {"DEBUG", lst()},
+                                                                            {"WARN", lst()},
+                                                                            {"TRACE", lst()}})}},
+                                                           LOG_FURI, id_p(id)));
       return log;
     }
 
@@ -143,8 +138,7 @@ namespace fhatos {
 
   public:
     static void *import() {
-      MODEL_CREATOR->insert_or_assign(*LOG_FURI,
-                                     [](const Obj_p &log_obj) { return make_shared<Log>(*log_obj->vid, log_obj->rec_get("config")); });
+      MODEL_CREATOR2->insert_or_assign(*LOG_FURI, [](const Obj_p &log_obj) { return make_shared<Log>(log_obj); });
       ////////////////////////// TYPE ////////////////////////////////
       TYPE_SAVER(LOG_FURI->extend("level"),
                  __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)

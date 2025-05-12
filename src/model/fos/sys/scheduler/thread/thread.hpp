@@ -58,26 +58,9 @@ namespace fhatos {
 #endif
     }
 
-    void delay(uint64_t milliseconds);
+    static void delay(uint64_t milliseconds);
 
-    static void delay_current_thread(uint64_t milliseconds) {
-#ifdef ESP_PLATFORM
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-#else
-      std::this_thread::sleep_for(chrono::milliseconds(milliseconds));
-#endif
-    }
-
-    void yield();
-
-    static void yield_current_thread() {
-#ifdef ESP_PLATFORM
-      // vTaskDelay(1 / portTICK_PERIOD_MS);
-      taskYIELD();
-#else
-      std::this_thread::yield();
-#endif
-    }
+    static void yield();
 
     void halt() const;
 
@@ -85,37 +68,51 @@ namespace fhatos {
         const Obj_p &thread_obj,
         const Consumer<std::pair<Thread *, Obj_p>> &thread_function =
             [](const std::pair<const Thread *, const Obj_p &> &pair) {
+              auto [thread_ptr, thread_obj] = pair;
               try {
                 // const ptr<Thread> current = Thread::get_state(thread_obj);
-                pair.second->obj_set("halt", dool(false));
+                thread_obj->obj_set("halt", dool(false));
                 const int stack_size =
-                    Memory::get_stack_size(pair.second, "config/stack_size",
+                    Memory::get_stack_size(thread_obj, "config/stack_size",
                                            ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
-                pair.second->obj_set("config/stack_size", jnt(stack_size));
-                const Obj_p thread_loop_obj =
-                    pair.second->is_rec() && !pair.second->rec_get("loop")->is_noobj()
-                        ? pair.second->obj_get("loop")
-                        : Compiler(false, false)
-                              .resolve_inst(pair.second, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
-                                                                      id_p(pair.second->vid->extend("loop"))));
-                const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
-                LOG_WRITE(INFO, pair.second.get(),
-                          L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                            thread_loop_inst->toString(), pair.second->obj_get("config/stack_size")->toString()));
-                while(!pair.second->obj_get("halt")->or_else_(false)) {
-                  FEED_WATCHDOG();
-                  try {
-                    thread_loop_inst->apply(pair.second);
-                  } catch(const fError &e) {
-                    LOG_WRITE(ERROR, pair.second.get(), L("!rthread loop error!!: {}\n", e.what()));
-                  }
-                }
+                thread_obj->obj_set("config/stack_size", jnt(stack_size));
+                Memory::singleton()->use_custom_stack(
+                    InstBuilder::build("boot_loader_stack")
+                        ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
+                          const Obj_p thread_loop_obj =
+                              thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
+                                  ? thread_obj->obj_get("loop")
+                                  : Compiler(false, false)
+                                        .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                               id_p(thread_obj->vid->extend("loop"))));
+                          const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
+                          LOG_WRITE(INFO, thread_obj.get(),
+                                    L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                                      thread_loop_inst->toString(),
+                                      thread_obj->obj_get("config/stack_size")->toString()));
+                          while(!thread_obj->obj_get("halt")->or_else_(false)) {
+                            FEED_WATCHDOG();
+                            try {
+                              thread_loop_inst->apply(thread_obj);
+                              if(const int delay = thread_obj->obj_get("delay")->or_else_<int>(0); delay > 0) {
+                                Thread::delay(delay);
+                                thread_obj->obj_set("delay", jnt(0, NAT_FURI));
+                              }
+                            } catch(const fError &e) {
+                              LOG_WRITE(ERROR, thread_obj.get(), L("!rthread loop error!!: {}\n", e.what()));
+                            }
+                          }
+                          return Obj::to_noobj();
+                        })
+                        ->create(),
+                    thread_obj, stack_size);
               } catch(const fError &e) {
-                LOG_WRITE(ERROR, pair.second.get(), L("!rthread construction error!!: {}\n", e.what()));
+                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread construction error!!: {}\n", e.what()));
               }
-              pair.second->delete_model();
-              LOG_WRITE(INFO, pair.second.get(), L("!ythread!! stopped\n"));
-              pair.first->halt();
+              thread_obj->delete_model();
+              thread_obj->obj_set("halt", dool(true));
+              LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
+              thread_ptr->halt();
             });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }

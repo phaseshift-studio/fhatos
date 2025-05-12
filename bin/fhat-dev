@@ -351,9 +351,11 @@ elif [[ $1 == "clean" ]]; then
   clean_esp32
   clean_rpi
 elif [[ $1 == "build" &&  $2 == "docs" ]]; then
+  build_boot_config
   build_docs "${@}"
   status_check $? "doc build"
 elif [[ $1 == "test" ]]; then
+  build_boot_config
   test_native "${@}"
   test_esp32 "${@}"
 elif [[ $1 == "package" ]]; then

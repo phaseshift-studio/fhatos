@@ -90,9 +90,9 @@ namespace fhatos {
       return s;
     }
 
-    Structure_p shared_from_this() {
+    /*Structure_p shared_from_this() {
       return std::dynamic_pointer_cast<Structure>(const_pointer_cast<Obj>(Obj::shared_from_this()));
-    }
+    }*/
 
     static Structure_p add_qproc(const Structure_p &structure, const ptr<QProc> &qprocA,
                                  const ptr<QProc> &qprocB = nullptr, const ptr<QProc> &qprocC = nullptr) {

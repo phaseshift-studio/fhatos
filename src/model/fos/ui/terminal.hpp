@@ -27,12 +27,12 @@ namespace fhatos {
 
   class Terminal final : public Rec {
   public:
-    explicit Terminal(const ID &id) : Rec({}, OType::REC, TERMINAL_FURI, id_p(id)) {}
+    explicit Terminal(const Obj_p &terminal_obj) : Rec(*terminal_obj) {}
 
 
     static void *import() {
-      MODEL_CREATOR2->insert_or_assign(
-          *TERMINAL_FURI, [](const Obj_p &console_obj) { return make_shared<Terminal>(*console_obj->vid); });
+      MODEL_CREATOR2->insert_or_assign(*TERMINAL_FURI,
+                                       [](const Obj_p &terminal_obj) { return make_shared<Terminal>(terminal_obj); });
       Typer::singleton()->save_type(*TERMINAL_FURI, Obj::to_rec());
       InstBuilder::build(TERMINAL_FURI->add_component("stdout"))
           ->domain_range(TERMINAL_FURI, {0, 1}, OBJ_FURI, {0, 0})
@@ -64,23 +64,23 @@ namespace fhatos {
     }
 
     static ptr<Terminal> &singleton(const ID &id = ID("/io/terminal")) {
-      static auto terminal_p = ptr<Terminal>(new Terminal(id));
+      static auto terminal_p = ptr<Terminal>(new Terminal(Obj::to_rec(rmap({}), TERMINAL_FURI, id_p(id))));
       return terminal_p;
     }
 
     static void STD_OUT_DIRECT(const Str_p &str, const Int_p &ellipsis = Obj::to_noobj()) {
-      static auto mutex_ = Mutex();
-      auto lock = std::lock_guard(mutex_);
-      auto output = string(str->str_value());
+      //static auto mutex_ = Mutex();
+      //auto lock = std::lock_guard(mutex_);
+      //auto output = string(str->str_value());
       // if(!ellipsis->is_noobj())
       //   StringHelper::truncate(output, ellipsis->int_value() + (output.length() - Ansi<>::strip(output).length()));
-      printer<>()->print(output.c_str());
+      printer<>()->print(str->str_value().c_str());
     }
 
     static Int_p STD_IN_DIRECT() {
       int c;
       while(-1 == (c = printer<>()->read())) {
-        Thread::delay_current_thread(1);
+        Thread::delay(1);
       }
       return jnt(c);
     }
@@ -93,7 +93,7 @@ namespace fhatos {
               // TODO: create a global shutdown flag at /sys/halt
               -1 == (c = printer<>()->read())) {
           FEED_WATCHDOG();
-          Thread::delay_current_thread(1);
+          Thread::delay(1);
         }
         line += static_cast<char>(c);
         if(until == '\0')

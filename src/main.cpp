@@ -17,7 +17,6 @@
  ******************************************************************************/
 
 #include "boot_loader.hpp"
-#include "boot_loader_mmadt.hpp"
 #include "fhatos.hpp"
 #include "kernel.hpp"
 #include "util/argv_parser.hpp"

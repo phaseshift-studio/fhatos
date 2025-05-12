@@ -22,6 +22,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_COMPILER
+#define FOS_DEPLOY_FOS_TYPE
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SHARED_MEMORY /router/#
 #include "../../../src/fhatos.hpp"

@@ -16,19 +16,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_PRINTER
-#define FOS_DEPLOY_MMADT_TYPE
-#define FOS_DEPLOY_MMADT_EXT_TYPE
-#define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_SCHEDULER
-#define FOS_DEPLOY_COMPILER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_MMADT_TYPE
+#define FOS_DEPLOY_FOS_TYPE
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SHARED_MEMORY /compiler/#
-#include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
-#include "../../../../src/util/string_helper.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -110,7 +106,7 @@ namespace fhatos {
   }
 
   void test_rec_type_constructors() {
-      PROCESS("/compiler/person -> |[name?str=>'fhat', age?int=>29]");
+      PROCESS("/compiler/person -> |[name?str=>else('fhat'), age?int=>else(29)]");
       FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("fhat")},{"age?int",jnt(29)}},id_p("/compiler/person")),
                          PROCESS("/compiler/person[[=>]]"));
       FOS_TEST_OBJ_EQUAL(rec({{"name?str",str("pig")},{"age?int",jnt(29)}},id_p("/compiler/person")),

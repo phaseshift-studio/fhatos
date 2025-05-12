@@ -30,20 +30,18 @@
  */
 #define BACKWARD_HAS_BFD 1
 
-#ifndef ESP32
-#ifndef ESP8266
-#ifndef NATIVE
-#error FhatOS requires ESP32 or ESP8266 architectures (or NATIVE for testing)
-#endif
-#endif
-#endif
-
 // define ESP_PLATFORM as generalized ESPXXXX flag
 #ifdef ESP32
 #define ESP_PLATFORM
 #endif
 #ifdef ESP8266
 #define ESP_PLATFORM
+#endif
+
+#ifndef ESP_PLATFORM
+#ifndef NATIVE
+#error FhatOS requires ESP32 or ESP8266 architectures (or NATIVE for testing)
+#endif
 #endif
 
 #ifdef ESP_PLATFORM
@@ -200,12 +198,12 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////
 #define FOS_BOOT_CONFIG_VALUE_ID "/boot/config"
 #ifndef FOS_BOOT_CONFIG_FS_URI
-#define FOS_BOOT_CONFIG_FS_URI "/mnt/boot/boot_config.obj"
+#define FOS_BOOT_CONFIG_FS_URI "/boot/boot_config.obj"
 #endif
 #define FOS_BOOT_CONFIG_HEADER_URI "boot_config.hpp"
   static unsigned int boot_config_obj_copy_len = 0;
   static unsigned char *boot_config_obj_copy;
-#define FOS_BOOT_CONFIG_MEM_USAGE 24576
+#define FOS_BOOT_CONFIG_MEM_USAGE 49152
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
     if((p) != nullptr)                                                                                                 \

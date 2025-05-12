@@ -10,23 +10,11 @@ basic boot_config obj
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
-    heap[[pattern=><+/#>]]@/mnt/var;
-    fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs;
-    /sys/router::mount(@/mnt/var);
-    /sys/router::mount(@/mnt/fs);
-    [=>]-<[
-        as(|log).at(|/io/log),
-        as(|terminal).at(|/io/terminal),
-        as(|console).at(|/io/console)./sys/scheduler::spawn(_),
-        +[pin=>gpio[5],on_push=>^(print('button pushed'))].as(|button).at(|/io/z)./sys/scheduler::bundle(_)];
-    /mnt/boot -> noobj;
-    ===
     log[[=>]]@/io/log;
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
     button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@/io/z;
     /sys/scheduler::spawn(@/io/console);
     /sys/scheduler::bundle(@/io/z);
-            ===
  ]
 ]@/boot/config

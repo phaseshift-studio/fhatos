@@ -65,31 +65,30 @@ namespace fhatos {
         ->display_splash(ANSI_ART)
         ->display_architecture()
         ->display_reset_reason()
-        ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
+        ->display_note("!yloading !bsystem !yobjs!!")
+        ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
         ->mount_core_structures()
         ////////////////// SYS STRUCTURE
-        ->using_boot_config(FOS_BOOT_CONFIG_HEADER_URI) // "../data/full_boot_config.obj"
-        ->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-        ->using_scheduler("/sys/scheduler")
-        ->drop_config("/sys/scheduler")
+        ->using_boot_config("/boot/boot_config.obj")
+        ->display_note("!yloading !bsystem !yobjs!!")
         ->using_router("/sys/router")
         ->drop_config("/sys/router")
+        ->using_scheduler("/sys/scheduler")
+        ->drop_config("/sys/scheduler")
         ////////////////// USER STRUCTURE(S)
-        ->display_note("!r.!go!bO !yloading !blanguage !yobjs!! !bO!go!r.!!")
-        ->import(fOS::import_q_proc())
-        ->import(fOS::import_structure())
-        ->import(mmADT::import())
-        ->import(fOS::import_util())
-        ->import(fOS::import_ui())
-        ->display_note("!r.!go!bO !yloading !bio !yobjs!! !bO!go!r.!!")
+        ->display_note("!yloading !blanguage !yobjs!!")
+        ->import2("/fos/#")
+        ->import2("/mmadt/#")
+        ->display_note("!yloading !bio !yobjs!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
-        ->install(Log::create("/io/log", Router::singleton()
-                                             ->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
-                                             ->or_else(Obj::to_rec({{"INFO", lst({vri("#")})},
-                                                                    {"ERROR", lst({vri("#")})},
-                                                                    {"WARN", lst()},
-                                                                    {"DEBUG", lst()},
-                                                                    {"TRACE", lst()}}))))
+        ->install(make_shared<Log>(Obj::to_rec(rmap({{"config", Router::singleton()
+                                                                    ->read(FOS_BOOT_CONFIG_VALUE_ID "/log")
+                                                                    ->or_else(Obj::to_rec({{"INFO", lst({vri("#")})},
+                                                                                           {"ERROR", lst({vri("#")})},
+                                                                                           {"WARN", lst()},
+                                                                                           {"DEBUG", lst()},
+                                                                                           {"TRACE", lst()}}))}}),
+                                               LOG_FURI, id_p("/io/log"))))
         ->install(mmadt::Parser::singleton("/io/parser"))
         ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
         ->drop_config("console");

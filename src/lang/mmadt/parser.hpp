@@ -20,13 +20,14 @@ FhatOS: A Distributed Operating System
 #define mmadt_parser_hpp
 
 #include "../../fhatos.hpp"
-#include "../obj.hpp"
 #include "../../model/fos/sys/memory/memory.hpp"
+#include "../obj.hpp"
 #include "../util/peglib.h"
 
-#define WRAP(LEFT,DEFINITION,RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))),(DEFINITION))
-#define WRAQ(LEFT,DEF_NOWRAP,DEF_WRAP,RIGHT) cho(seq(ign(lit((LEFT))), seq((DEF_WRAP), zom(seq(lit(","),(DEF_WRAP)))), ign(lit((RIGHT)))),(DEF_NOWRAP))
-#define COMMENT_TOKEN "dummy_comment"
+#define WRAP(LEFT, DEFINITION, RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))), (DEFINITION))
+#define WRAQ(LEFT, DEF_NOWRAP, DEF_WRAP, RIGHT)                                                                        \
+  cho(seq(ign(lit((LEFT))), seq((DEF_WRAP), zom(seq(lit(","), (DEF_WRAP)))), ign(lit((RIGHT)))), (DEF_NOWRAP))
+#define COMMENT_TOKEN "dUmMy_CoMmEnT"
 
 namespace mmadt {
   using namespace peg;
@@ -132,9 +133,9 @@ namespace mmadt {
 
   static QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
       [](const size_t line, const size_t column, const string &message, const string &rule) {
-    throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!",
-                 column - 1, message.c_str(), line, column, rule.c_str());
-  };
+        throw fError("!^r%s^!y^--!r%s!! at line !y%s!!:!y%s!! !g[!r%s!g]!!", column - 1, message.c_str(), line, column,
+                     rule.c_str());
+      };
 
   class Parser final : public Rec {
   public:
@@ -160,25 +161,22 @@ namespace mmadt {
     }
 
   private:
-    Definition
-        WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT,
-        FURI, FURI_INLINE, FURI_NO_Q, DOM_RNG, START_OBJ, NO_MATCH,
-        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SIGNATURE, OBJS, OBJ, TYPE_ID,
-        COEFFICIENT, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
+    Definition WS, START, ARGS, ARGS_LST, ARGS_REC, COMMENT, SINGLE_COMMENT, MULTI_COMMENT, FURI, FURI_INLINE,
+        FURI_NO_Q, DOM_RNG, START_OBJ, NO_MATCH, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, SIGNATURE, OBJS, OBJ,
+        TYPE_ID, COEFFICIENT, VALUE_ID, PROTO, EMPTY, NORMAL_INST, SUGAR_INST;
 
 #ifndef FOS_SUGARLESS_MMADT
-    Definition
-        APPEND, IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS,
-        MULT, PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ,
-        SPLIT, EACH, CHOOSE, CHAIN, LIFT;
+    Definition APPEND, IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS, MULT,
+        PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ, SPLIT, EACH, CHOOSE, CHAIN, LIFT;
 #endif
 
   public:
-    static void load_boot_config() {
+    static Obj_p load_boot_config() {
       if(boot_config_obj_copy) {
         const auto proto = make_unique<Parser>();
-        proto->parse((const char *) boot_config_obj_copy);
+        return proto->parse((const char *) boot_config_obj_copy);
       }
+      return Obj::to_noobj();
     }
 
     Obj_p parse(const char *source) const {
@@ -192,63 +190,47 @@ namespace mmadt {
                                  result->toString())            );
         if(result->is_empty_bcode() && strcmp(source, "_") != 0)
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
-        return std::move(result->is_bcode() && result->bcode_value()->size() == 1
-                           ? result->bcode_value()->front()
-                           : result);
+        return result->inst_bcode_obj();
       } else {
         ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
         throw fError("parse failed: %s\n", source);
       }
     }
 
-    explicit Parser():
-      Obj(make_shared<RecMap<>>(),
-          OType::REC,
-          REC_FURI) {
-      initialize();
-    }
+    explicit Parser() : Obj(make_shared<RecMap<>>(), OType::REC, REC_FURI) { initialize(); }
 
   protected:
     explicit Parser(const ID &id, const Rec_p &config) :
-      Obj(rmap({{"config", config}}),
-          OType::REC,
-          REC_FURI,
-          id_p(id)) {
+        Obj(rmap({{"config", config}}), OType::REC, REC_FURI, id_p(id)) {
       initialize();
       OBJ_PARSER = [](const string &obj_string) {
-        //StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
+        // StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
         const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(0));
-        const int int_stack_size = stack_size->is_code()
-                                     ? BOOTING
-                                         ? 32384
-                                         : mmADT::delift(stack_size)->apply(str(obj_string))->int_value()
-                                     : stack_size->is_int()
-                                     ? stack_size->int_value()
-                                     : 0;
+        const int int_stack_size =
+            stack_size->is_code()  ? BOOTING ? 32384 : mmADT::delift(stack_size)->apply(str(obj_string))->int_value()
+             : stack_size->is_int() ? stack_size->int_value()
+                                   : 0;
 
-        return Memory::singleton()->use_custom_stack(InstBuilder::build("custom_parse_stack")->inst_f(
-                                                  [](const Str_p &source, const InstArgs &) {
-                                                    return Parser::singleton()->parse(source->str_value().c_str());
-                                                  })->create(), Obj::to_str(obj_string), int_stack_size);
+        return Memory::singleton()->use_custom_stack(InstBuilder::build("custom_parse_stack")
+                                                         ->inst_f([](const Str_p &source, const InstArgs &) {
+                                                           return Parser::singleton()->parse(
+                                                               source->str_value().c_str());
+                                                         })
+                                                         ->create(),
+                                                     Obj::to_str(obj_string), int_stack_size);
       };
     }
 
     void initialize() {
-      auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> {
-        return {nullptr, OType::NOOBJ};
-      };
-      auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
-        return {vs.choice() == 0, OType::BOOL};
-      };
+      auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> { return {nullptr, OType::NOOBJ}; };
+      auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> { return {vs.choice() == 0, OType::BOOL}; };
       auto int_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.token_to_number<FOS_INT_TYPE>(), OType::INT};
       };
       auto real_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.token_to_number<FOS_REAL_TYPE>(), OType::REAL};
       };
-      auto str_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
-        return {vs.token_to_string(), OType::STR};
-      };
+      auto str_action = [](const SemanticValues &vs) -> Pair<Any, OType> { return {vs.token_to_string(), OType::STR}; };
       auto uri_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
         return {vs.choice() == 0 ? fURI("") : *any_cast<fURI_p>(vs[0]), OType::URI};
       };
@@ -259,7 +241,7 @@ namespace mmadt {
         const auto map = make_shared<Obj::RecMap<>>();
         if(1 == vs.choice()) {
           for(int i = 0; i < vs.size(); i = i + 2) {
-            map->insert(make_pair<Obj_p, Obj_p>(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1])));
+            map->insert_or_assign(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1]));
           }
         }
         return {map, OType::REC};
@@ -311,9 +293,7 @@ namespace mmadt {
             {FOS_RNG_COEF, to_string(rc.first).append(",").append(to_string(rc.second))}}));
         return dom_rng;
       };
-      auto empty_bcode_action = [](const SemanticValues &) -> BCode_p {
-        return Obj::to_bcode();
-      };
+      auto empty_bcode_action = [](const SemanticValues &) -> BCode_p { return Obj::to_bcode(); };
       auto coefficient_action = [](const SemanticValues &vs) -> IntCoefficient {
         int min;
         int max;
@@ -404,7 +384,7 @@ namespace mmadt {
       //////////////////////////////////////////////////////////////////////////
       auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
-         // LOG_WRITE(TRACE, nullptr, L("entering rule !b{}!! with token !y{}!!\n", rule, s));
+          // LOG_WRITE(TRACE, nullptr, L("entering rule !b{}!! with token !y{}!!\n", rule, s));
         };
       };
       //////////////////////////////////////////////////////////////////////////
@@ -470,6 +450,7 @@ namespace mmadt {
           }
         }
         return Obj::to_bcode(insts);
+        // return insts->size() == 1 ? insts->front() : Obj::to_bcode(insts);
       };
 
       auto start_obj_action = [start_action](const SemanticValues &vs) -> Pair<Any, OType> {

@@ -53,7 +53,7 @@ namespace fhatos {
     if(!h->connected()) {
       LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
       if(!h->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str())) {
-        Thread::delay_current_thread(FOS_MQTT_RETRY_WAIT);
+        Thread::delay(FOS_MQTT_RETRY_WAIT);
       }
     }
     if(!h->loop()) {
@@ -158,7 +158,7 @@ namespace fhatos {
             throw fError("__wrapped below__");
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
                         this->broker().toString()));
-          vTaskDelay(FOS_MQTT_RETRY_WAIT / portTICK_PERIOD_MS);
+          Thread::delay(FOS_MQTT_RETRY_WAIT);
         }
         if(h->connected()) {
           this->clients_->push_back(source);

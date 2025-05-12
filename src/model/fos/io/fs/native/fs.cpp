@@ -60,7 +60,7 @@ namespace fhatos {
   }
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {
-    const fs::path data_extend_path = fs::path(string("data").append(boot_config.toString()));
+    const auto data_extend_path = fs::path(string("data").append(boot_config.toString()));
     try {
       const fs::path boot_path = fs::canonical(data_extend_path);
       LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader native location!!\n", boot_path.c_str()));
@@ -72,6 +72,11 @@ namespace fhatos {
         infile.close();
         const auto proto = make_unique<mmadt::Parser>();
         const Obj_p boot_obj = proto->parse(content.c_str());
+        if(!boot_obj->is_noobj()) {
+          LOG_WRITE(INFO, Router::singleton().get(),
+                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", boot_obj->vid_or_tid()->toString(),
+                      boot_obj->toString(NO_ANSI_PRINTER).size()));
+        }
         return boot_obj;
       }
     } catch(std::exception &) {

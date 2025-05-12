@@ -75,8 +75,7 @@ namespace fhatos {
             // if(char_indent && 0 == depth)
             //   indentation += '=';
             ss << StringHelper::format(
-                i == obj->lst_value()->size() - 1 ? "%s%s!!\n"
-                                                  : "%s%s!m,!!\n",
+                /*i == obj->lst_value()->size() - 1*/ true ? "%s%s!!\n" : "%s%s!m,!!\n",
                 (string("!m") + indentation + (char_indent ? "==>!!" : "   !!")).c_str(), e->toString().c_str());
           } else {
             // to_out->append("!m,!!");

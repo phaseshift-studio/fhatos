@@ -61,15 +61,11 @@ namespace fhatos {
       this->new_input_ = true;
     }
 
-    ptr<Console> shared_from_this() {
-      return std::dynamic_pointer_cast<Console>(const_pointer_cast<Obj>(Obj::shared_from_this()));
-    }
-
     ///// printers
     void write_stdout(const Str_p &s) const {
       if(this->has("config/terminal/stdout")) {
         if(const fURI out = this->get<fURI>("config/terminal/stdout");
-           Terminal::singleton()->vid->extend("stdout") == out) {
+           Terminal::singleton()->vid->add_component("stdout") == out) {
           Terminal::STD_OUT_DIRECT(s, this->rec_get("config/ellipsis"));
         } else
           ROUTER_WRITE(out, s, TRANSIENT);
@@ -81,8 +77,8 @@ namespace fhatos {
     [[nodiscard]] Str_p read_stdin(const char until) const {
       // if(console_obj->has("config/terminal/stdin")) {
       const fURI in = this->get<fURI>("config/terminal/stdin");
-      return Terminal::singleton()->vid->extend("stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
-                                                                : Router::singleton()->exec(in, noobj());
+      return Terminal::singleton()->vid->add_component("stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
+                                                                      : Router::singleton()->exec(in, noobj());
       //}
     }
 
@@ -139,11 +135,10 @@ namespace fhatos {
               {{"loop", __().lift(InstBuilder::build(THREAD_FURI->extend("loop"))
                                       ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
                                       ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-                                        // static_cast necessary for esp32
                                         Console *console_state = console_obj->get_model<Console>();
                                         if(console_state->first) {
                                           console_state->first = false;
-                                          Thread::delay_current_thread(300);
+                                          Thread::delay(300);
                                           printer()->println();
                                         }
                                         try {
@@ -179,7 +174,6 @@ namespace fhatos {
                                             }
                                             // prepare the user input for processing
                                             console_state->tracker_.clear();
-                                            StringHelper::trim(console_state->line_);
                                             console_state->process_line(console_state->line_);
                                             console_state->line_.clear();
                                           }
@@ -211,8 +205,8 @@ namespace fhatos {
                                {"strict", dool(false)},
                                {"log", vri(LOG_TYPES.to_chars(INFO))},
                                {"ellipsis", jnt(50)},
-                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/stdout")},
-                                                         {"stdin", Obj::to_uri("/io/terminal/stdin")}})}}))}}));
+                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal::stdout")},
+                                                         {"stdin", Obj::to_uri("/io/terminal::stdin")}})}}))}}));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {

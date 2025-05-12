@@ -151,7 +151,7 @@ namespace fhatos {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n", this->broker().toString()));
-          Thread::delay_current_thread(FOS_MQTT_RETRY_WAIT);
+          Thread::delay(FOS_MQTT_RETRY_WAIT);
         }
         if(std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
           this->clients_->push_back(source);

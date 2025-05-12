@@ -49,62 +49,58 @@
 #include "../src/util/options.hpp"
 #include "../src/util/print_helper.hpp"
 
-#define FOS_DEPLOY_PRINTER
+#define FOS_DEPLOY_ROUTER_2 ;
+#define FOS_STOP_ROUTER ;
+#define FOS_DEPLOY_SCHEDULER_2 ;
+#define FOS_STOP_SCHEDULER ;
+#define FOS_DEPLOY_PARSER_2 ;
+#define FOS_STOP_PARSER ;
+#define FOS_DEPLOY_COMPILER_2 ;
 
 ////////////////////////////////////////////// PRINTER ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PRINTER
-#define FOS_DEPLOY_PRINTER_2 Options::singleton()->printer<>(Ansi<>::singleton());
-#else
 #define FOS_DEPLOY_PRINTER_2 ;
 #endif
 /////////////////////////////////////////// PROCESSOR ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PROCESSOR
 #include "../src/lang/processor/processor.hpp"
-#define FOS_DEPLOY_PROCESSOR_2 Processor::import();
+#define FOS_DEPLOY_PROCESSOR_2 ;
 #else
 #define FOS_DEPLOY_PROCESSOR_2 ;
 #endif
 /////////////////////////////////////////// SCHEDULER ///////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
-#define FOS_STOP_ON_BOOT Scheduler::singleton("/sys/scheduler")->stop();
+#define FOS_STOP_SCHEDULER Scheduler::singleton()->stop();
 #define FOS_DEPLOY_SCHEDULER_2 Kernel::using_scheduler("/sys/scheduler");
-#else
-#define FOS_DEPLOY_SCHEDULER_2 ;
-#define FOS_STOP_ON_BOOT ;
 #endif
 /////////////////////////////////////////// ROUTER //////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
-#include "../src/lang/mmadt/parser.hpp"
+#include "../src/kernel.hpp"
 #include "../src/model/fos/sys/router/router.hpp"
+#include "../src/model/fos/sys/router/structure/heap.hpp"
+// FOS_BOOT_CONFIG_HEADER_URI;
+#define FOS_STOP_ROUTER Router::singleton()->stop();
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
-  Kernel::mount_core_structures()->mount(Heap<>::create("/io/#", id_p("/mnt/io")));                                    \
-  Kernel::using_boot_config(FOS_BOOT_CONFIG_HEADER_URI);                                                               \
-  Kernel::using_router("/sys/router");                                                                                 \
-  fOS::import_q_proc();                                                                                                \
-  fOS::import_structure();                                                                                             \
-  Kernel::import2("import")                                                                                            \
-      ->import(Processor::import())                                                                                    \
-      ->install(                                                                                                       \
-          mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
-#else
-#define FOS_DEPLOY_ROUTER_2 ;
+  Kernel::mount(Heap<>::create("/sys/#"))                                                                              \
+      ->mount(Heap<>::create("/mnt/+"))                                                                                \
+      ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))                                                            \
+      ->mount(Heap<>::create("/io/#", id_p("/mnt/io")));                                                               \
+  Kernel::using_boot_config("/boot/boot_config.obj");                                                                  \
+  LOG_WRITE(INFO, Router::singleton().get(), L("{}\n", Kernel::boot()->toString()));                                   \
+  Kernel::using_router("/sys/router");
 #endif
 ////////////////////////////////////////// PARSER ///////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PARSER
 #include "../src/lang/mmadt/parser.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_PARSER_2                                                                                            \
-  Router::singleton()->attach(Heap<>::create("/parser/#"));                                                            \
-  mmadt::Parser::singleton("/parser");
-#else
-#define FOS_DEPLOY_PARSER_2 ;
+  Kernel::install(                                                                                                     \
+      mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
 #endif
 //////////////////////////////////////// COMPILER //////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_COMPILER
 #include "../src/lang/mmadt/compiler.hpp"
-#define FOS_DEPLOY_COMPILER_2 ;
-#else
 #define FOS_DEPLOY_COMPILER_2 ;
 #endif
 ////////////////////////////////////////// TYPE ////////////////////////////////////////////////////////////////
@@ -112,7 +108,11 @@
 #include "../src/lang/mmadt/mmadt_obj.hpp"
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
-#define FOS_DEPLOY_MMADT_TYPE_2 mmadt::mmADT::import({"/mmadt/+"});
+#define FOS_DEPLOY_MMADT_TYPE_2                                                                                        \
+  Kernel::mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")));                                                       \
+  Processor::import();                                                                                                 \
+  load_processor();                                                                                                    \
+  mmadt::mmADT::import({"/mmadt/#"});
 #else
 #define FOS_DEPLOY_MMADT_TYPE_2 ;
 #endif
@@ -128,7 +128,10 @@
 #ifdef FOS_DEPLOY_FOS_TYPE
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/fos_obj.hpp"
-#define FOS_DEPLOY_FOS_TYPE_2 fhatos::fOS::import({});
+#include "../src/model/fos/sys/router/structure/heap.hpp"
+#define FOS_DEPLOY_FOS_TYPE_2                                                                                          \
+  Kernel::mount(Heap<>::create("/fos/#", id_p("/mnt/fos")));                                                           \
+  fOS::import({"/fos/#"});
 #else
 #define FOS_DEPLOY_FOS_TYPE_2 ;
 #endif
@@ -136,18 +139,15 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2                                                                                     \
-  Router::singleton()->attach(Heap<>::create(                                                                          \
-      Pattern((0 == strcmp("", STR(FOS_DEPLOY_SHARED_MEMORY)) ? "+/#" : STR(FOS_DEPLOY_SHARED_MEMORY)))));
+  Kernel::mount(Heap<>::create(string(STR(FOS_DEPLOY_SHARED_MEMORY)).empty() ? "+/#" : STR(FOS_DEPLOY_SHARED_MEMORY),  \
+                               id_p("/mnt/var")));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
 ////////////////////////////////////// FILE SYSTEM ////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_FILE_SYSTEM
-#include FOS_FILE_SYSTEM(fs.hpp)
-#define FOS_DEPLOY_FILE_SYSTEM_2                                                                                       \
-  /*ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp");*/                       \
-  /*Router::singleton()->attach(fs);*/                                                                                 \
-  /*fs->setup();*/
+#include "../src/model/fos/io/fs/fs.hpp"
+#define FOS_DEPLOY_FILE_SYSTEM_2 Kernel::mount(FS::create("/fs/#", id_p("/mnt/fs")));
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
@@ -163,7 +163,7 @@ using namespace fhatos;
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
     } catch(const std::exception &e) {                                                                                 \
-      Ansi<>::singleton()->println(string("failed test due to ").append(e.what()).c_str());                            \
+      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("failed test due to {}\n", e.what()));                                 \
       TEST_FAIL_MESSAGE("failed test");                                                                                \
     }                                                                                                                  \
   }
@@ -171,12 +171,9 @@ using namespace fhatos;
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
-      FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_ROUTER_2                                                                                              \
       FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_PARSER_2                                                                                              \
-      FOS_DEPLOY_COMPILER_2                                                                                            \
-      FOS_DEPLOY_PROCESSOR_2                                                                                           \
       FOS_DEPLOY_FOS_TYPE_2                                                                                            \
       FOS_DEPLOY_MMADT_TYPE_2                                                                                          \
       FOS_DEPLOY_MMADT_EXT_TYPE_2                                                                                      \
@@ -185,7 +182,6 @@ using namespace fhatos;
       BOOTING = false;                                                                                                 \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
-      FOS_STOP_ON_BOOT                                                                                                 \
       UNITY_END();                                                                                                     \
     } catch(const std::exception &e) {                                                                                 \
       TEST_FAIL_MESSAGE(e.what());                                                                                     \
@@ -199,7 +195,6 @@ using namespace fhatos;
 #ifdef NATIVE
 #define SETUP_AND_LOOP_2                                                                                               \
   int main(int argc, char **argv) {                                                                                    \
-    Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());                                                        \
     auto *args_parser = new fhatos::ArgvParser();                                                                      \
     args_parser->init(argc, argv);                                                                                     \
     fhatos::LOG_LEVEL = fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING)));
@@ -217,7 +212,6 @@ using namespace fhatos;
   using namespace fhatos;                                                                                              \
   SETUP_AND_LOOP_2                                                                                                     \
   RUN_UNITY_TESTS();                                                                                                   \
-  FOS_STOP_ON_BOOT;                                                                                                    \
   }                                                                                                                    \
   ;
 

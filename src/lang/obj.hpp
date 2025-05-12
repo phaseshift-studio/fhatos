@@ -375,6 +375,11 @@ namespace fhatos {
     OType otype;
     Any value_;
 
+    template<typename T>
+    [[nodiscard]] ptr<const T> get_shared_from_this() const {
+      return std::dynamic_pointer_cast<const T>(this->shared_from_this());
+    }
+
     struct objp_hash {
       size_t operator()(const Obj_p &obj) const { return std::hash<std::string>{}(obj->toString()); }
     };
@@ -486,9 +491,9 @@ namespace fhatos {
           if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype))) {
             if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&
                !this->tid->matches("/sys/#") && // TODO: REMOVE WHEN ALL TYPES HAVE BEEN WRITTEN USING QUERY TYPES
-               (this->tid->matches("/fos/ui/terminal") || this->tid->matches("/fos/ui/console") ||
+               /*(this->tid->matches("/fos/ui/terminal") || this->tid->matches("/fos/ui/console") ||
                 this->tid->matches("/fos/util/log") || this->tid->matches("/fos/thread") ||
-                !this->tid->matches("/fos/#")) &&
+                this->tid->matches("/fos/#"))*/
                !this->tid->matches("/io/#")) {
               if(const Obj_p type_obj = ROUTER_READ(*this->tid);
                  !type_obj->is_noobj() && type_obj->otype == this->otype) {
@@ -947,7 +952,10 @@ namespace fhatos {
     template<typename T>
     [[nodiscard]] T get(const fURI &key) const {
       try {
-        return std::any_cast<T>(this->poly_get(Obj::to_uri(key))->value_);
+        const Obj_p v = this->poly_get(Obj::to_uri(key));
+        if(v->is_noobj())
+          throw fError("!b%s!! has no value for !b%s!!", key.toString().c_str());
+        return std::any_cast<T>(v->value_);
       } catch(const std::bad_any_cast &e) {
         throw fError::create("wrong underlying type of %s in %s: %s", key.toString().c_str(), this->toString().c_str(),
                              e.what());
@@ -1371,6 +1379,11 @@ namespace fhatos {
         insts->push_back(bcode);
       }
       return Obj::to_bcode(insts);
+    }
+
+    [[nodiscard]] Obj_p inst_bcode_obj() const {
+      return this->is_bcode() && 1 == this->bcode_value()->size() ? this->bcode_value()->front()
+                                                                  : this->shared_from_this();
     }
 
     [[nodiscard]] Obj_p none_one_all() const {
@@ -2009,8 +2022,9 @@ namespace fhatos {
     template<typename T>
     T *get_model() const {
       static Function<Obj_p, ptr<void>> GET_OR_CREATE_MODEL = [](const Obj_p &model_obj) {
-        if(MODEL_MAP->count(*model_obj->vid))
+        if(MODEL_MAP->count(*model_obj->vid)) {
           return MODEL_MAP->at(*model_obj->vid);
+        }
         if(MODEL_MAP->count(*model_obj->tid))
           return MODEL_MAP->at(*model_obj->tid);
         if(MODEL_CREATOR2->count(*model_obj->vid)) {
@@ -2021,11 +2035,12 @@ namespace fhatos {
         if(MODEL_CREATOR2->count(*model_obj->tid)) {
           const ptr<void> model_any = MODEL_CREATOR2->at(*model_obj->tid)(model_obj);
           MODEL_MAP->insert_or_assign(*model_obj->vid, model_any);
-          return model_any;
+          return MODEL_MAP->at(*model_obj->vid);
         }
         throw fError("no model for %s", model_obj->tid->toString().c_str());
       };
-      return (T *) (GET_OR_CREATE_MODEL(this->shared_from_this()).get());
+      T *t = static_cast<T *>(GET_OR_CREATE_MODEL(this->shared_from_this()).get());
+      return t;
     }
 
     void delete_model() const {

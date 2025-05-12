@@ -24,12 +24,13 @@
 #define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_MMADT_EXT_TYPE
+#define FOS_DEPLOY_FOS_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY /obj/#
 
-#include "../../test_fhatos.hpp"
-#include "../../../src/util/obj_helper.hpp"
 #include "../../../src/lang/obj.hpp"
+#include "../../../src/util/obj_helper.hpp"
+#include "../../test_fhatos.hpp"
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -72,12 +73,12 @@ namespace fhatos {
 
 
   void test_int() {
-ID_p AGE_FURI = id_p("/obj/age");
-    Typer::singleton()->save_type(*AGE_FURI,__().isa(*INT_FURI)); //
+    ID_p AGE_FURI = id_p("/obj/age");
+    Typer::singleton()->save_type(*AGE_FURI, __().isa(*INT_FURI)); //
     const Int_p intA = jnt(1);
     const Int_p intB = make_shared<Int>(*jnt(1));
     const Int_p intC = Obj::to_int(1, AGE_FURI);
-    const Int_p intD = Obj::create(2, OType::INT,NAT_FURI);
+    const Int_p intD = Obj::create(2, OType::INT, NAT_FURI);
     ///
     const Int_p int5 = jnt(5, AGE_FURI);
 
@@ -114,7 +115,7 @@ ID_p AGE_FURI = id_p("/obj/age");
       })));
     TEST_ASSERT_FALSE(
         Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));*/
-   }
+  }
 
   /*void test_real() {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/money"), Obj::to_bcode()); //
@@ -206,32 +207,31 @@ ID_p AGE_FURI = id_p("/obj/age");
     TEST_ASSERT_TRUE(vri("example.com")->match(Obj::to_uri("example.com")));
     TEST_ASSERT_TRUE(
         vri("/fhatos/index.html")->as(id_p("/obj/webpage"))->match(vri("/+/index.html")->as(id_p("/obj/webpage"))));
-    TEST_ASSERT_FALSE(vri("/fhatos/index")->as(id_p("/obj/webpage"))->match(vri("/fhatos/index")->as(id_p("/obj/ftp"))))
-    ;
-
+    TEST_ASSERT_FALSE(
+        vri("/fhatos/index")->as(id_p("/obj/webpage"))->match(vri("/fhatos/index")->as(id_p("/obj/ftp"))));
   }
 
   void test_rec_insert_order() {
     Rec_p record = Obj::to_rec();
-    for(int i=0;i<100;i++) {
-      record->rec_set(jnt(i),jnt(i));
+    for(int i = 0; i < 100; i++) {
+      record->rec_set(jnt(i), jnt(i));
     }
-    int counter =0;
-    for(const auto& [k,v]: *record->rec_value()) {
-      TEST_ASSERT_EQUAL_INT(counter,k->int_value());
-      TEST_ASSERT_EQUAL_INT(counter,v->int_value());
+    int counter = 0;
+    for(const auto &[k, v]: *record->rec_value()) {
+      TEST_ASSERT_EQUAL_INT(counter, k->int_value());
+      TEST_ASSERT_EQUAL_INT(counter, v->int_value());
       counter++;
     }
-    for(int i=0;i<100;i++) {
-      record->rec_set(jnt(i),jnt(i+10));
+    for(int i = 0; i < 100; i++) {
+      record->rec_set(jnt(i), jnt(i + 10));
     }
-    counter =0;
-    for(const auto& [k,v]: *record->rec_value()) {
-     TEST_ASSERT_EQUAL_INT(counter,k->int_value());
-      TEST_ASSERT_EQUAL_INT(counter+10,v->int_value());
+    counter = 0;
+    for(const auto &[k, v]: *record->rec_value()) {
+      TEST_ASSERT_EQUAL_INT(counter, k->int_value());
+      TEST_ASSERT_EQUAL_INT(counter + 10, v->int_value());
       counter++;
     }
-    TEST_ASSERT_EQUAL_INT(100,counter);
+    TEST_ASSERT_EQUAL_INT(100, counter);
   }
 
   /*
@@ -328,7 +328,7 @@ ID_p AGE_FURI = id_p("/obj/age");
     FOS_TEST_OBJ_NTEQL(bool_b, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_b, bool_b);
-    FOS_TEST_OBJ_NTEQL(Obj::to_bool(false,id_p("/obj/truth")),
+    FOS_TEST_OBJ_NTEQL(Obj::to_bool(false, id_p("/obj/truth")),
                        Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
     FOS_TEST_OBJ_EQUAL(Obj::to_bool(false), Obj::to_bool(bool_a->bool_value() && bool_b->bool_value()));
     TEST_ASSERT_TRUE(bool_a->bool_value());
@@ -367,7 +367,7 @@ ID_p AGE_FURI = id_p("/obj/age");
     FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
     FOS_TEST_OBJ_EQUAL(&lstD, &lstA);
     lstC.lst_set(4, jnt(5));
-    FOS_TEST_OBJ_EQUAL(Obj::to_lst({jnt(2),jnt(3),jnt(4),Obj::to_noobj(),jnt(5)}), &lstC);
+    FOS_TEST_OBJ_EQUAL(Obj::to_lst({jnt(2), jnt(3), jnt(4), Obj::to_noobj(), jnt(5)}), &lstC);
     FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
     for(int i = 0; i < 4; i++) {
       FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA.lst_get(jnt(i)));
@@ -442,17 +442,13 @@ ID_p AGE_FURI = id_p("/obj/age");
   }
 
   void test_inst() {
-    const Inst_p i1 = Obj::create(InstValue(make_tuple(Obj::to_rec({{"a", jnt(10)}}),
-                                                       InstF(Obj::to_bcode()),
-                                                       noobj())),
+    const Inst_p i1 = Obj::create(InstValue(make_tuple(Obj::to_rec({{"a", jnt(10)}}), InstF(Obj::to_bcode()), noobj())),
                                   OType::INST, id_p("myinst"));
-    const Inst_p i2 = Obj::create(InstValue(make_tuple(Obj::to_rec({{"a", jnt(10)}}),
-                                                       InstF(make_shared<Cpp>(
-                                                           [](const Obj_p &lhs, const InstArgs &) -> Obj_p {
-                                                             return lhs;
-                                                           })),
-                                                       noobj())),
-                                  OType::INST, id_p("myinst"));
+    const Inst_p i2 = Obj::create(
+        InstValue(make_tuple(Obj::to_rec({{"a", jnt(10)}}),
+                             InstF(make_shared<Cpp>([](const Obj_p &lhs, const InstArgs &) -> Obj_p { return lhs; })),
+                             noobj())),
+        OType::INST, id_p("myinst"));
     FOS_TEST_OBJ_NOT_EQUAL(i1, i2);
     FOS_TEST_FURI_EQUAL(*i1->tid, *i2->tid);
     FOS_TEST_OBJ_EQUAL(i1->inst_args(), i2->inst_args());
@@ -469,18 +465,14 @@ ID_p AGE_FURI = id_p("/obj/age");
   void test_serialization() {
     const List<Obj_p> objs = {
         Obj::to_noobj(),
-        // TODO: Obj::to_type(INT_FURI,Obj::to_bcode(id_p(INT_FURI->query({{FOS_DOMAIN,INT_FURI->toString()},{FOS_RANGE,INT_FURI->toString()}})))),
+        // TODO:
+        // Obj::to_type(INT_FURI,Obj::to_bcode(id_p(INT_FURI->query({{FOS_DOMAIN,INT_FURI->toString()},{FOS_RANGE,INT_FURI->toString()}})))),
         // TODO: Obj::create(Any(),OType::OBJ,INT_FURI),
-        Obj::to_int(1),
-        Obj::to_int(-453),
-        Obj::to_real(12.035f),
-        Obj::to_str("fhatos"),
-        Obj::to_uri("aaaa"),
-        //Obj::to_uri("<abba>"),
-        Obj::to_lst({jnt(1), jnt(7), str("abc"), vri("hello/fhat/aus")}),
-        Obj::to_rec({{"a", jnt(2)}, {"b", jnt(3)}})
+        Obj::to_int(1), Obj::to_int(-453), Obj::to_real(12.035f), Obj::to_str("fhatos"), Obj::to_uri("aaaa"),
+        // Obj::to_uri("<abba>"),
+        Obj::to_lst({jnt(1), jnt(7), str("abc"), vri("hello/fhat/aus")}), Obj::to_rec({{"a", jnt(2)}, {"b", jnt(3)}})
         // PROCESS("parsed_inst(a=>10,b=>20)[plus(*a).plus(*b)]")->none_one_all(),
-        //Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
+        // Obj::create(InstValue(Obj::to_rec({{"a",jnt(10)}}),
         //                                 make_shared<InstF>(Obj::to_bcode()),
         //                                IType::ONE_TO_ONE,noobj()),OType::INST,id_p("myinst"))
     };
@@ -494,7 +486,7 @@ ID_p AGE_FURI = id_p("/obj/age");
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_operator_equals); //
       FOS_RUN_TEST(test_lock); //
-        FOS_RUN_TEST(test_int); //
+      FOS_RUN_TEST(test_int); //
       //  FOS_RUN_TEST(test_real); //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_str); //
@@ -506,7 +498,7 @@ ID_p AGE_FURI = id_p("/obj/age");
       FOS_RUN_TEST(test_rec_nested_set_get_with_components); //
       FOS_RUN_TEST(test_inst); //
       FOS_RUN_TEST(test_serialization); //
-      )
+  )
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

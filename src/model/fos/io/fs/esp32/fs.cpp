@@ -97,36 +97,56 @@ namespace fhatos {
         FS_MOUNTED = true;
       }
       const fURI boot_config_update = boot_config.toString()[0] == '/'
-                                    ? boot_config
-                                    : fURI("/").extend(boot_config); // LittleFS doesn't support relative paths
+                                          ? boot_config
+                                          : fURI("/").extend(boot_config); // LittleFS doesn't support relative paths
       fs::File file = FOS_FS.open(boot_config_update.toString().c_str(), "r");
+      LOG_WRITE(INFO, Router::singleton().get(), L("!b{} !yboot loader littlefs location!!\n", file.path()));
       if(!file)
         return Obj::to_noobj();
       const String content = file.readString();
-      const char *c = content.c_str();
       boot_config_obj_copy_len = content.length();
       boot_config_obj_copy = (unsigned char *) malloc((boot_config_obj_copy_len * sizeof(unsigned char)) + 1);
       for(int i = 0; i < boot_config_obj_copy_len; i++) {
-        boot_config_obj_copy[i] = static_cast<unsigned char>(c[i]);
+        boot_config_obj_copy[i] = static_cast<unsigned char>(content.c_str()[i]);
       }
       boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
+      if(boot_config_obj_copy) {
+        LOG_WRITE(INFO, Router::singleton().get(),
+                  L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", file.path(),
+                    boot_config_obj_copy_len));
+      } else {
+        file.close();
+        FOS_FS.end();
+        FS_MOUNTED = false;
+        return Obj::to_noobj();
+      }
       file.close();
       FOS_FS.end();
       FS_MOUNTED = false;
-      Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_parser")
-                                                ->inst_f([](const Obj_p &obj, const InstArgs &) {
-                                                  const auto proto = make_unique<mmadt::Parser>();
-                                                  const Obj_p boot_obj = proto->parse(obj->str_value().c_str());
-                                                  ROUTER_WRITE("/boot/config", boot_obj, true);
-                                                  return Obj::to_noobj();
-                                                })
-                                                ->create(),
-                                            Obj::to_str((char *) boot_config_obj_copy), FOS_BOOT_CONFIG_MEM_USAGE);
-      return Router::singleton()->read("/boot/config");
-    } catch(std::exception &ex) {
-      LOG_WRITE(ERROR, Router::singleton().get(), L("{}", ex.what()));
+      return Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_parser")
+                                                       ->inst_f([](const Obj_p &obj, const InstArgs &) {
+                                                         const auto proto = make_unique<mmadt::Parser>();
+                                                         const Obj_p boot_obj = proto->parse(obj->str_value().c_str());
+                                                         return boot_obj;
+                                                       })
+                                                       ->create(),
+                                                   Obj::to_str((char *) boot_config_obj_copy),
+                                                   FOS_BOOT_CONFIG_MEM_USAGE);
+    } catch(const fError &e) {
+      LOG_WRITE(ERROR, Router::singleton().get(), L("{}\n", e.what()));
       return Obj::to_noobj();
     }
+  }
+
+  ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
+    /*const Obj_p root = config->rec_get("root")->or_else(vri("."));
+    string root_path_str = root->uri_value().toString();
+    const auto root_path =
+        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "./")));
+    if(!fs::exists(root_path))
+      fs::create_directories(root_path);
+    config->rec_value()->insert_or_assign(vri("root"), vri(root_path));*/
+    return Structure::create<FS>(pattern, value_id, config);
   }
 
   void FS::write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) {

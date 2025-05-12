@@ -7,45 +7,8 @@ basic boot_config obj
                 config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
                          auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
                                        /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]],
- import=>[/fos/#,/mmadt/#],
+ import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
- setup=>setup?obj{?}<=obj{.}()[]
+ setup=>setup?obj{?}<=obj{.}()[
+ ]
 ]@/boot/config
-===
-[router=>[
-  resolve=>[
-   namespace=>[:=>/mmadt/,fos:=>/fos/],
-   auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],
-   query=>[write=>[lock=>to_do]],
-   default_config=>[query=>[write=>[sub=>noobj]]]]],
- scheduler=>[
-  def_stack_size=>16192],
- log=>[INFO=>[#],ERROR=>[#],WARN=>[#],TRACE=>[],DEBUG=>[]],
- parser=>[
-  stack_size=>32384 --- ^(>-.count()-|[is(lt(15)) => 0, _ => 32384]>-)
- ],
- vm=>[stack_size=>32384],
- mqtt=>[
-  broker=><mqtt://chibi.local:1883>,
-  client=>fos_native,
-  async=>true,
-  cache_size=>50],
- wifi=>[ssid=><Rodkins-2G>,password=>'puppymama',mdns=>fos_native],
- ota=>[host=>mdns://fos_native:3232],
- console=>[
-  terminal=>[
-   stdout=>/io/terminal/:stdout,
-   stdin=>/io/terminal/:stdin
-  ],
-  processor=>/sys/vm,
-  nest=>2,
-  ellipsis=>50,
-  prompt=>'!mfhatos!g>!! ',
-  strict=>false,
-  log=>INFO,
-  stack_size=>16192,
-  stack_trace=>true
- ],
- fs=>[root=></data/fs>]
-]@/boot/config
-===
