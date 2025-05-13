@@ -326,6 +326,11 @@ video {
     padding: 0.5em;
 }
 
+.hljs-phaseshift-studio-header {
+    color: var(--secondarycolor) !important;
+    font-weight: bolder;
+}
+
 .hljs-fhatos-thrown,
 .hljs-mmadt-noobj {
     color: #ba3925;
@@ -564,7 +569,7 @@ video {
 </li>
 <li><a href="#_values">Values</a>
 <ul class="sectlevel4">
-<li><a href="#_by_value_vs_by_reference">By Value vs. By Reference</a></li>
+<li><a href="#_by_value_vs">By Value vs.</a></li>
 </ul>
 </li>
 <li><a href="#_types">Types</a>
@@ -764,59 +769,87 @@ The purpose of this documentation is to explain the mechanics of the boot proces
  `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\
     )-)_/-(&gt;  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
                                    A Dogturd Stynx Production
-    fhatos-0.1-alpha &gt; linux-6.8.0-54-generic &gt; x86_64
+    fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
-      Use noobj for noobj
-      .oO loading system objs Oo.
-[INFO]  [/sys/scheduler] scheduler started
-[INFO]  [/sys/router] router started
-[INFO]  [/sys/router] main memory [total=&gt;5376]
-[INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
-[INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 902 bytes)
-[INFO]  [/sys/router]
-  [
-    router=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
-    scheduler=&gt;[def_stack_size=&gt;16192]
-    parser=&gt;[stack_size=&gt;64768]
-    vm=&gt;[stack_size=&gt;64768]
-    mqtt=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;fhatos_client,async=&gt;true,cache_size=&gt;50]
-    wifi=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;fhatos]
-    ota=&gt;[host=&gt;mdns://fhatos_client:3232]
-    console=&gt;[terminal=&gt;[stdout=&gt;/io/terminal/:stdout,stdin=&gt;/io/terminal/:stdin],processor=&gt;/sys/vm,nest=&gt;2,ellipsis=&gt;50,prompt=&gt;'fhatos&gt; ',strict=&gt;false,log=&gt;INFO,stack_size=&gt;32384,stack_trace=&gt;true]
-    fs=&gt;[root=&gt;./data/fs]
-  ]@/boot/config
-[INFO]  [/sys/router] router boot config dropped
-[INFO]  [/sys/router] scheduler boot config dropped
-[INFO]  [/sys/router] /sys/lib/heap type imported
-[INFO]  [/sys/router] /sys/lib/dsm type imported
-[INFO]  [/sys/router] /sys/lib/bus type imported
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
-[INFO]  [/sys/type] /sys/vm type defined
-[INFO]  [/sys/type] /sys/vm/::/eval type defined
-      .oO loading mmadt lang Oo.
-[INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-[INFO]  [/sys/router] vm boot config dropped
-      .oO loading fos models Oo.
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-[INFO]  [/sys/router] /io/parser obj loaded
-[INFO]  [/sys/router] parser boot config dropped
-[INFO]  [/io/log] switching from boot logger to system logger
-[INFO]  [/sys/router] /io/log obj loaded
-[INFO]  [/sys/router] log boot config dropped
-[INFO]  [/sys/router] heap /mnt/cache spanning +/# mounted
-[INFO]  [/sys/type] /sys/structure/lib/fs/:create type defined
-[INFO]  [/sys/router] /io/lib/fs type imported
-[INFO]  [/mnt/disk] /home/killswitch/software/fhatos/build/docs/build/data/fs file system location mounted
-[INFO]  [/sys/router] fs /mnt/disk spanning /disk/# mounted
-[INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/mnt/dsm] query processor /mnt/dsm/ attached
-[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt fhatos_client connected
-[INFO]  [/sys/router] dsm /mnt/dsm spanning /shared/# mounted
-[INFO]  [/sys/router] mqtt boot config dropped
-[INFO]  [/sys/scheduler] /io/console thread spawned</code></pre>
+      .oO mounting kernel structures Oo.
+[INFO]  main [total=&gt;11313152,free=&gt;11311744,used=&gt;0.01245]
+[INFO]  [/sys/router/] router started
+[INFO]  [/sys/router/] heap &lt;none&gt; spanning /sys/# mounted
+[INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
+[INFO]  [/sys/router/] heap /mnt/boot spanning /boot/# mounted
+[ERROR] [/mmadt/noobj] boot config file not found: data../../../conf/boot_config.obj
+[WARN]  [/sys/router/] no mounted structure for heap
+[WARN]  [/sys/router/] no mounted structure for fs
+[WARN]  [/sys/router/] no mounted structure for log
+[WARN]  [/sys/router/] no mounted structure for /io/log
+[WARN]  [/sys/router/] no mounted structure for terminal
+[WARN]  [/sys/router/] no mounted structure for /io/terminal
+[WARN]  [/sys/router/] no mounted structure for console
+[WARN]  [/sys/router/] no mounted structure for /io/console
+[WARN]  [/sys/router/] no mounted structure for button
+[WARN]  [/sys/router/] no mounted structure for /io/z
+[INFO]  [/sys/router/] boot_config.hpp boot config header loaded [size: 1020 bytes]
+[INFO]  [/boot/config] boot loader config:
+[INFO]  [/boot/config]
+   [
+     sys=&gt;[
+      scheduler=&gt;[
+       id=&gt;/sys/scheduler
+       config=&gt;[
+        def_stack_size=&gt;32384
+      ]
+     ]
+      router=&gt;[
+       id=&gt;/sys/router
+       config=&gt;[
+        namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/]
+        auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]
+      ]
+     ]
+    ]
+     import=&gt;[
+      /fos/q/#
+      /fos/sys/#
+      /fos/util/#
+      /fos/io/#
+      /fos/s/#
+      /fos/ui/#
+      /io/#
+      /sys/#
+      /mmadt/#
+    ]
+     setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+   ]@/boot/config
+      .oO configuring kernel objs Oo.
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/router/] router configured
+            [id=&gt;/sys/router,config=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
+[INFO]  [/boot/config] /sys/router boot config dropped
+[INFO]  [/sys/scheduler] [/sys/scheduler] scheduler started
+[INFO]  [/sys/scheduler] scheduler configured
+            [id=&gt;/sys/scheduler,config=&gt;[def_stack_size=&gt;32384]]
+[INFO]  [/boot/config] /sys/scheduler boot config dropped
+      .oO mounting fos/mmadt structures Oo.
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
+[INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
+[INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
+      .oO importing fos/mmadt types Oo.
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/type] /mmadt/proc type defined
+[INFO]  [/sys/type] /mmadt/proc/::/eval type defined
+[INFO]  [/sys/router/] /io/parser obj loaded
+      .oO finalizing boot w/ setup inst Oo.
+[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392416,used=&gt;0.01678]
+[INFO]  [/boot/config] exiting boot state: stricter type checking enabled
+[INFO]  [/boot/config] applying setup inst
+            setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+[INFO]  [/sys/router/] heap /mnt/var spanning +/# mounted
+[INFO]  [/mnt/fs] data/fs location mounted
+[INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
+[INFO]  [/sys/scheduler] /io/console thread spawned
+[INFO]  [/sys/scheduler] /io/z fiber bundled
+[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164256,used=&gt;0.00243]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -907,17 +940,16 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 &gt;[
-==&gt;bundle=&gt;[
-=&gt;]
-==&gt;config=&gt;[
-===&gt;def_stack_size=&gt;16192
-=&gt;]
-==&gt;::=&gt;[
-===&gt;spawn=&gt;spawn?thread&lt;=obj{?}(thread=&gt;_)[cpp]
-===&gt;bundle=&gt;bundle?obj&lt;=obj{?}(fiber=&gt;_)[cpp]
-=&gt;]
-==&gt;thread=&gt;[
+==&gt;spawn=&gt;[
 ===&gt;/io/console
+=&gt;]
+==&gt;bundle=&gt;[
+===&gt;/io/z
+=&gt;]
+==&gt;config=&gt;noobj
+==&gt;::=&gt;[
+===&gt;spawn=&gt;spawn?obj&lt;=obj{?}(thread=&gt;_)[cpp]
+===&gt;bundle=&gt;bundle?obj&lt;=obj{?}(fiber=&gt;_)[cpp]
 =&gt;]
 &gt;]@/sys/scheduler</code></pre>
 </div>
@@ -934,27 +966,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/router
-&gt;[
-==&gt;frame=&gt;[rec][_]
-==&gt;config=&gt;[
-===&gt;resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]
-=&gt;]
-==&gt;query=&gt;[
-===&gt;write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]
-=&gt;]
-==&gt;structure=&gt;[
-===&gt;/sys/#
-===&gt;/mnt/#
-===&gt;/boot/#
-===&gt;/fos/#
-===&gt;/mmadt/#
-===&gt;/io/#
-===&gt;+/#
-===&gt;/disk/#
-===&gt;/shared/#
-=&gt;]
-&gt;]@/sys/router</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/router</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -969,6 +981,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/#/
 &gt;[
 ==&gt;/mmadt/and=&gt;and?bool&lt;=obj{?}(con?lst=&gt;_)[cpp]
+==&gt;/mmadt/append=&gt;append?obj{?}&lt;=uri(obj=&gt;_)[cpp]
 ==&gt;/mmadt/apply=&gt;apply?obj{?}&lt;=obj{?}(rhs=&gt;_,args=&gt;isa(/mmadt/rec))[cpp]
 ==&gt;/mmadt/as=&gt;as?obj{?}&lt;=obj{?}(type?uri=&gt;_)[cpp]
 ==&gt;/mmadt/at=&gt;at?obj{?}&lt;=obj{?}(isa(/mmadt/uri))[cpp]
@@ -987,6 +1000,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/chain=&gt;chain(_)[cpp]
 ==&gt;/mmadt/choose=&gt;choose(_)[cpp]
 ==&gt;/mmadt/count=&gt;count?int&lt;=objs{*}()[cpp]
+==&gt;/mmadt/delay=&gt;delay?obj{?}&lt;=obj{?}(millis?nat=&gt;_)[cpp]
 ==&gt;/mmadt/div=&gt;div(_)
 ==&gt;/mmadt/drop=&gt;drop?obj{?}&lt;=obj{?}(_)[cpp]
 ==&gt;/mmadt/each=&gt;each(isa(/mmadt/obj))
@@ -1051,16 +1065,18 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/lst/::/mmadt/div=&gt;div(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/each=&gt;each(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/inspect=&gt;inspect(_)[cpp]
+==&gt;/mmadt/lst/::/mmadt/lshift=&gt;lshift(amount?int=&gt;else(1))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/merge=&gt;merge?objs{*}&lt;=lst()[cpp]
 ==&gt;/mmadt/lst/::/mmadt/minus=&gt;minus(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/mult=&gt;mult(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/plus=&gt;plus(isa(/mmadt/lst))[cpp]
+==&gt;/mmadt/lst/::/mmadt/rshift=&gt;rshift(amount?int=&gt;else(1))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/split=&gt;split(isa(/mmadt/lst))[cpp]
 ==&gt;/mmadt/lst/::/mmadt/within=&gt;within(_)[cpp]
 ==&gt;/mmadt/lt=&gt;lt?bool&lt;=obj{?}()
 ==&gt;/mmadt/lte=&gt;lte?bool&lt;=obj{?}()
 ==&gt;/mmadt/map=&gt;map?obj{?}&lt;=obj{?}(_)[cpp]
-==&gt;/mmadt/merge=&gt;merge?obj{?}&lt;=obj()[cpp]
+==&gt;/mmadt/merge=&gt;merge?obj{*}&lt;=obj()[cpp]
 ==&gt;/mmadt/minus=&gt;minus(_)
 ==&gt;/mmadt/mod=&gt;mod(isa(/mmadt/int))
 ==&gt;/mmadt/mult=&gt;mult(_)
@@ -1074,6 +1090,9 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/or=&gt;or?bool&lt;=obj{?}(con?lst=&gt;_)[cpp]
 ==&gt;/mmadt/plus=&gt;plus(_)
 ==&gt;/mmadt/print=&gt;print?obj{?}&lt;=obj{?}(_)[cpp]
+==&gt;/mmadt/proc=&gt;[
+===&gt;::=&gt;[eval=&gt;eval?obj{?}&lt;=obj{?}(code?str=&gt;_)[cpp]]
+=&gt;]
 ==&gt;/mmadt/prod=&gt;prod?obj&lt;=objs{*}()[cpp]
 ==&gt;/mmadt/real=&gt;[real][_]
 ==&gt;/mmadt/real/::/mmadt/as=&gt;as?obj{?}&lt;=real(isa(/mmadt/uri))[cpp]
@@ -1098,7 +1117,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;/mmadt/rec/::/mmadt/plus=&gt;plus(isa(/mmadt/rec))[cpp]
 ==&gt;/mmadt/rec/::/mmadt/rshift=&gt;rshift(isa(/mmadt/uri))[cpp]
 ==&gt;/mmadt/rec/::/mmadt/within=&gt;within(_)[cpp]
-==&gt;/mmadt/ref=&gt;ref?obj{?}&lt;=uri(payload=&gt;_,retain=&gt;isa(/mmadt/bool))[cpp]
+==&gt;/mmadt/ref=&gt;ref?obj{?}&lt;=uri(payload=&gt;_,retain=&gt;else(noobj))[cpp]
 ==&gt;/mmadt/repeat=&gt;repeat(code=&gt;_,until=&gt;true,emit=&gt;false)[cpp]
 ==&gt;/mmadt/rshift=&gt;rshift()
 ==&gt;/mmadt/split=&gt;split(_)[cpp]
@@ -1198,11 +1217,18 @@ When the instruction implementation is written in mmADT, the instruction value i
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
-[ERROR] [/sys/router] # crosses multiple structures
-[INFO]  [/sys/router] 1 dsm(s) closing
-[INFO]  [/sys/router] 1 fs(s) closing
-[INFO]  [/sys/router] 7 heap(s) closing
-[INFO]  [/sys/router] router /sys/router stopped</code></pre>
+[INFO]  [/sys/router/] 1 fs(s) closing
+[INFO]  [/sys/router/] 7 heap(s) closing
+[INFO]  [/sys/router/] router /sys/router/ stopped
+[ERROR] [/mnt/io] unable to read /io/console/config/nest
+[ERROR] [/mnt/io] unable to read /io/console/config/terminal/stdout
+[INFO]  [/sys/router/] /mnt/# heap detached
+[INFO]  [/sys/router/] /boot/# heap detached
+[INFO]  [/sys/router/] /fos/# heap detached
+[INFO]  [/sys/router/] /mmadt/# heap detached
+[INFO]  [/sys/router/] /io/# heap detached
+[INFO]  [/sys/router/] +/# heap detached
+[INFO]  [/sys/router/] /fs/# fs detached</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1335,7 +1361,7 @@ However, given frequency of base types usage, specifying the type is not necessa
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/bool[true]
 ==&gt;true
 fhatos&gt; bool[true]
-==&gt;true
+==&gt;bool[true]
 fhatos&gt; true
 ==&gt;true</code></pre>
 </div>
@@ -1349,7 +1375,7 @@ fhatos&gt; true
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/int[6]
 ==&gt;6
 fhatos&gt; int[6]
-==&gt;6
+==&gt;int[6]
 fhatos&gt; 6
 ==&gt;6</code></pre>
 </div>
@@ -1363,7 +1389,7 @@ fhatos&gt; 6
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/real[6.2]
 ==&gt;6.200000
 fhatos&gt; real[6.2]
-==&gt;6.200000
+==&gt;real[6.200000]
 fhatos&gt; 6.2
 ==&gt;6.200000</code></pre>
 </div>
@@ -1377,7 +1403,7 @@ fhatos&gt; 6.2
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/str['cooties']
 ==&gt;'cooties'
 fhatos&gt; str['cooties']
-==&gt;'cooties'
+==&gt;str['cooties']
 fhatos&gt; 'cooties'
 ==&gt;'cooties'</code></pre>
 </div>
@@ -1391,7 +1417,7 @@ fhatos&gt; 'cooties'
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/uri[/dog/curly]
 ==&gt;/dog/curly
 fhatos&gt; uri[/dog/curly]
-==&gt;/dog/curly
+==&gt;uri[/dog/curly]
 fhatos&gt; /dog/curly
 ==&gt;/dog/curly</code></pre>
 </div>
@@ -1408,23 +1434,11 @@ lst[['a',2,true]]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/lst[['a',2,true]]
-&gt;[
-==&gt;'a'
-==&gt;2
-==&gt;true
-&gt;]
+==&gt;['a',2,true]
 fhatos&gt; lst[['a',2,true]]
-&gt;[
-==&gt;'a'
-==&gt;2
-==&gt;true
-&gt;]
+==&gt;lst[['a',2,true]]
 fhatos&gt; ['a',2,true]
-&gt;[
-==&gt;'a'
-==&gt;2
-==&gt;true
-&gt;]</code></pre>
+==&gt;['a',2,true]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1439,20 +1453,11 @@ rec[[a=>6,b=>false]]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /mmadt/rec[[a=&gt;6,b=&gt;false]]
-&gt;[
-==&gt;a=&gt;6
-==&gt;b=&gt;false
-&gt;]
+==&gt;[a=&gt;6,b=&gt;false]
 fhatos&gt; rec[[a=&gt;6,b=&gt;false]]
-&gt;[
-==&gt;a=&gt;6
-==&gt;b=&gt;false
-&gt;]
+==&gt;rec[[a=&gt;6,b=&gt;false]]
 fhatos&gt; [a=&gt;6,b=&gt;false]
-&gt;[
-==&gt;a=&gt;6
-==&gt;b=&gt;false
-&gt;]</code></pre>
+==&gt;[a=&gt;6,b=&gt;false]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1554,8 +1559,8 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 </div>
 <!-- 🐖 ./main_runner.out
 *char
-char['a']@a
-char['b']@b
+=== char['a']@a ===
+=== char['b']@b ===
 @a + @b
 *a
 @a.as(str) + @b
@@ -1565,17 +1570,17 @@ char['b']@b
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *char
 ==&gt;char?int&lt;=str()
 	[merge(2).count().is(eq(1))]
-fhatos&gt; char['a']@a
-==&gt;char['a']@a
-fhatos&gt; char['b']@b
-==&gt;char['b']@b
+fhatos&gt; === char['a']@a ===
+fhatos&gt; === char['b']@b ===
 fhatos&gt; @a + @b
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'aa'@a is not a /mmadt/ext/char as defined by char()[merge(2).count().is(eq(1))]
-	  thrown at inst char['a']@a =&gt; plus(char['a']@a)[cpp] [0=&gt;char['a']@a]
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+	         lhs id      inst id        resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
 fhatos&gt; *a
-==&gt;'aa'@a
 fhatos&gt; @a.as(str) + @b
-==&gt;'aaaa'@a</code></pre>
+[ERROR] [/mmadt/parser] noobj is not a /mmadt/str as defined by [str][_]
+		 \_/mmadt/str is not a subtype of /mmadt/str
+	  thrown at inst noobj =&gt; as?obj{?}&lt;=obj{?}(type?uri=&gt;str)[cpp] [type=&gt;str]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1600,13 +1605,15 @@ nat[12]@a
 fhatos&gt; nat[12]
 ==&gt;nat[12]
 fhatos&gt; nat[-30]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+[ERROR] [/mmadt/parser] -30 is not a nat as defined by nat()[is(gte(0))]
+		 \_nat[-30] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 fhatos&gt; nat[12]@a
 ==&gt;nat[12]@a
 fhatos&gt; @a.minus(11)
 ==&gt;nat[1]@a
 fhatos&gt; @a.minus(2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+[ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat()[is(gte(0))]
+		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 	  thrown at inst nat[1]@a =&gt; minus(0?int=&gt;2)[cpp] [0=&gt;2]
 fhatos&gt; *a
 ==&gt;nat[1]@a</code></pre>
@@ -1633,7 +1640,8 @@ fhatos&gt; C[0.0]
 fhatos&gt; C[274.0]
 ==&gt;C[274.000000]
 fhatos&gt; C[-274.0]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -274.00000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.14999))]</code></pre>
+[ERROR] [/mmadt/parser] -274.00000 is not a C as defined by C()[is(gte(-273.14999))]
+		 \_C[-274.00000] is not applicable with /mmadt/ext/C?dom=/mmadt/real&amp;dc=1,1&amp;rng=/mmadt/real&amp;rc=1,1</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1765,7 +1773,7 @@ fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;3
 fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 2 is not a str as defined by [str][_]
+[ERROR] [/mmadt/parser] 2 is not a str as defined by [str][_]
 		 \_/mmadt/int is not a subtype of /mmadt/str
 	  thrown at inst 'abc' =&gt; band?int{?}&lt;=int(min=&gt;2,max=&gt;8)[is(and([gte(from(min)),lte(from(max))]))] [min=&gt;2,max=&gt;8]</code></pre>
 </div>
@@ -1847,22 +1855,35 @@ fhatos&gt; {2,3,4,5}.band(min=&gt;3,max=&gt;4)         <i class="conum" data-val
 This is a consequence of attaching a type query processor to the router frame structure and thus, is analogous to type specifications in other structures.</p>
 </div>
 <!-- 🐖 ./main_runner.out
-is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
-10.is_divisible(2)
-10.is_divisible('abc')
+band -> |band?int{?}<=int(min?nat=>else(2),max?nat=>else(8))[is(and([gte(*min),lte(*max)]))]
+15.band(10,20)              --- <1>
+-15.band(-20,-10)           --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
-==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)[mod(from(by)).eq(0)]
-fhatos&gt; 10.is_divisible(2)
-==&gt;true
-fhatos&gt; 10.is_divisible('abc')
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
-		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min?nat=&gt;else(2),max?nat=&gt;else(8))[is(and([gte(*min),lte(*max)]))]
+==&gt;band?int{?}&lt;=int(min?nat=&gt;else?noobj&lt;=obj(2)[noobj],max?nat=&gt;else?noobj&lt;=obj(8)[noobj])
+	[is(and([gte(from(min)),lte(from(max))]))]
+fhatos&gt; 15.band(10,20)              <i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;15
+fhatos&gt; -15.band(-20,-10)           <i class="conum" data-value="2"></i><b>(2)</b>
+[ERROR] [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
+		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Argument name uniqueness does not consider query parameters.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>?nat</code> query parameter requires the respective argument be some \(n \in \mathbb{N}\).</td>
+</tr>
+</table>
+</div>
 </div>
 <div id="_tabs_4_anonymous_inst_args--panel" class="tabpanel" aria-labelledby="_tabs_4_anonymous_inst_args">
 <div class="stemblock">
@@ -1888,19 +1909,7 @@ Finally, a degenerate anonymous <code>inst</code> with no specified variable fra
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 10.(min=&gt;2,max=&gt;8)[is(and([gte(*min),lte(*max)]))]                <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/scheduler] noobj [[noobj][_]] not in range of inst(min=&gt;2,max=&gt;8)[is(and([gte(from(min)),lte(from(max))]))] [SIGNATURE HERE]
-fhatos&gt; 10.(min=&gt;minus(1),max=&gt;plus(1))[is(and([gte(*min),lte(*max)]))]   <i class="conum" data-value="2"></i><b>(2)</b>
-==&gt;10
-fhatos&gt; 10.()[is(and([gte(*min),lte(*max)]))]                             <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_]
-		 \_/mmadt/noobj is not a subtype of /mmadt/int
-	  thrown at inst 10 =&gt; inst()[is(and([gte(from(min)),lte(from(max))]))] [=&gt;]
-fhatos&gt; |((min=&gt;2,max=&gt;8)[is(and([gte(*min),lte(*max)]))])                <i class="conum" data-value="4"></i><b>(4)</b>
-==&gt;inst?noobj&lt;=obj(min=&gt;2,max=&gt;8)
-	[is(and([gte(from(min)),lte(from(max))]))]
-fhatos&gt; 10.is(and([gte(minus(1)),lte(plus(1))]))                          <i class="conum" data-value="5"></i><b>(5)</b>
-==&gt;10</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 10.(min=&gt;2,max=&gt;8)[is(and([gte(*min),lte(*max)]))]                <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1942,7 +1951,7 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 fhatos&gt; 10.is_divisible(2)
 ==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
+[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -1967,7 +1976,7 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 ==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
 	[is(gte(from(min))).is(lte(from(max)))]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a int as defined by [int][_]
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -1994,7 +2003,7 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 fhatos&gt; 10.is_divisible(2)
 error==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-error[ERROR] [/sys/scheduler] [/sys/lang/parser] 'abc' is not a int as defined by [int][_]
+error[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2185,7 +2194,7 @@ fhatos&gt; *a
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub
 &gt;sub[
-==&gt;source=&gt;/io/console
+==&gt;source=&gt;/sys/scheduler
 ==&gt;pattern=&gt;a
 ==&gt;on_recv=&gt;to(b)
 &gt;]
@@ -2275,27 +2284,11 @@ thread[[loop=>^( /
           is(_).print('\n'))]]@t
 &gt;thread[
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
-==&gt;delay=&gt;nat[0]
 ==&gt;halt=&gt;true
 &gt;]@t
 fhatos&gt; @t.spawn()
-[INFO]  [/sys/scheduler] t thread spawned
-thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [stack size:16192]
-c: 0
-c: 1
-c: 2
-c: 3
-c: 4
-c: 5
-fhatos&gt;
-c: 6
-c: 7
-c: 8
-c: 9
-c: 10
-[INFO]  [t] thread stopped
-fhatos&gt; *c
-==&gt;11</code></pre>
+
+fhatos&gt; fhatos&gt; *c</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2374,19 +2367,9 @@ a -> int8[126]                       --- <2>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
           *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
-&gt;[
-==&gt;
-==&gt;/mmadt/
-==&gt;/mmadt/ext/
-==&gt;/fos/
-==&gt;/fos/sys/
-==&gt;/fos/io/
-==&gt;/fos/sensor/
-==&gt;/fos/ui/
-==&gt;/fos/util/
-==&gt;/sys/
-==&gt;/mmadt/ext/
-&gt;]
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+	         lhs id      inst id        resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
 fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;int8[126]
 fhatos&gt; @a + 1
@@ -2394,7 +2377,8 @@ fhatos&gt; @a + 1
 fhatos&gt; @a + 1
 ==&gt;int8[128]@a
 fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
+[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
+		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 	  thrown at inst int8[128]@a =&gt; plus(0?int=&gt;1)[cpp] [0=&gt;1]</code></pre>
 </div>
 </div>
@@ -2730,243 +2714,6 @@ For example, <code>2.mult(plus(3))</code> is evaluated as follows:</p>
 </div>
 </div>
 <div class="sect5">
-<h6 id="_rec_application">Rec Application</h6>
-<div class="paragraph">
-<p>A <code>rec</code> behaves in a similar manner to <code>lst</code> and <code>inst</code> when a left-hand side <code>obj</code> is applied to it.
-However, what makes
-<code>rec</code> interesting and useful beyond a data storage structure is it&#8217;s <em>delayed evaluation semantics</em> denoted by <code>&#8658;</code>.</p>
-</div>
-<!-- 🐖 ./main_runner.out
-2.rec[[is(gt(2)) => plus(2), _ => 0]]
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 2.rec[[is(gt(2)) =&gt; plus(2), _ =&gt; 0]]
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id      resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-<div class="paragraph">
-<p>This feature of <code>rec</code> make it both a <a href="https://en.wikipedia.org/wiki/Data_structure">data structure</a> and a <a href="https://en.wikipedia.org/wiki/Control_flow">flow control structure</a> as once an <code>obj</code> has been applied to <code>rec</code>, the values of <code>rec</code> can be "drained".
-For instance, <code>if</code> is implemented with a two entry <code>rec</code>, where one entry maps to <code>noobj</code>.</p>
-</div>
-<!-- 🐖 ./main_runner.out
-/io/console/config/nest -> 0                  --- <1>
-{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <2>
-{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <3>
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
-==&gt;0
-fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id      resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
-fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id      resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Reducing the console&#8217;s display depth for nested structures (purely aesthetic).</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>A stream of <code>objs</code> is applied one-by-one to the <code>rec</code> yielding a new internally-applied <code>rec</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The internally-applied <code>rec</code> is "drained" via the <code>merge</code> <code>inst</code> (sugar&#8217;d <code>&gt;-</code>).</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>In the above example, since <code>1</code> and <code>2</code> were mapped to <code>noobj</code>, they are effectively removed from the execution pipeline.
-However, because <code>3</code> is <code>gt(2)</code>, it is mapped to <code>_</code> (its self).
-Thus, when <code>&gt;-</code> is applied to this <code>rec</code>, the result is
-<code>{noobj,noobj,3}</code> which is equivalent to <code>{3}</code>.
-In this way, <code>rec</code> is both a data structure and a flow control structure.</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support the various plays on one of computing&#8217;s most important concepts: <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">the branch</a>.</p>
-</div>
-<div id="_tabs_7" class="openblock tabs is-loading">
-<div class="content">
-<div class="ulist tablist">
-<ul>
-<li id="_tabs_7_if_else" class="tab">
-<p>if-else</p>
-</li>
-<li id="_tabs_7_switch" class="tab">
-<p>switch</p>
-</li>
-<li id="_tabs_7_guard" class="tab">
-<p>guard</p>
-</li>
-<li id="_tabs_7_pattern" class="tab">
-<p>pattern</p>
-</li>
-<li id="_tabs_7_hash" class="tab">
-<p>hash</p>
-</li>
-</ul>
-</div>
-<div id="_tabs_7_if_else--panel" class="tabpanel" aria-labelledby="_tabs_7_if_else">
-<!-- 🐖 ./main_runner.out
-{1,2,3}-|[                            /
-  is(gt(2)) => mult(-1),      --- <1> /
-  _         => mult(100)]     --- <2>
-{1,2,3}-|[                            /
-  is(gt(2)) => mult(-1),              /
-  _         => mult(100)]>-
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-|[
-          is(gt(2)) =&gt; mult(-1),      <i class="conum" data-value="1"></i><b>(1)</b>
-          _         =&gt; mult(100)]     <i class="conum" data-value="2"></i><b>(2)</b>
-==&gt;1
-==&gt;2
-==&gt;3
-fhatos&gt; {1,2,3}-|[
-          is(gt(2)) =&gt; mult(-1),
-          _         =&gt; mult(100)]&gt;-
-==&gt;100
-==&gt;200
-==&gt;-3</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <em>if</em> branch.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <em>else</em> branch.</td>
-</tr>
-</table>
-</div>
-</div>
-<div id="_tabs_7_switch--panel" class="tabpanel" aria-labelledby="_tabs_7_switch">
-<!-- 🐖 ./main_runner.out
-{1,2,3}-<[                   /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]
-{1,2,3}-<[                  /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]>-
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-&lt;[
-          is(gt(0)) =&gt; mult(-1),
-          is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]
-&gt;[
-==&gt;is(gt(0))=&gt;-1
-==&gt;is(gt(1))=&gt;noobj
-==&gt;is(gt(2))=&gt;noobj
-&gt;]
-&gt;[
-==&gt;is(gt(0))=&gt;-2
-==&gt;is(gt(1))=&gt;0
-==&gt;is(gt(2))=&gt;noobj
-&gt;]
-&gt;[
-==&gt;is(gt(0))=&gt;-3
-==&gt;is(gt(1))=&gt;0
-==&gt;is(gt(2))=&gt;3
-&gt;]
-fhatos&gt; {1,2,3}-&lt;[
-          is(gt(0)) =&gt; mult(-1),
-          is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]&gt;-
-==&gt;-1
-==&gt;-2
-==&gt;0
-==&gt;-3
-==&gt;0
-==&gt;3</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-</div>
-<div id="_tabs_7_guard--panel" class="tabpanel" aria-labelledby="_tabs_7_guard">
-<!-- 🐖 ./main_runner.out
-{1,2,3}.[
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
-==&gt;1
-==&gt;2
-==&gt;3</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-</div>
-<div id="_tabs_7_pattern--panel" class="tabpanel" aria-labelledby="_tabs_7_pattern">
-<!-- 🐖 ./main_runner.out
---- todo
--->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-</div>
-<div id="_tabs_7_hash--panel" class="tabpanel" aria-labelledby="_tabs_7_hash">
-<!-- 🐖 ./main_runner.out
-[HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
---- todo
--->
-<div class="listingblock">
-<div class="title">conditional hash <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals"><i class="fa fa-link"></i></a></span></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
-</div>
-</div>
-<!-- 🐓 -->
-</div>
-</div>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The <code>merge</code> (sugar&#8217;d <code>&gt;-</code>) instruction has a correlate: <code>split</code> (sugar&#8217;d <code>-&lt;</code>).
-The way to think of these two instructions is that they either branch a serial execution pipeline (<code>split</code>) or the join a collection of parallel executing pipelines (<code>merge</code>).
-Interestingly, the application of an <code>obj</code> to a <code>poly</code> implements the <code>split</code> instruction.
-So why does an explicit <code>split</code> instruction exist?
-Because there are other ways in which branching pipelines can be defined and evaluated.
-This will be discussed later when discussing <code>fos:thread</code>, <code>fos:coroutine</code>, and <code>fos:fiber</code>.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div class="sect5">
 <h6 id="_obj_application">Obj Application</h6>
 <div class="paragraph">
 <p>The universal application of <code>.</code> (apply) implies that every <code>obj</code> is a function as every <code>obj</code> can have another <code>obj</code> applied to it.
@@ -3178,19 +2925,19 @@ fhatos&gt; [a=&gt;1,b=&gt;2].b     <i class="conum" data-value="5"></i><b>(5)</b
 </tr>
 </tbody>
 </table>
-<div id="_tabs_8" class="openblock tabs is-loading">
+<div id="_tabs_7" class="openblock tabs is-loading">
 <div class="content">
 <div class="ulist tablist">
 <ul>
-<li id="_tabs_8_noobj" class="tab">
+<li id="_tabs_7_noobj" class="tab">
 <p>noobj</p>
 </li>
-<li id="_tabs_8_bool" class="tab">
+<li id="_tabs_7_bool" class="tab">
 <p>bool</p>
 </li>
 </ul>
 </div>
-<div id="_tabs_8_noobj--panel" class="tabpanel" aria-labelledby="_tabs_8_noobj">
+<div id="_tabs_7_noobj--panel" class="tabpanel" aria-labelledby="_tabs_7_noobj">
 <!-- 🐖 ./main_runner.out
 noobj.noobj
 noobj.true
@@ -3224,7 +2971,7 @@ fhatos&gt; noobj.[noobj=&gt;1]
 </div>
 <!-- 🐓 -->
 </div>
-<div id="_tabs_8_bool--panel" class="tabpanel" aria-labelledby="_tabs_8_bool">
+<div id="_tabs_7_bool--panel" class="tabpanel" aria-labelledby="_tabs_7_bool">
 <!-- 🐖 ./main_runner.out
 true.noobj
 false.true
@@ -3259,13 +3006,7 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 ==&gt;true=&gt;1
 &gt;]
 fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
-[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
-[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
-[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1 on read
-[ERROR] [/sys/scheduler] [/sys/lang/parser] noobj is not a lst as defined by [lst][_]
+[ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
 	  thrown at inst noobj =&gt; true.i(noobj)[and(_,from(0))] [0=&gt;noobj]
 fhatos&gt; true.plus(false)
@@ -3277,12 +3018,342 @@ fhatos&gt; true.plus(false)
 </div>
 </div>
 </div>
+<div class="sect5">
+<h6 id="_rec_application">Rec Application</h6>
+<div class="paragraph">
+<p>The <code>rec</code> (record) is a mult-faceted <code>obj</code> naturally supporting both the of structuring data and the controlling of data flows.
+These features are made possible by <code>recs</code> <em>delayed evaluation semantics</em>, denoted <code>&#8658;</code>.</p>
+</div>
+<div id="_tabs_8" class="openblock tabs is-loading">
+<div class="content">
+<div class="ulist tablist">
+<ul>
+<li id="_tabs_8_data_structure" class="tab">
+<p>data structure</p>
+</li>
+<li id="_tabs_8_flow_control" class="tab">
+<p>flow control</p>
+</li>
+</ul>
+</div>
+<div id="_tabs_8_data_structure--panel" class="tabpanel" aria-labelledby="_tabs_8_data_structure">
+<!-- 🐖 ./main_runner.out
+person -> |[name?str=>_,age?nat=>?<120]
+person[[name=>'marko',age=>29]]
+person[[name=>'lili',age=>129]]
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; person -&gt; |[name?str=&gt;_,age?nat=&gt;?&lt;120]
+&gt;[
+==&gt;name?str=&gt;_
+==&gt;age?nat=&gt;is(lt(120))
+&gt;]
+fhatos&gt; person[[name=&gt;'marko',age=&gt;29]]
+&gt;person[
+==&gt;name?str=&gt;'marko'
+==&gt;age?nat=&gt;29
+&gt;]
+fhatos&gt; person[[name=&gt;'lili',age=&gt;129]]
+[ERROR] [/mmadt/parser] noobj is not a nat as defined by nat()[is(gte(0))]
+		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id       resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gte =&gt; gte?bool&lt;=obj{?}()
+	  thrown at inst noobj =&gt; nat()[is(gte(0))] [=&gt;]</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+<div id="_tabs_8_flow_control--panel" class="tabpanel" aria-labelledby="_tabs_8_flow_control">
+<!-- 🐖 ./main_runner.out
+1.[a=>+10,b=>as(str).plus('abc')].[a=>mod(2),b=>+'def']   --- <1>
+1.-|[is(gt(0))=>'good: {_}', _=>'bad:{_}']                --- <2>
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 1.[a=&gt;+10,b=&gt;as(str).plus('abc')].[a=&gt;mod(2),b=&gt;+'def']   <i class="conum" data-value="1"></i><b>(1)</b>
+&gt;[
+==&gt;a=&gt;1
+==&gt;b=&gt;'1abcdef'
+&gt;]
+fhatos&gt; 1.-|[is(gt(0))=&gt;'good: {_}', _=&gt;'bad:{_}']                <i class="conum" data-value="2"></i><b>(2)</b>
+&gt;[
+==&gt;is(gt(0))=&gt;'good: 1'
+==&gt;_=&gt;noobj
+&gt;]</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>two parallel branches of computation composed by <code>rec</code> key matching.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>two parallel branches of computation selected by <code>rec</code> key matching.</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">    ┌──plus(10)───────────mod(2)──────┐
+    a                                 a
+1 ──┤                                 ├──[a=&gt;1,b=&gt;'1ab']──&gt;{1,'1ab'}
+    b                                 b
+    └──as(str).plus('a')──plus('b')───┘</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">    ┌──is(gt(0))────'good: {_}'───┐
+    │                             │
+1 ──┤                             ├──[is(gt(0))=&gt;'good: 1']──&gt;'good: 1'
+    │                             │
+    └────────────────'bad: {_}'───┘</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>This feature of <code>rec</code> make it both a <a href="https://en.wikipedia.org/wiki/Data_structure">data structure</a> and a <a href="https://en.wikipedia.org/wiki/Control_flow">flow control structure</a> as once an <code>obj</code> has been applied to <code>rec</code>, the values of <code>rec</code> can be "drained".
+For instance, <code>if</code> is implemented with a two entry <code>rec</code>, where one entry maps to <code>noobj</code>.</p>
+</div>
+<!-- 🐖 ./main_runner.out
+/io/console/config/nest -> 0                  --- <1>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]          --- <2>
+{1,2,3}.[is(gt(2)) => _, _ => noobj]>-        --- <3>
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
+==&gt;0
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Reducing the console&#8217;s display depth for nested structures (purely aesthetic).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A stream of <code>objs</code> is applied one-by-one to the <code>rec</code> yielding a new internally-applied <code>rec</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The internally-applied <code>rec</code> is "drained" via the <code>merge</code> <code>inst</code> (sugar&#8217;d <code>&gt;-</code>).</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the above example, since <code>1</code> and <code>2</code> were mapped to <code>noobj</code>, they are effectively removed from the execution pipeline.
+However, because <code>3</code> is <code>gt(2)</code>, it is mapped to <code>_</code> (its self).
+Thus, when <code>&gt;-</code> is applied to this <code>rec</code>, the result is
+<code>{noobj,noobj,3}</code> which is equivalent to <code>{3}</code>.
+In this way, <code>rec</code> is both a data structure and a flow control structure.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s not difficult to realize how an "if"-<code>rec</code> generalizes to support the various plays on one of computing&#8217;s most important concepts: <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)">the branch</a>.</p>
+</div>
+<div id="_tabs_9" class="openblock tabs is-loading">
+<div class="content">
+<div class="ulist tablist">
+<ul>
+<li id="_tabs_9_if_else" class="tab">
+<p>if-else</p>
+</li>
+<li id="_tabs_9_switch" class="tab">
+<p>switch</p>
+</li>
+<li id="_tabs_9_guard" class="tab">
+<p>guard</p>
+</li>
+<li id="_tabs_9_pattern" class="tab">
+<p>pattern</p>
+</li>
+<li id="_tabs_9_hash" class="tab">
+<p>hash</p>
+</li>
+</ul>
+</div>
+<div id="_tabs_9_if_else--panel" class="tabpanel" aria-labelledby="_tabs_9_if_else">
+<!-- 🐖 ./main_runner.out
+{1,2,3}-|[                            /
+  is(gt(2)) => mult(-1),      --- <1> /
+  _         => mult(100)]     --- <2>
+{1,2,3}-|[                            /
+  is(gt(2)) => mult(-1),              /
+  _         => mult(100)]>-
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-|[
+          is(gt(2)) =&gt; mult(-1),      <i class="conum" data-value="1"></i><b>(1)</b>
+          _         =&gt; mult(100)]     <i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;1
+==&gt;2
+==&gt;3
+fhatos&gt; {1,2,3}-|[
+          is(gt(2)) =&gt; mult(-1),
+          _         =&gt; mult(100)]&gt;-
+==&gt;100
+==&gt;200
+==&gt;-3</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <em>if</em> branch.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <em>else</em> branch.</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="_tabs_9_switch--panel" class="tabpanel" aria-labelledby="_tabs_9_switch">
+<!-- 🐖 ./main_runner.out
+{1,2,3}-<[                   /
+  is(gt(0)) => mult(-1),    /
+  is(gt(1)) => mult(0),     /
+  is(gt(2)) => _]
+{1,2,3}-<[                  /
+  is(gt(0)) => mult(-1),    /
+  is(gt(1)) => mult(0),     /
+  is(gt(2)) => _]>-
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-&lt;[
+          is(gt(0)) =&gt; mult(-1),
+          is(gt(1)) =&gt; mult(0),
+          is(gt(2)) =&gt; _]
+&gt;[
+==&gt;is(gt(0))=&gt;-1
+==&gt;is(gt(1))=&gt;noobj
+==&gt;is(gt(2))=&gt;noobj
+&gt;]
+&gt;[
+==&gt;is(gt(0))=&gt;-2
+==&gt;is(gt(1))=&gt;0
+==&gt;is(gt(2))=&gt;noobj
+&gt;]
+&gt;[
+==&gt;is(gt(0))=&gt;-3
+==&gt;is(gt(1))=&gt;0
+==&gt;is(gt(2))=&gt;3
+&gt;]
+fhatos&gt; {1,2,3}-&lt;[
+          is(gt(0)) =&gt; mult(-1),
+          is(gt(1)) =&gt; mult(0),
+          is(gt(2)) =&gt; _]&gt;-
+==&gt;-1
+==&gt;-2
+==&gt;0
+==&gt;-3
+==&gt;0
+==&gt;3</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+<div id="_tabs_9_guard--panel" class="tabpanel" aria-labelledby="_tabs_9_guard">
+<!-- 🐖 ./main_runner.out
+{1,2,3}.[
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}.[
+==&gt;1
+==&gt;2
+==&gt;3</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+<div id="_tabs_9_pattern--panel" class="tabpanel" aria-labelledby="_tabs_9_pattern">
+<!-- 🐖 ./main_runner.out
+--- todo
+-->
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+<div id="_tabs_9_hash--panel" class="tabpanel" aria-labelledby="_tabs_9_hash">
+<!-- 🐖 ./main_runner.out
+[HEADER] .conditional hash icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals,2x,role=blue]
+--- todo
+-->
+<div class="listingblock">
+<div class="title">conditional hash <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Hash-based_conditionals"><i class="fa fa-link"></i></a></span></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- todo</code></pre>
+</div>
+</div>
+<!-- 🐓 -->
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>merge</code> (sugar&#8217;d <code>&gt;-</code>) instruction has a correlate: <code>split</code> (sugar&#8217;d <code>-&lt;</code>).
+The way to think of these two instructions is that they either branch a serial execution pipeline (<code>split</code>) or the join a collection of parallel executing pipelines (<code>merge</code>).
+Interestingly, the application of an <code>obj</code> to a <code>poly</code> implements the <code>split</code> instruction.
+So why does an explicit <code>split</code> instruction exist?
+Because there are other ways in which branching pipelines can be defined and evaluated.
+This will be discussed later when discussing <code>fos:thread</code>, <code>fos:coroutine</code>, and <code>fos:fiber</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_values">Values</h4>
 <div class="sect4">
-<h5 id="_by_value_vs_by_reference">By Value vs. By Reference</h5>
+<h5 id="_by_value_vs">By Value vs.</h5>
+<div class="paragraph">
+<p>By Reference</p>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -3312,15 +3383,18 @@ a -> age[45]
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; age -&gt; |(is(gt(0)).is(lt(120)))
 ==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj].is?noobj&lt;=obj(lt?noobj&lt;=obj(120)[noobj])[noobj]
 fhatos&gt; a -&gt; age[45]
-==&gt;age[45]
-fhatos&gt; *a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+[ERROR] [/mmadt/parser] 45 is not a age as defined by is(gt(0)).is(lt(120))
+		 \_[ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
 	         lhs id      inst id      resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
+fhatos&gt; *a.inspect()
+[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&amp;dc=1,1&amp;rng=/mmadt/rec&amp;rc=1,1 inst unresolved
+	         lhs id      inst id           resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/inspect =&gt; inspect(_)
 fhatos&gt; @a.inspect()
-[ERROR] [/sys/scheduler] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id      resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
+[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&amp;dc=1,1&amp;rng=/mmadt/rec&amp;rc=1,1 inst unresolved
+	         lhs id      inst id           resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/inspect =&gt; inspect(_)</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -3348,7 +3422,7 @@ fhatos&gt; a -&gt; 12
 ===&gt;encoding=&gt;int32_t
 =&gt;]
 ==&gt;sub=&gt;[
-===&gt;source=&gt;/io/console
+===&gt;source=&gt;/sys/scheduler
 ===&gt;pattern=&gt;a
 ===&gt;on_recv=&gt;print(_)
 =&gt;]
@@ -3385,16 +3459,18 @@ For instance, if a natural number \(\mathbb{N}\) is any non-negative number, the
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /type/int/nat -&gt; |is(gt(0))
-[ERROR] [/sys/router] no mounted structure for /type/int/nat
+[ERROR] [/sys/router/] no mounted structure for /type/int/nat
 ==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj]
 fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+[ERROR] [/mmadt/parser] -6 is not a nat as defined by nat()[is(gte(0))]
+		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 fhatos&gt; nat[3].plus(2)
 ==&gt;nat[5]
 fhatos&gt; nat[3].mult(-2)
-[ERROR] [/sys/scheduler] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+[ERROR] [/mmadt/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
+		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 	  thrown at inst nat[3] =&gt; mult(0?int=&gt;-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
@@ -3456,12 +3532,37 @@ The function of the router is to:</p>
 ==&gt;3
 fhatos&gt; */sys/router/#/
 &gt;[
-==&gt;/sys/router=&gt;[
-===&gt;frame=&gt;[rec][_]
-===&gt;config=&gt;[resolve=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=&gt;[write=&gt;[lock=&gt;to_do]],default_config=&gt;[query=&gt;[write=&gt;[sub=&gt;noobj]]]]]
-===&gt;query=&gt;[write=&gt;[lock=&gt;lock?obj{?}&lt;=obj{?}()[cpp],sub=&gt;sub?obj{?}&lt;=obj()[cpp]]]
-===&gt;structure=&gt;[/sys/#,/mnt/#,/boot/#,/fos/#,/mmadt/#,/io/#,+/#,/disk/#,/shared/#]
-=&gt;]@/sys/router
+==&gt;/sys/router/::/mount=&gt;mount?obj&lt;=obj{?}(structure=&gt;_)[cpp]
+==&gt;/sys/router/config=&gt;[
+===&gt;namespace=&gt;[
+====&gt;:=&gt;/mmadt/
+====&gt;fos:=&gt;/fos/
+==&gt;]
+===&gt;auto_prefix=&gt;[
+====&gt;
+====&gt;/mmadt/
+====&gt;/mmadt/ext/
+====&gt;/fos/
+====&gt;/fos/sys/
+====&gt;/fos/s/
+====&gt;/fos/io/
+====&gt;/fos/sensor/
+====&gt;/fos/ui/
+====&gt;/fos/util/
+====&gt;/sys/
+==&gt;]
+=&gt;]
+==&gt;/sys/router/frame=&gt;[rec][_]
+==&gt;/sys/router/structure=&gt;[
+===&gt;/sys/#
+===&gt;/mnt/#
+===&gt;/boot/#
+===&gt;/fos/#
+===&gt;/mmadt/#
+===&gt;/io/#
+===&gt;+/#
+===&gt;/fs/#
+=&gt;]
 &gt;]</code></pre>
 </div>
 </div>
@@ -3520,7 +3621,7 @@ fhatos&gt; a?sub -&gt; |to(b)            <i class="conum" data-value="3"></i><b>
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub                     <i class="conum" data-value="4"></i><b>(4)</b>
 &gt;sub[
-==&gt;source=&gt;/io/console
+==&gt;source=&gt;/sys/scheduler
 ==&gt;pattern=&gt;a
 ==&gt;on_recv=&gt;to(b)
 &gt;]
@@ -4175,8 +4276,7 @@ Once found, it then traverses within the match to resolve the remaining path seg
 </tbody>
 </table>
 <div class="paragraph">
-<p>The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to
-satisfy the resolution of the respective fURI.</p>
+<p>The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to satisfy the resolution of the respective fURI.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
 <caption class="title">Table 2. Amortized Costs in Terms of Space</caption>
@@ -4597,7 +4697,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-04-16 00:00:50 -0600
+Last updated 2025-05-12 19:57:05 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

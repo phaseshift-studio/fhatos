@@ -205,11 +205,11 @@ class ProcessingState:
                 o = self._post_process_output(c, self.in_table)
                 if (o is not None and
                         -1 == o.find("==>noobj") and
-                        -1 == o.find("[/io/console] thread spawned")):
+                        -1 == o.find("thread spawned: loop?obj{?}<=console()")):
                     new_output.append(o)
         ###################################################################
         if not self.in_table:
-            new_line = line.replace("\\|", "|").replace("|", "\\|") #.replace("&<<","{").replace("&>>","}")
+            new_line = line.replace("\\|", "|").replace("|", "\\|")  # .replace("&<<","{").replace("&>>","}")
             if new_line:
                 self.new_lines.append(new_line)
         else:

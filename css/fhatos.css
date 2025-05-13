@@ -313,6 +313,11 @@ video {
     padding: 0.5em;
 }
 
+.hljs-phaseshift-studio-header {
+    color: var(--secondarycolor) !important;
+    font-weight: bolder;
+}
+
 .hljs-fhatos-thrown,
 .hljs-mmadt-noobj {
     color: #ba3925;
