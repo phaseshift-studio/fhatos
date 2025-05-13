@@ -134,7 +134,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
      setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/router/] router configured
             [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -143,17 +143,17 @@ $ fhatos --boot:config=../conf/boot-loader.obj
             [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392416,used=>0.01678]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392448,used=>0.01652]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -1175,6 +1175,17 @@ Finally, a degenerate anonymous `inst` with no specified variable frame is simpl
 [source,mmadt]
 ----
 fhatos> 10.(min=>2,max=>8)[is(and([gte(*min),lte(*max)]))]                // <1>
+fhatos> 10.(min=>minus(1),max=>plus(1))[is(and([gte(*min),lte(*max)]))]   // <2>
+==>10
+fhatos> 10.()[is(and([gte(*min),lte(*max)]))]                             // <3>
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_] 
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
+	  thrown at inst 10 => ()[is(and([gte(from(min)),lte(from(max))]))] [=>]
+fhatos> |((min=>2,max=>8)[is(and([gte(*min),lte(*max)]))])                // <4>
+==>?noobj<=obj(min=>2,max=>8)
+	[is(and([gte(from(min)),lte(from(max))]))]
+fhatos> 10.is(and([gte(minus(1)),lte(plus(1))]))                          // <5>
+==>10
 ----
 
 ++++
@@ -2239,9 +2250,18 @@ if-else::
 fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),      // <1>
           _         => mult(100)]     // <2>
-==>1
-==>2
-==>3
+>[
+==>is(gt(2))=>noobj
+==>_=>100
+>]
+>[
+==>is(gt(2))=>noobj
+==>_=>200
+>]
+>[
+==>is(gt(2))=>-3
+==>_=>noobj
+>]
 fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),             
           _         => mult(100)]>-
@@ -3014,7 +3034,6 @@ fhatos> m/2/2 -> 10
 fhatos> m/2/3 -> 11
 ==>11
 fhatos> --- read matrix
-==>x
 fhatos> *m/0/0      // <1>
 ==>0
 fhatos> *m/0/+      // <2>
