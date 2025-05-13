@@ -772,7 +772,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11313152,free=&gt;11311744,used=&gt;0.01245]
+[INFO]  main [total=&gt;11313152,free=&gt;11311680,used=&gt;0.01301]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -821,7 +821,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
 [INFO]  [/sys/router/] router configured
             [id=&gt;/sys/router,config=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -830,17 +830,17 @@ The purpose of this documentation is to explain the mechanics of the boot proces
             [id=&gt;/sys/scheduler,config=&gt;[def_stack_size=&gt;32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392448,used=&gt;0.01652]
+[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392384,used=&gt;0.01704]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -849,7 +849,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164256,used=&gt;0.00243]</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164224,used=&gt;0.00247]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2283,7 +2283,7 @@ thread[[loop=>^( /
   plus(1).to(c). /
   gt(10).to(t/halt). /
   is(_).print('\n'))]]@t
- @t.spawn()
+ /sys/scheduler::spawn(@t)
  *c
 -->
 <div class="listingblock">
@@ -2297,9 +2297,28 @@ thread[[loop=>^( /
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
 ==&gt;halt=&gt;true
 &gt;]@t
-fhatos&gt; @t.spawn()
+fhatos&gt; /sys/scheduler::spawn(@t)
+[INFO]  [/sys/scheduler] t thread spawned
+&gt;thread[
+==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
+==&gt;halt=&gt;false
+&gt;]@t
+[INFO]  [t] [fhatos] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:noobj]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+c: 6
+c: 7
+c: 8
+c: 9
+c: 10
 
-fhatos&gt; fhatos&gt; *c</code></pre>
+fhatos&gt; fhatos&gt; *c
+[INFO]  [/sys/scheduler] thread t stopped
+==&gt;11</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4716,7 +4735,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-12 21:33:38 -0600
+Last updated 2025-05-12 21:37:15 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

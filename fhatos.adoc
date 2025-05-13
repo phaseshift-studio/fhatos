@@ -85,7 +85,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=>11313152,free=>11311744,used=>0.01245]
+[INFO]  main [total=>11313152,free=>11311680,used=>0.01301]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -134,7 +134,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
      setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
 [INFO]  [/sys/router/] router configured
             [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -143,17 +143,17 @@ $ fhatos --boot:config=../conf/boot-loader.obj
             [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392448,used=>0.01652]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392384,used=>0.01704]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -162,7 +162,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164256,used=>0.00243]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164224,used=>0.00247]
 
 ----
 
@@ -1549,7 +1549,7 @@ thread[[loop=>^( /
   plus(1).to(c). /
   gt(10).to(t/halt). /
   is(_).print('\n'))]]@t
- @t.spawn()
+ /sys/scheduler::spawn(@t)
  *c
 -->
 ++++
@@ -1565,9 +1565,28 @@ fhatos> thread[[loop=>^(
 ==>loop=>lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
 ==>halt=>true
 >]@t
-fhatos> @t.spawn()
+fhatos> /sys/scheduler::spawn(@t)
+[INFO]  [/sys/scheduler] t thread spawned
+>thread[
+==>loop=>lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
+==>halt=>false
+>]@t
+[INFO]  [t] [fhatos] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:noobj]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+c: 6
+c: 7
+c: 8
+c: 9
+c: 10
 
 fhatos> fhatos> *c
+[INFO]  [/sys/scheduler] thread t stopped
+==>11
 ----
 
 ++++
