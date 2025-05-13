@@ -17,6 +17,7 @@ basic boot_config obj
     log[[=>]]@/io/log;
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
+    /io/console/config/stack_size -> 259072;
     button[[pin=>gpio[5], on_push=>^print('button pushed')]]@/io/z;
     /sys/scheduler::spawn(@/io/console);
     /sys/scheduler::bundle(@/io/z);

@@ -37,6 +37,7 @@ namespace fhatos {
   class Router final : public Rec {
   protected:
     const ptr<MutexDeque<Structure_p>> structures_;
+    std::vector<Uri_p> auto_prefixes_;
 
   public:
     ~Router() override = default;
@@ -77,7 +78,7 @@ namespace fhatos {
       Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern?uri", __()}}));
       MODEL_CREATOR2->insert_or_assign(type_id, [](const Obj_p &structure_obj) {
         return STRUCTURE::create(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
-                                            structure_obj->rec_get("config")->or_else(Obj::to_rec()));
+                                 structure_obj->rec_get("config")->or_else(Obj::to_rec()));
       });
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !ytype!! imported\n", type_id.toString()));
       return nullptr;

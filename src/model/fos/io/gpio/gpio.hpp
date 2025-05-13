@@ -20,8 +20,8 @@ FhatOS: A Distributed Operating System
 #define fhatos_gpio_hpp
 //
 #include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
+#include "../../../../lang/type.hpp"
 #include "../../../../util/obj_helper.hpp"
 //
 #ifdef ARDUINO
@@ -41,21 +41,21 @@ namespace fhatos {
   public:
     static void *import() {
       Typer::singleton()->save_type(*GPIO_FURI, Obj::to_type(INT_FURI));
-#ifdef NATIVE
       InstBuilder::build(GPIO_FURI->add_component("scan"))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
           ->inst_args(rec({{"chip_name", vri("gpiochip0")}}))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            const fURI chip_name = args->arg("chip_name")->uri_value();
             const Rec_p pins = Obj::to_rec();
+#ifdef NATIVE
+            const fURI chip_name = args->arg("chip_name")->uri_value();
             if(gpiod_chip *chip = gpiod_chip_open_by_name(chip_name.toString().c_str()); !chip) {
-              throw fError(GPIO_FURI->toString().c_str(),
-                           "unable to access gpio chip %s\n", chip_name.toString().c_str());
+              throw fError(GPIO_FURI->toString().c_str(), "unable to access gpio chip %s\n",
+                           chip_name.toString().c_str());
             } else {
               for(int i = 0; i < 255; i++) {
                 if(gpiod_line *line = gpiod_chip_get_line(chip, i)) {
                   const Rec_p row = Obj::to_rec();
-                  const char* consumer = gpiod_line_consumer(line);
+                  const char *consumer = gpiod_line_consumer(line);
                   row->rec_set("consumer", str(consumer ? consumer : "unused"));
                   row->rec_set("active", jnt(gpiod_line_active_state(line)));
                   row->rec_set("direction",
@@ -67,10 +67,15 @@ namespace fhatos {
               }
               gpiod_chip_close(chip);
             }
+#elif defined(ARDUINO)
+            auto lock = lock_guard<Mutex>(gpio_mutex);
+            for(int8_t pin = 0; pin < NUM_DIGITAL_PINS; pin++) {
+              pins->rec_set(vri(to_string(pin)), jnt(digitalRead(pin)));
+            }
+#endif
             return pins;
           })
           ->save();
-#endif
       InstBuilder::build(GPIO_FURI->add_component("write"))
           ->domain_range(GPIO_FURI, {1, 1}, GPIO_FURI, {1, 1})
           ->inst_args(rec({{"value", Obj::to_type(INT_FURI)}}))
@@ -88,8 +93,7 @@ namespace fhatos {
                                    GPIO_CHIP_NAME);
             gpiod_line_request_output(line, GPIO_FURI->toString().c_str(), 0);
             if(gpiod_line_set_value(line, value) < 0) {
-              throw fError::create(gpio->tid->toString(), "unable to write to pin %i on gpio chip %s",
-                                   pin,
+              throw fError::create(gpio->tid->toString(), "unable to write to pin %i on gpio chip %s", pin,
                                    GPIO_CHIP_NAME);
             }
             gpiod_line_release(line);
@@ -99,7 +103,8 @@ namespace fhatos {
             digitalWrite(pin, value);
 #endif
             return gpio;
-          })->save();
+          })
+          ->save();
       ///////////////////////////////////////////////////////
       InstBuilder::build(GPIO_FURI->add_component("read"))
           ->domain_range(GPIO_FURI, {1, 1}, INT_FURI, {1, 1})
@@ -117,8 +122,7 @@ namespace fhatos {
                                    GPIO_CHIP_NAME);
             gpiod_line_request_input(line, GPIO_FURI->toString().c_str());
             if((val = gpiod_line_get_value(line)) < 0) {
-              throw fError::create(gpio->tid->toString(), "unable to read from pin %i on gpio chip %s",
-                                   pin,
+              throw fError::create(gpio->tid->toString(), "unable to read from pin %i on gpio chip %s", pin,
                                    GPIO_CHIP_NAME);
             }
             gpiod_line_release(line);
@@ -127,7 +131,8 @@ namespace fhatos {
             val = digitalRead(pin);
 #endif
             return jnt(val);
-          })->save();
+          })
+          ->save();
       return nullptr;
     }
   };

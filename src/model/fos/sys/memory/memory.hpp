@@ -44,9 +44,11 @@ namespace fhatos {
       if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_code()) {
         if(const Obj_p result = mmADT::delift(stack_size)->apply(source); result->is_int())
           return result->int_value();
-      } else if(stack_size->is_int())
+      } else if(stack_size->is_int()) {
         return stack_size->int_value();
-      return default_stack_size;
+      } else {
+        return ROUTER_READ(SCHEDULER_ID->extend("config/stack_size"))->or_else_<int>(default_stack_size);
+      }
     }
 
     // TODO: flash/partition/0x4434
@@ -56,22 +58,6 @@ namespace fhatos {
     }
 
     Obj_p use_custom_stack(const Inst_p &inst, const Obj_p &lhs, const int stack_size) {
-#ifdef NATIVEXXX
-      const Uri_p stack_id = Obj::to_uri(to_string(::rand()));
-      const Rec_p stack_rec = this->rec_get("stack")->or_else(Obj::to_rec());
-
-      if(stack_rec->rec_value()->size() > 5) {
-        stack_rec->rec_value()->erase(stack_rec->rec_value()->front().first);
-      }
-      stack_rec->rec_value()->insert_or_assign(stack_id,
-                                          Obj::to_rec({
-                                            {"lhs", lhs},
-                                            {"inst", inst},
-                                            {"stack_size", jnt(stack_size)}
-                                          }));
-      this->insert_into_position(Obj::to_uri("stack"),stack_rec);
-      this->obj_set("stack",stack_rec);
-#endif
       const Obj_p ret = this->internal_use_custom_stack(inst, lhs, stack_size);
       return ret;
     }

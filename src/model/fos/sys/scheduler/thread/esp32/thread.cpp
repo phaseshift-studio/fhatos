@@ -23,16 +23,6 @@
 
 namespace fhatos {
 
-  /* int find_stack_size() {
-     return ROUTER_READ(this->thread_obj->vid->extend("stack_size")) // check provided obj
-         ->or_else(ROUTER_READ(this->thread_obj->vid->extend("+/stack_size"))->none_one())
-         // check one depth more (e.g. config/stack_size)
-         ->or_else(ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size")))
-         // check default setting in scheduler
-         ->or_else(jnt(FOS_ESP_THREAD_STACK_SIZE)) // use default environmental variable
-         ->int_value();
-   }*/
-
   static void THREAD_FUNCTION(void *vptr_thread) {
     auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
@@ -49,7 +39,18 @@ namespace fhatos {
       return;
     }
     try {
-      fthread->thread_function_(std::make_pair<>(fthread, fthread->thread_obj_));
+      int stack_size =
+          Memory::get_stack_size(fthread->thread_obj_, "config/stack_size",
+                                 ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(129536));
+      static Thread *THREAD_PTR = fthread;
+      Memory::singleton()->use_custom_stack(InstBuilder::build("thread_stack")
+                                                ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                  THREAD_PTR->thread_function_(
+                                                      std::make_pair<>(THREAD_PTR, THREAD_PTR->thread_obj_));
+                                                  return Obj::to_noobj();
+                                                })
+                                                ->create(),
+                                            Obj::to_noobj(), stack_size);
       vTaskDelete(nullptr);
     } catch(const std::exception &e) {
       LOG_WRITE(ERROR, fthread->thread_obj_.get(), L("{}", e.what()));
@@ -58,27 +59,30 @@ namespace fhatos {
 
   Thread::Thread(const Obj_p &thread_obj, const Consumer<std::pair<Thread *, Obj_p>> &thread_function) :
       thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
-    int stack_size = Memory::get_stack_size(thread_obj, "config/stack_size",
-                                            ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(64768));
+    int stack_size = Memory::get_stack_size(
+        thread_obj, "config/stack_size", ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(64768));
     if(0 == stack_size)
       throw fError("thread stack size must be greater than 0");
     LOG_WRITE(INFO, thread_obj.get(),
               L("!g[!besp32!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                 thread_obj_->obj_get("loop")->toString(), stack_size));
-    const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
+    const BaseType_t threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // function that should be called
                                                             this->thread_obj_->vid->toString().c_str(),
-                                                            // Name of the task (for debugging)
-                                                            stack_size, // Stack size (bytes)
-                                                            static_cast<void *>(this), // Parameter to pass
-                                                            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                                            this->get_handler<TaskHandle_t *>(), // Task handle
-                                                            tskNO_AFFINITY); // Processor core
+                                                            // name of the task (for debugging)
+                                                            FOS_PRE_PSRAM_THREAD_STACK_SIZE, // stack size (bytes)
+                                                            static_cast<void *>(this), // parameter to pass
+                                                            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // task priority
+                                                            this->get_handler<TaskHandle_t *>(), // task handle
+                                                            tskNO_AFFINITY); // processor core
     if(pdPASS != threadResult)
       throw fError("unable to spawn thread: %s", this->thread_obj_->toString().c_str());
   }
 
 
-  void Thread::halt() const { vTaskDelete(nullptr); }
+  void Thread::halt() const {
+    vTaskDelete(nullptr);
+    delete this;
+  }
 
   void Thread::yield() { taskYIELD(); }
 

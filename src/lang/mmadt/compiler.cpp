@@ -107,9 +107,11 @@ namespace fhatos {
   Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Obj_p &resolved_inst) const {
     if(resolved_inst->is_noobj())
       return Obj::to_noobj();
-    const Inst_p resolved =
-        Obj::to_inst(resolved_inst, resolved_inst->is_inst() ? resolved_inst->inst_args() : provided_inst->inst_args(),
-                     resolved_inst->is_inst() ? resolved_inst->tid : provided_inst->tid);
+    const Inst_p resolved = Obj::to_inst(
+        InstValue(resolved_inst->is_inst() ? resolved_inst->inst_args() : provided_inst->inst_args(), // args
+                  resolved_inst->is_inst() ? resolved_inst->inst_f() : resolved_inst, // inst_f
+                  resolved_inst->is_inst() ? resolved_inst->inst_seed_supplier() : Obj::to_noobj()), // seed
+        resolved_inst->is_inst() ? resolved_inst->tid : provided_inst->tid); // tid
     const bool good = match_inst_args(provided_inst->inst_args(), resolved->inst_args());
     if(dt)
       dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved->vid_or_tid()->no_query()), resolved);
@@ -129,41 +131,44 @@ namespace fhatos {
     // this->reset();
     if(inst->is_noobj())
       return inst;
-   // if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
-     // return Obj::to_noobj();
-    Obj_p inst_obj = inst;
+    // if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
+    // return Obj::to_noobj();
+    Obj_p inst_obj = inst->inst_bcode_obj();
     inst_obj->resolve();
-    //inst_obj->resolve();
-    // inst_vid
+    //  inst_vid
     if(inst_obj->is_inst_stub() && inst_obj->vid)
       inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
     // obj field
     if(inst_obj->is_inst_stub()) {
-      if(const Obj_p code = lhs->obj_get(inst->tid->name()); !code->is_noobj()) {
-        inst_obj = convert_to_inst(lhs, inst, code);
+      if(const Obj_p code = lhs->obj_get(inst->tid->name())->inst_bcode_obj(); !code->is_noobj()) {
+        inst_obj = convert_to_inst(lhs, inst, mmADT::delift(code));
       }
     }
     if(inst_obj->is_inst_stub() && inst_obj->vid) {
-      if(const Obj_p code = lhs->obj_get(*inst->vid); code->is_code())
+      if(const Obj_p code = lhs->obj_get(*inst->vid)->inst_bcode_obj(); code->is_code())
         inst_obj = convert_to_inst(lhs, inst, code);
     }
 
     // /obj_vid/::/inst_tid
     if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query())));
+      inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query()))->inst_bcode_obj());
     // /obj_tid/::/inst_tid
     if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query())));
+      inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->inst_bcode_obj());
     // /obj_vid/::/resolved/inst_tid
     const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
     if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved)));
+      inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved))->inst_bcode_obj());
     // /obj_tid/::/resolved/inst_tid
     if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved)));
+      inst_obj = convert_to_inst(
+          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved))->inst_bcode_obj());
     // /resolved/inst_tid
     if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved));
+      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved)->inst_bcode_obj());
     // obj_tid/obj_tid (recurse)
     if(inst_obj->is_inst_stub()) {
       if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
@@ -172,11 +177,15 @@ namespace fhatos {
     }
     if(inst_obj->is_inst_stub()) {
       if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
-        inst_obj = convert_to_inst(
-            lhs, inst,
-            this->resolve_inst(
-                Router::singleton()->read(Router::singleton()->read(Router::singleton()->resolve(lhs->tid->no_query()))->domain()->no_query()),
-                inst_obj));
+        inst_obj =
+            convert_to_inst(lhs, inst,
+                            this->resolve_inst(Router::singleton()
+                                                   ->read(Router::singleton()
+                                                              ->read(Router::singleton()->resolve(lhs->tid->no_query()))
+                                                              ->domain()
+                                                              ->no_query())
+                                                   ->inst_bcode_obj(),
+                                               inst_obj));
       }
     }
     if(this->throw_on_miss && inst_obj->is_inst_stub()) {

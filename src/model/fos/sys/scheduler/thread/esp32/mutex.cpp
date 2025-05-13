@@ -22,8 +22,8 @@ FhatOS: A Distributed Operating System
 #include <semphr.h>
 #include "ext/read_write_lock.hpp"
 
-#define READ_WRITE_LOCK_TYPE ReadWriteLockPreferReader
-#define USING_READER_PREFERENCE
+#define READ_WRITE_LOCK_TYPE ReadWriteLockPreferWriter
+// #define USING_READER_PREFERENCE
 
 namespace fhatos {
       // mutexes can not be used in ISR context
@@ -60,7 +60,6 @@ namespace fhatos {
               vSemaphoreDelete(h->ReadLock);
               vSemaphoreDelete(h->ResourceLock);
 #else
-
               vSemaphoreDelete(h->WriteLock);
               vSemaphoreDelete(h->BlockReadersLock);
 #endif

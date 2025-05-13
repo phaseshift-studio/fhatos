@@ -172,7 +172,7 @@ namespace fhatos {
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
       if(!structure)
-       return Obj::to_noobj();
+        return Obj::to_noobj();
       const Objs_p objs = structure->read(resolved_furi);
       /*LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
                                this->vid->toString(), resolved_furi.toString(), // make this the current process
@@ -212,7 +212,7 @@ namespace fhatos {
       //                         "obj", retain ? "retained" : "transient",
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
       if(structure)
-         structure->write(furi, obj, retain);
+        structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
@@ -223,6 +223,8 @@ namespace fhatos {
   void *Router::import() {
     Router::singleton()->write(*Router::singleton()->vid, Router::singleton(), RETAIN);
     Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
+    Router::singleton()->auto_prefixes_ =
+        std::vector<Uri_p>(*Router::singleton()->rec_get("config/auto_prefix")->or_else(lst())->lst_value());
     InstBuilder::build(Router::singleton()->vid->add_component("mount"))
         ->inst_args(rec({{"structure", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
@@ -315,43 +317,49 @@ namespace fhatos {
   [[nodiscard]] fURI Router::resolve(const fURI &furi) const {
     if(furi.empty() || (!furi.headless() && !furi.has_components()))
       return furi;
-    static auto mutex = Mutex();
-    auto lock = shared_lock<Mutex>(mutex);
-    if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
-      return furi;
-    List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
-    if(components.empty()) {
-      for(const auto &c: furi.components()) {
-        components.emplace_back(c);
-      }
-    }
-    bool first = true;
     fURI_p test = nullptr;
-    const List_p<Uri_p> prefixes = this->rec_get("config/auto_prefix")->clone()->or_else(lst())->lst_value();
-    for(const auto &c: components) {
-      if(prefixes->empty() && !BOOTING)
-        LOG_WRITE(WARN, this, L("!bauto_prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
-      // TODO: make this an exposed property of /sys/router
-      fURI_p found = nullptr;
-      for(const auto &prefix: *prefixes) {
-        const fURI x = prefix->uri_value().extend(c);
-        if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
-          // LOG_WRITE(TRACE, this, L("located !b{}!! in {} and resolved to !b{}!!\n",
-          //                          furi.toString(), structure->toString(), x.toString()));
-          found = furi_p(x);
-          break;
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// START MUTEX RANGE
+    {
+      static auto mutex = Mutex();
+      auto lock = shared_lock<Mutex>(mutex);
+      if(const Structure_p structure = this->get_structure(furi, nullptr, false); structure && structure->has(furi))
+        return furi;
+      std::vector<fURI> components = furi.has_components() ? std::vector<fURI>() : std::vector<fURI>{furi};
+      if(components.empty()) {
+        for(const auto &c: furi.components()) {
+          components.emplace_back(c);
         }
       }
-      /*if(!found) {
-        LOG_WRITE(TRACE, this, L("unable to locate !b{}!!\n", c.toString()));
-      }*/
-      if(first) {
-        first = false;
-        test = furi_p(found ? *found : c);
-      } else {
-        test = furi_p(test->add_component(found ? *found : c));
+      bool first = true;
+
+      for(const auto &c: components) {
+        if(this->auto_prefixes_.empty() && !BOOTING)
+          LOG_WRITE(WARN, this, L("!bauto_prefix !ynot configured!!: {}\n", this->rec_get("config")->toString()));
+        // TODO: make this an exposed property of /sys/router
+        fURI_p found = nullptr;
+        for(const auto &prefix: this->auto_prefixes_) {
+          const fURI x = prefix->uri_value().extend(c);
+          if(const Structure_p structure = this->get_structure(x, nullptr, false); structure && structure->has(x)) {
+            // LOG_WRITE(TRACE, this, L("located !b{}!! in {} and resolved to !b{}!!\n",
+            //                          furi.toString(), structure->toString(), x.toString()));
+            found = furi_p(x);
+            break;
+          }
+        }
+        /*if(!found) {
+          LOG_WRITE(TRACE, this, L("unable to locate !b{}!!\n", c.toString()));
+        }*/
+        if(first) {
+          first = false;
+          test = furi_p(found ? *found : c);
+        } else {
+          test = furi_p(test->add_component(found ? *found : c));
+        }
       }
     }
+    /// END MUTEX RANGE
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(furi.has_query(FOS_DOMAIN) && furi.has_query(FOS_RANGE)) {
       const fURI::DomainRange dm = furi.dom_rng();
       test = Compiler::generate_domain_range_type(test->no_query(), this->resolve(std::get<0>(dm)), std::get<1>(dm),

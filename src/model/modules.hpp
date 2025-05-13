@@ -1,5 +1,5 @@
 /*******************************************************************************
-FhatOS: A Distributed Operating System
+  FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -15,31 +15,27 @@ FhatOS: A Distributed Operating System
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+#pragma once
+#ifndef fhatos_modules_hpp
+#define fhatos_modules_hpp
 
-#ifndef fhatos_psram_allocator_hpp
-#define fhatos_psram_allocator_hpp
-
-#include "../../fhatos.hpp"
+#include "../fhatos.hpp"
+#include "../furi.hpp"
 
 namespace fhatos {
+  inline auto MODULES = make_unique<Map<fURI, Runnable>>();
 
-  template<class T>
-  struct PSRAMAllocator {
-    typedef T value_type;
-
-    PSRAMAllocator() = default;
-
-    template<class U>
-    constexpr explicit PSRAMAllocator(const PSRAMAllocator<U> &) noexcept {}
-
-    [[nodiscard]] T *allocate(const std::size_t n) {
-      if (n > static_cast<std::size_t>(-1) / sizeof(T))
-        throw std::bad_alloc();
-      if (auto p = static_cast<T *>(ps_malloc(n * sizeof(T))))
-        return p;
-      throw std::bad_alloc();
+  class Modules {
+    static void register_module(const fURI &pattern, const Runnable &runnable) {
+      MODULES->insert_or_assign(pattern, runnable);
     }
-    void deallocate(T *p, std::size_t) noexcept { std::free(p); }
+    static void import(const fURI &pattern) {
+      for(const auto &[k, v]: MODULES) {
+        if(k.match(pattern)) {
+          v();
+        }
+      }
+    }
   };
 } // namespace fhatos
 #endif

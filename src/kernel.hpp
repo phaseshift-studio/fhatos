@@ -163,7 +163,7 @@ namespace fhatos {
       scheduler->obj_set("config", config->rec_get("config"));
       Scheduler::singleton()->import();
       LOG_WRITE(INFO, Scheduler::singleton().get(),
-                L("!yscheduler configured!!\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
       Scheduler::import();
       return Kernel::build();
     }
@@ -176,7 +176,7 @@ namespace fhatos {
       router->rec_set("config", config->rec_get("config"));
       Router::singleton()->import();
       LOG_WRITE(INFO, Router::singleton().get(),
-                L("!yrouter configured!!\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+                L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
       return Kernel::build();
     }
 

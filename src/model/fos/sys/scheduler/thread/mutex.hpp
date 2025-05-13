@@ -19,8 +19,8 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_fmutex_hpp
 #define fhatos_fmutex_hpp
-#include "../../../../../fhatos.hpp"
 #include <any>
+#include "../../../../../fhatos.hpp"
 
 namespace fhatos {
   using namespace std;
@@ -28,7 +28,7 @@ namespace fhatos {
   // calling lock twice from the same thread will deadlock
   class Mutex final {
   protected:
-    std::any handler_;
+    mutable std::any handler_;
 
   public:
     Mutex();
@@ -48,14 +48,11 @@ namespace fhatos {
     Mutex *mutex_;
 
   public:
-    explicit LockGuard(Mutex &m) : mutex_(&m) {
-    }
+    explicit LockGuard(Mutex &m) : mutex_(&m) {}
 
-    ~LockGuard() {
-      this->mutex_->unlock();
-    }
+    ~LockGuard() { this->mutex_->unlock(); }
 
     LockGuard(const LockGuard &) = delete;
   };
-}
+} // namespace fhatos
 #endif

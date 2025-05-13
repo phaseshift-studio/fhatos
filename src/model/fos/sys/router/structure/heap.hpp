@@ -27,15 +27,19 @@
 #include "../router.hpp"
 #include "structure.hpp"
 
-/*
+
 #ifdef ESP_PLATFORM
-#include "../../util/esp32/psram_allocator.hpp"
-#endif*/
+#include "../../../../../util/esp32/psram_allocator.hpp"
+#endif
 
 #define HEAP_TID  "/fos/s/heap"
 
 namespace fhatos {
+#ifdef ESP_PLATFORM
+  template <typename ALLOCATOR = PSRAMAllocator<std::pair<const ID_p, Obj_p>>>
+#else
   template<typename ALLOCATOR = std::allocator<std::pair<const ID, Obj_p>>>
+#endif
   class Heap final : public Structure {
   protected:
     const unique_ptr<Map<const ID, Obj_p, furi_less, ALLOCATOR>> data_ =
@@ -103,8 +107,8 @@ namespace fhatos {
     }
   };
 
-  /*#ifdef ESP_PLATFORM
+  #ifdef ESP_PLATFORM
     using HeapPSRAM = Heap<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
-  #endif*/
+  #endif
 } // namespace fhatos
 #endif

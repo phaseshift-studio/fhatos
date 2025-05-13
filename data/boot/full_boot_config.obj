@@ -14,6 +14,7 @@ basic boot_config obj
     /sys/router::mount(@/mnt/var);
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
+    /io/console/config/stack_size ->259072;
     /sys/scheduler::spawn(@/io/console);
  ]
 ]@/boot/config
