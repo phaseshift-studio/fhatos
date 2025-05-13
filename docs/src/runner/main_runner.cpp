@@ -68,7 +68,7 @@ int main(int arg, char **argsv) {
     Router::singleton()->write("/io/console/config/stack_trace", dool(false), true);
 
     LOG(INFO, "processing %i expressions\n", arg);
-    const Console *console = static_cast<Console *>(MODEL_STATES::singleton()->load<ptr<Thread>>("/io/console").get());
+    const Console *console = Obj::to_rec(rmap({}),CONSOLE_FURI,id_p("/io/console"))->get_model<Console>();
     Router::singleton()->loop();
     printer()->printer_switch(true);
     for(int i = 1; i < arg; i++) {

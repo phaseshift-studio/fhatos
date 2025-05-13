@@ -82,55 +82,87 @@ $ fhatos --boot:config=../conf/boot-loader.obj
  `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\ 
     )-)_/-(>  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/ 
                                    A Dogturd Stynx Production 
-    fhatos-0.1-alpha > linux-6.8.0-54-generic > x86_64
+    fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
-      Use noobj for noobj
-      .oO loading system objs Oo.
-[INFO]  [/sys/scheduler] scheduler started
-[INFO]  [/sys/router] router started
-[INFO]  [/sys/mem] main [total=>10736,free=>4976,used=>53.65127]
-[INFO]  [/sys/router] heap <none> spanning /sys/# mounted
-[INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] ../../../conf/boot_config.obj boot config file loaded (size: 969 bytes)
-[WARN]  [/sys/router] auto-prefix not configured: noobj
-[INFO]  [/sys/router] 
-  [
-    router=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
-    scheduler=>[def_stack_size=>16192]
-    log=>[INFO=>[#],ERROR=>[#],WARN=>[#],TRACE=>[],DEBUG=>[]]
-    parser=>[stack_size=>32384]
-    vm=>[stack_size=>32384]
-    mqtt=>[broker=>mqtt://chibi.local:1883,client=>fhatos_client,async=>true,cache_size=>50]
-    wifi=>[ssid=>Rodkins-2G,password=>'puppymama',mdns=>fhatos]
-    ota=>[host=>mdns://fhatos_client:3232]
-    console=>[terminal=>[stdout=>/io/terminal/:stdout,stdin=>/io/terminal/:stdin],processor=>/sys/vm,nest=>2,ellipsis=>50,prompt=>'fhatos> ',strict=>false,log=>INFO,stack_size=>16192,stack_trace=>true]
-    fs=>[root=>./data/fs]
-  ]@/boot/config
-[INFO]  [/sys/router] router boot config dropped
-[INFO]  [/sys/router] scheduler boot config dropped
-[INFO]  [/sys/router] /sys/lib/heap type imported
-[INFO]  [/sys/router] /sys/lib/dsm type imported
-[INFO]  [/sys/router] /sys/lib/bus type imported
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
-[INFO]  [/sys/type] /sys/vm type defined
-[INFO]  [/sys/type] /sys/vm/::/eval type defined
-      .oO loading mmadt lang Oo.
-[INFO]  [/mnt/mmadt] query processor /mnt/mmadt/q/doc attached
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-[INFO]  [/sys/router] vm boot config dropped
-      .oO loading fos models Oo.
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-[INFO]  [/sys/router] /io/parser obj loaded
-[INFO]  [/sys/router] parser boot config dropped
-[INFO]  [/io/log] switching from boot logger to system logger
-[INFO]  [/sys/router] /io/log obj loaded
-[INFO]  [/sys/router] log boot config dropped
-[INFO]  [/sys/router] heap /mnt/cache spanning +/# mounted
-[INFO]  [/sys/router] fs boot config dropped
-[INFO]  [/sys/router] mqtt boot config dropped
-[INFO]  [/sys/router] console boot config dropped
-[INFO]  [/sys/mem] main [total=>85684,free=>78388,used=>8.51501]
+      .oO mounting kernel structures Oo.
+[INFO]  main [total=>11313152,free=>11311680,used=>0.01301]
+[INFO]  [/sys/router/] router started
+[INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
+[INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
+[INFO]  [/sys/router/] heap /mnt/boot spanning /boot/# mounted
+[ERROR] [/mmadt/noobj] boot config file not found: data../../../conf/boot_config.obj
+[WARN]  [/sys/router/] no mounted structure for heap  
+[WARN]  [/sys/router/] no mounted structure for fs  
+[WARN]  [/sys/router/] no mounted structure for log  
+[WARN]  [/sys/router/] no mounted structure for /io/log  
+[WARN]  [/sys/router/] no mounted structure for terminal  
+[WARN]  [/sys/router/] no mounted structure for /io/terminal  
+[WARN]  [/sys/router/] no mounted structure for console  
+[WARN]  [/sys/router/] no mounted structure for /io/console  
+[WARN]  [/sys/router/] no mounted structure for button  
+[WARN]  [/sys/router/] no mounted structure for /io/z  
+[INFO]  [/sys/router/] boot_config.hpp boot config header loaded [size: 1020 bytes]
+[INFO]  [/boot/config] boot loader config:
+[INFO]  [/boot/config] 
+   [
+     sys=>[
+      scheduler=>[
+       id=>/sys/scheduler
+       config=>[
+        def_stack_size=>32384
+      ]
+     ]
+      router=>[
+       id=>/sys/router
+       config=>[
+        namespace=>[:=>/mmadt/,fos:=>/fos/]
+        auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]
+      ]
+     ]
+    ]
+     import=>[
+      /fos/q/#
+      /fos/sys/#
+      /fos/util/#
+      /fos/io/#
+      /fos/s/#
+      /fos/ui/#
+      /io/#
+      /sys/#
+      /mmadt/#
+    ]
+     setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+   ]@/boot/config
+      .oO configuring kernel objs Oo.
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/router/] router configured
+            [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
+[INFO]  [/boot/config] /sys/router boot config dropped
+[INFO]  [/sys/scheduler] [/sys/scheduler] scheduler started
+[INFO]  [/sys/scheduler] scheduler configured
+            [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
+[INFO]  [/boot/config] /sys/scheduler boot config dropped
+      .oO mounting fos/mmadt structures Oo.
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
+[INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
+[INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
+      .oO importing fos/mmadt types Oo.
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/type] /mmadt/proc type defined
+[INFO]  [/sys/type] /mmadt/proc/::/eval type defined
+[INFO]  [/sys/router/] /io/parser obj loaded
+      .oO finalizing boot w/ setup inst Oo.
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392384,used=>0.01704]
+[INFO]  [/boot/config] exiting boot state: stricter type checking enabled
+[INFO]  [/boot/config] applying setup inst
+            setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+[INFO]  [/sys/router/] heap /mnt/var spanning +/# mounted
+[INFO]  [/mnt/fs] data/fs location mounted
+[INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
+[INFO]  [/sys/scheduler] /io/console thread spawned
+[INFO]  [/sys/scheduler] /io/z fiber bundled
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164192,used=>0.00250]
 
 ----
 
@@ -182,14 +214,14 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 fhatos> */sys/scheduler
 >[
 ==>spawn=>[
+===>/io/console
 =>]
 ==>bundle=>[
+===>/io/z
 =>]
-==>config=>[
-===>def_stack_size=>16192
-=>]
+==>config=>noobj
 ==>::=>[
-===>spawn=>spawn?thread<=obj{?}(thread=>_)[cpp]
+===>spawn=>spawn?obj<=obj{?}(thread=>_)[cpp]
 ===>bundle=>bundle?obj<=obj{?}(fiber=>_)[cpp]
 =>]
 >]@/sys/scheduler
@@ -215,20 +247,6 @@ The [.h]#router# is responsible for storing and retrieving `objs` from a pool of
 [source,mmadt]
 ----
 fhatos> */sys/router
->[
-==>config=>[
-===>resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]
-=>]
-==>structure=>[
-===>/sys/#
-===>/mnt/#
-===>/boot/#
-===>/fos/#
-===>/mmadt/#
-===>/io/#
-===>+/#
-=>]
->]@/sys/router
 ----
 
 ++++
@@ -268,6 +286,7 @@ fhatos> */mmadt/#/
 ==>/mmadt/chain=>chain(_)[cpp]
 ==>/mmadt/choose=>choose(_)[cpp]
 ==>/mmadt/count=>count?int<=objs{*}()[cpp]
+==>/mmadt/delay=>delay?obj{?}<=obj{?}(millis?nat=>_)[cpp]
 ==>/mmadt/div=>div(_)
 ==>/mmadt/drop=>drop?obj{?}<=obj{?}(_)[cpp]
 ==>/mmadt/each=>each(isa(/mmadt/obj))
@@ -332,16 +351,18 @@ fhatos> */mmadt/#/
 ==>/mmadt/lst/::/mmadt/div=>div(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/each=>each(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/inspect=>inspect(_)[cpp]
+==>/mmadt/lst/::/mmadt/lshift=>lshift(amount?int=>else(1))[cpp]
 ==>/mmadt/lst/::/mmadt/merge=>merge?objs{*}<=lst()[cpp]
 ==>/mmadt/lst/::/mmadt/minus=>minus(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/mult=>mult(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/plus=>plus(isa(/mmadt/lst))[cpp]
+==>/mmadt/lst/::/mmadt/rshift=>rshift(amount?int=>else(1))[cpp]
 ==>/mmadt/lst/::/mmadt/split=>split(isa(/mmadt/lst))[cpp]
 ==>/mmadt/lst/::/mmadt/within=>within(_)[cpp]
 ==>/mmadt/lt=>lt?bool<=obj{?}()
 ==>/mmadt/lte=>lte?bool<=obj{?}()
 ==>/mmadt/map=>map?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/merge=>merge?obj{?}<=obj()[cpp]
+==>/mmadt/merge=>merge?obj{*}<=obj()[cpp]
 ==>/mmadt/minus=>minus(_)
 ==>/mmadt/mod=>mod(isa(/mmadt/int))
 ==>/mmadt/mult=>mult(_)
@@ -355,6 +376,9 @@ fhatos> */mmadt/#/
 ==>/mmadt/or=>or?bool<=obj{?}(con?lst=>_)[cpp]
 ==>/mmadt/plus=>plus(_)
 ==>/mmadt/print=>print?obj{?}<=obj{?}(_)[cpp]
+==>/mmadt/proc=>[
+===>::=>[eval=>eval?obj{?}<=obj{?}(code?str=>_)[cpp]]
+=>]
 ==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
 ==>/mmadt/real=>[real][_]
 ==>/mmadt/real/::/mmadt/as=>as?obj{?}<=real(isa(/mmadt/uri))[cpp]
@@ -476,7 +500,18 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 [source,mmadt]
 ----
 fhatos> # -> noobj
-[INFO]  [/sys/router] 7 heap(s) closing
+[INFO]  [/sys/router/] 1 fs(s) closing
+[INFO]  [/sys/router/] 7 heap(s) closing
+[INFO]  [/sys/router/] router /sys/router/ stopped
+[ERROR] [/mnt/io] unable to read /io/console/config/nest
+[ERROR] [/mnt/io] unable to read /io/console/config/terminal/stdout
+[INFO]  [/sys/router/] /mnt/# heap detached
+[INFO]  [/sys/router/] /boot/# heap detached
+[INFO]  [/sys/router/] /fos/# heap detached
+[INFO]  [/sys/router/] /mmadt/# heap detached
+[INFO]  [/sys/router/] /io/# heap detached
+[INFO]  [/sys/router/] +/# heap detached
+[INFO]  [/sys/router/] /fs/# fs detached
 ----
 
 ++++
@@ -555,7 +590,7 @@ bool::
 fhatos> /mmadt/bool[true]
 ==>true
 fhatos> bool[true]
-==>true
+==>bool[true]
 fhatos> true
 ==>true
 ----
@@ -577,7 +612,7 @@ int::
 fhatos> /mmadt/int[6]
 ==>6
 fhatos> int[6]
-==>6
+==>int[6]
 fhatos> 6
 ==>6
 ----
@@ -599,7 +634,7 @@ real::
 fhatos> /mmadt/real[6.2]
 ==>6.200000
 fhatos> real[6.2]
-==>6.200000
+==>real[6.200000]
 fhatos> 6.2
 ==>6.200000
 ----
@@ -621,7 +656,7 @@ str::
 fhatos> /mmadt/str['cooties']
 ==>'cooties'
 fhatos> str['cooties']
-==>'cooties'
+==>str['cooties']
 fhatos> 'cooties'
 ==>'cooties'
 ----
@@ -643,7 +678,7 @@ uri::
 fhatos> /mmadt/uri[/dog/curly]
 ==>/dog/curly
 fhatos> uri[/dog/curly]
-==>/dog/curly
+==>uri[/dog/curly]
 fhatos> /dog/curly
 ==>/dog/curly
 ----
@@ -668,23 +703,11 @@ lst[['a',2,true]]
 [source,mmadt]
 ----
 fhatos> /mmadt/lst[['a',2,true]]
->[
-==>'a'
-==>2
-==>true
->]
+==>['a',2,true]
 fhatos> lst[['a',2,true]]
->[
-==>'a'
-==>2
-==>true
->]
+==>lst[['a',2,true]]
 fhatos> ['a',2,true]
->[
-==>'a'
-==>2
-==>true
->]
+==>['a',2,true]
 ----
 
 ++++
@@ -707,20 +730,11 @@ rec[[a=>6,b=>false]]
 [source,mmadt]
 ----
 fhatos> /mmadt/rec[[a=>6,b=>false]]
->[
-==>a=>6
-==>b=>false
->]
+==>[a=>6,b=>false]
 fhatos> rec[[a=>6,b=>false]]
->[
-==>a=>6
-==>b=>false
->]
+==>rec[[a=>6,b=>false]]
 fhatos> [a=>6,b=>false]
->[
-==>a=>6
-==>b=>false
->]
+==>[a=>6,b=>false]
 ----
 
 ++++
@@ -841,12 +855,12 @@ fhatos> *char
 fhatos> === char['a']@a ===
 fhatos> === char['b']@b ===
 fhatos> @a + @b
-[ERROR] [/mmadt/obj] /mmadt/plus inst unresolved 
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
 	         lhs id      inst id        resolve obj        
 	  ->[/mmadt/obj] /mmadt/plus => plus(_)
 fhatos> *a
 fhatos> @a.as(str) + @b
-[ERROR] [/sys/lang/parser] noobj is not a /mmadt/str as defined by [str][_] 
+[ERROR] [/mmadt/parser] noobj is not a /mmadt/str as defined by [str][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/str
 	  thrown at inst noobj => as?obj{?}<=obj{?}(type?uri=>str)[cpp] [type=>str]
 ----
@@ -879,13 +893,15 @@ fhatos> *nat
 fhatos> nat[12]
 ==>nat[12]
 fhatos> nat[-30]
-[ERROR] [/sys/lang/parser] -30 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+[ERROR] [/mmadt/parser] -30 is not a nat as defined by nat()[is(gte(0))] 
+		 \_nat[-30] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 fhatos> nat[12]@a
 ==>nat[12]@a
 fhatos> @a.minus(11)
 ==>nat[1]@a
 fhatos> @a.minus(2)
-[ERROR] [/sys/lang/parser] -1@a is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+[ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat()[is(gte(0))] 
+		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 	  thrown at inst nat[1]@a => minus(0?int=>2)[cpp] [0=>2]
 fhatos> *a
 ==>nat[1]@a
@@ -917,7 +933,8 @@ fhatos> C[0.0]
 fhatos> C[274.0]
 ==>C[274.000000]
 fhatos> C[-274.0]
-[ERROR] [/sys/lang/parser] -274.00000 is not a /mmadt/ext/C as defined by C()[is(gte(-273.14999))] 
+[ERROR] [/mmadt/parser] -274.00000 is not a C as defined by C()[is(gte(-273.14999))] 
+		 \_C[-274.00000] is not applicable with /mmadt/ext/C?dom=/mmadt/real&dc=1,1&rng=/mmadt/real&rc=1,1
 ----
 
 ++++
@@ -1027,7 +1044,7 @@ fhatos> 3.band(2,8)                           // <1>
 fhatos> 3.band(max=>8,min=>2)                 // <2>
 ==>3
 fhatos> 'abc'.band(2,8)                       // <3>
-[ERROR] [/sys/lang/parser] 2 is not a str as defined by [str][_] 
+[ERROR] [/mmadt/parser] 2 is not a str as defined by [str][_] 
 		 \_/mmadt/int is not a subtype of /mmadt/str
 	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[is(and([gte(from(min)),lte(from(max))]))] [min=>2,max=>8]
 ----
@@ -1115,7 +1132,8 @@ fhatos> band -> |band?int{?}<=int(min?nat=>else(2),max?nat=>else(8))[is(and([gte
 fhatos> 15.band(10,20)              // <1>
 ==>15
 fhatos> -15.band(-20,-10)           // <2>
-[ERROR] [/sys/lang/parser] -20 is not a nat as defined by nat()[is(gte(0))] 
+[ERROR] [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))] 
+		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 ----
 
 ++++
@@ -1189,7 +1207,7 @@ fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 fhatos> 10.is_divisible(2)
 ==>true
 fhatos> 10.is_divisible('abc')
-[ERROR] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
 ----
 
@@ -1223,7 +1241,7 @@ fhatos> band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[i
 ==>band?int{?}<=int(min=>_,max=>is?noobj<=obj(gt?noobj<=obj(from?noobj<=obj(min)[noobj])[noobj])[noobj].else?noobj<=obj(from?noobj<=obj(min)[noobj].plus?noobj<=obj(1)[noobj])[noobj])
 	[is(gte(from(min))).is(lte(from(max)))]
 fhatos> 2.band(min=>1,max=>1)                 // <1>
-[ERROR] [/sys/lang/parser] noobj is not a int as defined by [int][_] 
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_] 
 		 \_/mmadt/noobj is not a subtype of /mmadt/int
 ----
 
@@ -1254,7 +1272,7 @@ fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('er
 fhatos> 10.is_divisible(2)
 error==>true
 fhatos> 10.is_divisible('abc')
-error[ERROR] [/sys/lang/parser] 'abc' is not a int as defined by [int][_] 
+error[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_] 
 		 \_/mmadt/str is not a subtype of /mmadt/int
 ----
 
@@ -1279,7 +1297,6 @@ int(a=>2)[*a]
 ----
 fhatos> int(a=>2)[*a]
 ==>2
- =>2
 fhatos> 4 + int(a=>2)[*a]
 ==>6
 fhatos> 4 + int(a=>2)[+*a]
@@ -1535,31 +1552,11 @@ fhatos> thread[[loop=>^(
           is(_).print('\n'))]]@t
 >thread[
 ==>loop=>lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
-==>delay=>nat[0]
 ==>halt=>true
-==>..=>[
-===>config=>[stack_size=>noobj]
-=>]
 >]@t
 fhatos> @t.spawn()
-[INFO]  [/sys/scheduler] t thread spawned
-[INFO]  [t] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [stack size:noobj]
-c: 0
-c: 1
-c: 2
-c: 3
-c: 4
-c: 5
-c: 6
-c: 7
-c: 8
-c: 9
-c: 10
-[INFO]  [t] thread stopped
 
 fhatos> fhatos> *c
-[INFO]  [/sys/scheduler] thread t unscheduled
-==>11
 ----
 
 ++++
@@ -1637,19 +1634,9 @@ a -> int8[126]                       --- <2>
 ----
 fhatos> /sys/router/config/resolve/auto_prefix ->
           *(_) + \|[/mmadt/ext/]             // <1>
->[
-==>
-==>/mmadt/
-==>/mmadt/ext/
-==>/fos/
-==>/fos/sys/
-==>/fos/io/
-==>/fos/sensor/
-==>/fos/ui/
-==>/fos/util/
-==>/sys/
-==>/mmadt/ext/
->]
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
+	         lhs id      inst id        resolve obj        
+	  ->[/mmadt/obj] /mmadt/plus => plus(_)
 fhatos> a -> int8[126]                       // <2>
 ==>int8[126]
 fhatos> @a + 1
@@ -1657,7 +1644,8 @@ fhatos> @a + 1
 fhatos> @a + 1
 ==>int8[128]@a
 fhatos> @a + 1                               // <3>
-[ERROR] [/sys/lang/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
+[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
+		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>1]
 ----
 
@@ -2068,10 +2056,7 @@ fhatos> true.[false=>0,true=>1]
 ==>true=>1
 >]
 fhatos> true.i?bool<=bool(_)[and(_,*<0>)]
-[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read[ERROR] [/sys/router] unable to read from true.i?dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1
-	 [/mnt/cache] no query processor for dom=/mmadt/bool&dc=1,1&rng=/mmadt/bool&rc=1,1 on read[ERROR] [/sys/lang/parser] noobj is not a lst as defined by [lst][_] 
+[ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][_] 
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
 	  thrown at inst noobj => true.i(noobj)[and(_,from(0))] [0=>noobj]
 fhatos> true.plus(false)
@@ -2118,8 +2103,8 @@ fhatos> person[[name=>'marko',age=>29]]
 ==>age?nat=>29
 >]
 fhatos> person[[name=>'lili',age=>129]]
-[ERROR] [/sys/lang/parser] noobj is not a nat as defined by nat()[is(gte(0))] 
-		 \_[/mmadt/obj] /mmadt/gte?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+[ERROR] [/mmadt/parser] noobj is not a nat as defined by nat()[is(gte(0))] 
+		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id       resolve obj                                       
 	  ->[/mmadt/obj] /mmadt/gte => gte?bool<=obj{?}()
 	  thrown at inst noobj => nat()[is(gte(0))] [=>]
@@ -2205,11 +2190,11 @@ For instance, `if` is implemented with a two entry `rec`, where one entry maps t
 fhatos> /io/console/config/nest -> 0                  // <1>
 ==>0
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
-[ERROR] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj                                      
 	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
-[ERROR] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj                                      
 	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 ----
@@ -2440,16 +2425,16 @@ a -> age[45]
 fhatos> age -> \|(is(gt(0)).is(lt(120)))
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
 fhatos> a -> age[45]
-[ERROR] [/sys/lang/parser] 45 is not a age as defined by is(gt(0)).is(lt(120)) 
-		 \_[/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
+[ERROR] [/mmadt/parser] 45 is not a age as defined by is(gt(0)).is(lt(120)) 
+		 \_[ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
 	         lhs id      inst id      resolve obj                                      
 	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 fhatos> *a.inspect()
-[ERROR] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
+[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
 	         lhs id      inst id           resolve obj           
 	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
 fhatos> @a.inspect()
-[ERROR] [/mmadt/obj] /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
+[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
 	         lhs id      inst id           resolve obj           
 	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
 ----
@@ -2521,15 +2506,18 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
-[ERROR] [/sys/router] no mounted structure for /type/int/nat  ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
+[ERROR] [/sys/router/] no mounted structure for /type/int/nat  
+==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
 ==>nat[6]
 fhatos> nat[-6]
-[ERROR] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+[ERROR] [/mmadt/parser] -6 is not a nat as defined by nat()[is(gte(0))] 
+		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 fhatos> nat[3].plus(2)
 ==>nat[5]
 fhatos> nat[3].mult(-2)
-[ERROR] [/sys/lang/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+[ERROR] [/mmadt/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))] 
+		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
 	  thrown at inst nat[3] => mult(0?int=>-2)[cpp] [0=>-2]
 ----
 
@@ -2585,10 +2573,37 @@ fhatos> /io/console/config/nest->3
 ==>3
 fhatos> */sys/router/#/
 >[
-==>/sys/router=>[
-===>config=>[resolve=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/],query=>[write=>[lock=>to_do]],default_config=>[query=>[write=>[sub=>noobj]]]]]
-===>structure=>[/sys/#,/mnt/#,/boot/#,/fos/#,/mmadt/#,/io/#,+/#]
-=>]@/sys/router
+==>/sys/router/::/mount=>mount?obj<=obj{?}(structure=>_)[cpp]
+==>/sys/router/config=>[
+===>namespace=>[
+====>:=>/mmadt/
+====>fos:=>/fos/
+==>]
+===>auto_prefix=>[
+====>
+====>/mmadt/
+====>/mmadt/ext/
+====>/fos/
+====>/fos/sys/
+====>/fos/s/
+====>/fos/io/
+====>/fos/sensor/
+====>/fos/ui/
+====>/fos/util/
+====>/sys/
+==>]
+=>]
+==>/sys/router/frame=>[rec][_]
+==>/sys/router/structure=>[
+===>/sys/#
+===>/mnt/#
+===>/boot/#
+===>/fos/#
+===>/mmadt/#
+===>/io/#
+===>+/#
+===>/fs/#
+=>]
 >]
 ----
 
