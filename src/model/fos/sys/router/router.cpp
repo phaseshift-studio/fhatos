@@ -171,6 +171,8 @@ namespace fhatos {
       }
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
+      if(!structure)
+       return Obj::to_noobj();
       const Objs_p objs = structure->read(resolved_furi);
       /*LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
                                this->vid->toString(), resolved_furi.toString(), // make this the current process
@@ -209,7 +211,8 @@ namespace fhatos {
       // LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
       //                         "obj", retain ? "retained" : "transient",
       //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
-      structure->write(furi, obj, retain);
+      if(structure)
+         structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
@@ -294,7 +297,7 @@ namespace fhatos {
         }
       }
     }
-    if(!found && throw_on_error) { // && !pattern->empty() ??
+    if(!found && throw_on_error && !pattern.empty()) { // && !pattern->empty() ??
       const Lst_p related = Obj::to_lst();
       const fURI sub_pattern = pattern.retract_pattern();
       for(const auto &s: *this->structures_) {

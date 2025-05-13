@@ -59,13 +59,13 @@ namespace fhatos {
 
   void test_comment_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment\n"));
-    //FOS_TEST_OBJ_EQUAL(noobj(),  PROCESS("--- a single line comment"));
+    FOS_TEST_OBJ_EQUAL(noobj(),  PROCESS("--- a single line comment"));
     FOS_TEST_ERROR("---\nsdfOo_asdf");
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("=== sdfdasdf\n\t\nsdfsfasfsf ==="));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1] --- end\n"));
-    // FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n### a comment ---\n--- end\n\n ###\nstr['bcd']"));
-    // FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(### a comment ---\n--- end\n\n ###\nstr['bcd'])"));
+    //FOS_TEST_OBJ_EQUAL(str("bcd"),PROCESS("\n\n--- \n\n--- start \n\n\n=== a comment ---\n--- end\n\n ===\nstr['bcd']"));
+    FOS_TEST_OBJ_EQUAL(str("abcd"),PROCESS("\n\n--- \n\n--- start \n\n\n'a'.plus(=== a comment ---\n--- end\n\n ===\nstr['bcd'])"));
   }
 
   void test_type_parsing() {
@@ -98,11 +98,11 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int[0]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("int   [ 0  ]"));
-    /* FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
+     FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int[-50]"));
      FOS_TEST_OBJ_EQUAL(jnt(-50), PROCESS("int?int<=int    [     -50 ]"));
      FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("int?int<=int[-50]@</abc/x/y/z>"));
      FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@/abc/x/y/z"));
-     FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@</abc/x/y/z>"));*/
+     FOS_TEST_OBJ_EQUAL(jnt(-50,INT_FURI,id_p("/abc/x/y/z")), PROCESS("<int?int<=int>[-50]@</abc/x/y/z>"));
   }
 
   void test_real_parsing() {
@@ -240,7 +240,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(ncount_inst->tid->has_query(FOS_RNG_COEF));
     FOS_TEST_FURI_EQUAL(*OBJS_FURI, *ncount_inst->domain());
     FOS_TEST_FURI_EQUAL(*INT_FURI, *ncount_inst->range());
-    //  TE  const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
+    //   const auto &[rmin,rmax] = this->range_coefficient();ST_ASSERT_EQUAL_STRING(ITypeSignatures.to_chars(IType::MANY_TO_ONE).c_str(),
     //                           ITypeSignatures.to_chars(ncount_inst->itype()).c_str());
     /* FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount()")); // default
      FOS_TEST_OBJ_EQUAL(jnt(10),PROCESS("{1,2,3}./abc/ncount(7)")); // position slotted

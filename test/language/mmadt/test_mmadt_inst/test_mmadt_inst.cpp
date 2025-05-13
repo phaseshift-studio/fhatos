@@ -110,12 +110,12 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(args, PROCESS("[<0>=>10,<1>=>'eleven',<3>=>BAD,<2>=>GOOD]"));
     //////////////////////
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp?int<=int(a=>10)[plus(*a)]"));
-    // FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?int<=int>(a=>10)[plus(*a)]"));
-    // FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int()[plus(10)]"));
-    /*  FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.()[plus(10)]"));
+     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?int<=int>(a=>10)[plus(*a)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.?int<=int()[plus(10)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(15),PROCESS("5.()[plus(10)]"));
       FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<?>[plus(10)]"));
       FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.< >[plus(10)]"));
-      FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<>(a=>10)[plus(*a)]"));*/
+      FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5.<>(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp(a=>10)[plus(*a)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp()[plus(10)]"));
     FOS_TEST_OBJ_EQUAL(jnt(15), PROCESS("5./abc/temp?int<=int(10)[plus(from(<0>))]"));
@@ -197,29 +197,29 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<4"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<.<<.<<.<<"));
     //
-    // FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<>)"));
-    // FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|(<>)"));
-    // FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<.>)"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<>)"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[a/b/c=>1,a/b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|(<>)"));
+    //FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<.>)"));
     // FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|<.>"));
-    /*FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|a"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[b/c=>1,b/d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|a"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<a/b>)"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|<a/b>"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<(|<a/b>)"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|(<a/b>)"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a/b/c=>1,a/b/d=>2].<<|<a/b>"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|a/b/c"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|a/b/d"));*/
+    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a/b/c=>1,a/b/d=>2]<<|a/b/d"));
     ////
     /*FOS_TEST_OBJ_EQUAL(PROCESS("[a=>[b=>[c=>1,d=>2]]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<0"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[b=>[c=>1,d=>2]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<1"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<2"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<3"));
+    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<3"));*/
     //
-    FOS_TEST_OBJ_EQUAL(PROCESS("[a=>[b=>[c=>1,d=>2]]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<(<.>)"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[b=>[c=>1,d=>2]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a/b"));
+    //FOS_TEST_OBJ_EQUAL(PROCESS("[a=>[b=>[c=>1,d=>2]]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<(<.>)"));
+    //FOS_TEST_OBJ_EQUAL(PROCESS("[b=>[c=>1,d=>2]]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a"));
+    //FOS_TEST_OBJ_EQUAL(PROCESS("[c=>1,d=>2]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a/b"));
     FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a/b/c"));
-    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a/b/d"));*/
+    FOS_TEST_OBJ_EQUAL(PROCESS("[=>]"), PROCESS("[a=>[b=>[c=>1,d=>2]]]<<a/b/d"));
   }
 
   void test_rshift_inst() {}

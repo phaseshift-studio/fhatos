@@ -345,7 +345,7 @@ namespace mmadt {
           }
           case 1: { // a(c)[b]@xyz
             bool has_type_id = false;
-            ID_p type_id = INST_FURI;
+            ID_p type_id = id_p("");
             try { // TODO: figure out how to 'tag' semantic values
               if(vs.size() > 2) {
                 type_id = id_p(*std::any_cast<fURI_p>(vs[0]));
@@ -467,7 +467,7 @@ namespace mmadt {
       WS <= zom(cls(" \t\n"));
       ////////////////////// COMMENTS ///////////////////////////
       COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT), [](const SemanticValues &) { return str("comment"); };
-      SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(ncls("\n"), dot())), ~WS);
+      SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(npd(lit("\n")), dot())), lit("\n"), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
       FURI <= WRAP("<", tok(seq(npd(chr('-')),
