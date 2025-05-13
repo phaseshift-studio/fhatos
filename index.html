@@ -421,6 +421,7 @@ video {
     font-family: Arial;
 }
 
+.hljs-fos-docs-if-else-then-case-do,
 .hljs-mmadt-comment {
     color: #797979;
 }
@@ -780,7 +781,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11313152,free=&gt;11311744,used=&gt;0.01245]
+[INFO]  main [total=&gt;11313152,free=&gt;11311776,used=&gt;0.01217]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -829,7 +830,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/router/] router configured
             [id=&gt;/sys/router,config=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -838,12 +839,12 @@ The purpose of this documentation is to explain the mechanics of the boot proces
             [id=&gt;/sys/scheduler,config=&gt;[def_stack_size=&gt;32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716768,used=&gt;0.01611]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
@@ -857,7 +858,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164320,used=&gt;0.00236]</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164352,used=&gt;0.00232]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3224,6 +3225,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),      --- <1> /
   _         => mult(100)]     --- <2>
+=== w/ merge ===
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),              /
   _         => mult(100)]>-   --- <3>
@@ -3245,6 +3247,7 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 ==&gt;is(gt(2))=&gt;-3
 ==&gt;_=&gt;noobj
 &gt;]
+fhatos&gt; === w/ merge ===
 fhatos&gt; {1,2,3}-|[
           is(gt(2)) =&gt; mult(-1),
           _         =&gt; mult(100)]&gt;-   <i class="conum" data-value="3"></i><b>(3)</b>
@@ -3296,22 +3299,31 @@ fhatos&gt; {1,2,3}-|[
 </div>
 </div>
 <div id="_tabs_9_switch--panel" class="tabpanel" aria-labelledby="_tabs_9_switch">
-<!-- 🐖 ./main_runner.out
-{1,2,3}-<[                   /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]
-{1,2,3}-<[                  /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]>-
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. switch <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements"><i class="fa fa-link"></i></a></span></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
+{1,2,3}-<[                --- <1> /
+  is(gt(0)) => mult(-1),          /
+  is(gt(1)) => mult(0),           /
+  is(gt(2)) => _]         --- <2>
+=== w/ merge ===
+{1,2,3}-<[                        /
+  is(gt(0)) => mult(-1),          /
+  is(gt(1)) => mult(0),           /
+  is(gt(2)) => _]>-       --- <3>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-&lt;[
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; {1,2,3}-&lt;[                <i class="conum" data-value="1"></i><b>(1)</b>
           is(gt(0)) =&gt; mult(-1),
           is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]
+          is(gt(2)) =&gt; _]         <i class="conum" data-value="2"></i><b>(2)</b>
 &gt;[
 ==&gt;is(gt(0))=&gt;-1
 ==&gt;is(gt(1))=&gt;noobj
@@ -3327,10 +3339,11 @@ fhatos&gt; {1,2,3}-|[
 ==&gt;is(gt(1))=&gt;0
 ==&gt;is(gt(2))=&gt;3
 &gt;]
+fhatos&gt; === w/ merge ===
 fhatos&gt; {1,2,3}-&lt;[
           is(gt(0)) =&gt; mult(-1),
           is(gt(1)) =&gt; mult(0),
-          is(gt(2)) =&gt; _]&gt;-
+          is(gt(2)) =&gt; _]&gt;-       <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;-1
 ==&gt;-2
 ==&gt;0
@@ -3339,10 +3352,60 @@ fhatos&gt; {1,2,3}-&lt;[
 ==&gt;3</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1  &amp; \Rightarrow &amp; \tt{then_1} \\
+\tt{if}_2  &amp; \Rightarrow &amp; \tt{then_2} \\
+\tt{if}_3  &amp; \Rightarrow &amp; \tt{then_3} \\
+\ldots     &amp; \Rightarrow &amp; \ldots \\
+\tt{if}_n  &amp; \Rightarrow &amp; \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}\]
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>-&lt;</code> (split) instruction propagates each input into each  <em>if</em> branch.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If the input matches the key, then it is applied to the value yielding a new value-applied <code>rec</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>&gt;-</code> (merge) instruction serializes the values of the resultant <code>rec</code>.</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">         ┌──(case) is(gt(0)) ─{1,2,3}──(do) mult(-1) ──{-1,-2,-3}──┐
+         │                                                         │
+{1,2,3}──├──(case) is(gt(1)) ──{2,3}───(do) mult(0) ─────{0,0}─────├&gt;─{-1,-2,0,-3,0,3S}
+         │                                                         │
+         └──(case) is(gt(3)) ───{3}────(do) _ ────────────{3}──────┘</code></pre>
+</div>
+</div>
 </div>
 <div id="_tabs_9_guard--panel" class="tabpanel" aria-labelledby="_tabs_9_guard">
-<!-- 🐖 ./main_runner.out
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 3. guard <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals"><i class="fa fa-link"></i></a></span></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
 {1,2,3}.[
 -->
 <div class="listingblock">
@@ -3353,7 +3416,40 @@ fhatos&gt; {1,2,3}-&lt;[
 ==&gt;3</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1  &amp; \Rightarrow &amp; \tt{then_1} \\
+\tt{if}_2  &amp; \Rightarrow &amp; \tt{then_2} \\
+\tt{if}_3  &amp; \Rightarrow &amp; \tt{then_3} \\
+\ldots     &amp; \Rightarrow &amp; \ldots \\
+\tt{if}_n  &amp; \Rightarrow &amp; \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}\]
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>-&lt;</code> (split) instruction propagates each input into each  <em>if</em> branch.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If the input matches the key, then it is applied to the value yielding a new value-applied <code>rec</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>&gt;-</code> (merge) instruction serializes the values of the resultant <code>rec</code>.</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="_tabs_9_pattern--panel" class="tabpanel" aria-labelledby="_tabs_9_pattern">
 <!-- 🐖 ./main_runner.out
@@ -4281,7 +4377,7 @@ This is possible because a structure resolves up the fURI path hierarchy until i
 Once found, it then traverses within the match to resolve the remaining path segments.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
-<caption class="title">Table 2. Amortized Costs in Terms of Time</caption>
+<caption class="title">Table 4. Amortized Costs in Terms of Time</caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -4321,7 +4417,7 @@ Once found, it then traverses within the match to resolve the remaining path seg
 <p>The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to satisfy the resolution of the respective fURI.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
-<caption class="title">Table 3. Amortized Costs in Terms of Space</caption>
+<caption class="title">Table 5. Amortized Costs in Terms of Space</caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -4739,7 +4835,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-13 13:39:04 -0600
+Last updated 2025-05-13 14:59:11 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

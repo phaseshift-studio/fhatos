@@ -408,6 +408,7 @@ video {
     font-family: Arial;
 }
 
+.hljs-fos-docs-if-else-then-case-do,
 .hljs-mmadt-comment {
     color: #797979;
 }
