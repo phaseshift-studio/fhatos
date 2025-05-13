@@ -134,7 +134,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
      setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/router/] router configured
             [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -143,17 +143,17 @@ $ fhatos --boot:config=../conf/boot-loader.obj
             [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716736,used=>0.01639]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392384,used=>0.01704]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392448,used=>0.01652]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -162,7 +162,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164224,used=>0.00247]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164288,used=>0.00240]
 
 ----
 
@@ -839,8 +839,8 @@ A https://en.wikipedia.org/wiki/Character_(computing)[char] is a `str` containin
 ++++
 <!-- 🐖 ./main_runner.out
 *char
-=== char['a']@a ===
-=== char['b']@b ===
+--- char['a']@a
+--- char['b']@b
 @a + @b
 *a
 @a.as(str) + @b
@@ -850,10 +850,10 @@ A https://en.wikipedia.org/wiki/Character_(computing)[char] is a `str` containin
 [source,mmadt]
 ----
 fhatos> *char
-==>char?int<=str()
+==>char?str<=str()
 	[merge(2).count().is(eq(1))]
-fhatos> === char['a']@a ===
-fhatos> === char['b']@b ===
+fhatos> --- char['a']@a
+fhatos> --- char['b']@b
 fhatos> @a + @b
 [ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
 	         lhs id      inst id        resolve obj        
@@ -1460,12 +1460,12 @@ pubsub ?sub::
 |===
 a|
 ++++
-<!-- 🐖 ./main_runner.out "a?sub -> \|to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
+<!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> a?sub -> \|to(b)
+fhatos> a?sub -> |to(b)
 ==>to?noobj<=obj(b)[noobj]
 fhatos> *a?sub
 >sub[
@@ -1663,7 +1663,7 @@ a -> int8[126]                       --- <2>
 [source,mmadt]
 ----
 fhatos> /sys/router/config/resolve/auto_prefix ->
-          *(_) + \|[/mmadt/ext/]             // <1>
+          *(_) + |[/mmadt/ext/]             // <1>
 [ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
 	         lhs id      inst id        resolve obj        
 	  ->[/mmadt/obj] /mmadt/plus => plus(_)
@@ -2253,6 +2253,10 @@ if-else::
 --
 
 .if-else icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else),2x,role=blue]
+[cols="5,5",separator=🧱]
+|===
+
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 {1,2,3}-|[                            /
@@ -2260,7 +2264,7 @@ if-else::
   _         => mult(100)]     --- <2>
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),              /
-  _         => mult(100)]>-
+  _         => mult(100)]>-   --- <3>
 -->
 ++++
 
@@ -2283,7 +2287,7 @@ fhatos> {1,2,3}-|[
 >]
 fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),             
-          _         => mult(100)]>-
+          _         => mult(100)]>-   // <3>
 ==>100
 ==>200
 ==>-3
@@ -2293,8 +2297,36 @@ fhatos> {1,2,3}-|[
 <!-- 🐓 -->
 ++++
 
-<1> The _if_ branch.
-<2> The _else_ branch.
+a🧱
+
+[stem]
+++++
+\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1        & \Rightarrow & \tt{then_1} \\
+\tt{else\;if}_2  & \Rightarrow & \tt{then_2} \\
+\tt{else\;if}_3  & \Rightarrow & \tt{then_3} \\
+\ldots           & \Rightarrow & \ldots \\
+\tt{else\;if}_n  & \Rightarrow & \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}
+++++
+
+<1> The `-|` (choose) instruction propagates each input into either the _if_ branch,
+<2> ...or the _else_ branch. The result being a new `rec` applying the input.
+<3> The `>-` (merge) instruction serializes the values of the resultant `rec`.
+
+|===
+
+[.center]
+[source,mmadt]
+----
+         ┌──(if) is(gt(2)) ───{3}─────(then) mult(-1) ─────{-3}────┐
+{1,2,3}──┤                                                         ├>─{100,200,-3}
+         └──(else if) _ ─────{1,2}────(then) mult(100) ──{100,200}─┘
+----
+
 
 --
 switch::
@@ -2461,7 +2493,7 @@ a -> age[45]
 
 [source,mmadt]
 ----
-fhatos> age -> \|(is(gt(0)).is(lt(120)))
+fhatos> age -> |(is(gt(0)).is(lt(120)))
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
 fhatos> a -> age[45]
 [ERROR] [/mmadt/parser] 45 is not a age as defined by is(gt(0)).is(lt(120)) 

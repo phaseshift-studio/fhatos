@@ -324,10 +324,13 @@ video {
 }
 
 .hljs-mmadt-bool,
-.hljs-mmadt-real,
-.hljs-mmadt-int,
 .hljs-fhatos-sys-furi {
     color: #d4de68;
+}
+
+.hljs-mmadt-real,
+.hljs-mmadt-int {
+    color: lightyellow;
 }
 
 .h {
@@ -340,6 +343,7 @@ video {
     font-style: italic;
 }
 
+.hljs-mmadt-rec,
 .hljs-mmadt-furi-query {
     color: #d4de68;
     font-weight: bold;
@@ -350,15 +354,19 @@ video {
 }
 
 #header .details,
-.hljs-mmadt-rec,
 .hljs-mmadt-form,
 .hljs-fhatos-prompt-begin {
-    color: #b066cd;
+    color: var(--linkcolor);
+    font-weight: bold;
 }
 
-.hljs-fhatos-prompt-end,
-.hljs-fhatos-result-prefix {
+.hljs-fhatos-prompt-end {
     color: green;
+}
+
+.hljs-fhatos-result-prefix {
+    color: var(--linkcolor);
+    font-weight: bold;
 }
 
 .hljs-mmadt-pipe,

@@ -182,7 +182,7 @@ class ProcessingState:
             return None
         if (not in_table):
             # escape table separator character
-            c = c.replace("\\|", "|").replace("|", "\\|")
+            c = c.replace("\\|", "|") # .replace("|", "\\|")
         # remove code=> frame reference as it's an artifact of the console.eval() remote code evaluation
         c = re.sub('code=>\'.*?\',', "", c)
         # fix source code callouts
@@ -209,7 +209,7 @@ class ProcessingState:
                     new_output.append(o)
         ###################################################################
         if not self.in_table:
-            new_line = line.replace("\\|", "|").replace("|", "\\|")  # .replace("&<<","{").replace("&>>","}")
+            new_line = line.replace("\\|", "|") # .replace("|", "\\|")  # .replace("&<<","{").replace("&>>","}")
             if new_line:
                 self.new_lines.append(new_line)
         else:
