@@ -337,10 +337,13 @@ video {
 }
 
 .hljs-mmadt-bool,
-.hljs-mmadt-real,
-.hljs-mmadt-int,
 .hljs-fhatos-sys-furi {
     color: #d4de68;
+}
+
+.hljs-mmadt-real,
+.hljs-mmadt-int {
+    color: lightyellow;
 }
 
 .h {
@@ -353,6 +356,7 @@ video {
     font-style: italic;
 }
 
+.hljs-mmadt-rec,
 .hljs-mmadt-furi-query {
     color: #d4de68;
     font-weight: bold;
@@ -363,15 +367,19 @@ video {
 }
 
 #header .details,
-.hljs-mmadt-rec,
 .hljs-mmadt-form,
 .hljs-fhatos-prompt-begin {
-    color: #b066cd;
+    color: var(--linkcolor);
+    font-weight: bold;
 }
 
-.hljs-fhatos-prompt-end,
-.hljs-fhatos-result-prefix {
+.hljs-fhatos-prompt-end {
     color: green;
+}
+
+.hljs-fhatos-result-prefix {
+    color: var(--linkcolor);
+    font-weight: bold;
 }
 
 .hljs-mmadt-pipe,
@@ -821,7 +829,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/router/] router configured
             [id=&gt;/sys/router,config=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -830,17 +838,17 @@ The purpose of this documentation is to explain the mechanics of the boot proces
             [id=&gt;/sys/scheduler,config=&gt;[def_stack_size=&gt;32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716736,used=&gt;0.01639]
+[INFO]  [/sys/mem] main [total=&gt;11718656,free=&gt;11716800,used=&gt;0.01584]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392384,used=&gt;0.01704]
+[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392448,used=&gt;0.01652]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -849,7 +857,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164224,used=&gt;0.00247]</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164288,used=&gt;0.00240]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1559,8 +1567,8 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 </div>
 <!-- 🐖 ./main_runner.out
 *char
-=== char['a']@a ===
-=== char['b']@b ===
+--- char['a']@a
+--- char['b']@b
 @a + @b
 *a
 @a.as(str) + @b
@@ -1568,10 +1576,10 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *char
-==&gt;char?int&lt;=str()
+==&gt;char?str&lt;=str()
 	[merge(2).count().is(eq(1))]
-fhatos&gt; === char['a']@a ===
-fhatos&gt; === char['b']@b ===
+fhatos&gt; --- char['a']@a
+fhatos&gt; --- char['b']@b
 fhatos&gt; @a + @b
 [ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
 	         lhs id      inst id        resolve obj
@@ -2198,27 +2206,32 @@ fhatos&gt; *a
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
-==&gt;to?noobj&lt;=obj(b)[noobj]
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out "a?sub -></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">to(b)" "*a?sub" "*b" "a&#8594;12" "*a" "*b" -&#8594;</p>
+<p class="tableblock">[source,mmadt]
+----
+fhatos&gt; a?sub &#8594;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">to(b)
+=&#8658;to?noobj&#8656;obj(b)[noobj]
 fhatos&gt; *a?sub
 &gt;sub[
-==&gt;source=&gt;/sys/scheduler
-==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;to(b)
+=&#8658;source&#8658;/sys/scheduler
+=&#8658;pattern&#8658;a
+=&#8658;on_recv&#8658;to(b)
 &gt;]
 fhatos&gt; *b
-fhatos&gt; a-&gt;12
-==&gt;12
+fhatos&gt; a&#8594;12
+=&#8658;12
 fhatos&gt; *a
-==&gt;12
+=&#8658;12
 fhatos&gt; *b
-==&gt;12</code></pre>
-</div>
-</div>
-<!-- 🐓 --></div></td>
+=&#8658;12
+----</p>
+<p class="tableblock">+
+<!-- 🐓 -->
++</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">   [■]                          [■]
@@ -2396,38 +2409,8 @@ a -> int8[126]                       --- <2>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
-          *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
-fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
-==&gt;int8[126]
-fhatos&gt; @a + 1
-==&gt;int8[127]@a
-fhatos&gt; @a + 1
-==&gt;int8[128]@a
-fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
-		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
-	  thrown at inst int8[128]@a =&gt; plus(0?int=&gt;1)[cpp] [0=&gt;1]</code></pre>
+          *(_) +</code></pre>
 </div>
-</div>
-<!-- 🐓 -->
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Including <code>/mmadt/ext</code> <code>objs</code> in the router&#8217;s automatic URI resolution.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Constructing an <code>int</code> constrained to values from <code>-127</code> to <code>128</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Triggering <code>int8</code> type error by overflowing its numeric range.</td>
-</tr>
-</table>
 </div></div></td>
 </tr>
 </tbody>
@@ -3229,13 +3212,21 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 </ul>
 </div>
 <div id="_tabs_9_if_else--panel" class="tabpanel" aria-labelledby="_tabs_9_if_else">
-<!-- 🐖 ./main_runner.out
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. if-else <span class="icon blue"><a class="image" href="https://en.wikipedia.org/wiki/Conditional_(computer_programming)#If%E2%80%93then(%E2%80%93else)"><i class="fa fa-link"></i></a></span></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><!-- 🐖 ./main_runner.out
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),      --- <1> /
   _         => mult(100)]     --- <2>
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),              /
-  _         => mult(100)]>-
+  _         => mult(100)]>-   --- <3>
 -->
 <div class="listingblock">
 <div class="content">
@@ -3256,24 +3247,52 @@ In this way, <code>rec</code> is both a data structure and a flow control struct
 &gt;]
 fhatos&gt; {1,2,3}-|[
           is(gt(2)) =&gt; mult(-1),
-          _         =&gt; mult(100)]&gt;-
+          _         =&gt; mult(100)]&gt;-   <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;100
 ==&gt;200
 ==&gt;-3</code></pre>
 </div>
 </div>
-<!-- 🐓 -->
+<!-- 🐓 --></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="stemblock">
+<div class="content">
+\[\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1        &amp; \Rightarrow &amp; \tt{then_1} \\
+\tt{else\;if}_2  &amp; \Rightarrow &amp; \tt{then_2} \\
+\tt{else\;if}_3  &amp; \Rightarrow &amp; \tt{then_3} \\
+\ldots           &amp; \Rightarrow &amp; \ldots \\
+\tt{else\;if}_n  &amp; \Rightarrow &amp; \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}\]
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <em>if</em> branch.</td>
+<td>The <code>-|</code> (choose) instruction propagates each input into either the <em>if</em> branch,</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <em>else</em> branch.</td>
+<td>&#8230;&#8203;or the <em>else</em> branch. The result being a new <code>rec</code> applying the input.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>&gt;-</code> (merge) instruction serializes the values of the resultant <code>rec</code>.</td>
 </tr>
 </table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock center">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">         ┌──(if) is(gt(2)) ───{3}─────(then) mult(-1) ─────{-3}────┐
+{1,2,3}──┤                                                         ├&gt;─{100,200,-3}
+         └──(else if) _ ─────{1,2}────(then) mult(100) ──{100,200}─┘</code></pre>
+</div>
 </div>
 </div>
 <div id="_tabs_9_switch--panel" class="tabpanel" aria-labelledby="_tabs_9_switch">
@@ -3419,24 +3438,9 @@ a -> age[45]
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; age -&gt; |(is(gt(0)).is(lt(120)))
-==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj].is?noobj&lt;=obj(lt?noobj&lt;=obj(120)[noobj])[noobj]
-fhatos&gt; a -&gt; age[45]
-[ERROR] [/mmadt/parser] 45 is not a age as defined by is(gt(0)).is(lt(120))
-		 \_[ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id      resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
-fhatos&gt; *a.inspect()
-[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&amp;dc=1,1&amp;rng=/mmadt/rec&amp;rc=1,1 inst unresolved
-	         lhs id      inst id           resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/inspect =&gt; inspect(_)
-fhatos&gt; @a.inspect()
-[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&amp;dc=1,1&amp;rng=/mmadt/rec&amp;rc=1,1 inst unresolved
-	         lhs id      inst id           resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/inspect =&gt; inspect(_)</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; age -&gt;</code></pre>
 </div>
-</div>
-<!-- 🐓 --></div></td>
+</div></div></td>
 </tr>
 </tbody>
 </table>
@@ -4277,7 +4281,7 @@ This is possible because a structure resolves up the fURI path hierarchy until i
 Once found, it then traverses within the match to resolve the remaining path segments.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
-<caption class="title">Table 1. Amortized Costs in Terms of Time</caption>
+<caption class="title">Table 2. Amortized Costs in Terms of Time</caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -4317,7 +4321,7 @@ Once found, it then traverses within the match to resolve the remaining path seg
 <p>The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to satisfy the resolution of the respective fURI.</p>
 </div>
 <table class="tableblock frame-all grid-all small][ center" style="width: 50%;">
-<caption class="title">Table 2. Amortized Costs in Terms of Space</caption>
+<caption class="title">Table 3. Amortized Costs in Terms of Space</caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -4735,7 +4739,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-12 21:37:15 -0600
+Last updated 2025-05-13 02:54:49 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
