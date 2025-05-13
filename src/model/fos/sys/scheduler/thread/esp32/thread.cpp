@@ -59,7 +59,7 @@ namespace fhatos {
   Thread::Thread(const Obj_p &thread_obj, const Consumer<std::pair<Thread *, Obj_p>> &thread_function) :
       thread_obj_(thread_obj), thread_function_(thread_function), handler_(std::make_any<TaskHandle_t *>(nullptr)) {
     int stack_size = Memory::get_stack_size(thread_obj, "config/stack_size",
-                                            ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
+                                            ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(64768));
     if(0 == stack_size)
       throw fError("thread stack size must be greater than 0");
     LOG_WRITE(INFO, thread_obj.get(),

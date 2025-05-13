@@ -33,14 +33,12 @@ namespace fhatos {
   }
 
   FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(FS_TID), value_id, config),
-      root(fURI("data").extend(config->rec_get("root")->uri_value())) {
-    string root_path_str = this->root.toString();
-    const auto root_path =
-        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "./")));
+      Structure(pattern, id_p(FS_TID), value_id, config), root(config->rec_get("root")->uri_value()) {
+    this->root = fURI("data").extend(config->rec_get("root")->or_else(vri("."))->uri_value());
+    const auto root_path = fs::path(root.toString());
     if(!fs::exists(root_path))
       fs::create_directories(root_path);
-    //this->rec_value()->insert_or_assign(vri("config/root"), vri(root_path));
+    config->rec_value()->insert_or_assign(vri("root"), vri(fs::canonical(root_path).c_str()));
   }
 
   void FS::setup() {
@@ -49,13 +47,6 @@ namespace fhatos {
   }
 
   ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
-    const Obj_p root = config->rec_get("root")->or_else(vri("."));
-    string root_path_str = root->uri_value().toString();
-    const auto root_path =
-        fs::canonical(fs::path(root_path_str[0] == '.' ? root_path_str : root_path_str.insert(0, "./")));
-    if(!fs::exists(root_path))
-      fs::create_directories(root_path);
-    config->rec_value()->insert_or_assign(vri("root"), vri(root_path));
     return Structure::create<FS>(pattern, value_id, config);
   }
 
@@ -74,8 +65,8 @@ namespace fhatos {
         const Obj_p boot_obj = proto->parse(content.c_str());
         if(!boot_obj->is_noobj()) {
           LOG_WRITE(INFO, Router::singleton().get(),
-                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", boot_obj->vid_or_tid()->toString(),
-                      boot_obj->toString(NO_ANSI_PRINTER).size()));
+                    L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n",
+                      boot_obj->vid_or_tid()->toString(), boot_obj->toString(NO_ANSI_PRINTER).size()));
         }
         return boot_obj;
       }

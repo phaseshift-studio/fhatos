@@ -171,10 +171,9 @@ namespace fhatos {
     static ptr<Kernel> using_router(const ID &router_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(router_config_id);
       if(config->is_noobj())
-        throw fError("!yrouter config!! !rnot found!!");
+        throw fError("!yrouter configuration!! !rnot found!!");
       const ptr<Router> router = Router::singleton(config->rec_get("id")->uri_value());
-      router->obj_set("config", config->rec_get("config"));
-      Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
+      router->rec_set("config", config->rec_get("config"));
       Router::singleton()->import();
       LOG_WRITE(INFO, Router::singleton().get(),
                 L("!yrouter configured!!\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
@@ -259,17 +258,18 @@ namespace fhatos {
           boot_config_obj_copy_len = boot_config_obj_len;
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-          config_obj = Memory::singleton()->use_custom_stack(
-              InstBuilder::build("boot_loader_stack")
-                  ->inst_f([](const Obj_p &, const InstArgs &) {
-                    string temp = string((char *) boot_config_obj_copy);
-                    StringHelper::trim(temp);
-                    const Obj_p ret = mmadt::Parser::singleton()->parse(temp.c_str());
-                    return ret;
-                    //  return Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
-                  })
-                  ->create(),
-              Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
+          config_obj = Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
+                                                                 ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                                   string temp = string((char *) boot_config_obj_copy);
+                                                                   StringHelper::trim(temp);
+                                                                   const Obj_p ret =
+                                                                       mmadt::Parser::singleton()->parse(temp.c_str());
+                                                                   return ret;
+                                                                   //  return
+                                                                   //  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
+                                                                 })
+                                                                 ->create(),
+                                                             Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
           Router::singleton()->write(FOS_BOOT_CONFIG_VALUE_ID, config_obj, true);
           LOG_WRITE(INFO, Router::singleton().get(),
                     L("!b{} !yboot config header!! loaded !g[!msize!!: {} bytes!g]!!\n", FOS_BOOT_CONFIG_HEADER_URI,

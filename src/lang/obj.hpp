@@ -364,8 +364,8 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  static auto MODEL_MAP = make_unique<Map<ID, ptr<void>>>();
-  static auto MODEL_CREATOR2 = make_unique<Map<ID, Function<Obj_p, ptr<void>>>>();
+  inline auto MODEL_MAP = make_unique<Map<ID, ptr<void>>>();
+  inline auto MODEL_CREATOR2 = make_unique<Map<ID, Function<Obj_p, ptr<void>>>>();
   class Obj : public Typed,
               public Valued,
               public Function<Obj_p, Obj_p>,

@@ -72,40 +72,29 @@ namespace fhatos {
               try {
                 // const ptr<Thread> current = Thread::get_state(thread_obj);
                 thread_obj->obj_set("halt", dool(false));
-                const int stack_size =
-                    Memory::get_stack_size(thread_obj, "config/stack_size",
-                                           ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_(0));
-                thread_obj->obj_set("config/stack_size", jnt(stack_size));
-                Memory::singleton()->use_custom_stack(
-                    InstBuilder::build("boot_loader_stack")
-                        ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
-                          const Obj_p thread_loop_obj =
-                              thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
-                                  ? thread_obj->obj_get("loop")
-                                  : Compiler(false, false)
-                                        .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
-                                                                               id_p(thread_obj->vid->extend("loop"))));
-                          const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
-                          LOG_WRITE(INFO, thread_obj.get(),
-                                    L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                                      thread_loop_inst->toString(),
-                                      thread_obj->obj_get("config/stack_size")->toString()));
-                          while(!thread_obj->obj_get("halt")->or_else_(false)) {
-                            FEED_WATCHDOG();
-                            try {
-                              thread_loop_inst->apply(thread_obj);
-                              if(const int delay = thread_obj->obj_get("delay")->or_else_<int>(0); delay > 0) {
-                                Thread::delay(delay);
-                                thread_obj->obj_set("delay", jnt(0, NAT_FURI));
-                              }
-                            } catch(const fError &e) {
-                              LOG_WRITE(ERROR, thread_obj.get(), L("!rthread loop error!!: {}\n", e.what()));
-                            }
-                          }
-                          return Obj::to_noobj();
-                        })
-                        ->create(),
-                    thread_obj, stack_size);
+                const Obj_p thread_loop_obj =
+                    thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
+                        ? thread_obj->obj_get("loop")
+                        : Compiler(false, false)
+                              .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                     id_p(thread_obj->vid->extend("loop"))));
+                const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
+                LOG_WRITE(INFO, thread_obj.get(),
+                          L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                            thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
+                while(!thread_obj->obj_get("halt")->or_else_<bool>(false)) {
+                  FEED_WATCHDOG();
+                  try {
+                    thread_loop_inst->apply(thread_obj);
+                    if(const int delay = thread_obj->obj_get("delay")->or_else_<int>(0); delay > 0) {
+                      Thread::delay(delay);
+                      thread_obj->obj_set("delay", jnt(0, NAT_FURI));
+                    }
+                  } catch(const fError &e) {
+                    LOG_WRITE(ERROR, thread_obj.get(), L("!rthread loop error!!: {}\n", e.what()));
+                  }
+                }
+                return Obj::to_noobj();
               } catch(const fError &e) {
                 LOG_WRITE(ERROR, thread_obj.get(), L("!rthread construction error!!: {}\n", e.what()));
               }

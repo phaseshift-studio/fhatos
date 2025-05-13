@@ -143,12 +143,12 @@ namespace fhatos {
                                         }
                                         try {
                                           /// WRITE TO PROMPT
-                                          if(console_obj->has("config/terminal/stdout")) {
+                                          if(!console_obj->rec_get("config/terminal/stdout")->is_noobj()) {
                                             if(console_state->new_input_)
                                               console_state->print_prompt(!console_state->line_.empty());
                                             console_state->new_input_ = false;
                                           }
-                                          if(console_obj->has("config/terminal/stdin")) {
+                                          if(!console_obj->rec_get("config/terminal/stdin")->is_noobj()) {
                                             //// READ FROM PROMPT
                                             if(const string x = console_state->read_stdin('\n')->str_value();
                                                x.find(":clear") == 0) {
@@ -200,13 +200,12 @@ namespace fhatos {
                {"config", __().else_(Obj::to_rec(
                               {{"nest", jnt(2)},
                                {"prompt", str("!mfhatos!g>!! ")},
-                               {"stack_size", jnt(24288)},
                                {"stack_trace", dool(true)},
                                {"strict", dool(false)},
                                {"log", vri(LOG_TYPES.to_chars(INFO))},
                                {"ellipsis", jnt(50)},
-                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal::stdout")},
-                                                         {"stdin", Obj::to_uri("/io/terminal::stdin")}})}}))}}));
+                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/::/stdout")},
+                                                         {"stdin", Obj::to_uri("/io/terminal/::/stdin")}})}}))}}));
       InstBuilder::build(CONSOLE_FURI->add_component("clear"))
           ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
           ->inst_f([](const Obj_p &console_obj, const InstArgs &) {

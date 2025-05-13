@@ -2,7 +2,7 @@
 basic boot_config obj
 ===
 [sys=>[scheduler=>[id=>/sys/scheduler,
-                   config=>[def_stack_size=>16192]],
+                   config=>[def_stack_size=>32384]],
        router=>[id=>/sys/router,
                 config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
                          auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
@@ -10,11 +10,10 @@ basic boot_config obj
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
-    log[[=>]]@/io/log;
+    heap[[pattern=><+/#>]]@/mnt/var;
+    /sys/router::mount(@/mnt/var);
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
-    button[[pin=>gpio[5], on_push=>^(print('button pushed'))]]@/io/z;
     /sys/scheduler::spawn(@/io/console);
-    /sys/scheduler::bundle(@/io/z);
  ]
 ]@/boot/config
