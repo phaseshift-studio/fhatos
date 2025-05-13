@@ -772,7 +772,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11313152,free=&gt;11311680,used=&gt;0.01301]
+[INFO]  main [total=&gt;11313152,free=&gt;11311744,used=&gt;0.01245]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -840,7 +840,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392384,used=&gt;0.01704]
+[INFO]  [/sys/mem] main [total=&gt;12394496,free=&gt;12392416,used=&gt;0.01678]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -849,7 +849,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164192,used=&gt;0.00250]</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88166400,free=&gt;88164256,used=&gt;0.00243]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4697,7 +4697,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-12 19:39:28 -0600
+Last updated 2025-05-12 19:57:05 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

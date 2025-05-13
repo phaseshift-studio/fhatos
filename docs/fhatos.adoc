@@ -85,7 +85,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=>11313152,free=>11311680,used=>0.01301]
+[INFO]  main [total=>11313152,free=>11311744,used=>0.01245]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -153,7 +153,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392384,used=>0.01704]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392416,used=>0.01678]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -162,7 +162,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164192,used=>0.00250]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164256,used=>0.00243]
 
 ----
 
