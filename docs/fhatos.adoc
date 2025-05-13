@@ -85,7 +85,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=>11313152,free=>11311744,used=>0.01245]
+[INFO]  main [total=>11313152,free=>11311776,used=>0.01217]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -134,7 +134,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
      setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/router/] router configured
             [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -143,12 +143,12 @@ $ fhatos --boot:config=../conf/boot-loader.obj
             [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
@@ -162,7 +162,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164320,used=>0.00236]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164352,used=>0.00232]
 
 ----
 
@@ -2262,6 +2262,7 @@ a🧱
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),      --- <1> /
   _         => mult(100)]     --- <2>
+=== w/ merge ===
 {1,2,3}-|[                            /
   is(gt(2)) => mult(-1),              /
   _         => mult(100)]>-   --- <3>
@@ -2285,6 +2286,7 @@ fhatos> {1,2,3}-|[
 ==>is(gt(2))=>-3
 ==>_=>noobj
 >]
+fhatos> === w/ merge ===
 fhatos> {1,2,3}-|[                           
           is(gt(2)) => mult(-1),             
           _         => mult(100)]>-   // <3>
@@ -2334,25 +2336,30 @@ switch::
 --
 
 .switch icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Case_and_switch_statements,2x,role=blue]
+[cols="5,5",separator=🧱]
+|===
+a🧱
+
 ++++
 <!-- 🐖 ./main_runner.out
-{1,2,3}-<[                   /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]
-{1,2,3}-<[                  /
-  is(gt(0)) => mult(-1),    /
-  is(gt(1)) => mult(0),     /
-  is(gt(2)) => _]>-
+{1,2,3}-<[                --- <1> /
+  is(gt(0)) => mult(-1),          /
+  is(gt(1)) => mult(0),           /
+  is(gt(2)) => _]         --- <2>
+=== w/ merge ===
+{1,2,3}-<[                        /
+  is(gt(0)) => mult(-1),          /
+  is(gt(1)) => mult(0),           /
+  is(gt(2)) => _]>-       --- <3>
 -->
 ++++
 
 [source,mmadt]
 ----
-fhatos> {1,2,3}-<[                  
-          is(gt(0)) => mult(-1),   
-          is(gt(1)) => mult(0),    
-          is(gt(2)) => _]
+fhatos> {1,2,3}-<[                // <1>
+          is(gt(0)) => mult(-1),         
+          is(gt(1)) => mult(0),          
+          is(gt(2)) => _]         // <2>
 >[
 ==>is(gt(0))=>-1
 ==>is(gt(1))=>noobj
@@ -2368,10 +2375,11 @@ fhatos> {1,2,3}-<[
 ==>is(gt(1))=>0
 ==>is(gt(2))=>3
 >]
-fhatos> {1,2,3}-<[                 
-          is(gt(0)) => mult(-1),   
-          is(gt(1)) => mult(0),    
-          is(gt(2)) => _]>-
+fhatos> === w/ merge ===
+fhatos> {1,2,3}-<[                       
+          is(gt(0)) => mult(-1),         
+          is(gt(1)) => mult(0),          
+          is(gt(2)) => _]>-       // <3>
 ==>-1
 ==>-2
 ==>0
@@ -2383,12 +2391,48 @@ fhatos> {1,2,3}-<[
 ++++
 <!-- 🐓 -->
 ++++
+
+a🧱
+[stem]
+++++
+\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1  & \Rightarrow & \tt{then_1} \\
+\tt{if}_2  & \Rightarrow & \tt{then_2} \\
+\tt{if}_3  & \Rightarrow & \tt{then_3} \\
+\ldots     & \Rightarrow & \ldots \\
+\tt{if}_n  & \Rightarrow & \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}
+++++
+
+<1> The `-<` (split) instruction propagates each input into each  _if_ branch.
+<2> If the input matches the key, then it is applied to the value yielding a new value-applied `rec`.
+<3> The `>-` (merge) instruction serializes the values of the resultant `rec`.
+|===
+
+[.center]
+[source,mmadt]
+----
+         ┌──(case) is(gt(0)) ─{1,2,3}──(do) mult(-1) ──{-1,-2,-3}──┐
+         │                                                         │
+{1,2,3}──├──(case) is(gt(1)) ──{2,3}───(do) mult(0) ─────{0,0}─────├>─{-1,-2,0,-3,0,3S}
+         │                                                         │
+         └──(case) is(gt(3)) ───{3}────(do) _ ────────────{3}──────┘
+----
+
+
 --
 guard::
 +
 --
-
 .guard icon:link[link=https://en.wikipedia.org/wiki/Conditional_(computer_programming)#Guarded_conditionals,2x,role=blue]
+[cols="5,5",separator=🧱]
+|===
+
+a🧱
+
 ++++
 <!-- 🐖 ./main_runner.out
 {1,2,3}.[
@@ -2406,8 +2450,31 @@ fhatos> {1,2,3}.[
 ++++
 <!-- 🐓 -->
 ++++
---
 
+a🧱
+[stem]
+++++
+\tt{obj}_\tt{in} \cdot \left\{
+\begin{align*}
+\tt{if}_1  & \Rightarrow & \tt{then_1} \\
+\tt{if}_2  & \Rightarrow & \tt{then_2} \\
+\tt{if}_3  & \Rightarrow & \tt{then_3} \\
+\ldots     & \Rightarrow & \ldots \\
+\tt{if}_n  & \Rightarrow & \tt{then_n} \\
+\end{align*}
+\right\}
+\cdot \tt{obj}_\tt{out}
+++++
+
+<1> The `-<` (split) instruction propagates each input into each  _if_ branch.
+<2> If the input matches the key, then it is applied to the value yielding a new value-applied `rec`.
+<3> The `>-` (merge) instruction serializes the values of the resultant `rec`.
+
+
+|===
+
+
+--
 pattern::
 +
 --
