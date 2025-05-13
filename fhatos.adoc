@@ -85,7 +85,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=>11313152,free=>11311680,used=>0.01301]
+[INFO]  main [total=>11313152,free=>11311744,used=>0.01245]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
@@ -101,7 +101,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [WARN]  [/sys/router/] no mounted structure for /io/console  
 [WARN]  [/sys/router/] no mounted structure for button  
 [WARN]  [/sys/router/] no mounted structure for /io/z  
-[INFO]  [/sys/router/] boot_config.hpp boot config header loaded [size: 1020 bytes]
+[INFO]  [/sys/router/] boot_config.hpp boot config header loaded [size: 1065 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config] 
    [
@@ -131,10 +131,10 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       /sys/#
       /mmadt/#
     ]
-     setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+     setup=>setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/router/] router configured
             [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] /sys/router boot config dropped
@@ -143,26 +143,26 @@ $ fhatos --boot:config=../conf/boot-loader.obj
             [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
 [INFO]  [/boot/config] /sys/scheduler boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>11718656,free=>11716800,used=>0.01584]
+[INFO]  [/sys/mem] main [total=>11718656,free=>11716768,used=>0.01611]
 [INFO]  [/sys/type] /mmadt/proc type defined
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392448,used=>0.01652]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392480,used=>0.01627]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
-            setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+            setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
 [INFO]  [/sys/router/] heap /mnt/var spanning +/# mounted
 [INFO]  [/mnt/fs] data/fs location mounted
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164288,used=>0.00240]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164320,used=>0.00236]
 
 ----
 
@@ -850,7 +850,7 @@ A https://en.wikipedia.org/wiki/Character_(computing)[char] is a `str` containin
 [source,mmadt]
 ----
 fhatos> *char
-==>char?str<=str()
+==>char?int<=str()
 	[merge(2).count().is(eq(1))]
 fhatos> --- char['a']@a
 fhatos> --- char['b']@b
