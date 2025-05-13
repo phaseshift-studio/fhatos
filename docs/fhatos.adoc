@@ -153,7 +153,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/type] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO finalizing boot w/ setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12394496,free=>12392480,used=>0.01627]
+[INFO]  [/sys/mem] main [total=>12394496,free=>12392448,used=>0.01652]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -162,7 +162,7 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88166400,free=>88164352,used=>0.00232]
+[INFO]  [/sys/mem] main [total=>88166400,free=>88164256,used=>0.00243]
 
 ----
 
@@ -1565,7 +1565,8 @@ fhatos> thread[[loop=>^(
 ==>loop=>lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
 ==>halt=>true
 >]@t
-fhatos> /sys/scheduler::spawn(@t)
+
+fhatos> fhatos> /sys/scheduler::spawn(@t)
 [INFO]  [/sys/scheduler] t thread spawned
 >thread[
 ==>loop=>lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
@@ -1583,8 +1584,7 @@ c: 7
 c: 8
 c: 9
 c: 10
-
-fhatos> fhatos> *c
+fhatos> *c
 [INFO]  [/sys/scheduler] thread t stopped
 ==>11
 ----
