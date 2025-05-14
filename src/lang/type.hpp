@@ -38,9 +38,9 @@ namespace fhatos {
   protected:
     std::vector<fURI> *filters = nullptr;
 
-
-    explicit Typer(const ID &value_id, const ID &type_id) :
-        Obj(std::make_shared<RecMap<>>(), OType::REC, id_p(type_id), id_p(value_id)) {
+  public:
+    explicit Typer(const ID &value_id) :
+        Obj(rmap({{"module",Obj::to_rec()}}), OType::REC, REC_FURI, id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) { this->save_type(type_id, type_def); };
@@ -174,12 +174,12 @@ namespace fhatos {
         LOG_WRITE(DEBUG, lhs.get(), L(" !gresolved!! !yinst!! {} [!gEND!!]\n", final_inst->toString()));
         return final_inst;
       };
+      LOG_WRITE(INFO, this, L("!gtyper!! started\n"));
     }
 
-  public:
-    static ptr<Typer> &singleton(const ID &id = "/sys/type") {
-      static auto types_p = ptr<Typer>(new Typer(id, *REC_FURI));
-      return types_p;
+    static ptr<Typer> &singleton(const ID &id = "/sys/typer") {
+      static auto typer = make_shared<Typer>(id);
+      return typer;
     }
 
     void set_filters(std::vector<fURI> *filters) { this->filters = filters; }

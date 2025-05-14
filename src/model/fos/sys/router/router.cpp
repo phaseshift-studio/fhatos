@@ -27,8 +27,8 @@ namespace fhatos {
 
 
   ptr<Router> &Router::singleton(const ID &value_id) {
-    static auto router_p = std::make_shared<Router>(value_id);
-    return router_p;
+    static auto router = std::make_shared<Router>(value_id);
+    return router;
   }
 
   ptr<Frame<>> Router::get_frame() { return THREAD_FRAME_STACK; }
@@ -43,7 +43,7 @@ namespace fhatos {
     ROUTER_ID = id_p(id);
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
-      this->push_frame(pattern, frame_data);
+      fhatos::Router::push_frame(pattern, frame_data);
     };
     ROUTER_POP_FRAME = [this] { this->pop_frame(); };
     ROUTER_GET_FRAME_DATA = [this] { return this->get_frame()->full_frame(); };

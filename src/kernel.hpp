@@ -163,8 +163,9 @@ namespace fhatos {
       const Obj_p config = Kernel::boot()->rec_get(type_config_id);
       const ptr<Typer> typer = Typer::singleton(config->rec_get("id")->uri_value());
       typer->rec_set("config", config->rec_get("config"));
-      fOS::import(config->rec_get("config/module")->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
-      mmADT::import(config->rec_get("config/module")->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
+      typer->save();
+      fOS::import({});
+      mmADT::import({});
       //Typer::import();
       LOG_WRITE(INFO, Typer::singleton().get(),
                 L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
