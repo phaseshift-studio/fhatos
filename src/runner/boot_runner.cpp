@@ -34,7 +34,7 @@ int main(int, char **) {
     args[1] ="--headers=true";
     args[2] = "--log=INFO";
     args[3] = "--ansi=false";
-    args[4] = "--boot:config=../../../conf/boot_config.obj";
+    args[4] = "--boot:config=/boot/boot_config.obj";
     auto* argv_parser = new ArgvParser();
     argv_parser->init(5,args);
     printer()->ansi_switch(false);

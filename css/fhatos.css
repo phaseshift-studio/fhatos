@@ -71,13 +71,7 @@ p {
     color: var(--black) !important;
 }
 
-
-h1 {
-    color: var(--secondarycolor) !important;
-    font-family: Arial, sans-serif !important;
-}
-
-h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 {
     color: var(--secondarycolor) !important;
     font-family: Arial, sans-serif !important;
 }
@@ -195,7 +189,7 @@ code {
     border-width: thin;
     border-radius: 1em;
     border-style: solid;
-    font-size: 0.9em !important;
+    font-size: 0.95em !important;
     font-family: monospace, fixed !important;
     /*width: 90%;
     margin-left: auto;

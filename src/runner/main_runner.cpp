@@ -75,7 +75,7 @@ int main(int arg, char **argsv) {
       try {
         auto x = string(argsv[i]);
         StringHelper::trim(x);
-        const bool has_thread = x.find("spawn") != string::npos;
+        const bool has_thread = x.find("spawn") != string::npos || x.find("halt") != string::npos;
         printer()->print(Router::singleton()->read("/io/console/config/prompt")->str_value().c_str());
         printer()->println(x.c_str());
         Router::singleton()->loop();
