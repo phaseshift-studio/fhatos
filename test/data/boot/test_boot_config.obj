@@ -1,5 +1,5 @@
 ===
-basic boot_config obj
+test boot_config obj
 ===
 [scheduler=>[id=>/sys/scheduler,
                    config=>[def_stack_size=>32384]],
@@ -9,12 +9,5 @@ basic boot_config obj
                                        /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
- main=>main?obj{?}<=obj{.}()[
-    heap[[pattern=><+/#>]]@/mnt/var;
-    /sys/router::mount(@/mnt/var);
-    terminal[[=>]]@/io/terminal;
-    console[[=>]]@/io/console;
-    /io/console/config/stack_size -> 259072;
-    /sys/scheduler::spawn(@/io/console);
- ]
+ main=>main?obj{?}<=obj{.}()[]
 ]@/boot/config

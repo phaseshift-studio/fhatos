@@ -4,8 +4,7 @@ namespace fhatos {
   Scheduler::Scheduler(const ID &id) :
       Rec(rmap({{"spawn", lst()}, {"bundle", lst()}}), OType::REC, REC_FURI, id_p(id)) {
     SCHEDULER_ID = this->vid;
-    LOG_WRITE(INFO, this, L("!g[!y{}!g] !yscheduler!! started\n", id.toString()));
-    // ROUTER_WRITE(this->vid->extend("halt"), Subscription::create(
+    LOG_WRITE(INFO, this, L("!gscheduler!! started\n"));
   }
   ptr<Scheduler> &Scheduler::singleton(const ID &id) {
     static auto scheduler = std::make_shared<Scheduler>(id);

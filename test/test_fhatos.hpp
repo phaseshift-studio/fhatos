@@ -72,7 +72,7 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #define FOS_STOP_SCHEDULER Scheduler::singleton()->stop();
-#define FOS_DEPLOY_SCHEDULER_2 Kernel::using_scheduler("/sys/scheduler");
+#define FOS_DEPLOY_SCHEDULER_2 Kernel::using_scheduler("scheduler");
 #endif
 /////////////////////////////////////////// ROUTER //////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
@@ -86,9 +86,9 @@
       ->mount(Heap<>::create("/mnt/+"))                                                                                \
       ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))                                                            \
       ->mount(Heap<>::create("/io/#", id_p("/mnt/io")));                                                               \
-  Kernel::using_boot_config("/boot/boot_config.obj");                                                                  \
+  Kernel::using_boot_config("/../test/data/boot/test_boot_config.obj");                                                \
   LOG_WRITE(INFO, Router::singleton().get(), L("{}\n", Kernel::boot()->toString()));                                   \
-  Kernel::using_router("/sys/router");
+  Kernel::using_router("router");
 #endif
 ////////////////////////////////////////// PARSER ///////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_PARSER

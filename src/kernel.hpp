@@ -32,7 +32,12 @@
 #include <esp_freertos_hooks.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
+
+
 
 namespace fhatos {
   class Kernel {
@@ -71,15 +76,15 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> evaluating_boot_setup() {
+    static ptr<Kernel> evaluating_main() {
       BOOTING = false;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, Kernel::boot().get(),
-                L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
-      const Inst_p setup_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
-      std::holds_alternative<Obj_p>(setup_inst->inst_f())
-                                     ? std::get<Obj_p>(setup_inst->inst_f())->apply(Obj::to_noobj())
-                                     : (*std::get<Cpp_p>(setup_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
+                L("!yapplying !bmain !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("main")->toString()));
+      const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("main"))->inst_bcode_obj();
+      std::holds_alternative<Obj_p>(main_inst->inst_f())
+                                     ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
+                                     : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
       return Kernel::build();
     }
 
@@ -154,17 +159,28 @@ namespace fhatos {
           ->mount(Heap<>::create(mmadt_pattern, id_p(mnt_pattern.retract_pattern().extend("mmadt"))));
     }
 
+    static ptr<Kernel> using_typer(const ID &type_config_id) {
+      const Obj_p config = Kernel::boot()->rec_get(type_config_id);
+      const ptr<Typer> typer = Typer::singleton(config->rec_get("id")->uri_value());
+      typer->rec_set("config", config->rec_get("config"));
+      fOS::import(config->rec_get("config/module")->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
+      mmADT::import(config->rec_get("config/module")->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
+      //Typer::import();
+      LOG_WRITE(INFO, Typer::singleton().get(),
+                L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      return Kernel::build();
+    }
+
     static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
-      SCHEDULER_ID = id_p(scheduler_config_id);
       const Obj_p config = Kernel::boot()->rec_get(scheduler_config_id);
       if(config->is_noobj())
         throw fError("!yscheduler config!! !rnot found!!");
       const ptr<Scheduler> scheduler = Scheduler::singleton(config->rec_get("id")->uri_value());
+      SCHEDULER_ID = id_p(config->rec_get("id")->uri_value());
       scheduler->obj_set("config", config->rec_get("config"));
       Scheduler::singleton()->import();
       LOG_WRITE(INFO, Scheduler::singleton().get(),
                 L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
-      Scheduler::import();
       return Kernel::build();
     }
 
@@ -245,6 +261,12 @@ namespace fhatos {
 
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
+#ifdef NATIVE
+const string boot_dir = fs::current_path().string();
+#else
+const string boot_dir = "/";
+#endif
+      LOG_WRITE(INFO,Kernel::boot().get(),L("!yboot working directory!!: !b{}!!\n",boot_dir));
       boot_config_obj_copy_len = 0;
       Obj_p config_obj = Obj::to_noobj();
       // boot from obj encoded in filesystem

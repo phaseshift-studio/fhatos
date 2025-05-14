@@ -84,17 +84,19 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yconfiguring !bkernel !yobjs!!")
             ->display_memory()
-            ->using_router("/sys/router")
-            ->drop_config("/sys/router")
-            ->using_scheduler("/sys/scheduler")
-            ->drop_config("/sys/scheduler");
+            ->using_router("router")
+            ->drop_config("router")
+            ->using_scheduler("scheduler")
+            ->drop_config("scheduler")
+            ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
+            ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
+            ->using_typer("typer")
+            ->drop_config("typer");
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
         kp->display_note("!ymounting !bfos/mmadt !ystructures!!")
             ->display_memory()
-            ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
-            ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
             ->display_note("!yimporting !bfos/mmadt !ytypes!!");
 
@@ -105,9 +107,9 @@ namespace fhatos {
                 mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yfinalizing boot w/ !bsetup !yinst!!")
+        kp->display_note("!yevaluating !bmain !yinst!!")
             ->display_memory()
-            ->evaluating_boot_setup()
+            ->evaluating_main()
             ->display_memory();
 
         // Terminal::singleton("/io/terminal");

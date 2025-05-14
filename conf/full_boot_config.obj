@@ -1,15 +1,17 @@
 ===
 basic boot_config obj
 ===
-[sys=>[scheduler=>[id=>/sys/scheduler,
-                   config=>[def_stack_size=>32384]],
-       router=>[id=>/sys/router,
-                config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
-                         auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
-                                       /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]],
+[scheduler=>[id=>/sys/scheduler,
+             config=>[def_stack_size=>32384]],
+ router=>[id=>/sys/router,
+          config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
+                   auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                 /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
+ typer=>[id=>/sys/typer,
+         config=>[module=>[/mmadt/#,/fos/#]]],
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
- setup=>setup?obj{?}<=obj{.}()[
+ main=>main?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
     /sys/router::mount(@/mnt/var);
     terminal[[=>]]@/io/terminal;

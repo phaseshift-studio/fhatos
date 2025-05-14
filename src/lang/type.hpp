@@ -36,34 +36,14 @@ namespace fhatos {
 
   class Typer final : public Obj {
   protected:
-    std::vector<fURI>* filters = nullptr;
+    std::vector<fURI> *filters = nullptr;
 
 
     explicit Typer(const ID &value_id, const ID &type_id) :
         Obj(std::make_shared<RecMap<>>(), OType::REC, id_p(type_id), id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) {
-        this->save_type(type_id, type_def);
-      /*  try {
-          const Obj_p current = ROUTER_READ(type_id);
-          if(type_progress_bar_) {
-            ROUTER_WRITE(type_id, type_def, true);
-            type_progress_bar_->incr_count(type_id.toString());
-            if(type_progress_bar_->done())
-              ROUTER_WRITE(*this->vid, const_pointer_cast<Obj>(shared_from_this()), true);
-          } else {
-            ROUTER_WRITE(type_id, type_def, true);
-            if(current->is_noobj()) {
-              LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString()));
-            } else {
-              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
-            }
-          }
-        } catch(const fError &e) {
-          LOG_WRITE(ERROR, this, L("{}", e.what()));
-        }*/
-      };
+      TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) { this->save_type(type_id, type_def); };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       IS_TYPE_OF = [this](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
@@ -202,13 +182,9 @@ namespace fhatos {
       return types_p;
     }
 
-    void set_filters(std::vector<fURI>*filters) {
-      this->filters = filters;
-    }
+    void set_filters(std::vector<fURI> *filters) { this->filters = filters; }
 
-    void clear_filters() {
-      this->filters = nullptr;
-    }
+    void clear_filters() { this->filters = nullptr; }
 
     void start_progress_bar(const uint16_t size) {
       type_progress_bar_ = ProgressBar::start(Ansi<>::singleton().get(), size);
@@ -219,6 +195,10 @@ namespace fhatos {
         type_progress_bar_->end(message);
         type_progress_bar_ = nullptr;
       }
+    }
+
+    static void *import(const ID &type_id = "/sys/type") {
+      Typer::singleton(type_id);
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -245,7 +225,7 @@ namespace fhatos {
             if(current->is_noobj()) {
               LOG_WRITE(INFO, this, L("!b{} !ytype!! defined\n", type_id.toString()));
             } else {
-              LOG_WRITE(INFO, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
+              LOG_WRITE(WARN, this, L("!b{} !ytype!! !b!-{}!! overwritten\n", type_id.toString(), current->toString()));
             }
           }
         } catch(const fError &e) {
