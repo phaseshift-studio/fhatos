@@ -38,11 +38,11 @@ namespace fs = std::filesystem;
 #endif
 
 
-
 namespace fhatos {
   class Kernel {
   public:
     Obj_p boot_config = Obj::to_rec();
+    chrono::steady_clock::time_point boot_start_time;
 
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
@@ -83,8 +83,8 @@ namespace fhatos {
                 L("!yapplying !bmain !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("main")->toString()));
       const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("main"))->inst_bcode_obj();
       std::holds_alternative<Obj_p>(main_inst->inst_f())
-                                     ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
-                                     : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
+          ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
+          : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
       return Kernel::build();
     }
 
@@ -101,6 +101,18 @@ namespace fhatos {
                           machine_arch.c_str());
       if(!machine_model.empty())
         printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> start_timer() {
+      Kernel::build()->boot_start_time = chrono::steady_clock::now();
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> stop_timer() {
+      const auto endTime = std::chrono::steady_clock::now();
+      const auto duration = std::chrono::duration<double>(endTime - Kernel::build()->boot_start_time);
+      LOG_WRITE(INFO, Kernel::boot().get(), L("!yboot time!!: {} !gseconds!!\n", duration.count()));
       return Kernel::build();
     }
 
@@ -161,12 +173,14 @@ namespace fhatos {
 
     static ptr<Kernel> using_typer(const ID &type_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(type_config_id);
+      if(!config->is_rec())
+        throw fError("!ytyper config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
       const ptr<Typer> typer = Typer::singleton(config->rec_get("id")->uri_value());
       typer->rec_set("config", config->rec_get("config"));
       typer->save();
       fOS::import({});
       mmADT::import({});
-      //Typer::import();
+      // Typer::import();
       LOG_WRITE(INFO, Typer::singleton().get(),
                 L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
       return Kernel::build();
@@ -174,8 +188,8 @@ namespace fhatos {
 
     static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(scheduler_config_id);
-      if(config->is_noobj())
-        throw fError("!yscheduler config!! !rnot found!!");
+      if(!config->is_rec())
+        throw fError("!yscheduler config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
       const ptr<Scheduler> scheduler = Scheduler::singleton(config->rec_get("id")->uri_value());
       SCHEDULER_ID = id_p(config->rec_get("id")->uri_value());
       scheduler->obj_set("config", config->rec_get("config"));
@@ -187,8 +201,8 @@ namespace fhatos {
 
     static ptr<Kernel> using_router(const ID &router_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(router_config_id);
-      if(config->is_noobj())
-        throw fError("!yrouter configuration!! !rnot found!!");
+      if(!config->is_rec())
+        throw fError("!yrouter config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
       const ptr<Router> router = Router::singleton(config->rec_get("id")->uri_value());
       router->rec_set("config", config->rec_get("config"));
       Router::singleton()->import();
@@ -263,11 +277,11 @@ namespace fhatos {
     static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
-const string boot_dir = fs::current_path().string();
+      const string boot_dir = fs::current_path().string();
 #else
-const string boot_dir = "/";
+      const string boot_dir = "/";
 #endif
-      LOG_WRITE(INFO,Kernel::boot().get(),L("!yboot working directory!!: !b{}!!\n",boot_dir));
+      LOG_WRITE(INFO, Router::singleton().get(), L("!yboot working directory!!: !b{}!!\n", boot_dir));
       boot_config_obj_copy_len = 0;
       Obj_p config_obj = Obj::to_noobj();
       // boot from obj encoded in filesystem

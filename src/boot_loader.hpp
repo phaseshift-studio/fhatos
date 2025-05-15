@@ -65,8 +65,9 @@ namespace fhatos {
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
-        const ptr<Kernel> kp = Kernel::build();
-        kp->using_printer(Ansi<>::singleton())
+        const ptr<Kernel> kp = Kernel::build()
+        ->start_timer()
+        ->using_printer(Ansi<>::singleton())
             ->with_ansi_color(args_parser->option_bool("--ansi", true))
             ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
@@ -110,7 +111,8 @@ namespace fhatos {
         kp->display_note("!yevaluating !bmain !yinst!!")
             ->display_memory()
             ->evaluating_main()
-            ->display_memory();
+            ->display_memory()
+        ->stop_timer();
 
         // Terminal::singleton("/io/terminal");
         // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));

@@ -2019,23 +2019,30 @@ namespace fhatos {
       }
     }
 
+    virtual void setup() {
+
+    }
+
     template<typename T>
     T *get_model() const {
       static Function<Obj_p, ptr<void>> GET_OR_CREATE_MODEL = [](const Obj_p &model_obj) {
-        if(MODEL_MAP->count(*model_obj->vid)) {
+        if(model_obj->vid && MODEL_MAP->count(*model_obj->vid)) {
           return MODEL_MAP->at(*model_obj->vid);
         }
         if(MODEL_MAP->count(*model_obj->tid))
           return MODEL_MAP->at(*model_obj->tid);
-        if(MODEL_CREATOR2->count(*model_obj->vid)) {
+        if(model_obj->vid && MODEL_CREATOR2->count(*model_obj->vid)) {
           const ptr<void> model_any = MODEL_CREATOR2->at(*model_obj->vid)(model_obj);
           MODEL_MAP->insert_or_assign(*model_obj->vid, model_any);
           return model_any;
         }
         if(MODEL_CREATOR2->count(*model_obj->tid)) {
           const ptr<void> model_any = MODEL_CREATOR2->at(*model_obj->tid)(model_obj);
-          MODEL_MAP->insert_or_assign(*model_obj->vid, model_any);
-          return MODEL_MAP->at(*model_obj->vid);
+          if(model_obj->vid) {
+            MODEL_MAP->insert_or_assign(*model_obj->vid, model_any);
+            return MODEL_MAP->at(*model_obj->vid);
+          } else
+            return model_any;
         }
         throw fError("no model for %s", model_obj->tid->toString().c_str());
       };
