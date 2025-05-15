@@ -775,12 +775,12 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11386880,free=&gt;11385440,used=&gt;0.01265]
+[INFO]  main [total=&gt;11399168,free=&gt;11397696,used=&gt;0.01291]
 [INFO]  [/sys/router/] router started
 [INFO]  [/sys/router/] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
 [INFO]  [/sys/router/] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/mmadt/rec] boot working directory: /home/killswitch/software/fhatos/build/docs/build
+[INFO]  [/sys/router/] boot working directory: /home/killswitch/software/fhatos/build/docs/build
 [INFO]  [/sys/router/] /home/killswitch/software/fhatos/build/docs/build/data/boot/boot_config.obj boot loader native location
 [WARN]  [/sys/router/] no mounted structure for heap
 [WARN]  [/sys/router/] no mounted structure for fs
@@ -847,7 +847,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      main=&gt;main()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11927552,free=&gt;11925824,used=&gt;0.01449]
+[INFO]  [/sys/mem] main [total=&gt;11939840,free=&gt;11937984,used=&gt;0.01554]
 [INFO]  [/sys/router/] router configured
             [id=&gt;/sys/router,config=&gt;[namespace=&gt;[:=&gt;/mmadt/,fos:=&gt;/fos/],auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
 [INFO]  [/boot/config] router boot config dropped
@@ -857,27 +857,24 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/boot/config] scheduler boot config dropped
 [INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
 [INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
-[INFO]  [/sys/typer] /sys/typer/module/fos/qproc type defined
-[INFO]  [/sys/typer] /sys/typer/module/fos/io/gpio type defined
+[INFO]  [/sys/typer] typer started
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] typer configured
             [id=&gt;/sys/typer,config=&gt;[module=&gt;[/mmadt/#,/fos/#]]]
 [INFO]  [/boot/config] typer boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;12468224,free=&gt;12466336,used=&gt;0.01514]
+[INFO]  [/sys/mem] main [total=&gt;12480512,free=&gt;12478496,used=&gt;0.01615]
 [INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;12468224,free=&gt;12466336,used=&gt;0.01514]
-[WARN]  [/sys/typer] /sys/typer/module/fos/qproc type qproc?rec&lt;=obj{?}()[cpp] overwritten
-[WARN]  [/sys/typer] /sys/typer/module/fos/io/gpio type gpio?rec&lt;=obj{?}()[cpp] overwritten
+[INFO]  [/sys/mem] main [total=&gt;12480512,free=&gt;12478496,used=&gt;0.01615]
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] /mmadt/proc type defined
 [INFO]  [/sys/typer] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router/] /io/parser obj loaded
       .oO evaluating main inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12603392,free=&gt;12601440,used=&gt;0.01549]
+[INFO]  [/sys/mem] main [total=&gt;12615680,free=&gt;12613632,used=&gt;0.01624]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying main inst
             main()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=&gt;]]@/io/log}).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=&gt;gpio[5],on_push=&gt;lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
@@ -886,7 +883,8 @@ The purpose of this documentation is to explain the mechanics of the boot proces
 [INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=&gt;88375296,free=&gt;88373216,used=&gt;0.00235]</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88387584,free=&gt;88385408,used=&gt;0.00246]
+[INFO]  [/boot/config] boot time: 0.086309969 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -978,8 +976,10 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 &gt;[
 ==&gt;spawn=&gt;[
+===&gt;/io/console
 =&gt;]
 ==&gt;bundle=&gt;[
+===&gt;/io/z
 =&gt;]
 ==&gt;config=&gt;[
 ===&gt;id=&gt;/sys/scheduler
@@ -1256,7 +1256,8 @@ When the instruction implementation is written in mmADT, the instruction value i
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
-[INFO]  [/sys/router/] 6 heap(s) closing
+[INFO]  [/sys/router/] 1 fs(s) closing
+[INFO]  [/sys/router/] 7 heap(s) closing
 [INFO]  [/sys/router/] router /sys/router/ stopped
 [ERROR] [/mnt/io] unable to read /io/console/config/nest
 [ERROR] [/mnt/io] unable to read /io/console/config/terminal/stdout
@@ -1264,7 +1265,9 @@ When the instruction implementation is written in mmADT, the instruction value i
 [INFO]  [/sys/router/] /boot/# heap detached
 [INFO]  [/sys/router/] /fos/# heap detached
 [INFO]  [/sys/router/] /mmadt/# heap detached
-[INFO]  [/sys/router/] /io/# heap detached</code></pre>
+[INFO]  [/sys/router/] /io/# heap detached
+[INFO]  [/sys/router/] +/# heap detached
+[INFO]  [/sys/router/] /fs/# fs detached</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1609,14 +1612,11 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 fhatos&gt; --- char['a']@a
 fhatos&gt; --- char['b']@b
 fhatos&gt; @a + @b
-[ERROR] [/sys/router/] no mounted structure for a
 [ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
 	         lhs id      inst id        resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a
 fhatos&gt; @a.as(str) + @b
-[ERROR] [/sys/router/] no mounted structure for a
 [ERROR] [/mmadt/parser] noobj is not a /mmadt/str as defined by [str][_]
 		 \_/mmadt/str is not a subtype of /mmadt/str
 	  thrown at inst noobj =&gt; as?obj{?}&lt;=obj{?}(type?uri=&gt;str)[cpp] [type=&gt;str]</code></pre>
@@ -1647,27 +1647,15 @@ fhatos&gt; nat[-30]
 [ERROR] [/mmadt/parser] -30 is not a nat as defined by nat()[is(gte(0))]
 		 \_nat[-30] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
 fhatos&gt; nat[12]@a
-[ERROR] [/sys/router/] no mounted structure for a/is
-[ERROR] [/sys/router/] no mounted structure for a/::/mmadt/is
-[ERROR] [/sys/router/] no mounted structure for a/::/mmadt/is
-[ERROR] [/sys/router/] no mounted structure for a/gte
-[ERROR] [/sys/router/] no mounted structure for a/::/mmadt/gte
-[ERROR] [/sys/router/] no mounted structure for a/::/mmadt/gte
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [/sys/router/] no mounted structure for a/config/stack_size
 ==&gt;nat[12]@a
 fhatos&gt; @a.minus(11)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/minus inst unresolved
-	         lhs id      inst id         resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/minus =&gt; minus(_)
+==&gt;nat[1]@a
 fhatos&gt; @a.minus(2)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/minus inst unresolved
-	         lhs id      inst id         resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/minus =&gt; minus(_)
+[ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat()[is(gte(0))]
+		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+	  thrown at inst nat[1]@a =&gt; minus(0?int=&gt;2)[cpp] [0=&gt;2]
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a</code></pre>
+==&gt;nat[1]@a</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1778,27 +1766,11 @@ band -> |band?int{?}<=int(_,_)[is(and([gte(*<0>),lte(*<1>)]))]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(_,_)[is(and([gte(*&lt;0&gt;),lte(*&lt;1&gt;)]))]
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band
 ==&gt;band?int{?}&lt;=int(_,_)
 	[is(and([gte(from(0)),lte(from(1))]))]
 fhatos&gt; 3.band(2,8)                                <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
-fhatos&gt; 10.band(2,8)                               <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+==&gt;3
+fhatos&gt; 10.band(2,8)                               <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1833,35 +1805,16 @@ band -> |band?int{?}<=int(min=>_,max=>_)[is(and([gte(*min),lte(*max)]))]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;_)[is(and([gte(*min),lte(*max)]))]
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band
 ==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;_)
 	[is(and([gte(from(min)),lte(from(max))]))]
 fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
+==&gt;3
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
+==&gt;3
 fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/str ]  band inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+[ERROR] [/mmadt/parser] 2 is not a str as defined by [str][_]
+		 \_/mmadt/int is not a subtype of /mmadt/str
+	  thrown at inst 'abc' =&gt; band?int{?}&lt;=int(min=&gt;2,max=&gt;8)[is(and([gte(from(min)),lte(from(max))]))] [min=&gt;2,max=&gt;8]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1902,35 +1855,14 @@ band -> |band?int{?}<=int(min=>else(2),max=>else(8))[is(and([gte(*min),lte(*max)
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;else(2),max=&gt;else(8))[is(and([gte(*min),lte(*max)]))]
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band
 ==&gt;band?int{?}&lt;=int(min=&gt;else?noobj&lt;=obj(2)[noobj],max=&gt;else?noobj&lt;=obj(8)[noobj])
 	[is(and([gte(from(min)),lte(from(max))]))]
 fhatos&gt; 1.band(min=&gt;1)                        <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
+==&gt;1
 fhatos&gt; 10.band()                             <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
 fhatos&gt; {2,3,4,5}.band(min=&gt;3,max=&gt;4)         <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+==&gt;3
+==&gt;4</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1969,27 +1901,13 @@ band -> |band?int{?}<=int(min?nat=>else(2),max?nat=>else(8))[is(and([gte(*min),l
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min?nat=&gt;else(2),max?nat=&gt;else(8))[is(and([gte(*min),lte(*max)]))]
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band
 ==&gt;band?int{?}&lt;=int(min?nat=&gt;else?noobj&lt;=obj(2)[noobj],max?nat=&gt;else?noobj&lt;=obj(8)[noobj])
 	[is(and([gte(from(min)),lte(from(max))]))]
 fhatos&gt; 15.band(10,20)              <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj
+==&gt;15
 fhatos&gt; -15.band(-20,-10)           <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+[ERROR] [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
+		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2034,7 +1952,6 @@ Finally, a degenerate anonymous <code>inst</code> with no specified variable fra
 fhatos&gt; 10.(min=&gt;minus(1),max=&gt;plus(1))[is(and([gte(*min),lte(*max)]))]   <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;10
 fhatos&gt; 10.()[is(and([gte(*min),lte(*max)]))]                             <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for min
 [ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst 10 =&gt; ()[is(and([gte(from(min)),lte(from(max))]))] [=&gt;]
@@ -2080,26 +1997,12 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;_)[mod(*by).eq(0)]
-[ERROR] [/sys/router/] no mounted structure for is_divisble/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for is_divisble/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for is_divisible
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;_)[mod(from(by)).eq(0)]
 fhatos&gt; 10.is_divisible(2)
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [ /mmadt/int ]  is_divisible inst unresolved
-	         lhs id  inst id    resolve obj
+==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [ /mmadt/int ]  is_divisible inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2120,19 +2023,11 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; band -&gt; |band?int{?}&lt;=int(min=&gt;_,max=&gt;is(gt(*min)).else(*min.plus(1)))[is(gte(*min)).is(lte(*max))]
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=0,1
-[ERROR] [/sys/router/] no mounted structure for band
 ==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
 	[is(gte(from(min))).is(lte(from(max)))]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [/sys/router/] no mounted structure for band
-[ERROR] [ /mmadt/int ]  band inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2154,26 +2049,12 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-[ERROR] [/sys/router/] no mounted structure for is_divisble/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for is_divisble/::/mmadt/block?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for is_divisible
 ==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj&lt;=obj(1)[noobj])[noobj])[mod(from(by)).eq(0)]
 fhatos&gt; 10.is_divisible(2)
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [ /mmadt/int ]  is_divisible inst unresolved
-	         lhs id  inst id    resolve obj
+error==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [/sys/router/] no mounted structure for is_divisible
-[ERROR] [ /mmadt/int ]  is_divisible inst unresolved
-	         lhs id  inst id    resolve obj</code></pre>
+error[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2258,21 +2139,15 @@ y -> z
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; *y
-[ERROR] [/sys/router/] no mounted structure for y
 fhatos&gt; *z
-[ERROR] [/sys/router/] no mounted structure for z
 fhatos&gt; z -&gt; 12
-[ERROR] [/sys/router/] no mounted structure for z
 ==&gt;12
 fhatos&gt; y -&gt; z
-[ERROR] [/sys/router/] no mounted structure for y
 ==&gt;z
 fhatos&gt; *y
-[ERROR] [/sys/router/] no mounted structure for y
+==&gt;z
 fhatos&gt; **y
-[ERROR] [/sys/router/] no mounted structure for y
-[ERROR] [/mmadt/noobj] noobj accessed as uri
-	  thrown at inst noobj =&gt; from?obj{?}&lt;=obj{?}(noobj,noobj)[cpp] [0=&gt;noobj,1=&gt;noobj]</code></pre>
+==&gt;12</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -2324,24 +2199,17 @@ a -> 12
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 12
-[ERROR] [/sys/router/] no mounted structure for a
 ==&gt;12
 fhatos&gt; *a.plus(10)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+==&gt;22
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a
+==&gt;12
 fhatos&gt; @a
-[ERROR] [/sys/router/] no mounted structure for a
+==&gt;12@a
 fhatos&gt; @a.plus(10)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+==&gt;22@a
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a</code></pre>
+==&gt;22@a</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -2377,19 +2245,20 @@ fhatos&gt; a?sub &#8594;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">to(b)
-[ERROR] [/sys/router/] no mounted structure for a?sub
 =&#8658;to?noobj&#8656;obj(b)[noobj]
 fhatos&gt; *a?sub
-[ERROR] [/sys/router/] no mounted structure for a?sub
+&gt;sub[
+=&#8658;source&#8658;/sys/scheduler
+=&#8658;pattern&#8658;a
+=&#8658;on_recv&#8658;to(b)
+&gt;]
 fhatos&gt; *b
-[ERROR] [/sys/router/] no mounted structure for b
 fhatos&gt; a&#8594;12
-[ERROR] [/sys/router/] no mounted structure for a
 =&#8658;12
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a
+=&#8658;12
 fhatos&gt; *b
-[ERROR] [/sys/router/] no mounted structure for b
+=&#8658;12
 ----</p>
 <p class="tableblock">+
 <!-- 🐓 -->
@@ -2436,24 +2305,17 @@ a -> 'axel'
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'axel'
-[ERROR] [/sys/router/] no mounted structure for a
 ==&gt;'axel'
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a
+==&gt;'axel'
 fhatos&gt; *a + ' fantaxel'
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+==&gt;'axel fantaxel'
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a
+==&gt;'axel'
 fhatos&gt; @a + ' fantaxel'
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+==&gt;'axel fantaxel'@a
 fhatos&gt; *a
-[ERROR] [/sys/router/] no mounted structure for a</code></pre>
+==&gt;'axel fantaxel'@a</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2475,14 +2337,32 @@ thread[[loop=>^( /
           plus(1).to(c).
           gt(10).to(t/halt).
           is(_).print('\n'))]]@t
-[ERROR] [/sys/router/] no mounted structure for t
-[ERROR] [/sys/router/] no mounted structure for t/config/stack_size
 &gt;thread[
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
 ==&gt;halt=&gt;true
 &gt;]@t
-fhatos&gt; /sys/scheduler::spawn(@t)
-[ERROR] [/sys/router/] no mounted structure for t</code></pre>
+
+fhatos&gt; fhatos&gt; /sys/scheduler::spawn(@t)
+[INFO]  [/sys/scheduler] t thread spawned
+&gt;thread[
+==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
+==&gt;halt=&gt;false
+&gt;]@t
+[INFO]  [t] [fhatos] thread spawned: from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n') [stack size:noobj]
+c: 0
+c: 1
+c: 2
+c: 3
+c: 4
+c: 5
+c: 6
+c: 7
+c: 8
+c: 9
+c: 10
+fhatos&gt; *c
+[INFO]  [/sys/scheduler] thread t stopped
+==&gt;11</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2826,9 +2706,6 @@ The router supports a chain <code>fos:frame</code> structures and, in this way, 
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; 34.make_bigger(a=&gt;plus(10))[plus(*a)]
-[ERROR] [/sys/router/] no mounted structure for make_bigger
-[ERROR] [/sys/router/] no mounted structure for make_bigger
-[ERROR] [/sys/router/] no mounted structure for make_bigger
 ==&gt;88</code></pre>
 </div>
 </div>
@@ -3173,9 +3050,6 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 ==&gt;true=&gt;1
 &gt;]
 fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
-[ERROR] [/sys/router/] no mounted structure for true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
-[ERROR] [/sys/router/] no mounted structure for true.i?dom=/mmadt/bool&amp;dc=1,1&amp;rng=/mmadt/bool&amp;rc=1,1
 [ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
 	  thrown at inst noobj =&gt; true.i(noobj)[and(_,from(0))] [0=&gt;noobj]
@@ -3215,19 +3089,21 @@ person[[name=>'lili',age=>129]]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; person -&gt; |[name?str=&gt;_,age?nat=&gt;?&lt;120]
-[ERROR] [/sys/router/] no mounted structure for person
 &gt;[
 ==&gt;name?str=&gt;_
 ==&gt;age?nat=&gt;is(lt(120))
 &gt;]
 fhatos&gt; person[[name=&gt;'marko',age=&gt;29]]
-[ERROR] [/sys/router/] no mounted structure for person
-[ERROR] [/sys/router/] no mounted structure for person
-[ERROR] [/mmadt/parser] person is an undefined type
+&gt;person[
+==&gt;name?str=&gt;'marko'
+==&gt;age?nat=&gt;29
+&gt;]
 fhatos&gt; person[[name=&gt;'lili',age=&gt;129]]
-[ERROR] [/sys/router/] no mounted structure for person
-[ERROR] [/sys/router/] no mounted structure for person
-[ERROR] [/mmadt/parser] person is an undefined type</code></pre>
+[ERROR] [/mmadt/parser] noobj is not a nat as defined by nat()[is(gte(0))]
+		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id       resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gte =&gt; gte?bool&lt;=obj{?}()
+	  thrown at inst noobj =&gt; nat()[is(gte(0))] [=&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3698,26 +3574,32 @@ a -> age[45]
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |print(_)
-[ERROR] [/sys/router/] no mounted structure for a?sub
 ==&gt;print?noobj&lt;=obj(_)[noobj]
 fhatos&gt; a -&gt; 12
-[ERROR] [/sys/router/] no mounted structure for a
 ==&gt;12
-fhatos&gt; @a.inspect()
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&amp;dc=1,1&amp;rng=/mmadt/rec&amp;rc=1,1 inst unresolved
-	         lhs id      inst id           resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/inspect =&gt; inspect(_)
-fhatos&gt; @a.plus(1)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
-fhatos&gt; @a.plus(1).plus(1)
-[ERROR] [/sys/router/] no mounted structure for a
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
-	         lhs id      inst id        resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)</code></pre>
+12fhatos&gt; @a.inspect()
+&gt;[
+==&gt;type=&gt;[
+===&gt;id=&gt;/mmadt/int
+===&gt;obj=&gt;[int][_]
+===&gt;dom=&gt;[id=&gt;/mmadt/obj,coeff=&gt;[1,1]]
+===&gt;rng=&gt;[id=&gt;/mmadt/int,coeff=&gt;[1,1]]
+=&gt;]
+==&gt;value=&gt;[
+===&gt;id=&gt;a
+===&gt;obj=&gt;12
+===&gt;encoding=&gt;int32_t
+=&gt;]
+==&gt;sub=&gt;[
+===&gt;source=&gt;/sys/scheduler
+===&gt;pattern=&gt;a
+===&gt;on_recv=&gt;print(_)
+=&gt;]
+&gt;]
+12@afhatos&gt; @a.plus(1)
+==&gt;13@a
+13@afhatos&gt; @a.plus(1).plus(1)
+==&gt;15@a</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3847,6 +3729,8 @@ fhatos&gt; */sys/router/#/
 ===&gt;/fos/#
 ===&gt;/mmadt/#
 ===&gt;/io/#
+===&gt;+/#
+===&gt;/fs/#
 =&gt;]
 &gt;]</code></pre>
 </div>
@@ -3899,20 +3783,21 @@ a -> 'meangirl'            --- <5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a -&gt; 'snowbutt'            <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for a
 ==&gt;'snowbutt'
 fhatos&gt; *a                         <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for a
+==&gt;'snowbutt'
 fhatos&gt; a?sub -&gt; |to(b)            <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for a?sub
 ==&gt;to?noobj&lt;=obj(b)[noobj]
 fhatos&gt; *a?sub                     <i class="conum" data-value="4"></i><b>(4)</b>
-[ERROR] [/sys/router/] no mounted structure for a?sub
+&gt;sub[
+==&gt;source=&gt;/sys/scheduler
+==&gt;pattern=&gt;a
+==&gt;on_recv=&gt;to(b)
+&gt;]
 fhatos&gt; a -&gt; 'meangirl'            <i class="conum" data-value="5"></i><b>(5)</b>
-[ERROR] [/sys/router/] no mounted structure for a
 ==&gt;'meangirl'
 fhatos&gt; *b                         <i class="conum" data-value="6"></i><b>(6)</b>
-[ERROR] [/sys/router/] no mounted structure for b</code></pre>
+==&gt;'meangirl'</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3977,11 +3862,10 @@ from(u)
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">[ERROR] [/sys/router/] no mounted structure for u
-fhatos&gt; from(u)
-[ERROR] [/sys/router/] no mounted structure for u
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; from(u)
+==&gt;'fhatos'
 fhatos&gt; *u
-[ERROR] [/sys/router/] no mounted structure for u</code></pre>
+==&gt;'fhatos'</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -3998,13 +3882,10 @@ o.to(u)
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; u -&gt; o
-[ERROR] [/sys/router/] no mounted structure for u
 ==&gt;o
 fhatos&gt; u.ref(o)
-[ERROR] [/sys/router/] no mounted structure for u
 ==&gt;o
 fhatos&gt; o.to(u)
-[ERROR] [/sys/router/] no mounted structure for u
 ==&gt;o</code></pre>
 </div>
 </div>
@@ -4066,25 +3947,32 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a/a -&gt; 1; a/b -&gt; 2; a/b/c -&gt; 3; a/b/d -&gt; 4;
-[ERROR] [/sys/router/] no mounted structure for a/a
-[ERROR] [/sys/router/] no mounted structure for a/b
-[ERROR] [/sys/router/] no mounted structure for a/b/c
-[ERROR] [/sys/router/] no mounted structure for a/b/d
-[ERROR] [/sys/router/] no mounted structure for a/b
-[ERROR] [/sys/router/] no mounted structure for a/b/c
-[ERROR] [/sys/router/] no mounted structure for a/b/d
 fhatos&gt; *a/b            <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for a/b
+==&gt;2
 fhatos&gt; *a/b/           <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for a/b/
+&gt;[
+==&gt;a/b=&gt;2
+&gt;]
 fhatos&gt; *a/+            <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for a/+
+==&gt;1
+==&gt;2
 fhatos&gt; *a/+/           <i class="conum" data-value="4"></i><b>(4)</b>
-[ERROR] [/sys/router/] no mounted structure for a/+/
+&gt;[
+==&gt;a/a=&gt;1
+==&gt;a/b=&gt;2
+&gt;]
 fhatos&gt; *a/#            <i class="conum" data-value="5"></i><b>(5)</b>
-[ERROR] [/sys/router/] no mounted structure for a/#
+==&gt;1
+==&gt;2
+==&gt;3
+==&gt;4
 fhatos&gt; *a/#/           <i class="conum" data-value="6"></i><b>(6)</b>
-[ERROR] [/sys/router/] no mounted structure for a/#/</code></pre>
+&gt;[
+==&gt;a/a=&gt;1
+==&gt;a/b=&gt;2
+==&gt;a/b/c=&gt;3
+==&gt;a/b/d=&gt;4
+&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -4214,15 +4102,13 @@ fhatos&gt; abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6            <i class="conum" da
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;          <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt; -&gt; 12    <i class="conum" data-value="4"></i><b>(4)</b>
-[ERROR] [/sys/router/] no mounted structure for abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 ==&gt;12
 fhatos&gt; *abc
-[ERROR] [/sys/router/] no mounted structure for abc
+==&gt;12
 fhatos&gt; abc -&gt; &lt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6&gt;   <i class="conum" data-value="5"></i><b>(5)</b>
-[ERROR] [/sys/router/] no mounted structure for abc
 ==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6
 fhatos&gt; *abc
-[ERROR] [/sys/router/] no mounted structure for abc</code></pre>
+==&gt;abc?k1=v1,v2&amp;k2=v3&amp;k3=v4,v5,v6</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4365,48 +4251,41 @@ m/2/3 -> 11
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; --- write matrix
 fhatos&gt; m/0/0 -&gt; 0
-[ERROR] [/sys/router/] no mounted structure for m/0/0
 ==&gt;0
 fhatos&gt; m/0/1 -&gt; 1
-[ERROR] [/sys/router/] no mounted structure for m/0/1
 ==&gt;1
 fhatos&gt; m/0/2 -&gt; 2
-[ERROR] [/sys/router/] no mounted structure for m/0/2
 ==&gt;2
 fhatos&gt; m/0/3 -&gt; 3
-[ERROR] [/sys/router/] no mounted structure for m/0/3
 ==&gt;3
 fhatos&gt; m/1/0 -&gt; 4
-[ERROR] [/sys/router/] no mounted structure for m/1/0
 ==&gt;4
 fhatos&gt; m/1/1 -&gt; 5
-[ERROR] [/sys/router/] no mounted structure for m/1/1
 ==&gt;5
 fhatos&gt; m/1/2 -&gt; 6
-[ERROR] [/sys/router/] no mounted structure for m/1/2
 ==&gt;6
 fhatos&gt; m/1/3 -&gt; 7
-[ERROR] [/sys/router/] no mounted structure for m/1/3
 ==&gt;7
 fhatos&gt; m/2/0 -&gt; 8
-[ERROR] [/sys/router/] no mounted structure for m/2/0
 ==&gt;8
 fhatos&gt; m/2/1 -&gt; 9
-[ERROR] [/sys/router/] no mounted structure for m/2/1
 ==&gt;9
 fhatos&gt; m/2/2 -&gt; 10
-[ERROR] [/sys/router/] no mounted structure for m/2/2
 ==&gt;10
 fhatos&gt; m/2/3 -&gt; 11
-[ERROR] [/sys/router/] no mounted structure for m/2/3
 ==&gt;11
 fhatos&gt; --- read matrix
 fhatos&gt; *m/0/0      <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/sys/router/] no mounted structure for m/0/0
+==&gt;0
 fhatos&gt; *m/0/+      <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/sys/router/] no mounted structure for m/0/+
+==&gt;0
+==&gt;1
+==&gt;2
+==&gt;3
 fhatos&gt; *m/+/0      <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/sys/router/] no mounted structure for m/+/0</code></pre>
+==&gt;0
+==&gt;4
+==&gt;8</code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -4986,7 +4865,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-14 02:21:28 -0600
+Last updated 2025-05-14 22:24:41 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
