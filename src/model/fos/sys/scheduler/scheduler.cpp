@@ -8,6 +8,12 @@ namespace fhatos {
   }
   ptr<Scheduler> &Scheduler::singleton(const ID &id) {
     static auto scheduler = std::make_shared<Scheduler>(id);
+    if(BOOTING && !scheduler->vid->equals(id) && scheduler->vid->path().find("boot") != std::string::npos) {
+      scheduler->vid = id_p(id);
+      SCHEDULER_ID = scheduler->vid;
+      scheduler->save();
+      LOG_WRITE(INFO, scheduler.get(), L("!gscheduler!! !bid!! reassigned\n"));
+    }
     return scheduler;
   }
 
@@ -137,8 +143,6 @@ namespace fhatos {
       this->obj_set("bundle", bundle_uris);
   }
   void *Scheduler::import() {
-    Scheduler::singleton()->obj_set("config", ROUTER_READ(FOS_BOOT_CONFIG_VALUE_ID "/scheduler")->or_else(noobj()));
-    Scheduler::singleton()->save();
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})

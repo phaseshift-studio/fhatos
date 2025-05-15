@@ -32,8 +32,6 @@
 
 namespace fhatos {
 
-  static ID_p ROUTER_FURI = id_p("/sys/router_t");
-
   class Router final : public Rec {
   protected:
     const ptr<MutexDeque<Structure_p>> structures_;
@@ -44,7 +42,7 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    static ptr<Router> &singleton(const ID &value_id = "/sys/router/");
+    static ptr<Router> &singleton(const ID &vid = "/boot/router");
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
 
@@ -56,9 +54,7 @@ namespace fhatos {
 
     void save() const override;
 
-    [[nodiscard]] Obj_p exec(const ID &bcode_id, const Obj_p &arg);
-
-    [[nodiscard]] Objs_p read(const fURI &furi);
+    [[nodiscard]] Objs_p read(const fURI &furi) const;
 
     void write(const fURI &furi, const Obj_p &obj, bool retain = RETAIN);
 

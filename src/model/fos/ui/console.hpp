@@ -78,7 +78,7 @@ namespace fhatos {
       // if(console_obj->has("config/terminal/stdin")) {
       const fURI in = this->get<fURI>("config/terminal/stdin");
       return Terminal::singleton()->vid->add_component("stdin") == in ? Terminal::STD_IN_LINE_DIRECT(until)
-                                                                      : Router::singleton()->exec(in, noobj());
+                                                                      : ROUTER_READ(in);
       //}
     }
 

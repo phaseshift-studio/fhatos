@@ -25,9 +25,14 @@ namespace fhatos {
 
   inline thread_local ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
 
-
-  ptr<Router> &Router::singleton(const ID &value_id) {
-    static auto router = std::make_shared<Router>(value_id);
+  ptr<Router> &Router::singleton(const ID &vid) {
+    static auto router = std::make_shared<Router>(vid);
+    if(BOOTING && !router->vid->equals(vid) && router->vid->path().find("boot") != std::string::npos) {
+      router->vid = id_p(vid);
+      ROUTER_ID = router->vid;
+      //router->save();
+      LOG_WRITE(INFO, router.get(), L("!grouter!! !bid!! reassigned\n"));
+    }
     return router;
   }
 
@@ -157,13 +162,7 @@ namespace fhatos {
     Obj::save();
   }
 
-  [[nodiscard]] Obj_p Router::exec(const ID &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
-
-  //[[nodiscard]] Objs_p Router::read(const vID &variant) {
-  //  return this->read(furi_p(variant.as_()));
-  // }
-
-  [[nodiscard]] Objs_p Router::read(const fURI &furi) {
+  [[nodiscard]] Objs_p Router::read(const fURI &furi) const {
     try {
       if(THREAD_FRAME_STACK) {
         if(const Obj_p frame_obj = THREAD_FRAME_STACK->read(furi); nullptr != frame_obj)
@@ -171,30 +170,19 @@ namespace fhatos {
       }
       const fURI resolved_furi = this->resolve(furi);
       const Structure_p structure = this->get_structure(resolved_furi);
-      if(!structure)
-        return Obj::to_noobj();
-      const Objs_p objs = structure->read(resolved_furi);
-      /*LOG_WRITE(TRACE, this, L("!g[!b{}!g] !_reading!! !g[!b{}!m=>!y{}!g]!! from !g[!b{}!g]!!\n",
-                               this->vid->toString(), resolved_furi.toString(), // make this the current process
-                               objs->toString(), structure->pattern->toString())          );*/
-      return objs->none_one_all();
+      return structure ? structure->read(resolved_furi)->none_one_all() : Obj::to_noobj();
     } catch(const fError &e) {
       LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
       return noobj();
     }
   }
 
-  /*void Router::write(const ID& source, const fURI& target, const Obj_p& obj) {
-    this->write(target,obj,target.has_query("pass"));
-  }*/
-
   void Router::append(const fURI &furi, const Obj_p &obj) const {
+    if(obj->is_noobj())
+      return;
     try {
-      const Structure_p structure = this->get_structure(furi, obj);
-      // LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-      //                         "obj", retain ? "retained" : "transient",
-      //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
-      structure->append(furi, obj);
+      if(const Structure_p structure = this->get_structure(furi, obj))
+        structure->append(furi, obj);
     } catch(const fError &e) {
       LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
@@ -207,25 +195,17 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
-      const Structure_p structure = this->get_structure(furi, obj);
-      // LOG_WRITE(TRACE, this, L("!g[!b{}!g]!! !g!_writing!! {} !g[!b{}!m=>!y{}!g]!! to !g[!b{}!g]!!\n",
-      //                         "obj", retain ? "retained" : "transient",
-      //                        furi.toString(), obj->tid->toString(), structure->pattern->toString())          );
-      if(structure)
+      if(const Structure_p structure = this->get_structure(furi, obj))
         structure->write(furi, obj, retain);
     } catch(const fError &e) {
       LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
     }
-    /*if(furi->matches(this->vid->extend("#")))
-      this->stale = true;*/
   }
 
   void *Router::import() {
-    Router::singleton()->write(*Router::singleton()->vid, Router::singleton(), RETAIN);
-    Router::singleton()->write(FRAME_TID, Obj::to_type(REC_FURI), RETAIN);
     Router::singleton()->auto_prefixes_ =
         std::vector<Uri_p>(*Router::singleton()->rec_get("config/auto_prefix")->or_else(lst())->lst_value());
-    InstBuilder::build(Router::singleton()->vid->add_component("mount"))
+    Router::singleton()->rec_set("::/mount",InstBuilder::build(Router::singleton()->vid->add_component("mount"))
         ->inst_args(rec({{"structure", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_f([](const Obj_p &, const InstArgs &args) {
@@ -252,13 +232,13 @@ namespace fhatos {
               ->post();
           return s;
         })
-        ->save();
+        ->create());
     /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
-         ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
-         ->inst_f([](const Obj_p &, const InstArgs &args) {
-           Router::singleton()->stop();
-           return Obj::to_noobj();
-         })->save();*/
+            ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
+            ->inst_f([](const Obj_p &, const InstArgs &args) {
+              Router::singleton()->stop();
+              return Obj::to_noobj();
+            })->save();*/
     /// query extensions
     /*InstBuilder::build(Router::singleton()->vid->extend(FOS_ROUTER_QUERY_WRITE).extend("lock"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
@@ -282,6 +262,7 @@ namespace fhatos {
         })
         ->save();*/
     //  Router::singleton()->load();
+
     return nullptr;
   }
 

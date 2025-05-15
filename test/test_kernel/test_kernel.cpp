@@ -67,7 +67,9 @@ namespace fhatos {
         ->display_reset_reason()
         ->display_note("!yloading !bsystem !yobjs!!")
         ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
-        ->mount_core_structures()
+        ->mount(Heap<>::create("/mnt/#"))
+        ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
+        ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
         ////////////////// SYS STRUCTURE
         ->using_boot_config("/boot/boot_config.obj")
         ->display_note("!yloading !bsystem !yobjs!!")

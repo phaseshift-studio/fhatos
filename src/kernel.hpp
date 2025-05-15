@@ -159,18 +159,6 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> mount_core_structures(const Pattern &sys_pattern = "/sys/#",
-                                             const Pattern &mnt_pattern = "/mnt/#",
-                                             const Pattern &boot_pattern = "/boot/#",
-                                             const Pattern &fos_pattern = "/fos/#",
-                                             const Pattern &mmadt_pattern = "/mmadt/#") {
-      return Kernel::mount(Heap<>::create(sys_pattern))
-          ->mount(Heap<>::create(mnt_pattern))
-          ->mount(Heap<>::create(boot_pattern, id_p(mnt_pattern.retract_pattern().extend("boot"))))
-          //->mount(Heap<>::create(fos_pattern, id_p(mnt_pattern.retract_pattern().extend("fos"))))
-          ->mount(Heap<>::create(mmadt_pattern, id_p(mnt_pattern.retract_pattern().extend("mmadt"))));
-    }
-
     static ptr<Kernel> using_typer(const ID &type_config_id) {
       const Obj_p config = Kernel::boot()->rec_get(type_config_id);
       if(!config->is_rec())
@@ -187,27 +175,27 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
-      const Obj_p config = Kernel::boot()->rec_get(scheduler_config_id);
-      if(!config->is_rec())
-        throw fError("!yscheduler config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
-      const ptr<Scheduler> scheduler = Scheduler::singleton(config->rec_get("id")->uri_value());
-      SCHEDULER_ID = id_p(config->rec_get("id")->uri_value());
-      scheduler->obj_set("config", config->rec_get("config"));
-      Scheduler::singleton()->import();
-      LOG_WRITE(INFO, Scheduler::singleton().get(),
-                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      const Obj_p scheduler_obj = Kernel::boot()->rec_get(scheduler_config_id);
+      if(!scheduler_obj->is_rec())
+        throw fError("!yscheduler obj!! !rmust be!! a !brec!!: %s", scheduler_obj->toString().c_str());
+      const ptr<Scheduler> scheduler = Scheduler::singleton(scheduler_obj->rec_get("id")->uri_value());
+      scheduler->obj_set("config", scheduler_obj->rec_get("config"));
+      scheduler->save();
+      Scheduler::import();
+      LOG_WRITE(INFO, scheduler.get(),
+                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", scheduler_obj->toString()));
       return Kernel::build();
     }
 
     static ptr<Kernel> using_router(const ID &router_config_id) {
-      const Obj_p config = Kernel::boot()->rec_get(router_config_id);
-      if(!config->is_rec())
-        throw fError("!yrouter config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
-      const ptr<Router> router = Router::singleton(config->rec_get("id")->uri_value());
-      router->rec_set("config", config->rec_get("config"));
-      Router::singleton()->import();
-      LOG_WRITE(INFO, Router::singleton().get(),
-                L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      const Obj_p router_obj = Kernel::boot()->rec_get(router_config_id);
+      if(!router_obj->is_rec())
+        throw fError("!yrouter obj!! !rmust be!! a !brec!!: %s", router_obj->toString().c_str());
+      const ptr<Router> router = Router::singleton(router_obj->rec_get("id")->uri_value());
+      router->obj_set("config", router_obj->rec_get("config"));
+      Router::import();
+      LOG_WRITE(INFO, router.get(),
+                L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router_obj->toString()));
       return Kernel::build();
     }
 
@@ -290,9 +278,9 @@ namespace fhatos {
       }
       /// boot from binary encoded header file
       if(config_obj->is_noobj()) {
-        if(boot_config_obj_len > 0) {
-          boot_config_obj_copy = boot_config_obj;
-          boot_config_obj_copy_len = boot_config_obj_len;
+        if(conf_boot_config_obj_len > 0) {
+          boot_config_obj_copy = conf_boot_config_obj;
+          boot_config_obj_copy_len = conf_boot_config_obj_len;
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
           config_obj = Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")

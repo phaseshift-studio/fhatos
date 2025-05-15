@@ -28,8 +28,6 @@
 #include "thread/thread.hpp"
 
 namespace fhatos {
-  // using Thread_p = ptr<Thread>;
-  // static ID_p SCHEDULER_FURI = id_p("/sys/scheduler_t");
 
   class Scheduler final : public Rec {
 
@@ -39,7 +37,7 @@ namespace fhatos {
   public:
     explicit Scheduler(const ID &id);
 
-    static ptr<Scheduler> &singleton(const ID &id = ID("/sys/scheduler"));
+    static ptr<Scheduler> &singleton(const ID &id = ID("/boot/scheduler"));
 
     static bool shutting_down();
 

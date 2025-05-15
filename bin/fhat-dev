@@ -309,7 +309,7 @@ build_boot_config() {
   fi
   echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
   printf '%b\n' "$(cat ${boot})\n"
-  xxd -i -n boot_config_obj $boot > "${FHATOS_HOME}"/src/boot_config.hpp
+  xxd -i $boot > "${FHATOS_HOME}"/src/boot_config.hpp
   status_check $? "generated boot_config.hpp (header encoding)"
   cp "${FHATOS_HOME}/${boot}" "${FHATOS_HOME}"/data/boot/boot_config.obj
   status_check $? "generated ${boot} => data/boot/boot_config.obj (littlefs encoding)"

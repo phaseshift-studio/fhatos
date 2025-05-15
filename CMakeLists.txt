@@ -20,6 +20,13 @@ IF(DO_NOT_USE)
         INCLUDE(CPack)
     ENDIF()
 ENDIF()
+
+FETCHCONTENT_DECLARE(
+        cpmlib
+        GIT_REPOSITORY https://github.com/cpm-cmake/CPM.cmake.git
+        GIT_TAG v0.37.0
+)
+FETCHCONTENT_MAKEAVAILABLE(cpmlib)
 ##############################################
 ##############################################
 ##############################################
@@ -152,7 +159,14 @@ SET(CMAKE_CXX_COMPILER_VERSION 14)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra ${CMAKE_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -lbfd -ldl ${CMAKE_CXX_FLAGS_DEBUG}")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
-SET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use")
+#################
+FIND_PROGRAM(IWYU_PATH NAMES include-what-you-use include-what-you-use)
+IF(NOT IWYU_PATH)
+    MESSAGE(WARNING "Could not find the program include-what-you-use")
+    UNSET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
+ELSE()
+    SET(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use")
+ENDIF()
 ####################################################################
 ####################################################################
 ####################################################################

@@ -1,8 +1,4 @@
 FUNCTION(CREATE_TARGET TARGET_NAME)
-    FIND_PROGRAM(IWYU_PATH NAMES include-what-you-use include-what-you-use REQUIRED)
-    IF(NOT IWYU_PATH)
-        MESSAGE(FATAL_ERROR "Could not find the program include-what-you-use")
-    ENDIF()
     ########################################################
     IF(APPLE)
         SET(CMAKE_MACOSX_RPATH 1)
