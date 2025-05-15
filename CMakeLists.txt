@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.25.0)  # CMake version check
+CMAKE_MINIMUM_REQUIRED(VERSION 3.22.0)  # CMake version check
 ######## The fHatTy #########
 PROJECT(fhatos) #############
 #############################
