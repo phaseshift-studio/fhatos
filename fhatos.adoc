@@ -85,40 +85,30 @@ $ fhatos --boot:config=../conf/boot-loader.obj
     fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=>11399168,free=>11397696,used=>0.01291]
-[INFO]  [/sys/router/] router started
-[INFO]  [/sys/router/] heap <none> spanning /sys/# mounted
-[INFO]  [/sys/router/] heap /mnt/mnt spanning /mnt/# mounted
-[INFO]  [/sys/router/] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router/] boot working directory: /home/killswitch/software/fhatos/build/docs/build
-[INFO]  [/sys/router/] /home/killswitch/software/fhatos/build/docs/build/data/boot/boot_config.obj boot loader native location
-[WARN]  [/sys/router/] no mounted structure for heap  
-[WARN]  [/sys/router/] no mounted structure for fs  
-[WARN]  [/sys/router/] no mounted structure for log  
-[WARN]  [/sys/router/] no mounted structure for /io/log  
-[WARN]  [/sys/router/] no mounted structure for terminal  
-[WARN]  [/sys/router/] no mounted structure for /io/terminal  
-[WARN]  [/sys/router/] no mounted structure for console  
-[WARN]  [/sys/router/] no mounted structure for /io/console  
-[WARN]  [/sys/router/] no mounted structure for button  
-[WARN]  [/sys/router/] no mounted structure for /io/z  
-[INFO]  [/sys/router/] /boot/config boot config file loaded [size: 894 bytes]
+[INFO]  main [total=>11395072,free=>11393664,used=>0.01236]
+[INFO]  [/sys/router] router started
+[INFO]  [/sys/router] heap <none> spanning /sys/# mounted
+[INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
+[WARN]  [/sys/router] no mounted structure for /fos/s/heap  
+[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
+[INFO]  [/sys/router] boot working directory: /home/killswitch/software/fhatos/build/docs/build
+[INFO]  [/sys/router] /home/killswitch/software/fhatos/build/docs/build/data/boot/boot_config.obj boot loader native location
+[WARN]  [/sys/router] no mounted structure for heap  
+[WARN]  [/sys/router] no mounted structure for terminal  
+[WARN]  [/sys/router] no mounted structure for /io/terminal  
+[WARN]  [/sys/router] no mounted structure for console  
+[WARN]  [/sys/router] no mounted structure for /io/console  
+[INFO]  [/sys/router] /boot/config boot config file loaded [size: 656 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config] 
    [
      scheduler=>[
-      id=>/sys/scheduler
       config=>[
        def_stack_size=>32384
      ]
-    ]
+    ]@/sys/scheduler
      router=>[
-      id=>/sys/router
       config=>[
-       namespace=>[
-        :=>/mmadt/
-        fos:=>/fos/
-      ]
        auto_prefix=>[
         
         /mmadt/
@@ -133,16 +123,15 @@ $ fhatos --boot:config=../conf/boot-loader.obj
         /sys/
       ]
      ]
-    ]
+    ]@/sys/router
      typer=>[
-      id=>/sys/typer
       config=>[
        module=>[
         /mmadt/#
         /fos/#
       ]
      ]
-    ]
+    ]@/sys/typer
      import=>[
       /fos/q/#
       /fos/sys/#
@@ -154,47 +143,46 @@ $ fhatos --boot:config=../conf/boot-loader.obj
       /sys/#
       /mmadt/#
     ]
-     main=>main()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
+     setup=>setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=>+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11939840,free=>11937984,used=>0.01554]
-[INFO]  [/sys/router/] router configured
-            [id=>/sys/router,config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]
+[INFO]  [/sys/mem] main [total=>11808768,free=>11807008,used=>0.01491]
+[INFO]  [/sys/router] router configured
+            [structure=>[/sys/#,/mnt/#,/boot/#],config=>[auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]],::=>[mount=>mount?obj<=obj{?}(structure=>_)[cpp]]]@/sys/router
 [INFO]  [/boot/config] router boot config dropped
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/scheduler] scheduler configured
-            [id=>/sys/scheduler,config=>[def_stack_size=>32384]]
+            [spawn=>[],bundle=>[],config=>[def_stack_size=>32384]]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
-[INFO]  [/sys/router/] heap /mnt/fos spanning /fos/# mounted
-[INFO]  [/sys/router/] heap /mnt/mmadt spanning /mmadt/# mounted
+[WARN]  [/sys/router] no mounted structure for /fos/s/heap  
+[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
+[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
 [INFO]  [/sys/typer] typer started
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] typer configured
-            [id=>/sys/typer,config=>[module=>[/mmadt/#,/fos/#]]]
+            [module=>[fos=>[qproc=>qproc?rec<=obj{?}()[cpp],io=>[gpio=>gpio?rec<=obj{?}()[cpp]],util=>[time=>time?obj{?}<=obj{?}()[cpp]]]],config=>[module=>[/mmadt/#,/fos/#]]]@/sys/typer
 [INFO]  [/boot/config] typer boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>12480512,free=>12478496,used=>0.01615]
-[INFO]  [/sys/router/] heap /mnt/io spanning /io/# mounted
+[INFO]  [/sys/mem] main [total=>12484608,free=>12482720,used=>0.01512]
+[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>12480512,free=>12478496,used=>0.01615]
+[INFO]  [/sys/mem] main [total=>12476416,free=>12474496,used=>0.01539]
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] /mmadt/proc type defined
 [INFO]  [/sys/typer] /mmadt/proc/::/eval type defined
-[INFO]  [/sys/router/] /io/parser obj loaded
-      .oO evaluating main inst Oo.
-[INFO]  [/sys/mem] main [total=>12615680,free=>12613632,used=>0.01624]
+[INFO]  [/sys/router] /io/parser obj loaded
+      .oO evaluating setup inst Oo.
+[INFO]  [/sys/mem] main [total=>12611584,free=>12609632,used=>0.01548]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
-[INFO]  [/boot/config] applying main inst
-            main()[start({heap[[pattern=>+/#]]@/mnt/var}).end().start({fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs}).end().mount(at(/mnt/var)).end().mount(at(/mnt/fs)).end().start({log[[=>]]@/io/log}).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().start({button[[pin=>gpio[5],on_push=>lift(print('button pushed'))]]@/io/z}).end().spawn(at(/io/console)).end().bundle(at(/io/z)).end()]
-[INFO]  [/sys/router/] heap /mnt/var spanning +/# mounted
-[INFO]  [/mnt/fs] data/fs location mounted
-[INFO]  [/sys/router/] fs /mnt/fs spanning /fs/# mounted
+[INFO]  [/boot/config] applying setup inst
+            setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=>+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
+[WARN]  [/mnt/boot] structure /mnt/boot spanning /boot/# already stopped
+[INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/scheduler] /io/z fiber bundled
-[INFO]  [/sys/mem] main [total=>88387584,free=>88385408,used=>0.00246]
-[INFO]  [/boot/config] boot time: 0.086309969 seconds
+[INFO]  [/sys/mem] main [total=>88248320,free=>88246304,used=>0.00228]
+[INFO]  [/boot/config] boot time: 0.059197468 seconds
 
 ----
 
@@ -249,11 +237,9 @@ fhatos> */sys/scheduler
 ===>/io/console
 =>]
 ==>bundle=>[
-===>/io/z
 =>]
 ==>config=>[
-===>id=>/sys/scheduler
-===>config=>[def_stack_size=>32384]
+===>def_stack_size=>32384
 =>]
 ==>::=>[
 ===>spawn=>spawn?obj<=obj{?}(thread=>_)[cpp]
@@ -282,6 +268,34 @@ The [.h]#router# is responsible for storing and retrieving `objs` from a pool of
 [source,mmadt]
 ----
 fhatos> */sys/router
+>[
+==>structure=>[
+===>/sys/#
+===>/mnt/#
+===>/fos/#
+===>/mmadt/#
+===>/io/#
+===>+/#
+=>]
+==>config=>[
+===>auto_prefix=>[
+====>
+====>/mmadt/
+====>/mmadt/ext/
+====>/fos/
+====>/fos/sys/
+====>/fos/s/
+====>/fos/io/
+====>/fos/sensor/
+====>/fos/ui/
+====>/fos/util/
+====>/sys/
+==>]
+=>]
+==>::=>[
+===>mount=>mount?obj<=obj{?}(structure=>_)[cpp]
+=>]
+>]@/sys/router
 ----
 
 ++++
@@ -536,18 +550,9 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 [source,mmadt]
 ----
 fhatos> # -> noobj
-[INFO]  [/sys/router/] 1 fs(s) closing
-[INFO]  [/sys/router/] 7 heap(s) closing
-[INFO]  [/sys/router/] router /sys/router/ stopped
-[ERROR] [/mnt/io] unable to read /io/console/config/nest
-[ERROR] [/mnt/io] unable to read /io/console/config/terminal/stdout
-[INFO]  [/sys/router/] /mnt/# heap detached
-[INFO]  [/sys/router/] /boot/# heap detached
-[INFO]  [/sys/router/] /fos/# heap detached
-[INFO]  [/sys/router/] /mmadt/# heap detached
-[INFO]  [/sys/router/] /io/# heap detached
-[INFO]  [/sys/router/] +/# heap detached
-[INFO]  [/sys/router/] /fs/# fs detached
+[INFO]  [/sys/router] 6 heap(s) closing
+[INFO]  [/sys/router] router /sys/router stopped
+[ERROR] [/sys/router] # crosses multiple structures
 ----
 
 ++++
@@ -891,14 +896,6 @@ fhatos> *char
 fhatos> --- char['a']@a
 fhatos> --- char['b']@b
 fhatos> @a + @b
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
-	         lhs id      inst id        resolve obj        
-	  ->[/mmadt/obj] /mmadt/plus => plus(_)
-fhatos> *a
-fhatos> @a.as(str) + @b
-[ERROR] [/mmadt/parser] noobj is not a /mmadt/str as defined by [str][_] 
-		 \_/mmadt/str is not a subtype of /mmadt/str
-	  thrown at inst noobj => as?obj{?}<=obj{?}(type?uri=>str)[cpp] [type=>str]
 ----
 
 ++++
@@ -1080,9 +1077,6 @@ fhatos> 3.band(2,8)                           // <1>
 fhatos> 3.band(max=>8,min=>2)                 // <2>
 ==>3
 fhatos> 'abc'.band(2,8)                       // <3>
-[ERROR] [/mmadt/parser] 2 is not a str as defined by [str][_] 
-		 \_/mmadt/int is not a subtype of /mmadt/str
-	  thrown at inst 'abc' => band?int{?}<=int(min=>2,max=>8)[is(and([gte(from(min)),lte(from(max))]))] [min=>2,max=>8]
 ----
 
 ++++
@@ -1314,13 +1308,6 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 
 [source,mmadt]
 ----
-fhatos> is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
-==>is_divisble?bool<=int(by?int=>is?noobj<=obj(neq?noobj<=obj(0)[noobj])[noobj].else?noobj<=obj(print?noobj<=obj('error')[noobj].map?noobj<=obj(1)[noobj])[noobj])[mod(from(by)).eq(0)]
-fhatos> 10.is_divisible(2)
-error==>true
-fhatos> 10.is_divisible('abc')
-error[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_] 
-		 \_/mmadt/str is not a subtype of /mmadt/int
 ----
 
 ++++
@@ -1380,9 +1367,9 @@ When an `obj` has a reference, the `obj` encoding in the data flow (hardware mai
 from *::
 +
 --
-[cols="5,6"]
+[cols="5,6",separator=🧱]
 |===
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 *y
@@ -1412,7 +1399,7 @@ fhatos> **y
 <!-- 🐓 -->
 ++++
 
-a|
+a🧱
 [source,mmadt]
 ----
    [■]                         [■]
@@ -1441,10 +1428,10 @@ The fURI `z` references the `int` `12`. The fURI `y` references the `uri` `z`. D
 at @::
 +
 --
-[cols="5,6"]
+[cols="5,6",separator=🧱]
 |===
 
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out
 a -> 12
@@ -1476,7 +1463,7 @@ fhatos> *a
 <!-- 🐓 -->
 ++++
 
-a|
+a🧱
 [source,mmadt]
 ----
    [■]                          [■]
@@ -1493,9 +1480,9 @@ pubsub ?sub::
 +
 --
 
-[cols="5,6"]
+[cols="5,6",separator=🧱]
 |===
-a|
+a🧱
 ++++
 <!-- 🐖 ./main_runner.out "a?sub -> |to(b)" "*a?sub" "*b" "a->12" "*a" "*b" -->
 ++++
@@ -1523,7 +1510,7 @@ fhatos> *b
 <!-- 🐓 -->
 ++++
 
-a|
+a🧱
 [source,mmadt]
 ----
    [■]                          [■]
@@ -1701,19 +1688,6 @@ a -> int8[126]                       --- <2>
 ----
 fhatos> /sys/router/config/resolve/auto_prefix ->
           *(_) + |[/mmadt/ext/]             // <1>
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved 
-	         lhs id      inst id        resolve obj        
-	  ->[/mmadt/obj] /mmadt/plus => plus(_)
-fhatos> a -> int8[126]                       // <2>
-==>int8[126]
-fhatos> @a + 1
-==>int8[127]@a
-fhatos> @a + 1
-==>int8[128]@a
-fhatos> @a + 1                               // <3>
-[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))] 
-		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&dc=1,1&rng=/mmadt/int&rc=1,1
-	  thrown at inst int8[128]@a => plus(0?int=>1)[cpp] [0=>1]
 ----
 
 ++++
@@ -1865,9 +1839,9 @@ When an `obj` is applied to an `inst`, the `obj` is called the _left-hand side_ 
 This `obj` is the catalyst for a cascade of events that take place across the `inst` arguments and internal `bcode`.
 The sequence of events are diagrammatically represented in the graphical explanation below where each line is a new timestep in the process.
 
-[cols="6,9"]
+[cols="6,9",separator=🧱]
 |===
-a|
+a🧱
 [.center]
 [source,mmadt]
 ----
@@ -1880,7 +1854,7 @@ obj_d ──├─> inst(arg1, arg2, ...)
         └─────────────>[x.y.z]─────> obj_r
 
 ----
-a|
+a🧱
 [.center]
 [source,mmadt]
 ----
@@ -2170,11 +2144,6 @@ fhatos> person[[name=>'marko',age=>29]]
 ==>age?nat=>29
 >]
 fhatos> person[[name=>'lili',age=>129]]
-[ERROR] [/mmadt/parser] noobj is not a nat as defined by nat()[is(gte(0))] 
-		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id       resolve obj                                       
-	  ->[/mmadt/obj] /mmadt/gte => gte?bool<=obj{?}()
-	  thrown at inst noobj => nat()[is(gte(0))] [=>]
 ----
 
 ++++
@@ -2214,9 +2183,9 @@ fhatos> 1.-|[is(gt(0))=>'good: {_}', _=>'bad:{_}']                // <2>
 <1> two parallel branches of computation composed by `rec` key matching.
 <2> two parallel branches of computation selected by `rec` key matching.
 
-[cols="6,9"]
+[cols="6,9",separator=🧱]
 |===
-a|
+a🧱
 [.center]
 [source,mmadt]
 ----
@@ -2226,7 +2195,7 @@ a|
     b                                 b
     └──as(str).plus('a')──plus('b')───┘
 ----
-a|
+a🧱
 [.center]
 [source,mmadt]
 ----
@@ -2257,13 +2226,6 @@ For instance, `if` is implemented with a two entry `rec`, where one entry maps t
 fhatos> /io/console/config/nest -> 0                  // <1>
 ==>0
 fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]          // <2>
-[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj                                      
-	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
-fhatos> {1,2,3}.[is(gt(2)) => _, _ => noobj]>-        // <3>
-[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj                                      
-	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
 ----
 
 ++++
@@ -2600,18 +2562,6 @@ a -> age[45]
 fhatos> age -> |(is(gt(0)).is(lt(120)))
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj].is?noobj<=obj(lt?noobj<=obj(120)[noobj])[noobj]
 fhatos> a -> age[45]
-[ERROR] [/mmadt/parser] 45 is not a age as defined by is(gt(0)).is(lt(120)) 
-		 \_[ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&dc=0,1&rng=/mmadt/bool&rc=1,1 inst unresolved 
-	         lhs id      inst id      resolve obj                                      
-	  ->[/mmadt/obj] /mmadt/gt => gt?bool<=obj{?}()
-fhatos> *a.inspect()
-[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
-	         lhs id      inst id           resolve obj           
-	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
-fhatos> @a.inspect()
-[ERROR] [ /mmadt/obj ]  /mmadt/inspect?dom=/mmadt/obj&dc=1,1&rng=/mmadt/rec&rc=1,1 inst unresolved 
-	         lhs id      inst id           resolve obj           
-	  ->[/mmadt/obj] /mmadt/inspect => inspect(_)
 ----
 
 ++++
@@ -2681,7 +2631,7 @@ For instance, if a natural number stem:[\mathbb{N}] is any non-negative number, 
 [source,mmadt]
 ----
 fhatos> /type/int/nat -> |is(gt(0))
-[ERROR] [/sys/router/] no mounted structure for /type/int/nat  
+[ERROR] [/sys/router] no mounted structure for /type/int/nat  
 ==>is?noobj<=obj(gt?noobj<=obj(0)[noobj])[noobj]
 fhatos> nat[6]
 ==>nat[6]
@@ -2748,37 +2698,22 @@ fhatos> /io/console/config/nest->3
 ==>3
 fhatos> */sys/router/#/
 >[
-==>/sys/router/::/mount=>mount?obj<=obj{?}(structure=>_)[cpp]
-==>/sys/router/config=>[
-===>namespace=>[
-====>:=>/mmadt/
-====>fos:=>/fos/
+==>/sys/router=>[
+===>structure=>[
+====>/sys/#
+====>/mnt/#
+====>/fos/#
+====>/mmadt/#
+====>/io/#
+====>+/#
 ==>]
-===>auto_prefix=>[
-====>
-====>/mmadt/
-====>/mmadt/ext/
-====>/fos/
-====>/fos/sys/
-====>/fos/s/
-====>/fos/io/
-====>/fos/sensor/
-====>/fos/ui/
-====>/fos/util/
-====>/sys/
+===>config=>[
+====>auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]
 ==>]
-=>]
-==>/sys/router/frame=>[rec][_]
-==>/sys/router/structure=>[
-===>/sys/#
-===>/mnt/#
-===>/boot/#
-===>/fos/#
-===>/mmadt/#
-===>/io/#
-===>+/#
-===>/fs/#
-=>]
+===>::=>[
+====>mount=>mount?obj<=obj{?}(structure=>_)[cpp]
+==>]
+=>]@/sys/router
 >]
 ----
 
