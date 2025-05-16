@@ -80,7 +80,7 @@ namespace fhatos {
             ->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
-            ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/full_boot_config.obj"));
+            ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/boot_config.obj"));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yconfiguring !bkernel !yobjs!!")

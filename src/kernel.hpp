@@ -160,6 +160,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_typer(const ID &type_config_id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p config = Kernel::boot()->rec_get(type_config_id);
       if(!config->is_rec())
         throw fError("!ytyper config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
@@ -175,6 +176,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p scheduler_obj = Kernel::boot()->rec_get(scheduler_config_id);
       if(!scheduler_obj->is_rec())
         throw fError("!yscheduler obj!! !rmust be!! a !brec!!: %s", scheduler_obj->toString().c_str());
@@ -188,14 +190,14 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_router(const ID &router_config_id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p router_obj = Kernel::boot()->rec_get(router_config_id);
       if(!router_obj->is_rec())
         throw fError("!yrouter obj!! !rmust be!! a !brec!!: %s", router_obj->toString().c_str());
       const ptr<Router> router = Router::singleton(router_obj->rec_get("id")->uri_value());
       router->obj_set("config", router_obj->rec_get("config"));
       Router::import();
-      LOG_WRITE(INFO, router.get(),
-                L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router_obj->toString()));
+      LOG_WRITE(INFO, router.get(), L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router_obj->toString()));
       return Kernel::build();
     }
 
@@ -217,6 +219,7 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Lst_p uris = Kernel::boot()->rec_get(import_id);
       fOS::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       mmADT::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
       // TODO: arg should take a tid
       // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
@@ -249,11 +252,13 @@ namespace fhatos {
     }
 
     static ptr<Kernel> eval(const Runnable &runnable) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       runnable();
       return Kernel::build();
     }
 
     static ptr<Kernel> using_boot_config(const Obj_p &boot_config) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Kernel::build().get()->boot_config = boot_config;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yboot loader config!!:\n"));
       string boot_str = PrintHelper::pretty_print_obj(boot_config, 4);
@@ -278,9 +283,9 @@ namespace fhatos {
       }
       /// boot from binary encoded header file
       if(config_obj->is_noobj()) {
-        if(conf_boot_config_obj_len > 0) {
-          boot_config_obj_copy = conf_boot_config_obj;
-          boot_config_obj_copy_len = conf_boot_config_obj_len;
+        if(boot_config_obj_len > 0) {
+          boot_config_obj_copy = boot_config_obj;
+          boot_config_obj_copy_len = boot_config_obj_len;
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
           config_obj = Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")

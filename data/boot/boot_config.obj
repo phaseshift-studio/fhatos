@@ -2,26 +2,26 @@
 basic boot_config obj
 ===
 [scheduler=>[id=>/sys/scheduler,
-                 config=>[def_stack_size=>32384]],
+             config=>[def_stack_size=>32384]],
  router=>[id=>/sys/router,
-              config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
-                       auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
-                                     /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
+          config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
+                   auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                 /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
  typer=>[id=>/sys/typer,
-             config=>[module=>[/mmadt/#,/fos/#]]],
+         config=>[module=>[/mmadt/#,/fos/#]]],
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
  main=>main?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
-    fs[[pattern=>/fs/#,config=>[root=>/fs]]]@/mnt/fs;
     /sys/router::mount(@/mnt/var);
-    /sys/router::mount(@/mnt/fs);
-    log[[=>]]@/io/log;
+    ===
+    dsm[[pattern=></shared/#>,
+         config=>[broker=><mqtt://chibi.local:1883>,client=>client]]]@/mnt/dsm;
+    /sys/router::mount(@/mnt/dsm);
+    ===
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
     /io/console/config/stack_size -> 259072;
-    button[[pin=>gpio[5], on_push=>^print('button pushed')]]@/io/z;
     /sys/scheduler::spawn(@/io/console);
-    /sys/scheduler::bundle(@/io/z);
  ]
 ]@/boot/config

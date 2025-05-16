@@ -54,8 +54,7 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
             -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data/fs) # file system root for executable
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data/boot) # file system boot for executable
-    FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/conf/boot_config.obj" "${CMAKE_BINARY_DIR}/data/boot/boot_config.obj")
-    FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/conf/full_boot_config.obj" "${CMAKE_BINARY_DIR}/data/boot/full_boot_config.obj")
+    FILE(COPY_FILE "${CMAKE_SOURCE_DIR}/data/boot/boot_config.obj" "${CMAKE_BINARY_DIR}/data/boot/boot_config.obj")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")

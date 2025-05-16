@@ -133,7 +133,7 @@ namespace fhatos {
         return kp->import(Processor::import())
             ->display_note("\n!g[!mSTART!g] !r.!go!bO !yloading !bboot config !yobjs!! !bO!go!r.!!\n")
             ->eval([]() {
-              const Obj_p boot = FS::load_boot_config("/data/boot/full_boot_config.obj")->clone();
+              const Obj_p boot = FS::load_boot_config("/data/boot/boot_config.obj")->clone();
               LOG_WRITE(INFO, boot.get(), L("{}\n", boot->toString()));
               const Obj_p result = Processor::compute(boot);
               LOG_WRITE(INFO, result.get(), L(FOS_TAB_4 "\\_ !yboot loader!! result: {}\n", result->toString()));

@@ -27,7 +27,7 @@ help_menu() {
     fhat-dev clean
     fhat-dev package native
     fhat-dev build docs
-    fhat-dev build native boot=conf/boot_config.obj
+    fhat-dev build native boot=data/boot/boot_config.obj
     fhat-dev test native test_scheduler
     fhat-dev build esp32 fhatos
     fhat-dev upload esp32
@@ -302,17 +302,18 @@ test_esp32() {
 
 build_boot_config() {
   pushd .
-  cd "${FHATOS_HOME}"/conf || exit 1;
+    cd "${FHATOS_HOME}"/data/boot || exit 1;
   popd
   if [[ -z $boot ]]; then
-    boot="conf/boot_config.obj"
+    boot="data/boot/boot_config.obj"
   fi
   echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
   printf '%b\n' "$(cat ${boot})\n"
-  xxd -i $boot > "${FHATOS_HOME}"/src/boot_config.hpp
+  pushd .
+  cd "$(dirname ${boot})" || exit 1;
+    xxd -i "$(basename ${boot})" > "${FHATOS_HOME}"/src/boot_config.hpp
+  popd
   status_check $? "generated boot_config.hpp (header encoding)"
-  cp "${FHATOS_HOME}/${boot}" "${FHATOS_HOME}"/data/boot/boot_config.obj
-  status_check $? "generated ${boot} => data/boot/boot_config.obj (littlefs encoding)"
   status_check $? "boot_config"
 }
 
