@@ -1,0 +1,208 @@
+:imagesdir: ./images
+:favicon: {imagesdir}/fhatos-logo-small.png
+:copyright: PhaseShift Studio
+:author: 💩 Dogturd Stynx
+:email: dogturd.stynx@fhatos.org
+:revnumber: 0.1
+:icons: font
+:icon-set: fas
+:stem: latexmath
+:source-highlighter: highlight.js
+:highlightjsdir: ./highlight
+:highlightjs-languages: mmadt, bash
+:stylesheet: ./css/fhatos.css
+// :linkcss:
+:data-uri:
+:toc-title: 🐖 FhatOS
+:toc: left
+:toclevels: 4
+:license-url: https://www.gnu.org/licenses/agpl-3.0.html
+:license-title: AGPLv3
+:lang: en
+:docinfo: shared
+:max-width: 75%
+:app-name: FhatOS
+:version-label: 0.1-alpha
+:docname: FhatOS Documentation
+:doctitle: FhatOS: A Distributed Operating System for Embedded Systems
+
+= FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
+
+++++
+<script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css"/>
+++++
+
+image:fhatos-logo.png[width=140,float=left] **FhatOS** (pronounced _fat-ahs_) is a
+https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for
+https://en.wikipedia.org/wiki/ESP8266[ESP8266], https://en.wikipedia.org/wiki/ESP32[ESP32],
+https://en.wikipedia.org/wiki/Raspberry_Pi[Raspberry PI], and similar fabrications.
+Moreover, sandboxed deployments on Linux and MacOSX systems offer the cluster large memory/storage space and processor speed.
+All [blue]*f*​[red]#H#​[lime]*A*​[yellow]#T#​[aqua]#O#​[fuchsia]#S#​ resources, from individual datum, complex data structures, files, and threads exist within a single
+https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi**
+(pronounced "fury" or "fhat URI") -- a subset of the common URI space.
+Programs are written in http://mmadt.org[mm-ADT] or https://en.wikipedia.org/wiki/C_(programming_language)[C] / https://en.wikipedia.org/wiki/C%2B%2B[C++]
+and communicate with one another via storage structures that maintain subsets of the fURI space.
+In general, [red]*f*​[lime]#H#​[fuchsia]#A#​[blue]#T#​[yellow]*O*​[aqua]#S#​ provides a convenient medium for coordinating a heterogeneous collection of hardware processors and their peripheries.
+
+https://github.com/phaseshift-studio/fhatos[🐙 **source code**]
+
+include::fhatos_intro.adoc[]
+include::fhatos_mmadt.adoc[]
+include::fhatos_router.adoc[]
+
+
+== FhatOS Modules
+
+=== Kernel Modules
+
+==== mmADT Module (mmadt)
+
+===== Type Module (mmadt:type)
+
+===== Parser Module (mmadt:parser)
+
+==== Scheduler Module (scheduler)
+
+==== Router Module (router)
+
+=== Core Modules
+
+==== Pin Modules
+
+===== GPIO (gpio)
+
+Hardware devices with digital general purpose input/output (GPIO) can be manipulated with `/fos/io/gpio`.
+
+===== PWM (pwm)
+
+Pins that support pulse-wave modulation can be manipulated with `/fos/io/pwm`.
+
+===== i2c (i2c)
+
+Two wire access
+
+==== FileSystem Module (fs)
+
+==== Terminal Module (terminal)
+
+==== REPL Module (repl)
+
+==== Logging Module (log)
+
+=== Embedded Systems Modules
+
+==== Sensors
+
+==== Actuators
+
+== Reference
+
+=== mm-ADT Core Instructions
+
+==== as `[_]`
+
+==== block `|`
+
+==== is
+
+==== plus
+
+++++
+
+<!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
+++++
+
+[source,mmadt]
+----
+fhatos> true.plus(false)
+==>true
+fhatos> 1.plus(2)
+==>3
+fhatos> 'a'.plus('b')
+==>'ab'
+----
+
+++++
+<!-- 🐓 -->
+
+++++
+
+==== mult
+
+==== mod
+
+==== lift `^`
+
+==== drop `v`
+
+==== split `-<`
+
+==== each `=`
+
+==== within `\_/ \_`
+
+==== merge `>-`
+
+==== from `*`
+
+==== to `\->`
+
+==== get `@`
+
+==== pass `-\->`
+
+==== match `~`
+
+++++
+
+<!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
+++++
+
+[source,mmadt]
+----
+fhatos> [a=>2].match([a=>3])
+----
+
+++++
+<!-- 🐓 -->
+
+++++
+
+==== eq
+
+==== neq
+
+==== gt
+
+==== lt
+
+==== gte
+
+==== lte
+
+== FhatOS Types
+
+=== Process Types
+
+==== thread
+
+==== fiber
+
+==== coroutine
+
+=== PubSub Types
+
+==== sub
+
+[source,mmadt]
+----
+sub[[:source=>_, :pattern=>_, :on_recv=>bcode[_]]]
+----
+
+==== msg
+
+[source,mmadt]
+----
+msg[[:target=>uri[_], :payload=>_, :retain=>bool[_]]]
+----
