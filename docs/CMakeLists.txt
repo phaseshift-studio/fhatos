@@ -42,21 +42,39 @@ IF(BUILD_DOCS)
     MESSAGE(CHECK_START "${.y}CMaking AsciiDoc Documentation${..}")
     FILE(COPY ${CMAKE_SOURCE_DIR}/docs/src/runner/fhatos-doc-code.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
     FILE(COPY ${CMAKE_SOURCE_DIR}/scripts/colors.py DESTINATION ${CMAKE_BINARY_DIR}/docs/build)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/fhatos_index.adoc DESTINATION ${CMAKE_BINARY_DIR}/docs)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/fhatos_intro.adoc DESTINATION ${CMAKE_BINARY_DIR}/docs)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/fhatos_mmadt.adoc DESTINATION ${CMAKE_BINARY_DIR}/docs)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/fhatos_router.adoc DESTINATION ${CMAKE_BINARY_DIR}/docs)
     FILE(COPY ${CMAKE_SOURCE_DIR}/data/boot/boot_config.obj DESTINATION ${CMAKE_BINARY_DIR}/docs/build/data/boot)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/images DESTINATION ${CMAKE_BINARY_DIR}/docs)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/css DESTINATION ${CMAKE_BINARY_DIR}/docs)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs/highlight DESTINATION ${CMAKE_BINARY_DIR}/docs)
     FILE(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/docs/images/diagrams)
     ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner boot_runner)
-    SET(FILES ${CMAKE_SOURCE_DIR}/docs/fhatos.adoc)
+    SET(INDEX ${CMAKE_BINARY_DIR}/docs/fhatos_index.adoc)
+    SET(FILES ${CMAKE_BINARY_DIR}/docs/fhatos_intro.adoc)
+    SET(FILES ${CMAKE_BINARY_DIR}/docs/fhatos_mmadt.adoc)
+    SET(FILES ${CMAKE_BINARY_DIR}/docs/fhatos_router.adoc)
+    SET(SINGLE ${CMAKE_BINARY_DIR}/docs/fhatos.adoc)
+    ADD_CUSTOM_COMMAND(TARGET asciidoc
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+            COMMAND asciidoctor-reducer -o ${SINGLE} ${INDEX}
+            COMMENT "Evaluating asciidoctor-reducer: ${INDEX} of ${FILES}")
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/build
-            COMMAND python fhatos-doc-code.py --verbose ${FILES}
-            COMMENT "Evaluating fhatos-doc-code.py: ${FILES}")
+            COMMAND python fhatos-doc-code.py --verbose ${SINGLE}
+            COMMENT "Evaluating fhatos-doc-code.py: ${SINGLE}")
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/docs
-            COMMAND asciidoctor -v -r asciidoctor-tabs -r asciidoctor-diagram -o index.html ${FILES}
-            COMMENT "Evaluating asciidoctor: ${FILES}")
+            COMMAND asciidoctor -v -r asciidoctor-tabs -r asciidoctor-diagram -o index.html ${SINGLE}
+            COMMENT "Evaluating asciidoctor: ${SINGLE}")
+    UNSET(SINGLE)
     UNSET(FILES)
+    UNSET(INDEX)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     #####################################################################
 ENDIF()

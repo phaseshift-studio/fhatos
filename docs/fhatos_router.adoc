@@ -1,0 +1,725 @@
+
+++++
+<!-- #############################################################################################################
+     #############################################################################################################
+     ############################################ ROUTER #########################################################
+     #############################################################################################################
+     ############################################################################################################# -->
+++++
+
+=== The Router Structure
+
+image:cooties-2.png[width=140,float=right] Every fhatOS machine has a single _router_.
+The function of the router is to:
+
+. Route read/write requests to respective structures.
+. Coordinate with remote routers on remote read/write requests.
+. Manage pattern conflicts between structures.
+. Manage fURI query extensions (`?` modulators).
+
+++++
+<!-- 🐖 ./main_runner.out "/io/console/config/nest->3" "*/sys/router/#/" -->
+++++
+
+[source,mmadt]
+----
+fhatos> /io/console/config/nest->3
+==>3
+fhatos> */sys/router/#/
+>[
+==>/sys/router=>[
+===>structure=>[
+====>/sys/#
+====>/mnt/#
+====>/fos/#
+====>/mmadt/#
+====>/io/#
+====>+/#
+==>]
+===>config=>[
+====>auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]
+==>]
+===>::=>[
+====>mount=>mount?obj<=obj{?}(structure=>_)[cpp]
+==>]
+=>]@/sys/router
+>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+The router manages access to physical memory.
+Physical memory is partitioned by *structures*.
+The address space of a structure is the (query-less) fURI.
+Structures have an associated *pattern* fURI defining the boundaries of their storage space.
+Structures can not have overlapping address spaces.
+Every structure implements the `structure.hpp` and ultimately, is an `obj`.
+
+- There are structures that encode `objs` in physical memory (e.g. `heap`).
+- There are structures that encode `objs` on disk (e.g. `fs` -- filesystem).
+- There are structures that encode `objs` on a remote broker (e.g. `mqtt`).
+- There are structures that encode `objs` in the Bluetooth hierarchy (e.g. `bt`).
+- There are structures that encode `objs` on RFID chips (e.g. `rfid`).
+- There are structures that encode `objs` as scoped variables when evaluating code (e.g. `frame`).
+- There are structures that encode other structures (e.g. `mnt`).
+
+The aggregate of all structures accessible through the router defines the complete memory footprint of a [blue]*F*​[red]#H#​[aqua]*a*​[yellow]#t#​[lime]#O#​[fuchsia]*s*​ instance.
+
+++++
+<!-- 🐖 ./main_runner.out
+a -> 'snowbutt'            --- <1>
+*a                         --- <2>
+a?sub -> |to(b)            --- <3>
+*a?sub                     --- <4>
+a -> 'meangirl'            --- <5>
+*b                         --- <6>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a -> 'snowbutt'            // <1>
+==>'snowbutt'
+fhatos> *a                         // <2>
+==>'snowbutt'
+fhatos> a?sub -> |to(b)            // <3>
+==>to?noobj<=obj(b)[noobj]
+fhatos> *a?sub                     // <4>
+>sub[
+==>source=>/sys/scheduler
+==>pattern=>a
+==>on_recv=>to(b)
+>]
+fhatos> a -> 'meangirl'            // <5>
+==>'meangirl'
+fhatos> *b                         // <6>
+==>'meangirl'
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> A request to write `str['snowbutt']` to `uri[a]` is sent to the router.
+<2> A request to read the `obj` at `uri[a]` is sent to the router.
+<3> A subscription request to receive notifications about `uri[a]` is sent to the router.
+<4> A request to read the subscriptions of `uri[a]` is sent to the router.
+<5> A request to write `str['meangirl']` to `uri[a]` is sent to the router.
+<6> A request to read `uri[b]` is sent to the router.
+
+The above example makes salient the router's role is structure usage.
+Not only are read/write requests managed by the router, but also subscriptions and the evaluation of their associated `on_recv`-code.
+However, ultimately, the router serves as a simple singleton proxy to the structures it manages.
+It's in the structures where the heavily lifting of the memory operations takes place.
+
+==== Structure Reading and Writing
+
+image:ansi/submarine.png[width=250,role=img-pad,title=submarine] Every structure supports 2 primary operations:
+
+[.center]
+[cols="2,2",width=75%]
+|===
+a|
+
+\$\text{read} : U \rightarrow O\$
+
+The router is given a fURI `u` from `U`.
+The router locates the `structure` responsible for the fURI subspace containing `u`.
+The `structure` resolves `u` to an `obj`. If no `obj` is found, `noobj` is returned.
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+[HIDDEN] u -> 'fhatos'
+from(u)
+*u
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> from(u)
+==>'fhatos'
+fhatos> *u
+==>'fhatos'
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+\$\text{write}: (U \times O) \rightarrow \emptyset\$
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+u -> o
+u.ref(o)
+o.to(u)
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> u -> o
+==>o
+fhatos> u.ref(o)
+==>o
+fhatos> o.to(u)
+==>o
+----
+
+++++
+<!-- 🐓 -->
+++++
+|===
+
+A read accepts a direct fURI (called an `id`) or a match fURI (called a `pattern`).
+Within the category of `id` and `pattern`, there are `node` fURIs and `branch` fURIs.
+An example itemization is provided below:
+
+* `id`: an unambiguous fURI that references a single addressable location in the structure.
+** `node`: the address of a specific `obj`.
+** `branch`: the root address of a collection of `objs`.
+* `pattern`: a fURI containing one or more wildcard path segments (`+` or `#`).
+** `node`: a pattern referencing zero or more `objs`.
+** `branch`: a pattern referencing zero or more collections of `objs`.
+
+[cols="4,5"]
+|===
+
+a|
+++++
+<!-- 🐖 ./main_runner.out
+a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+*a/b            --- <1>
+*a/b/           --- <2>
+*a/+            --- <3>
+*a/+/           --- <4>
+*a/#            --- <5>
+*a/#/           --- <6>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
+fhatos> *a/b            // <1>
+==>2
+fhatos> *a/b/           // <2>
+>[
+==>a/b=>2
+>]
+fhatos> *a/+            // <3>
+==>1
+==>2
+fhatos> *a/+/           // <4>
+>[
+==>a/a=>1
+==>a/b=>2
+>]
+fhatos> *a/#            // <5>
+==>1
+==>2
+==>3
+==>4
+fhatos> *a/#/           // <6>
+>[
+==>a/a=>1
+==>a/b=>2
+==>a/b/c=>3
+==>a/b/d=>4
+>]
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a|
+
+The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
+In fact, it is a single fluent expression. The signature of the `end` `inst` (sugar'd `;`) is `end?obj{0}\<=obj{*}`.
+This barrier step computes all monads up to it before emitting a `noobj` monad.
+With `end`, it's possible to write mm-ADT in the classic statement-oriented, imperative-style where semincolons (effectively) separate atomic operations.
+
+<1> Dereferencing an `id`-node fURI to access a single `obj`.
+<2> Dereferencing an `id`-branch fURI to access a collection of `objs`.
+<3> Dereferencing a `pattern`-node fURI to access `objs` at respective nodes.
+<4> Dereferencing a `pattern`-branch fURI to access `objs` at respective branches.
+
+|===
+
+===== Query Processors
+
+image:ansi/nelson.png[width=250,float=left,role=title=nelson]
+Every fURI can have any number of key/value(s) pairs attached to it via the `?` query encoding scheme defined by the https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[W3C URI] specification.
+Modules can be added to structures enabling different behaviors on read/write given associated, relevant `?` parameters.
+Example modules that come preloaded with [lime]#f#​[aqua]#h#​[fuchsia]*A*​[blue]*T*​[red]#o#​[yellow]#s#​ are:
+
+. `pubsub`: supports asynchronous, event-based access to structure `objs`.
+.. `a?sub -> _` (subscribe )
+.. `a?sub -> noobj` (unsubscribe)
+.. `sub[source=>uri, pattern=>uri, on_recv=>obj]`
+.. `msg[target=>uri, payload=>obj, retain=>bool]`
+. `lock`: provides resource locking semantics to reading and writing `objs` in a concurrent environment.
+.. `a?lock=w` (prevent writes to the `obj` at `a`)
+.. `a?lock=rw` (prevent reads and writes to the `obj` at `a`)
+.. `a?lock=false` (unlock the `obj` at `a`)
+. `type`: provides an `obj` type system encoded within an `obj's` type fURI.
+.. `nat?dom=int&dc=1,1&rng=int&rc=1,1` (the `inst` signature of `nat?int<=int()[...]`)
+
+Other modules can be created and deployed across a [fuchsia]#F#​[blue]*H*​[aqua]#a#​[red]*T*​[yellow]*o*​[lime]*S*​ cluster.
+
+.Query Free fURIs
+****
+IMPORTANT: The address space of a structures does not include the query parameters.
+Query parameters are used by structures to modulate the semantics of a read/write operation and are never used as the address of an `obj`.
+However, nothing prevents the `obj` at an address to be a `uri[]` with a query.
+Be sure to use the non-sugar'd `< >` fURI syntax when multiple values are associated with a key as the value separating
+`,` will be preferentially parsed as a `lst`, `rec`, or `inst` argument separator.
+++++
+<!-- 🐖 ./main_runner.out
+abc?k1=v1&k2=v2&k3=v3                     --- <1>
+abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            --- <2>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          --- <3>
+<abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    --- <4>
+*abc
+abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
+*abc
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> abc?k1=v1&k2=v2&k3=v3                     // <1>
+==>abc?k1=v1&k2=v2&k3=v3
+fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          // <3>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    // <4>
+==>12
+fhatos> *abc
+==>12
+fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   // <5>
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+fhatos> *abc
+==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+<1> Sugar'd `uri` syntax can be used when no commas are present in the fURI.
+<2> Multiple values are deliminated using commas.
+<3> To ensure proper parsing, multi-value query `uris[]` should be wrapped in `< >` brackets.
+<4> The query of a fURI is stripped when used as a structure address.
+<5> The query of a fURI is not stripped when used as a value at a struture address.
+
+****
+
+[source,mmadt]
+----
+1.plus(2)
+----
+
+==== Embedding
+
+mm-ADT was designed to support the creation and manipulation of _abstract data types_ -- the "ADT" in mm-ADT.
+When expressing abstract data types is natural, then it's possible to leverage _multiple models_ such as key/value, document, relational, vector, graph, and the various nooks and crannies between -- the "mm" in mm-ADT.
+
+mm-ADT's URI addressing scheme makes it possible to _embed_ an array data types into the underlying [blue]*F*​[red]#h#​[lime]*A*​[fuchsia]*T*​[yellow]*O*​[aqua]#s#​ structure.
+This section will explore the following considerations when designing a _multi-model abstract data type_.
+
+. **spatial encodings**
+. **schema encodings**
+. **language encodings**
+
+===== Spatial Consideration when Embedding
+
+++++
+<!-- 🐖 ./main_runner.out
+1.plus(2)
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> 1.plus(2)
+==>3
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+A _matrix_ is an \$n \times m\$ data structure composed of \$n\$ vectors/row, each with \$m\$ elements/columns.
+A relational database _table_ is an example of a matrix, where the entries typically span numeric and non-numeric data types.
+Three general approaches to embedding a matrix or table into a `fos:structure` are presented below, where each makes different space/time tradeoffs.
+
+[cols="5,5,5",separator=🧱]
+|===
+^a🧱
+[.big]
+[source,mmadt]
+----
+ \    |   |    /
+ [■] [■] [■] [■]
+
+ -[■] [■] [■] [■]-
+
+ [■] [■] [■] [■]
+ /    |   |    \
+
+----
+^a🧱
+[.big]
+[source,mmadt]
+----
+​
+[■]-[■]-[■]-[■]
+
+[■]-[■]-[■]-[■]
+
+[■]-[■]-[■]-[■]
+​
+----
+
+^a🧱
+[.big]
+[source,mmadt]
+----
+​
+[■]-[■]-[■]-[■]
+|   |   |   |
+[■]-[■]-[■]-[■]
+|   |   |   |
+[■]-[■]-[■]-[■]
+​
+----
+a🧱
+++++
+<!-- 🐖 ./main_runner.out
+--- write matrix
+m/0/0 -> 0
+m/0/1 -> 1
+m/0/2 -> 2
+m/0/3 -> 3
+m/1/0 -> 4
+m/1/1 -> 5
+m/1/2 -> 6
+m/1/3 -> 7
+m/2/0 -> 8
+m/2/1 -> 9
+m/2/2 -> 10
+m/2/3 -> 11
+--- read matrix
+*m/0/0      --- <1>
+*m/0/+      --- <2>
+*m/+/0      --- <3>
+-->
+++++
+
+[source,mmadt]
+----
+fhatos> --- write matrix
+fhatos> m/0/0 -> 0
+==>0
+fhatos> m/0/1 -> 1
+==>1
+fhatos> m/0/2 -> 2
+==>2
+fhatos> m/0/3 -> 3
+==>3
+fhatos> m/1/0 -> 4
+==>4
+fhatos> m/1/1 -> 5
+==>5
+fhatos> m/1/2 -> 6
+==>6
+fhatos> m/1/3 -> 7
+==>7
+fhatos> m/2/0 -> 8
+==>8
+fhatos> m/2/1 -> 9
+==>9
+fhatos> m/2/2 -> 10
+==>10
+fhatos> m/2/3 -> 11
+==>11
+fhatos> --- read matrix
+fhatos> *m/0/0      // <1>
+==>0
+fhatos> *m/0/+      // <2>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      // <3>
+==>0
+==>4
+==>8
+----
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+++++
+
+<!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
+m/1 -> [4,5,6,7]
+m/2 -> [8,9,10,11]
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+
+++++
+
+[source,mmadt]
+----
+fhatos> --- write matrix
+fhatos> m/0 -> [0,1,2,3]
+=>[
+===>0
+===>1
+===>2
+===>3
+=>]
+fhatos> m/1 -> [4,5,6,7]
+=>[
+===>4
+===>5
+===>6
+===>7
+=>]
+fhatos> m/2 -> [8,9,10,11]
+=>[
+===>8
+===>9
+===>10
+===>11
+=>]
+fhatos> --- read matrix
+==>x
+fhatos> *m/0/0      // <1>
+==>0
+fhatos> *m/0/+      // <2>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      // <3>
+==>0
+==>4
+==>8
+----
+
+++++
+
+<!-- 🐓 -->
+
+++++
+
+a🧱
+++++
+
+<!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
+[4,5,6,7], /
+[8,9,10,11]]
+--- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+
+++++
+
+[source,mmadt]
+----
+fhatos> --- write matrix
+fhatos> m -> [[0,1,2,3],
+              [4,5,6,7],
+              [8,9,10,11]]
+=>[
+=>[
+===>0
+===>1
+===>2
+===>3
+=>]
+=>[
+===>4
+===>5
+===>6
+===>7
+=>]
+=>[
+===>8
+===>9
+===>10
+===>11
+=>]
+=>]
+fhatos> --- read matrix
+==>x
+fhatos> *m/0/0      // <1>
+==>0
+fhatos> *m/0/+      // <2>
+==>0
+==>1
+==>2
+==>3
+fhatos> *m/+/0      // <3>
+==>0
+==>4
+==>8
+----
+
+++++
+
+<!-- 🐓 -->
+
+++++
+
+|===
+
+<1> Retrieve the first element of matrix `m`.
+<2> Retrieve the first row of matrix `m`.
+<3> Retrieve the first column of matrix `m`.
+
+The above example demonstrates the power of structural embeddings.
+The platonic matrix `m` was embedded in a structure using 3 different representations: _entry-wise_, _row-wise_, and _row-column wise_.
+Next, each embedding was read: an _element read_, a _row read_ and a _column read_.
+The expression used to read from each of the three embeddings is the same and so is the result.
+This is possible because a structure resolves up the fURI path hierarchy until it finds a match.
+Once found, it then traverses within the match to resolve the remaining path segments.
+
+.Amortized Costs in Terms of Time
+[.small][.center]
+
+[%header,width=50%,cols="l2,c1,c1,c1"]
+|===
+| embedding              | single-element | row-access  | column-access
+| [.red]#entry#          | \$O(1)\$       | \$O(n)\$    | \$O(m)\$
+| [.red]#row#            | \$O(m)\$       | \$O(1)\$    | \$O(m)\$
+| [.red]#row_column#     | \$O(1)\$       | \$O(1)\$    | \$O(1)\$
+|===
+
+The different embeddings also have different space costs, where space is defined as the amount of data accessed (i.e. retrieved from the structure) in order to satisfy the resolution of the respective fURI.
+
+.Amortized Costs in Terms of Space
+[.small][.center]
+
+[%header,width=50%,cols="l2,c1,c1,c1"]
+|===
+| embedding              | single-element | row-access    | column-access
+| [.red]#entry#          | \$O(1)\$       | \$O(n)\$      | \$O(m)\$
+| [.red]#row#            | \$O(n)\$       | \$O(n)\$      | \$O(n+m)\$
+| [.red]#row_column#     | \$O(n+m)\$     | \$O(n+m)\$    | \$O(n+m)\$
+|===
+
+[source,mmadt]
+----
+                                    [a=>[b,c]]
+                                       [■]
+          [■]                         /   \
+                              [b=>c][■]   [■][d=>e]
+
+   [a=>[b=>c,d=>e]]]            [a=>[b=>c,d=>e]]]
+           ^                            ^
+           |                            |
+           x                            x/
+
+----
+
+++++
+
+<!-- ######################################################################################################## ############################################################################################################# ########################################### SCHEDULER ####################################################### ############################################################################################################# ############################################################################################################# -->
+
+++++
+
+=== The Scheduler Process
+
+
+
+
+=== A FhatOS Console
+
+.FhatOS Console
+****
+The [fuchsia]#F#​[lime]*h*​[red]*a*​[aqua]#T#​[yellow]*o*​[blue]*S*​ Console is a composite of 3 other actors:
+
+. The `Terminal` (`/sys/io/terminal/`) provides thread-safe access to hardware I/O.
+. The `Parser` (`/sys/lang/parser/`) converts string input to bytecode output.
+. The `Processor` (`/sys/lang/processor/`) executes bytecode.
+****
+
+=== fURI and MQTT
+
+https://en.wikipedia.org/wiki/MQTT[MQTT] is a publish/subscribe message passing protocol that has found extensive usage in embedded systems.
+Hierarchically specified _topics_ can be **subscribed** and **published** to.
+In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic.
+[fuchsia]#f#​[yellow]*h*​[blue]*A*​[lime]*T*​[red]#o#​[aqua]*S*​ leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware.
+There exist three MQTT routers:
+
+. `MonadRouter`: An MQTT router scoped to an active monad (**thread**) processing a monoid (**program**).
+. `MonoidRouter`: An MQTT router scoped to a monoid (**program**).
+. `HostRouter`: An MQTT router scoped to the current host (**machine**).
+. `ClusterRouter`: An MQTT router scoped to the current intranet (**cluster**).
+. `GlobalRouter` : An MQTT router scoped to the Internet.
+. `MetaRouter`: An MQTT router dynamically scoped to other routers based on fURI endpoints.
+
+.fURI Router Scope Patterns
+****
+TIP: The more `/` in the fURI prefix, the more distributed the fURI repeat.
+* `abc` monad scoped fURI.
+* `~/abc` monoid scoped fURI ("home directory" of executing program).
+* `/abc` host scoped fURI (rooted at `localhost`).
+* `//abc` cluster scoped fURI (hosted on the intranet).
+* `//fhatos.org/abc` globally scoped fURI (hosted on the internet)
+****
+
+.Monoid power method
+[latexmath]
+++++
+
+M = aM
+
+++++
+
+++++
+
+<!-- 🐖 ./main_runner.out
+{1,2,3}
+{1,2,3}.plus(10)
+{1,2,3}.plus(_)
+{1,2,3}.plus(plus(_)) -->
+
+++++
+
+[source,mmadt,subs="-replacements"]
+----
+fhatos> {1,2,3}
+==>1
+==>2
+==>3
+fhatos> {1,2,3}.plus(10)
+==>11
+==>12
+==>13
+fhatos> {1,2,3}.plus(_)
+==>2
+==>4
+==>6
+fhatos> {1,2,3}.plus(plus(_))
+==>3
+==>6
+==>9
+----
+
+++++
+
+<!-- 🐓 -->
+
+++++

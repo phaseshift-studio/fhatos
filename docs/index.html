@@ -556,8 +556,6 @@ video {
 </ul>
 </li>
 <li><a href="#_fhatos_architecture">FhatOS Architecture</a>
-<ul class="sectlevel2">
-<li><a href="#_the_mm_adt_language">The mm-ADT Language</a>
 <ul class="sectlevel3">
 <li><a href="#_the_type">The Type</a></li>
 <li><a href="#_the_frame">The Frame</a></li>
@@ -580,8 +578,6 @@ video {
 <li><a href="#_bytecode_and_instruction_types">Bytecode and Instruction Types</a></li>
 <li><a href="#_user_defined_types">User Defined Types</a></li>
 <li><a href="#_process_types">Process Types</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a href="#_the_router_structure">The Router Structure</a>
@@ -775,7 +771,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11395072,free=&gt;11393664,used=&gt;0.01236]
+[INFO]  main [total=&gt;11395072,free=&gt;11393568,used=&gt;0.01320]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
@@ -836,7 +832,7 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      setup=&gt;setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11808768,free=&gt;11807008,used=&gt;0.01491]
+[INFO]  [/sys/mem] main [total=&gt;11808768,free=&gt;11806944,used=&gt;0.01544]
 [INFO]  [/sys/router] router configured
             [structure=&gt;[/sys/#,/mnt/#,/boot/#],config=&gt;[auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]],::=&gt;[mount=&gt;mount?obj&lt;=obj{?}(structure=&gt;_)[cpp]]]@/sys/router
 [INFO]  [/boot/config] router boot config dropped
@@ -854,25 +850,25 @@ The purpose of this documentation is to explain the mechanics of the boot proces
             [module=&gt;[fos=&gt;[qproc=&gt;qproc?rec&lt;=obj{?}()[cpp],io=&gt;[gpio=&gt;gpio?rec&lt;=obj{?}()[cpp]],util=&gt;[time=&gt;time?obj{?}&lt;=obj{?}()[cpp]]]],config=&gt;[module=&gt;[/mmadt/#,/fos/#]]]@/sys/typer
 [INFO]  [/boot/config] typer boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;12484608,free=&gt;12482720,used=&gt;0.01512]
+[INFO]  [/sys/mem] main [total=&gt;12484608,free=&gt;12482656,used=&gt;0.01563]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;12476416,free=&gt;12474496,used=&gt;0.01539]
+[INFO]  [/sys/mem] main [total=&gt;12476416,free=&gt;12474464,used=&gt;0.01565]
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] /mmadt/proc type defined
 [INFO]  [/sys/typer] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router] /io/parser obj loaded
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12611584,free=&gt;12609632,used=&gt;0.01548]
+[INFO]  [/sys/mem] main [total=&gt;12611584,free=&gt;12609600,used=&gt;0.01573]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
 [WARN]  [/mnt/boot] structure /mnt/boot spanning /boot/# already stopped
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/mem] main [total=&gt;88248320,free=&gt;88246304,used=&gt;0.00228]
-[INFO]  [/boot/config] boot time: 0.059197468 seconds</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88248320,free=&gt;88246272,used=&gt;0.00232]
+[INFO]  [/boot/config] boot time: 0.060019038 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1098,17 +1094,17 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 =&gt;]
 ==&gt;/mmadt/int=&gt;[int][_]
 ==&gt;/mmadt/int/::/mmadt/as=&gt;as?obj{?}&lt;=int(isa(/mmadt/uri))[cpp]
-==&gt;/mmadt/int/::/mmadt/div=&gt;div(0?int=&gt;_)[cpp]
+==&gt;/mmadt/int/::/mmadt/div=&gt;div(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gt=&gt;gt(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gte=&gt;gte(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/lt=&gt;lt(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/lte=&gt;lte(arg?int=&gt;_)[cpp]
-==&gt;/mmadt/int/::/mmadt/minus=&gt;minus(0?int=&gt;_)[cpp]
+==&gt;/mmadt/int/::/mmadt/minus=&gt;minus(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/mod=&gt;mod(isa(/mmadt/int))[cpp]
-==&gt;/mmadt/int/::/mmadt/mult=&gt;mult(0?int=&gt;_)[cpp]
+==&gt;/mmadt/int/::/mmadt/mult=&gt;mult(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/neg=&gt;neg(isa(/mmadt/int))[cpp]
-==&gt;/mmadt/int/::/mmadt/plus=&gt;plus(0?int=&gt;_)[cpp]
+==&gt;/mmadt/int/::/mmadt/plus=&gt;plus(_)[cpp]
 ==&gt;/mmadt/is=&gt;is?obj{?}&lt;=obj(_)[cpp]
 ==&gt;/mmadt/isa=&gt;isa?obj{?}&lt;=obj(type?uri=&gt;_)[cpp]
 ==&gt;/mmadt/lift=&gt;lift(_)[cpp]
@@ -1277,10 +1273,9 @@ When the instruction implementation is written in mmADT, the instruction value i
 </div>
 <!-- 🐓 -->
 <div class="paragraph">
-<p>This documentation will explore these three kernel resources in-depth starting with the mmADT language and processor.</p>
+<p>This documentation will explore these three kernel resources in-depth starting with the mmADT language and processor.
+=== The mm-ADT Language</p>
 </div>
-<div class="sect2">
-<h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
 <div class="paragraph">
 <p><span class="image left title=punky"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQgAAAD3CAYAAADhRcqHAAAAwXpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHjabVBbDgMhCPznFD2CgA88jtt1k96gxy8KJmvbSRxGICMC/f264DFAGCGmIrnmHBSxxkpNhQRDm4whTjaIK9zzcBVvIE2xRvb+bBFXfhl5xKYq3Yzk6YVjL9To/vJlRBZ4TDT06UbVjZisgG7Q7FshVyn3Lxw97BA7MCjKPvbPvej2zqTvMFFn5KDMnG0AHicBNxWsTKzr0KYyNU1eZrqQf3tagA8111lJke7J7AAAAYRpQ0NQSUNDIHByb2ZpbGUAAHicfZE7SMNQFIb/pooiFQfrA3HIUJ3soiKOtQpFqBBqhVYdTG76giYNSYqLo+BacPCxWHVwcdbVwVUQBB8g7oKToouUeG5SaBHjhcP9+O/9f849FxDqZaZZHTFA020zlYiLmeyq2PWKIAYwRDUoM8uYk6QkfNfXPQJ8v4vyLP97f65eNWcxICASx5hh2sQbxDObtsF5nzjMirJKfE48YVKDxI9cVzx+41xwWeCZYTOdmicOE4uFNlbamBVNjXiaOKJqOuULGY9VzluctXKVNfvkLwzl9JVlrlONIoFFLEGCCAVVlFCGjSjtOikWUnQe9/GPuH6JXAq5SmDkWEAFGmTXD/4Hv2dr5acmvaRQHOh8cZyPMaBrF2jUHOf72HEaJ0DwGbjSW/5KHZj9JL3W0iJHQN82cHHd0pQ94HIHGH4yZFN2pSCVkM8D72f0TVmg/xboWfPm1jzH6QOQplklb4CDQ2C8QNnrPu/ubp/bv3ea8/sBgUByrAOj0RsAAA14aVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/Pgo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA0LjQuMC1FeGl2MiI+CiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiCiAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICB4bWxuczpHSU1QPSJodHRwOi8vd3d3LmdpbXAub3JnL3htcC8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgeG1wTU06RG9jdW1lbnRJRD0iZ2ltcDpkb2NpZDpnaW1wOmE5NzMyYTg2LTQwZDgtNDVkOS1iMjFjLTM1NDVjMjlhNGU1ZCIKICAgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozMjY5ODg3Ni01MGVjLTQwYmYtYjkwMS1kNjdiNGQ5NGYzNzciCiAgIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpiMTAxMTUwZC04ZmMxLTQ2ZDQtYjQ2Yi0xZGQ2NjQxMTNlNDAiCiAgIGRjOkZvcm1hdD0iaW1hZ2UvcG5nIgogICBHSU1QOkFQST0iMi4wIgogICBHSU1QOlBsYXRmb3JtPSJMaW51eCIKICAgR0lNUDpUaW1lU3RhbXA9IjE3NDI1OTkzNDAxMzc5MDkiCiAgIEdJTVA6VmVyc2lvbj0iMi4xMC4zNiIKICAgdGlmZjpPcmllbnRhdGlvbj0iMSIKICAgeG1wOkNyZWF0b3JUb29sPSJHSU1QIDIuMTAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjU6MDM6MjFUMTc6MjI6MjAtMDY6MDAiCiAgIHhtcDpNb2RpZnlEYXRlPSIyMDI1OjAzOjIxVDE3OjIyOjIwLTA2OjAwIj4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MzcyYWRiNDktMDViOC00NTQ3LWI1YzktYWU2OGUzOTQzYzU5IgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKExpbnV4KSIKICAgICAgc3RFdnQ6d2hlbj0iMjAyNS0wMy0yMVQxNzoyMjoyMC0wNjowMCIvPgogICAgPC9yZGY6U2VxPgogICA8L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz59AXKAAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QMVFxYUwtPpyAAABgRJREFUeNrt3V122jAQBtA4J1uERYZFui/1Oa5TYoMtaUa696ltWhUE/qw/ho8PAAAAgPImXXDM9/f3/Oxn9/tdPwIAAM+mEr9NJ2Akn7oAAAAAAAAIqZsTgMvW5P1+n9bblFedcszePgwdEOuLbHuhXX0RZ20fAIAW5tttnm+3YU7aOkkJALwuzeJX6XoM2dsHACCqvUXK0j+vbbhFytL1HtSToCd2MeAF0+MxLXd6vQGEm4YAAAAA9CbMCb7s9RDUi0BAVLrIthdCtpAo9fjVixjbsrOxbLUC/AgJW6AQ9O49Wkg4SQkJQ6IWAQEHjHrEutpih3oObdvn2lFEy4VCi5UQPCRajiSsQYDpBu8OxTPXW1Avou+RRG8FZYwg4ORIwtoDAAAAAEAhl62GqlfQtn/0f5vXsvf+n0p03LajvEnr9I/+bxMO+h9wyA2g2BQDODYFXE9FBAQIh2U9Yv1n4UPi60z6ZUnBXu8++n8M81z2w1nT9PyzHYcDwpuwLf0/8DrA1O7DWT7NCZuRmp0KAeENCgd86QKoM0X8G/6mjmAUBwAAANCvq6te28VIQj0JWnAOIonlQt3WGLhqtb10+8QbHQAHR069hMTVIWIEgXAIcuEf+Xu1v/ZPQCAckoVETQKCocMhyiJs1C8EtovhjjnUTkXkHZrp8ZiWNYRXvn+zZKjYwsLIIehU41lI1PwSX1MMhEMwkaYbAqLDC8HZheeyTKeehUTN0YOAQDgkCIlW4QAAAAAA0JzV0EGoJ4GA4NBFvL2Qrw6JUu0DNAtNfnJQCuEQ7DFFelwCAuHAU+aGDB0O1kcExPB3xCsugl7qSQgHAQHCQUBAf+EQbWvYIiU/3qA9L+AZOQgISBsOvrAIAAAAAGAl3Qm4rPUMtN+2fToPiPWbaPtGylLPQPvt2hc6wKGgcMbgOAelQMAJCKDzNQi46i68/Np6RJKAyF7PQPtt23/1cQgGoPkcPjtrECDgxgmI0h2o/b7bxwiCwe+8mdcf1IsAwrCSSxejgyN3XQAAAJrqZm6mHkLf7Zd6r2R8/ALi5Au/faHVQ+ij/VLhkOnxAwXDwfkBYNiQuzoEnaQEAF6Xrqr1/6iHME49h17ffwAAZUcyQy9SqlfQd/ujX8DZ2MWARO73+/Tbmod6EQAAAABAV0J+DFc9hP7aH0lPHxMPs8253Z65ertG+23bB+DDYTPgzZA4Gx61//2XlxLKTZkBulUt5dRD6Lt9AABKjqQzLVJ+jtbB2h/7AhNAr1EPAiraq+dQ498vQeLVAE6xek2IYfGRux4AAACppftmLfUW2rTf6rXu8aLL9PzSbHOqt9C2fYQfhLmIegw2h7zAxVT0edf+6j31IAg9pQQgqHBVrUvdTdRb6Pv19fwAgLFHWpEWKT9H6+Do7et/zy8S9SAgkL16D0d+vgSZ3gSKsrrKoWH13l1PLwEAALDD3HEzz85aT6Hm41evYRy2OTcXUtZ6CupBCAcIcxGp1wC4mCr3W+2j1HvUg+DUlAaAQQ1zF/B5/bH7x+sPAGfvpBYX4/Z/tEVK9SDw+nv/jRMQEJl6D7jLAgAAAAD8JvpWYLSzAKO9Pmu2OUl38Xx8OB4tIEA4gGlGzcdXenpz1fOKMs1QD2JQre/Ce///6KMEoyQgPCnFP/P7d+9m6i0AAH2PlDIsUkZhm5NLLzCPDwSEgBBiAAAAAAAQkFX4cfrHOQhAQADQeBh9dngd/Sh0tnoOZ6kHwVt8QlP/AAAAQEvZFxlH/06OLducAOQYYdQYpUR4DoALDAAAAADIYrtwWXIh0yLpcc5BkDpIXPwCAhAQjOx/H48u9ZHppV0jjX3qQRAyJErXU1CvwQgCEBCAgAAEBCAgAAEBAAAAAAAAAEOb59s8zzefwqzEOQhAQGDkoRcEBAgJAQGvmabHJCQEBAgJAQFCQkCAkBAQICQEBIQMCQAAAAAAgrKKSzjL1uN6l2H7Z7/9fr11+c5Oxd7/f7b9TGxz0sedbic4zoTDle1n49u96S4k3r27PwuHq9oHLpxmbO/O6987AQkAAAAAMIA/xvrzwOoh8SkAAAAASUVORK5CYII=" alt="punky" width="250"></span> mmADT is the programming language of <span class="red">F</span>​<span class="fuchsia">H</span>​<span class="lime">a</span>​<strong class="aqua">T</strong>​<strong class="yellow">O</strong>​<span class="blue">s</span>​. In mmADT, every expression is an <code>obj</code> (object). The language has an
 underlying <a href="https://en.wikipedia.org/wiki/Monoid_(category_theory)">monoidal</a> structure where an <code>obj</code> can be applied (<code>.</code>) to an <code>obj</code> to create an <code>obj</code>.</p>
@@ -1650,7 +1645,7 @@ fhatos&gt; @a.minus(11)
 fhatos&gt; @a.minus(2)
 [ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat()[is(gte(0))]
 		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
-	  thrown at inst nat[1]@a =&gt; minus(0?int=&gt;2)[cpp] [0=&gt;2]
+	  thrown at inst nat[1]@a =&gt; minus(2)[cpp] [0=&gt;2]
 fhatos&gt; *a
 ==&gt;nat[1]@a</code></pre>
 </div>
@@ -1900,7 +1895,7 @@ band -> |band?int{?}<=int(min?nat=>else(2),max?nat=>else(8))[is(and([gte(*min),l
 fhatos&gt; 15.band(10,20)              <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;15
 fhatos&gt; -15.band(-20,-10)           <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
+[ERROR] band evaluation error: [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
 		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1</code></pre>
 </div>
 </div>
@@ -1946,7 +1941,7 @@ Finally, a degenerate anonymous <code>inst</code> with no specified variable fra
 fhatos&gt; 10.(min=&gt;minus(1),max=&gt;plus(1))[is(and([gte(*min),lte(*max)]))]   <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;10
 fhatos&gt; 10.()[is(and([gte(*min),lte(*max)]))]                             <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
+[ERROR] /mmadt/is evaluation error: /mmadt/and evaluation error: /mmadt/gte evaluation error: [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst 10 =&gt; ()[is(and([gte(from(min)),lte(from(max))]))] [=&gt;]
 fhatos&gt; |((min=&gt;2,max=&gt;8)[is(and([gte(*min),lte(*max)]))])                <i class="conum" data-value="4"></i><b>(4)</b>
@@ -1995,7 +1990,7 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 fhatos&gt; 10.is_divisible(2)
 ==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+[ERROR] is_divisible evaluation error: [/mmadt/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2020,7 +2015,7 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 ==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
 	[is(gte(from(min))).is(lte(from(max)))]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
+[ERROR] band evaluation error: /mmadt/is evaluation error: /mmadt/gt evaluation error: [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2042,7 +2037,13 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"></code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; is_divisible -&gt; |is_divisble?bool&lt;=int(by?int=&gt;is(neq(0)).else(print('error').map(1)))[mod(*by).eq(0)]
+==&gt;is_divisble?bool&lt;=int(by?int=&gt;is?noobj&lt;=obj(neq?noobj&lt;=obj(0)[noobj])[noobj].else?noobj&lt;=obj(print?noobj&lt;=obj('error')[noobj].map?noobj&lt;=obj(1)[noobj])[noobj])[mod(from(by)).eq(0)]
+fhatos&gt; 10.is_divisible(2)
+error==&gt;true
+fhatos&gt; 10.is_divisible('abc')
+error[ERROR] is_divisible evaluation error: [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2445,17 +2446,17 @@ a -> int8[126]                       --- <2>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/int/#
 ==&gt;[int][[_]]
 ==&gt;as?obj{?}&lt;=int(isa?noobj&lt;=obj(/mmadt/uri)[noobj])[cpp]
-==&gt;div?int&lt;=int(0?int=&gt;_)[cpp]
+==&gt;div?int&lt;=int(_)[cpp]
 ==&gt;gt?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;gte?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;inspect?rec&lt;=int(_)[cpp]
 ==&gt;lt?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;lte?bool&lt;=int(arg?int=&gt;_)[cpp]
-==&gt;minus?int&lt;=int(0?int=&gt;_)[cpp]
+==&gt;minus?int&lt;=int(_)[cpp]
 ==&gt;mod?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
-==&gt;mult?int&lt;=int(0?int=&gt;_)[cpp]
+==&gt;mult?int&lt;=int(_)[cpp]
 ==&gt;neg?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
-==&gt;plus?int&lt;=int(0?int=&gt;_)[cpp]</code></pre>
+==&gt;plus?int&lt;=int(_)[cpp]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3033,7 +3034,7 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 ==&gt;true=&gt;1
 &gt;]
 fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
-[ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][_]
+[ERROR] /mmadt/and evaluation error: [/mmadt/parser] noobj is not a lst as defined by [lst][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
 	  thrown at inst noobj =&gt; true.i(noobj)[and(_,from(0))] [0=&gt;noobj]
 fhatos&gt; true.plus(false)
@@ -3611,7 +3612,7 @@ fhatos&gt; nat[3].plus(2)
 fhatos&gt; nat[3].mult(-2)
 [ERROR] [/mmadt/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
 		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
-	  thrown at inst nat[3] =&gt; mult(0?int=&gt;-2)[cpp] [0=&gt;-2]</code></pre>
+	  thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3640,7 +3641,6 @@ Once spawned, the <code>setup</code> function prints the thread&#8217;s id and h
      ############################################ ROUTER #########################################################
      #############################################################################################################
      ############################################################################################################# -->
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -4735,18 +4735,7 @@ fhatos&gt; 'a'.plus('b')
 <!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a=&gt;2].match([a=&gt;3])
-[ERROR] [/mmadt/rec] match inst unresolved
-	         lhs id      inst id    resolve obj
-	  -&gt;[/mmadt/rec] match =&gt; noobj
-	 --&gt;[/mmadt/rec] match =&gt; noobj
-	---&gt;[          ] match =&gt; noobj
-fhatos&gt; [a=&gt;2].match([a=&gt;_])
-[ERROR] [/mmadt/rec] match inst unresolved
-	         lhs id      inst id    resolve obj
-	  -&gt;[/mmadt/rec] match =&gt; noobj
-	 --&gt;[/mmadt/rec] match =&gt; noobj
-	---&gt;[          ] match =&gt; noobj</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; [a=&gt;2].match([a=&gt;3])</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4821,7 +4810,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-16 04:20:48 -0600
+Last updated 2025-05-16 17:07:07 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
