@@ -75,7 +75,7 @@ namespace fhatos {
                 const Obj_p thread_loop_obj =
                     thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
                         ? thread_obj->obj_get("loop")
-                        : Compiler(false, false)
+                        : Compiler(false)
                               .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
                                                                      id_p(thread_obj->vid->extend("loop"))));
                 const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);

@@ -489,11 +489,8 @@ namespace fhatos {
       if(this->value_.has_value()) { // value token
         try {
           if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype))) {
-            if((otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&
+            if(/*(otype == OType::REC || otype == OType::LST) && !this->tid->equals(*OTYPE_FURI.at(otype)) &&*/
                !this->tid->matches("/sys/#") && // TODO: REMOVE WHEN ALL TYPES HAVE BEEN WRITTEN USING QUERY TYPES
-               /*(this->tid->matches("/fos/ui/terminal") || this->tid->matches("/fos/ui/console") ||
-                this->tid->matches("/fos/util/log") || this->tid->matches("/fos/thread") ||
-                this->tid->matches("/fos/#"))*/
                !this->tid->matches("/io/#")) {
               if(const Obj_p type_obj = ROUTER_READ(*this->tid);
                  !type_obj->is_noobj() && type_obj->otype == this->otype) {
@@ -539,7 +536,7 @@ namespace fhatos {
               WARN, this,
               L("unable to build {} from poly type !b{}!!: {}\n", this->toString(), this->tid->toString(), e.what()));
         }
-        Compiler(true, true).type_check(this, *this->tid);
+        Compiler().with_derivation_tree().type_check(this, *this->tid);
       }
     }
 
@@ -563,7 +560,7 @@ namespace fhatos {
 
     virtual void sync(const fURI &subset) const {
       if(this->vid) {
-        if(this->is_rec() && (!subset.equals("#") && !subset.empty())) {
+        if(this->is_rec() && !subset.equals("#") && !subset.empty()) {
           const fURI subset_furi = this->vid->extend(subset);
           const Obj_p fresh = ROUTER_READ(subset_furi);
           const Uri_p subset_uri = Obj::to_uri(subset_furi);
@@ -801,7 +798,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          Compiler(true, false).type_check(this, *this->tid);
+          Compiler().type_check(this, *this->tid);
         } catch(const fError &) {
           this->lst_set(index, undo);
           LOG_WRITE(WARN, this,
@@ -1026,8 +1023,9 @@ namespace fhatos {
     virtual void rec_set(const Obj_p &key, const Obj_p &value, const bool nest = true) const {
       const Obj_p undo = this->rec_get(key);
       ////////////////////////////////////////
-      if(key->is_uri() && key->uri_value().has_query())
-        Compiler(true, true).type_check(value, key->uri_value().query());
+      if(key->is_uri() && key->uri_value().has_query()) {
+        Compiler().with_derivation_tree().type_check(value, key->uri_value().query());
+      }
       ///////////////////////////////////////////
       if(nest && key->is_uri() && key->uri_value().is_node() && key->uri_value().path_length() > 1) {
         // const fURI key_no_query = key->uri_value().no_query();
@@ -1049,7 +1047,7 @@ namespace fhatos {
       ////////////////////////////////////////
       if(!this->is_base_type()) {
         try {
-          Compiler(true, false).type_check(this, *this->tid);
+          Compiler().type_check(this, *this->tid);
         } catch(const fError &) {
           this->rec_set(key, undo);
           LOG_WRITE(WARN, this,
@@ -2019,9 +2017,7 @@ namespace fhatos {
       }
     }
 
-    virtual void setup() {
-
-    }
+    virtual void setup() {}
 
     template<typename T>
     T *get_model() const {
@@ -2093,12 +2089,12 @@ namespace fhatos {
         }
         case OType::INST: {
           if(lhs->is_type()) {
-            const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
+            const Inst_p inst = Compiler().resolve_inst(lhs, this->shared_from_this());
             BCode_p body = lhs->type_value()->clone();
             body->add_inst(inst);
             return Obj::create(body, OType::TYPE, inst->range(), lhs->vid);
           }
-          const Inst_p inst = Compiler(true, false).resolve_inst(lhs, this->shared_from_this());
+          const Inst_p inst = Compiler().resolve_inst(lhs, this->shared_from_this());
           ROUTER_PUSH_FRAME("#", inst->inst_args());
           try {
             if(!inst->has_inst_f()) {
@@ -2108,9 +2104,12 @@ namespace fhatos {
             const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
                                      ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
                                      : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
+            // TODO: type check should take coefficients into consideration
+            //if(!result->is_noobj() || !inst->range_coefficient().first == 0)
+            //  Compiler(false).with_derivation_tree().type_check(result, *inst->range());
             ROUTER_POP_FRAME();
             return result;
-          } catch(std::exception &e) {
+          } catch(const fError &e) {
             // TODO: does this clear all frames automatically through exception recurssion?
             const string error_message =
                 fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(), lhs->toString(), this->toString(),

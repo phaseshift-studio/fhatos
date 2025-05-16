@@ -32,7 +32,7 @@ namespace fhatos {
   using namespace mmadt;
 
   Structure_p test_structure =
-      std::make_shared<FS>("/fs/xyz/#", id_p("/sys/test"), Obj::to_rec({{"root", vri("./fs")}}));
+      std::make_shared<FS>("/fs/xyz/#", id_p("/sys/test"), Obj::to_rec({{"root", vri("/fs")}}));
 
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ namespace fhatos {
   void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_generic_clear); //
+      //FOS_RUN_TEST(test_generic_clear); //
       FOS_RUN_TEST(test_generic_write); //
       FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //

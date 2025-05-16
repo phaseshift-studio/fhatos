@@ -52,7 +52,7 @@ namespace fhatos {
 
   public:
     explicit Processor(const BCode_p &bcode) :
-        Obj(Any(), OType::OBJ, REC_FURI, id_p(Processor::get_core_id())), compiler_(make_unique<Compiler>(true, false)),
+        Obj(Any(), OType::OBJ, REC_FURI, id_p(Processor::get_core_id())), compiler_(make_unique<Compiler>()),
         bcode_(bcode) {
       if(!this->bcode_->is_code()) {
         if(!this->bcode_->is_noobj()) {

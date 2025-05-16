@@ -38,10 +38,10 @@ namespace fhatos {
     IdObjPairs read_raw_pairs(const fURI &match) override;
 
   public:
-    explicit FS(const Pattern &pattern, const ID_p &value_id = nullptr,
+    explicit FS(const Pattern &span, const ID_p &vid = nullptr,
                 const Rec_p &config = Obj::to_rec({{"root", vri(".")}}));
 
-    static ptr<FS> create(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec());
+    static ptr<FS> create(const Pattern &span, const ID_p &vid = nullptr, const Rec_p &config = Obj::to_rec());
 
     static Obj_p load_boot_config(const fURI &boot_config = FOS_BOOT_CONFIG_FS_URI);
 

@@ -128,8 +128,7 @@ namespace fhatos {
               }
               try {
                 const Inst_p fiber_loop_inst =
-                    Compiler(true, true).resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-                // LOG_WRITE(INFO, this,L("{}\n", fiber_loop_inst->toString()));
+                    Compiler().with_derivation_tree().resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
                 mmADT::delift(fiber_loop_inst)->apply(fiber);
                 return false;
               } catch(const fError &e) {

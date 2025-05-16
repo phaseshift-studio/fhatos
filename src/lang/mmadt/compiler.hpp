@@ -21,6 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../../furi.hpp"
+#include "fmt/chrono.h"
 
 template<typename T>
 class Coefficient;
@@ -47,9 +48,11 @@ namespace fhatos {
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;
     ///////////////////////////////////////////////////////
     bool throw_on_miss;
-    ptr<DerivationTree> dt;
+    DerivationTree* dt;
 
-    explicit Compiler(bool throw_on_miss = true, bool with_derivation = false);
+    explicit Compiler(bool throw_on_miss = true);
+
+    Compiler& with_derivation_tree(DerivationTree* dt = nullptr);
 
     // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
     // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);

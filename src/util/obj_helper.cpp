@@ -22,17 +22,6 @@ namespace fhatos {
   using std::make_pair;
   using std::vector;
 
-  bool ObjHelper::check_coefficients(const IntCoefficient &a, const IntCoefficient &b, const bool throw_on_error) {
-    if(a.first < b.first || a.second > b.second) {
-      if(throw_on_error) {
-        throw fError("lhs coefficient not within rhs coefficient: {%i,%i} <> {%i,%i}", a.first, a.second, b.first,
-                     b.second);
-      }
-      return false;
-    }
-    return true;
-  }
-
   IntCoefficient ObjHelper::calculate_domain(const BCode_p &bcode) {
     if(bcode->is_bcode() && !bcode->bcode_value()->empty()) {
       return bcode->bcode_value()->front()->domain_coefficient();

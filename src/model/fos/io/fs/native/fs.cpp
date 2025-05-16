@@ -32,8 +32,8 @@ namespace fhatos {
     LOG_WRITE(ERROR, Obj::to_noobj().get(), L("FS::list_files_utility not implemented"));
   }
 
-  FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
-      Structure(pattern, id_p(FS_TID), value_id, config), root(config->rec_get("root")->uri_value()) {
+  FS::FS(const Pattern &span, const ID_p &vid, const Rec_p &config) :
+      Structure(span, id_p(FS_TID), vid, config), root(config->rec_get("root")->uri_value()) {
     this->root = fURI("data").extend(config->rec_get("root")->or_else(vri("."))->uri_value());
     const auto root_path = fs::path(root.toString());
     if(!fs::exists(root_path))
@@ -46,8 +46,8 @@ namespace fhatos {
     LOG_WRITE(INFO, this, L("!b{} !ylocation!! mounted\n", this->root.toString()));
   }
 
-  ptr<FS> FS::create(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) {
-    return Structure::create<FS>(pattern, value_id, config);
+  ptr<FS> FS::create(const Pattern &span, const ID_p &vid, const Rec_p &config) {
+    return Structure::create<FS>(span, vid, config);
   }
 
   Obj_p FS::load_boot_config(const fURI &boot_config) {

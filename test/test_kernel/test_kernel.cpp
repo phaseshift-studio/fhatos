@@ -57,7 +57,8 @@ namespace fhatos {
   void test_user_boot_loader() {}
 
   void test_basic_kernel() {
-    load_processor(); // TODO: remove
+    // load_processor(); // TODO: remove
+    BOOTING = true;
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_ansi_color(true)
@@ -66,21 +67,22 @@ namespace fhatos {
         ->display_architecture()
         ->display_reset_reason()
         ->display_note("!yloading !bsystem !yobjs!!")
-        ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
-        ->mount(Heap<>::create("/mnt/#"))
+        ->mount(Heap<>::create("/sys/#"))
+        ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
         ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
+        ->using_boot_config("/../test/data/boot/test_boot_config.obj")
+        ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
         ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
         ////////////////// SYS STRUCTURE
         ->using_boot_config("/boot/boot_config.obj")
         ->display_note("!yloading !bsystem !yobjs!!")
-        ->using_router("/sys/router")
-        ->drop_config("/sys/router")
-        ->using_scheduler("/sys/scheduler")
-        ->drop_config("/sys/scheduler")
+        ->using_router("router")
+        ->drop_config("router")
+        ->using_scheduler("scheduler")
+        ->drop_config("scheduler")
         ////////////////// USER STRUCTURE(S)
         ->display_note("!yloading !blanguage !yobjs!!")
-        ->import2("/fos/#")
-        ->import2("/mmadt/#")
+        ->import2("import")
         ->display_note("!yloading !bio !yobjs!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
         ->install(make_shared<Log>(Obj::to_rec(rmap({{"config", Router::singleton()
@@ -92,19 +94,19 @@ namespace fhatos {
                                                                                            {"TRACE", lst()}}))}}),
                                                LOG_FURI, id_p("/io/log"))))
         ->install(mmadt::Parser::singleton("/io/parser"))
-        ->process(Console::create("/io/console", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/console")))
         ->drop_config("console");
     // ->loop();
     // Router::singleton()->loop();
     // Scheduler::singleton()->loop();
+    BOOTING = false;
     FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID)));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router")));
-    FOS_TEST_OBJ_EQUAL(Obj::to_int(1),
+   /* FOS_TEST_OBJ_EQUAL(Obj::to_int(1),
                        jnt(Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()->size()));
-    FOS_TEST_OBJ_EQUAL(Obj::to_uri("/io/console"), Scheduler::singleton()->obj_get("spawn")->lst_value()->at(0));
+    FOS_TEST_OBJ_EQUAL(Obj::to_uri("/io/console"), Scheduler::singleton()->obj_get("spawn")->lst_value()->at(0));*/
     FOS_TEST_OBJ_EQUAL(Obj::to_int(0),
                        jnt(Scheduler::singleton()->obj_get("bundle")->or_else(lst())->lst_value()->size()));
-    ROUTER_WRITE("/io/console/halt", dool(true), true);
+    //ROUTER_WRITE("/io/console/halt", dool(true), true);
     ROUTER_WRITE(SCHEDULER_ID->extend("halt"), dool(true), true);
     Router::singleton()->loop();
     Scheduler::singleton()->loop();

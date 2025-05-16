@@ -30,7 +30,7 @@ namespace fhatos {
   using namespace mmadt;
 
   void test_type_check_base_types() {
-    Compiler compiler = Compiler(false, false);
+    Compiler compiler = Compiler(false);
     FOS_TEST_COMPILER_TRUE(dool(true), *BOOL_FURI, compiler.type_check);
     FOS_TEST_COMPILER_TRUE(jnt(1), *INT_FURI, compiler.type_check);
     FOS_TEST_COMPILER_TRUE(real(1.2), *REAL_FURI, compiler.type_check);
@@ -49,7 +49,7 @@ namespace fhatos {
   }
 
   void test_type_check_derived_mono_types() {
-    Compiler compiler = Compiler(false, false);
+    Compiler compiler = Compiler(false);
     /////////////////////////////////// BOOL /////////////////////////////////////////////////////
     PROCESS("/compiler/truth -> true");
     FOS_TEST_COMPILER_TRUE(dool(true), ID("/compiler/truth"), compiler.type_check);
@@ -76,7 +76,7 @@ namespace fhatos {
   }
 
   void test_type_check_derived_poly_types() {
-    Compiler compiler = Compiler(false, false);
+    Compiler compiler = Compiler(false);
     // lst
     PROCESS("/compiler/lst_alias -> |?lst");
     FOS_TEST_COMPILER_TRUE(lst(), ID("/compiler/lst_alias"), compiler.type_check);
@@ -123,7 +123,7 @@ namespace fhatos {
   }
 
   void test_inst_resolution() {
-    Compiler compiler = Compiler(true, true);
+    const Compiler compiler = Compiler().with_derivation_tree();
     FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
                         compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid->no_query());
     string ds;

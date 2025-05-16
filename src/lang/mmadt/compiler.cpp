@@ -30,19 +30,26 @@ namespace fhatos {
   // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
   // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
   // void explain(const Obj_p& starts, const BCode_p& bcode, const string* output);
-  Compiler::Compiler(const bool throw_on_miss, const bool with_derivation) {
-    this->throw_on_miss = throw_on_miss;
-    this->dt = with_derivation ? make_shared<DerivationTree>() : nullptr;
+  Compiler::Compiler(const bool throw_on_miss) : throw_on_miss(throw_on_miss), dt(nullptr) {}
+
+  Compiler &Compiler::with_derivation_tree(DerivationTree *dt) {
+    if(dt)
+      this->dt = dt;
+    else {
+      auto dt1 = DerivationTree();
+      this->dt = &dt1;
+    }
+    return *this;
   }
 
   void Compiler::print_derivation_tree(string *derivation_string) const {
     derivation_string->clear();
     if(this->dt) {
-      int max_0 = 0;
-      int max_1 = 0;
-      int max_2 = 0;
+      size_t max_0 = 0;
+      size_t max_1 = 0;
+      size_t max_2 = 0;
       for(const auto &oir: *this->dt) {
-        int c = std::get<0>(oir)->toString().length();
+        size_t c = std::get<0>(oir)->toString().length();
         if(c > max_0)
           max_0 = c;
         c = std::get<1>(oir)->toString().length();
@@ -106,6 +113,9 @@ namespace fhatos {
 
   Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Obj_p &resolved_inst) const {
     if(resolved_inst->is_noobj())
+      return Obj::to_noobj();
+    // TODO: obj{*} fails tests (fix)
+    if(!resolved_inst->is_gather() && !Compiler(false).type_check(lhs, *resolved_inst->domain()))
       return Obj::to_noobj();
     const Inst_p resolved = Obj::to_inst(
         InstValue(resolved_inst->is_inst() ? resolved_inst->inst_args() : provided_inst->inst_args(), // args
@@ -193,7 +203,7 @@ namespace fhatos {
       if(dt)
         this->print_derivation_tree(&derivation_string);
       else {
-        const auto c = Compiler(false, true);
+        const auto c = Compiler(false).with_derivation_tree();
         c.resolve_inst(lhs, inst);
         c.print_derivation_tree(&derivation_string);
       }
@@ -312,8 +322,8 @@ namespace fhatos {
   bool Compiler::type_check(const Obj *obj, const ID &type_id) const {
     if(BOOTING)
       return true;
-    /* if(value_obj->is_inst())
-       return this->type_check(Router::singleton()->read(*value_obj->range()),type_id);*/
+    // if(obj->is_inst())
+    // return this->type_check(Router::singleton()->read(*obj->range()),type_id);
     auto fail_reason = std::stack<string>();
     if(obj->is_noobj()) {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {

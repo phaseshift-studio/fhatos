@@ -1430,12 +1430,12 @@ namespace mmadt {
               const Obj::RecMap_p<> lhs_v = lhs->rec_value();
               const Obj::RecMap_p<> rhs_v = args->arg(0)->rec_value();
               const auto new_v = make_shared<Obj::RecMap<>>();
-              const auto compiler = Compiler(true, false);
+              const auto compiler = Compiler();
               for(const auto &[k1, v1]: *lhs_v) {
                 for(const auto &[k2, v2]: *rhs_v) {
-                  new_v->insert_or_assign(
-                      compiler.resolve_inst(k1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(k2),
-                      compiler.resolve_inst(v1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(v2));
+                  new_v->insert_or_assign(k1->inst_apply("mult", {k2}), v1->inst_apply("mult", {v2}));
+                  //   compiler.resolve_inst(k1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(k2),
+                  // compiler.resolve_inst(v1, Obj::to_inst({Obj::to_bcode()}, id_p("mult")))->apply(v2));
                 }
               }
               return Obj::to_rec(new_v, lhs->tid, lhs->vid);
