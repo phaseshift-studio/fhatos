@@ -58,22 +58,22 @@ namespace fhatos {
   public:
     const Pattern_p pattern{};
 
-    explicit Structure(const Pattern &pattern, const ID_p &type_id, const ID_p &value_id = nullptr,
+    explicit Structure(const Pattern &span, const ID_p &tid, const ID_p &vid = nullptr,
                        const Rec_p &config = Obj::to_rec()) :
         Rec(config->rec_value()->empty()
                 ? Obj::to_rec({
-                                  {"pattern", vri(pattern)},
-                                  {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")},
+                                  {"pattern", vri(span)},
+                                  {"q_proc", rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
                                                   {"#", QType::create()}})},
                               })
                       ->rec_value()
-                : Obj::to_rec({{"pattern", vri(pattern)},
-                               {"q_proc", rec({{"sub", QSub::create(value_id ? value_id->extend("q/sub") : "")},
+                : Obj::to_rec({{"pattern", vri(span)},
+                               {"q_proc", rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
                                                {"#", QType::create()}})},
                                {"config", config->clone()}})
                       ->rec_value(),
-            OType::REC, type_id, value_id),
-        pattern(p_p(pattern)) {
+            OType::REC, tid, vid),
+        pattern(p_p(span)) {
       this->q_procs_ = this->Obj::rec_get("q_proc");
     }
 
@@ -83,10 +83,11 @@ namespace fhatos {
     }
 
     template<typename STRUCTURE>
-    static ptr<STRUCTURE> create(const Pattern &pattern, const ID_p &value_id = nullptr,
+    static ptr<STRUCTURE> create(const Pattern &span, const ID_p &vid = nullptr,
                                  const Rec_p &config = Obj::to_rec()) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      ptr<STRUCTURE> s = make_shared<STRUCTURE>(pattern, value_id, config);
+      ptr<STRUCTURE> s = make_shared<STRUCTURE>(span, vid, config);
+      s->save();
       return s;
     }
 

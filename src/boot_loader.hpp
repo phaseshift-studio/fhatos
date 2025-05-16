@@ -66,10 +66,10 @@ namespace fhatos {
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
         const ptr<Kernel> kp = Kernel::build()
-        ->start_timer()
-        ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option_bool("--ansi", true))
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
+                                   ->start_timer()
+                                   ->using_printer(Ansi<>::singleton())
+                                   ->with_ansi_color(args_parser->option_bool("--ansi", true))
+                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
           kp->display_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
               ->display_reset_reason()
@@ -78,7 +78,7 @@ namespace fhatos {
         kp->display_note("!ymounting !bkernel !ystructures!!")
             ->display_memory()
             ->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("/mnt/#", id_p("/mnt/mnt")))
+            ->mount(Heap<>::create("/mnt/#"))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/boot_config.obj"));
         //////////////////////////////////////////////////////////////////
@@ -108,11 +108,11 @@ namespace fhatos {
                 mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yevaluating !bmain !yinst!!")
+        kp->display_note("!yevaluating !bsetup !yinst!!")
             ->display_memory()
-            ->evaluating_main()
+            ->evalulating_setup()
             ->display_memory()
-        ->stop_timer();
+            ->stop_timer();
 
         // Terminal::singleton("/io/terminal");
         // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));

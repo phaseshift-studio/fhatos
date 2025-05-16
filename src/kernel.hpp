@@ -76,12 +76,12 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> evaluating_main() {
+    static ptr<Kernel> evalulating_setup() {
       BOOTING = false;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, Kernel::boot().get(),
-                L("!yapplying !bmain !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("main")->toString()));
-      const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("main"))->inst_bcode_obj();
+                L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
+      const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
       std::holds_alternative<Obj_p>(main_inst->inst_f())
           ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
           : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
@@ -161,17 +161,17 @@ namespace fhatos {
 
     static ptr<Kernel> using_typer(const ID &type_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      const Obj_p config = Kernel::boot()->rec_get(type_config_id);
-      if(!config->is_rec())
-        throw fError("!ytyper config!! !rmust be!! a !brec!!: %s", config->toString().c_str());
-      const ptr<Typer> typer = Typer::singleton(config->rec_get("id")->uri_value());
-      typer->rec_set("config", config->rec_get("config"));
+      const Obj_p typer_obj = Kernel::boot()->rec_get(type_config_id);
+      if(!typer_obj->is_rec())
+        throw fError("!ytyper config!! !rmust be!! a !brec!!: %s", typer_obj->toString().c_str());
+      const ptr<Typer> typer = Typer::singleton(*typer_obj->vid);
+      typer->obj_set("config", typer_obj->rec_get("config"));
       typer->save();
       fOS::import({});
       mmADT::import({});
       // Typer::import();
-      LOG_WRITE(INFO, Typer::singleton().get(),
-                L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", config->toString()));
+      LOG_WRITE(INFO, typer.get(),
+                L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", typer->toString()));
       return Kernel::build();
     }
 
@@ -180,12 +180,12 @@ namespace fhatos {
       const Obj_p scheduler_obj = Kernel::boot()->rec_get(scheduler_config_id);
       if(!scheduler_obj->is_rec())
         throw fError("!yscheduler obj!! !rmust be!! a !brec!!: %s", scheduler_obj->toString().c_str());
-      const ptr<Scheduler> scheduler = Scheduler::singleton(scheduler_obj->rec_get("id")->uri_value());
+      const ptr<Scheduler> scheduler = Scheduler::singleton(*scheduler_obj->vid);
       scheduler->obj_set("config", scheduler_obj->rec_get("config"));
       scheduler->save();
       Scheduler::import();
       LOG_WRITE(INFO, scheduler.get(),
-                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", scheduler_obj->toString()));
+                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", scheduler->toString()));
       return Kernel::build();
     }
 
@@ -194,10 +194,11 @@ namespace fhatos {
       const Obj_p router_obj = Kernel::boot()->rec_get(router_config_id);
       if(!router_obj->is_rec())
         throw fError("!yrouter obj!! !rmust be!! a !brec!!: %s", router_obj->toString().c_str());
-      const ptr<Router> router = Router::singleton(router_obj->rec_get("id")->uri_value());
+      const ptr<Router> router = Router::singleton(*router_obj->vid);
       router->obj_set("config", router_obj->rec_get("config"));
+      router->save();
       Router::import();
-      LOG_WRITE(INFO, router.get(), L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router_obj->toString()));
+      LOG_WRITE(INFO, router.get(), L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router->toString()));
       return Kernel::build();
     }
 

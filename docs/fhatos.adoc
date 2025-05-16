@@ -1436,6 +1436,7 @@ The fURI `z` references the `int` `12`. The fURI `y` references the `uri` `z`. D
 \]
 ++++
 |===
+
 --
 at @::
 +
@@ -1486,8 +1487,8 @@ a|
 ----
 `12` is written to `a`. `10` is added to `a` (*pass by value* `*`). `a` still stores `12`. `10` is added to `a` (**pass by reference** `@`). `a` now stores `22`.
 |===
---
 
+--
 pubsub ?sub::
 +
 --

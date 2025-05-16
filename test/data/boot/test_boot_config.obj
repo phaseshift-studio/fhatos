@@ -1,13 +1,12 @@
 ===
 test boot_config obj
 ===
-[scheduler=>[id=>/sys/scheduler,
-                   config=>[def_stack_size=>32384]],
+[scheduler=>[config=>[def_stack_size=>32384]]@/sys/scheduler
        router=>[id=>/sys/router,
                 config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
                          auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
                                        /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
- main=>main?obj{?}<=obj{.}()[]
+ setup=>setup?obj{?}<=obj{.}()[]
 ]@/boot/config

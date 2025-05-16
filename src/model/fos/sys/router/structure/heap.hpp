@@ -47,12 +47,12 @@ namespace fhatos {
     Mutex map_mutex;
 
   public:
-    explicit Heap(const Pattern &pattern, const ID_p &value_id = nullptr, const Rec_p &config = Obj::to_rec()) :
-        Structure(pattern, id_p(HEAP_TID), value_id, config) {}
+    explicit Heap(const Pattern &span, const ID_p &vid = nullptr, const Rec_p &config = Obj::to_rec()) :
+        Structure(span, id_p(HEAP_TID), vid, config) {}
 
-    static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
+    static Structure_p create(const Pattern &span, const ID_p &vid = nullptr,
                               const Rec_p &config = Obj::to_rec()) {
-      return Structure::create<Heap<ALLOCATOR>>(pattern, value_id, config);
+      return Structure::create<Heap<ALLOCATOR>>(span, vid, config);
     }
 
     static void *import() {
