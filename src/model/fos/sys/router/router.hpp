@@ -42,7 +42,7 @@ namespace fhatos {
 
     explicit Router(const ID &id);
 
-    static ptr<Router> &singleton(const ID &vid = "/boot/router");
+    static ptr<Router> &singleton(const ID &vid = "/sys/router");
 
     [[nodiscard]] fURI resolve(const fURI &furi) const;
 

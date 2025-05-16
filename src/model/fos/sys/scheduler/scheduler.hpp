@@ -37,7 +37,7 @@ namespace fhatos {
   public:
     explicit Scheduler(const ID &id);
 
-    static ptr<Scheduler> &singleton(const ID &id = ID("/boot/scheduler"));
+    static ptr<Scheduler> &singleton(const ID &id = ID("/sys/scheduler"));
 
     static bool shutting_down();
 

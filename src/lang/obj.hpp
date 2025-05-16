@@ -251,8 +251,8 @@ namespace fhatos {
                                              {*BCODE_FURI, OType::BCODE},
                                              {*ERROR_FURI, OType::ERROR}}};
 
-  static ID_p SCHEDULER_ID = id_p("/boot/scheduler");
-  static ID_p ROUTER_ID = id_p("/boot/router");
+  static ID_p SCHEDULER_ID = id_p("/sys/scheduler");
+  static ID_p ROUTER_ID = id_p("/sys/router");
 
 
   struct ObjPrinter {
