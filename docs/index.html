@@ -771,10 +771,12 @@ The purpose of this documentation is to explain the mechanics of the boot proces
     fhatos-0.1-alpha &gt; linux-6.8.0-59-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11395072,free=&gt;11393568,used=&gt;0.01320]
+[INFO]  main [total=&gt;11395072,free=&gt;11393664,used=&gt;0.01236]
 [INFO]  [/sys/router] router started
-[INFO]  [/sys/router] heap &lt;none&gt; spanning /sys/# mounted
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
+[WARN]  [/sys/router] no mounted structure for /sys/router
+[WARN]  [/sys/router] no mounted structure for /fos/s/heap
+[INFO]  [/sys/router] heap /mnt/sys spanning /sys/# mounted
 [WARN]  [/sys/router] no mounted structure for /fos/s/heap
 [INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
 [INFO]  [/sys/router] boot working directory: /home/killswitch/software/fhatos/build/docs/build
@@ -832,9 +834,9 @@ The purpose of this documentation is to explain the mechanics of the boot proces
      setup=&gt;setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11808768,free=&gt;11806944,used=&gt;0.01544]
+[INFO]  [/sys/mem] main [total=&gt;11816960,free=&gt;11815168,used=&gt;0.01516]
 [INFO]  [/sys/router] router configured
-            [structure=&gt;[/sys/#,/mnt/#,/boot/#],config=&gt;[auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]],::=&gt;[mount=&gt;mount?obj&lt;=obj{?}(structure=&gt;_)[cpp]]]@/sys/router
+            [structure=&gt;[/mnt/#,/sys/#,/boot/#],config=&gt;[auto_prefix=&gt;[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]],::=&gt;[mount=&gt;mount?obj&lt;=obj{?}(structure=&gt;_)[cpp]]]@/sys/router
 [INFO]  [/boot/config] router boot config dropped
 [INFO]  [/sys/scheduler] scheduler started
 [INFO]  [/sys/scheduler] scheduler configured
@@ -850,25 +852,25 @@ The purpose of this documentation is to explain the mechanics of the boot proces
             [module=&gt;[fos=&gt;[qproc=&gt;qproc?rec&lt;=obj{?}()[cpp],io=&gt;[gpio=&gt;gpio?rec&lt;=obj{?}()[cpp]],util=&gt;[time=&gt;time?obj{?}&lt;=obj{?}()[cpp]]]],config=&gt;[module=&gt;[/mmadt/#,/fos/#]]]@/sys/typer
 [INFO]  [/boot/config] typer boot config dropped
       .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=&gt;12484608,free=&gt;12482656,used=&gt;0.01563]
+[INFO]  [/sys/mem] main [total=&gt;12492800,free=&gt;12490848,used=&gt;0.01562]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
       .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=&gt;12476416,free=&gt;12474464,used=&gt;0.01565]
+[INFO]  [/sys/mem] main [total=&gt;12484608,free=&gt;12482656,used=&gt;0.01563]
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
 [INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
 [INFO]  [/sys/typer] /mmadt/proc type defined
 [INFO]  [/sys/typer] /mmadt/proc/::/eval type defined
 [INFO]  [/sys/router] /io/parser obj loaded
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12611584,free=&gt;12609600,used=&gt;0.01573]
+[INFO]  [/sys/mem] main [total=&gt;12619776,free=&gt;12617792,used=&gt;0.01572]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
 [WARN]  [/mnt/boot] structure /mnt/boot spanning /boot/# already stopped
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/mem] main [total=&gt;88248320,free=&gt;88246272,used=&gt;0.00232]
-[INFO]  [/boot/config] boot time: 0.060019038 seconds</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88256512,free=&gt;88254464,used=&gt;0.00232]
+[INFO]  [/boot/config] boot time: 0.059281638 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -989,8 +991,8 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/router
 &gt;[
 ==&gt;structure=&gt;[
-===&gt;/sys/#
 ===&gt;/mnt/#
+===&gt;/sys/#
 ===&gt;/fos/#
 ===&gt;/mmadt/#
 ===&gt;/io/#
@@ -1094,17 +1096,17 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 =&gt;]
 ==&gt;/mmadt/int=&gt;[int][_]
 ==&gt;/mmadt/int/::/mmadt/as=&gt;as?obj{?}&lt;=int(isa(/mmadt/uri))[cpp]
-==&gt;/mmadt/int/::/mmadt/div=&gt;div(_)[cpp]
+==&gt;/mmadt/int/::/mmadt/div=&gt;div(0?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gt=&gt;gt(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/gte=&gt;gte(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/inspect=&gt;inspect(_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/lt=&gt;lt(arg?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/lte=&gt;lte(arg?int=&gt;_)[cpp]
-==&gt;/mmadt/int/::/mmadt/minus=&gt;minus(_)[cpp]
+==&gt;/mmadt/int/::/mmadt/minus=&gt;minus(0?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/mod=&gt;mod(isa(/mmadt/int))[cpp]
-==&gt;/mmadt/int/::/mmadt/mult=&gt;mult(_)[cpp]
+==&gt;/mmadt/int/::/mmadt/mult=&gt;mult(0?int=&gt;_)[cpp]
 ==&gt;/mmadt/int/::/mmadt/neg=&gt;neg(isa(/mmadt/int))[cpp]
-==&gt;/mmadt/int/::/mmadt/plus=&gt;plus(_)[cpp]
+==&gt;/mmadt/int/::/mmadt/plus=&gt;plus(0?int=&gt;_)[cpp]
 ==&gt;/mmadt/is=&gt;is?obj{?}&lt;=obj(_)[cpp]
 ==&gt;/mmadt/isa=&gt;isa?obj{?}&lt;=obj(type?uri=&gt;_)[cpp]
 ==&gt;/mmadt/lift=&gt;lift(_)[cpp]
@@ -1268,7 +1270,20 @@ When the instruction implementation is written in mmADT, the instruction value i
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; # -&gt; noobj
 [INFO]  [/sys/router] 6 heap(s) closing
 [INFO]  [/sys/router] router /sys/router stopped
-[ERROR] [/sys/router] # crosses multiple structures</code></pre>
+[ERROR] [/mnt/io] unable to read /io/console/config/nest
+[ERROR] [/mnt/io] unable to read /io/console/config/terminal/stdout
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj/::/block
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj/::/block
+[ERROR] [/mnt/var] unable to read block
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj
+[ERROR] [/mnt/mmadt] unable to read /mmadt/obj
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj/::/block
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj/::/block
+[ERROR] [/mnt/var] unable to read block
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj
+[ERROR] [/mnt/mmadt] unable to read /mmadt/noobj
+[ERROR] [/mnt/mmadt] unable to read /mmadt/obj</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1645,7 +1660,7 @@ fhatos&gt; @a.minus(11)
 fhatos&gt; @a.minus(2)
 [ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat()[is(gte(0))]
 		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
-	  thrown at inst nat[1]@a =&gt; minus(2)[cpp] [0=&gt;2]
+	  thrown at inst nat[1]@a =&gt; minus(0?int=&gt;2)[cpp] [0=&gt;2]
 fhatos&gt; *a
 ==&gt;nat[1]@a</code></pre>
 </div>
@@ -1895,7 +1910,7 @@ band -> |band?int{?}<=int(min?nat=>else(2),max?nat=>else(8))[is(and([gte(*min),l
 fhatos&gt; 15.band(10,20)              <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;15
 fhatos&gt; -15.band(-20,-10)           <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] band evaluation error: [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
+[ERROR] [/mmadt/parser] -20 is not a nat as defined by nat()[is(gte(0))]
 		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1</code></pre>
 </div>
 </div>
@@ -1941,7 +1956,7 @@ Finally, a degenerate anonymous <code>inst</code> with no specified variable fra
 fhatos&gt; 10.(min=&gt;minus(1),max=&gt;plus(1))[is(and([gte(*min),lte(*max)]))]   <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;10
 fhatos&gt; 10.()[is(and([gte(*min),lte(*max)]))]                             <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] /mmadt/is evaluation error: /mmadt/and evaluation error: /mmadt/gte evaluation error: [/mmadt/parser] noobj is not a int as defined by [int][_]
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst 10 =&gt; ()[is(and([gte(from(min)),lte(from(max))]))] [=&gt;]
 fhatos&gt; |((min=&gt;2,max=&gt;8)[is(and([gte(*min),lte(*max)]))])                <i class="conum" data-value="4"></i><b>(4)</b>
@@ -1990,7 +2005,7 @@ is_divisible -> |is_divisble?bool<=int(by?int=>_)[mod(*by).eq(0)]
 fhatos&gt; 10.is_divisible(2)
 ==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-[ERROR] is_divisible evaluation error: [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2015,7 +2030,7 @@ band -> |band?int{?}<=int(min=>_,max=>is(gt(*min)).else(*min.plus(1)))[is(gte(*m
 ==&gt;band?int{?}&lt;=int(min=&gt;_,max=&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj])[noobj])[noobj].else?noobj&lt;=obj(from?noobj&lt;=obj(min)[noobj].plus?noobj&lt;=obj(1)[noobj])[noobj])
 	[is(gte(from(min))).is(lte(from(max)))]
 fhatos&gt; 2.band(min=&gt;1,max=&gt;1)                 <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] band evaluation error: /mmadt/is evaluation error: /mmadt/gt evaluation error: [/mmadt/parser] noobj is not a int as defined by [int][_]
+[ERROR] [/mmadt/parser] noobj is not a int as defined by [int][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2042,7 +2057,7 @@ is_divisible -> |is_divisble?bool<=int(by?int=>is(neq(0)).else(print('error').ma
 fhatos&gt; 10.is_divisible(2)
 error==&gt;true
 fhatos&gt; 10.is_divisible('abc')
-error[ERROR] is_divisible evaluation error: [/mmadt/parser] 'abc' is not a int as defined by [int][_]
+error[ERROR] [/mmadt/parser] 'abc' is not a int as defined by [int][_]
 		 \_/mmadt/str is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
@@ -2423,9 +2438,25 @@ a -> int8[126]                       --- <2>
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
-          *(_) +</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"></code></pre>
 </div>
+</div>
+<!-- 🐓 -->
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Including <code>/mmadt/ext</code> <code>objs</code> in the router&#8217;s automatic URI resolution.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Constructing an <code>int</code> constrained to values from <code>-127</code> to <code>128</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Triggering <code>int8</code> type error by overflowing its numeric range.</td>
+</tr>
+</table>
 </div></div></td>
 </tr>
 </tbody>
@@ -2446,17 +2477,17 @@ a -> int8[126]                       --- <2>
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */mmadt/int/#
 ==&gt;[int][[_]]
 ==&gt;as?obj{?}&lt;=int(isa?noobj&lt;=obj(/mmadt/uri)[noobj])[cpp]
-==&gt;div?int&lt;=int(_)[cpp]
+==&gt;div?int&lt;=int(0?int=&gt;_)[cpp]
 ==&gt;gt?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;gte?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;inspect?rec&lt;=int(_)[cpp]
 ==&gt;lt?bool&lt;=int(arg?int=&gt;_)[cpp]
 ==&gt;lte?bool&lt;=int(arg?int=&gt;_)[cpp]
-==&gt;minus?int&lt;=int(_)[cpp]
+==&gt;minus?int&lt;=int(0?int=&gt;_)[cpp]
 ==&gt;mod?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
-==&gt;mult?int&lt;=int(_)[cpp]
+==&gt;mult?int&lt;=int(0?int=&gt;_)[cpp]
 ==&gt;neg?int&lt;=int(isa?noobj&lt;=obj(/mmadt/int)[noobj])[cpp]
-==&gt;plus?int&lt;=int(_)[cpp]</code></pre>
+==&gt;plus?int&lt;=int(0?int=&gt;_)[cpp]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3034,7 +3065,7 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 ==&gt;true=&gt;1
 &gt;]
 fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
-[ERROR] /mmadt/and evaluation error: [/mmadt/parser] noobj is not a lst as defined by [lst][_]
+[ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][_]
 		 \_/mmadt/noobj is not a subtype of /mmadt/lst
 	  thrown at inst noobj =&gt; true.i(noobj)[and(_,from(0))] [0=&gt;noobj]
 fhatos&gt; true.plus(false)
@@ -3600,8 +3631,8 @@ For instance, if a natural number \(\mathbb{N}\) is any non-negative number, the
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /type/int/nat -&gt; |is(gt(0))
-[ERROR] [/sys/router] no mounted structure for /type/int/nat
-==&gt;is?noobj&lt;=obj(gt?noobj&lt;=obj(0)[noobj])[noobj]
+[ERROR] no mounted structure for /type/int/nat
+	  thrown at inst /type/int/nat =&gt; ref?obj{?}&lt;=uri(payload=&gt;block(is(gt(0))),retain=&gt;noobj)[cpp] [payload=&gt;is(gt(0)),retain=&gt;noobj]
 fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
@@ -3612,7 +3643,7 @@ fhatos&gt; nat[3].plus(2)
 fhatos&gt; nat[3].mult(-2)
 [ERROR] [/mmadt/parser] -6 is not a /mmadt/ext/nat as defined by nat()[is(gte(0))]
 		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
-	  thrown at inst nat[3] =&gt; mult(-2)[cpp] [0=&gt;-2]</code></pre>
+	  thrown at inst nat[3] =&gt; mult(0?int=&gt;-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3674,8 +3705,8 @@ fhatos&gt; */sys/router/#/
 &gt;[
 ==&gt;/sys/router=&gt;[
 ===&gt;structure=&gt;[
-====&gt;/sys/#
 ====&gt;/mnt/#
+====&gt;/sys/#
 ====&gt;/fos/#
 ====&gt;/mmadt/#
 ====&gt;/io/#
@@ -3837,12 +3868,7 @@ o.to(u)
 -->
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; u -&gt; o
-==&gt;o
-fhatos&gt; u.ref(o)
-==&gt;o
-fhatos&gt; o.to(u)
-==&gt;o</code></pre>
+<pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt"></code></pre>
 </div>
 </div>
 <!-- 🐓 --></div></td>
@@ -4810,7 +4836,7 @@ fhatos&gt; 'a'.plus('b')
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-16 17:07:07 -0600
+Last updated 2025-05-17 12:42:46 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

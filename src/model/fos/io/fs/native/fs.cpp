@@ -78,26 +78,27 @@ namespace fhatos {
   }
 
   void FS::write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) {
-    // TODO: retain is overwrite and transient is append
-    const fs::path file_path = map_fos_to_fs(id).toString();
-    if(obj->is_noobj()) {
-      if(fs::is_regular_file(file_path))
-        fs::remove(file_path);
-      // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
-      return;
-    }
-    if(id.is_node()) {
-      if(const fs::path parent_path = file_path.parent_path(); !fs::exists(parent_path))
-        fs::create_directories(parent_path);
-      const BObj_p bobj = obj->serialize();
-      auto outfile = std::ofstream(file_path, retain ? ios::trunc : ios::app);
-      if(!outfile.is_open())
-        LOG_WRITE(WARN, this, L("unable to write to !b%s!! via !b%s!!\n", id.toString().c_str(), file_path.c_str()));
-      outfile << bobj->second;
-      outfile.flush();
-      outfile.close();
-    } else {
-      throw fError("unimplemented dir writer\n");
+    if(retain) {
+      const fs::path file_path = map_fos_to_fs(id).toString();
+      if(obj->is_noobj()) {
+        if(fs::is_regular_file(file_path))
+          fs::remove(file_path);
+        // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
+        return;
+      }
+      if(id.is_node()) {
+        if(const fs::path parent_path = file_path.parent_path(); !fs::exists(parent_path))
+          fs::create_directories(parent_path);
+        const BObj_p bobj = obj->serialize();
+        auto outfile = std::ofstream(file_path, retain ? ios::trunc : ios::app);
+        if(!outfile.is_open())
+          LOG_WRITE(WARN, this, L("unable to write to !b%s!! via !b%s!!\n", id.toString().c_str(), file_path.c_str()));
+        outfile << bobj->second;
+        outfile.flush();
+        outfile.close();
+      } else {
+        throw fError("unimplemented dir writer\n");
+      }
     }
     // this->distribute_to_subscribers(Message::create(id_p(id), obj, retain));
   }

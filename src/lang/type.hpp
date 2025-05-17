@@ -39,8 +39,7 @@ namespace fhatos {
     std::vector<fURI> *filters = nullptr;
 
   public:
-    explicit Typer(const ID &value_id) :
-        Obj(rmap({{"module",Obj::to_rec()}}), OType::REC, REC_FURI, id_p(value_id)) {
+    explicit Typer(const ID &value_id) : Obj(rmap({{"module", Obj::to_rec()}}), OType::REC, REC_FURI, id_p(value_id)) {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID &type_id, const Obj_p &type_def) { this->save_type(type_id, type_def); };
@@ -177,8 +176,14 @@ namespace fhatos {
       LOG_WRITE(INFO, this, L("!gtyper!! started\n"));
     }
 
-    static ptr<Typer> &singleton(const ID &id = "/sys/typer") {
+    static ptr<Typer> &singleton(const ID &id = "/boot/typer") {
       static auto typer = make_shared<Typer>(id);
+      if(BOOTING && !typer->vid->equals(id) && typer->vid->path().find("boot") != std::string::npos) {
+        typer->vid = id_p(id);
+        // TYPER_ID = typer->vid;
+        typer->save();
+        LOG_WRITE(INFO, typer.get(), L("!gtyper!! !bid!! reassigned\n"));
+      }
       return typer;
     }
 
@@ -197,9 +202,7 @@ namespace fhatos {
       }
     }
 
-    static void *import(const ID &type_id = "/sys/type") {
-      Typer::singleton(type_id);
-    }
+    static void *import(const ID &type_id = "/sys/type") { Typer::singleton(type_id); }
 
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////

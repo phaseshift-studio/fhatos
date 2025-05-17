@@ -1,5 +1,7 @@
 #include "scheduler.hpp"
 
+#include "bundler.hpp"
+
 namespace fhatos {
   Scheduler::Scheduler(const ID &id) :
       Rec(rmap({{"spawn", lst()}, {"bundle", lst()}}), OType::REC, REC_FURI, id_p(id)) {
@@ -91,56 +93,14 @@ namespace fhatos {
         ->post();
   }
   void Scheduler::bundle_fiber(const Obj_p &fiber_obj) {
-    if(!fiber_obj->vid)
-      fError::create(this->vid->toString(), "!yfiber !rmust have!y a vid!!: %s", fiber_obj->toString().c_str());
     auto lock = std::lock_guard<Mutex>(mutex);
-    const Lst_p fiber_uris = this->obj_get("bundle")->or_else(lst());
-    const auto itty =
-        std::find_if(fiber_uris->lst_value()->begin(), fiber_uris->lst_value()->end(),
-                     [&fiber_obj](const Uri_p &u) -> bool { return fiber_obj->vid->equals(u->uri_value()); });
-    if(itty != fiber_uris->lst_value()->end()) {
-      throw fError::create(this->tid->toString(), "!yfiber !b%s !ralready!! bundled",
-                           fiber_obj->vid->toString().c_str());
-    }
-    fiber_uris->lst_value()->push_back(Obj::to_uri(*fiber_obj->vid));
-    this->obj_set("bundle", fiber_uris);
-    LOG_WRITE(INFO, this, L("!b{} !yfiber!! bundled\n", fiber_obj->vid->toString()));
+    Bundler::bundle_fiber(this, fiber_obj);
   }
   void Scheduler::handle_bundle() {
     auto lock = std::lock_guard<Mutex>(mutex);
-    const Lst_p bundle_uris = this->obj_get("bundle")->or_else(lst());
-    if(bundle_uris->lst_value()->empty())
-      return;
-    const size_t count = bundle_uris->lst_value()->size();
-    bundle_uris->lst_value()->erase(
-        std::remove_if<>(
-            bundle_uris->lst_value()->begin(), bundle_uris->lst_value()->end(),
-            [this](const Uri_p &fiber_id) -> bool {
-              if(!fiber_id->is_uri()) {
-                LOG_WRITE(ERROR, this,
-                          L("fiber bundles can only store uris: {}\n", OTypes.to_chars(fiber_id->otype).c_str()));
-                return true;
-              }
-              const Obj_p fiber = Obj::load(fiber_id);
-              if(fiber->is_noobj()) {
-                LOG_WRITE(INFO, this, L("!b{} !yfiber!! removed\n", fiber_id->uri_value().toString()));
-                return true;
-              }
-              try {
-                const Inst_p fiber_loop_inst =
-                    Compiler().with_derivation_tree().resolve_inst(fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-                mmADT::delift(fiber_loop_inst)->apply(fiber);
-                return false;
-              } catch(const fError &e) {
-                LOG_WRITE(ERROR, this,
-                          L("!b{} !yfiber !rloop error!!: {}\n", fiber->vid_or_tid()->toString(), e.what()));
-                return true;
-              }
-            }),
-        bundle_uris->lst_value()->end());
-    if(bundle_uris->lst_value()->size() != count)
-      this->obj_set("bundle", bundle_uris);
+    Bundler::handle_fibers(this);
   }
+
   void *Scheduler::import() {
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))

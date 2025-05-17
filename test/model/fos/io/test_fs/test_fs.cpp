@@ -16,14 +16,13 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#define FOS_DEPLOY_PRINTER
-#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_FOS_TYPE
-#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_SCHEDULER
 #include "../../../../../src/model/fos/io/fs/fs.hpp"
 #include "../../../../structure/stype/generic_structure_test.hpp"
 #include "../../../../test_fhatos.hpp"
@@ -31,40 +30,43 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
-  Structure_p test_structure =
-      std::make_shared<FS>("/fs/xyz/#", id_p("/sys/test"), Obj::to_rec({{"root", vri("/fs")}}));
-
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////
-  void test_generic_clear() { GenericStructureTest(test_structure).test_clear(); }
+  Structure_p get_or_create_structure() {
+    Structure_p test_structure =
+        std::make_shared<FS>("/fs/xyz/#", id_p("/sys/test"), Obj::to_rec({{"root", vri("/fs")}}));
+    return test_structure;
+  }
 
-  void test_generic_write() { GenericStructureTest(test_structure).test_write(); }
+  void test_generic_clear() { GenericStructureTest(get_or_create_structure()).test_clear(); }
 
-  void test_generic_delete() { GenericStructureTest(test_structure).test_delete(); }
+  void test_generic_write() { GenericStructureTest(get_or_create_structure()).test_write(); }
 
-  void test_generic_subscribe() { GenericStructureTest(test_structure).test_subscribe(); }
+  void test_generic_delete() { GenericStructureTest(get_or_create_structure()).test_delete(); }
 
-  void test_generic_mono_embedding() { GenericStructureTest(test_structure).test_mono_embedding(); }
+  void test_generic_subscribe() { GenericStructureTest(get_or_create_structure()).test_subscribe(); }
 
-  void test_generic_lst_embedding() { GenericStructureTest(test_structure).test_lst_embedding(); }
+  void test_generic_mono_embedding() { GenericStructureTest(get_or_create_structure()).test_mono_embedding(); }
 
-  void test_generic_rec_embedding() { GenericStructureTest(test_structure).test_rec_embedding(); }
+  void test_generic_lst_embedding() { GenericStructureTest(get_or_create_structure()).test_lst_embedding(); }
 
-  void test_generic_q_sub() { GenericStructureTest(test_structure).test_q_sub(); }
+  void test_generic_rec_embedding() { GenericStructureTest(get_or_create_structure()).test_rec_embedding(); }
 
-  void test_generic_q_doc() { GenericStructureTest(test_structure).test_q_doc(); }
+  void test_generic_q_sub() { GenericStructureTest(get_or_create_structure()).test_q_sub(); }
+
+  void test_generic_q_doc() { GenericStructureTest(get_or_create_structure()).test_q_doc(); }
 
   FOS_RUN_TESTS( //
-      //FOS_RUN_TEST(test_generic_clear); //
+      FOS_RUN_TEST(test_generic_clear); //
       FOS_RUN_TEST(test_generic_write); //
       FOS_RUN_TEST(test_generic_delete); //
       FOS_RUN_TEST(test_generic_subscribe); //
       FOS_RUN_TEST(test_generic_mono_embedding); //
       FOS_RUN_TEST(test_generic_lst_embedding); //
       FOS_RUN_TEST(test_generic_rec_embedding); //
-      //  FOS_RUN_TEST(test_generic_q_sub); //
-      //  FOS_RUN_TEST(test_generic_q_doc); //
+      FOS_RUN_TEST(test_generic_q_sub); //
+      FOS_RUN_TEST(test_generic_q_doc); //
   );
 } // namespace fhatos
 

@@ -30,7 +30,7 @@ namespace fhatos {
     if(BOOTING && !router->vid->equals(vid) && router->vid->path().find("boot") != std::string::npos) {
       router->vid = id_p(vid);
       ROUTER_ID = router->vid;
-      //router->save();
+      // router->save();
       LOG_WRITE(INFO, router.get(), L("!grouter!! !bid!! reassigned\n"));
     }
     return router;
@@ -198,41 +198,45 @@ namespace fhatos {
       if(const Structure_p structure = this->get_structure(furi, obj))
         structure->write(furi, obj, retain);
     } catch(const fError &e) {
-      LOG_WRITE(BOOTING ? WARN : ERROR, this, L("{}\n", e.what()));
+      if(!BOOTING)
+        throw;
+      LOG_WRITE(WARN, this, L("{}\n", e.what()));
     }
   }
 
   void *Router::import() {
     Router::singleton()->auto_prefixes_ =
         std::vector<Uri_p>(*Router::singleton()->rec_get("config/auto_prefix")->or_else(lst())->lst_value());
-    Router::singleton()->rec_set("::/mount",InstBuilder::build(Router::singleton()->vid->add_component("mount"))
-        ->inst_args(rec({{"structure", Obj::to_bcode()}}))
-        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-        ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Obj_p structure_obj = args->arg("structure");
-          const auto s = ptr<Structure>(structure_obj->get_model<Structure>());
-          Router::singleton()->attach(s);
-          //////////////////////////////////////////////////////////////////////////////////////////////////////////
-          Subscription::create(
-              Router::singleton()->vid, p_p(*s->vid),
-              [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
-                if(obj->is_noobj()) {
-                  Router::singleton()->structures_->remove_if([&args](const Structure_p &structure) {
-                    if(structure->vid->equals(args->arg("target")->uri_value())) {
-                      LOG_WRITE(INFO, Router::singleton().get(),
-                                L("!ystructure !b{}!! unmounted\n", args->arg("target")->uri_value().toString()));
-                      return true;
+    Router::singleton()->rec_set(
+        "::/mount",
+        InstBuilder::build(Router::singleton()->vid->add_component("mount"))
+            ->inst_args(rec({{"structure", Obj::to_bcode()}}))
+            ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+            ->inst_f([](const Obj_p &, const InstArgs &args) {
+              const Obj_p structure_obj = args->arg("structure");
+              const auto s = ptr<Structure>(structure_obj->get_model<Structure>());
+              Router::singleton()->attach(s);
+              //////////////////////////////////////////////////////////////////////////////////////////////////////////
+              Subscription::create(
+                  Router::singleton()->vid, p_p(*s->vid),
+                  [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
+                    if(obj->is_noobj()) {
+                      Router::singleton()->structures_->remove_if([&args](const Structure_p &structure) {
+                        if(structure->vid->equals(args->arg("target")->uri_value())) {
+                          LOG_WRITE(INFO, Router::singleton().get(),
+                                    L("!ystructure !b{}!! unmounted\n", args->arg("target")->uri_value().toString()));
+                          return true;
+                        }
+                        return false;
+                      });
+                      Router::singleton()->save();
                     }
-                    return false;
-                  });
-                  Router::singleton()->save();
-                }
-                return Obj::to_noobj();
-              })
-              ->post();
-          return s;
-        })
-        ->create());
+                    return Obj::to_noobj();
+                  })
+                  ->post();
+              return s;
+            })
+            ->create());
     /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
             ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
             ->inst_f([](const Obj_p &, const InstArgs &args) {

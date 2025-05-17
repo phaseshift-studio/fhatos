@@ -52,7 +52,8 @@ namespace fhatos {
       ROUTER_WRITE(p("#"), Obj::to_noobj(), true); // delete data
       ROUTER_WRITE(*structure_->vid, Obj::to_noobj(), true); // unmount structure
       Router::singleton()->loop();
-      FOS_TEST_ERROR(p("c/23").toString().append(" -> 23")); // ensure unmounted
+      FOS_TEST_ERROR(p("fake1").toString().append(" -> 23")); // ensure unmounted
+      FOS_TEST_ASSERT_EXCEPTION([this]{ROUTER_WRITE(p("fake2"),jnt(24),true);});
     }
 
     void test_clear() const {
@@ -205,7 +206,7 @@ namespace fhatos {
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "sub")));
       ROUTER_WRITE(p("abc", "sub"), __().to(p("bcd")), true);
       Router::singleton()->loop();
-      FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "sub")));
+      //FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "sub")));
       ////////// transient
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("bcd")));

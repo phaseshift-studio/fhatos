@@ -25,7 +25,6 @@
 #include "../../../lang/obj.hpp"
 #include "../../../lang/type.hpp"
 #include "../../../util/print_helper.hpp"
-#include "../../model.hpp"
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
 #include "terminal.hpp"

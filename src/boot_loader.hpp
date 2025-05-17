@@ -77,8 +77,8 @@ namespace fhatos {
         }
         kp->display_note("!ymounting !bkernel !ystructures!!")
             ->display_memory()
-            ->mount(Heap<>::create("/sys/#"))
             ->mount(Heap<>::create("/mnt/#"))
+            ->mount(Heap<>::create("/sys/#", id_p("/mnt/sys")))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
             ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/boot_config.obj"));
         //////////////////////////////////////////////////////////////////
@@ -113,26 +113,7 @@ namespace fhatos {
             ->evalulating_setup()
             ->display_memory()
             ->stop_timer();
-
-        // Terminal::singleton("/io/terminal");
-        // Scheduler::singleton()->spawn_thread(Console::create("/io/console", Kernel::boot()->rec_get("console")));
-        /*kp->display_note("!r.!go!bO !yloading !bsystem !yobjs!! !bO!go!r.!!")
-            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-            ->using_router(Router::singleton("/sys/router"));
-        if(args_parser->option_bool("--headers", true)) {
-          kp->display_memory();
-        }
-        ////////////////////////////////////////////////////////////
-        ////////////////// SYS STRUCTURE ///////////////////////////
-        ///////////////////////////////////////////////////////////
-        kp->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("/mnt/#"))
-            ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
-            ->using_boot_config(args_parser->option_furi("--boot:config", fURI(FOS_BOOT_CONFIG_HEADER_URI)))
-            ->import(Router::import())
-            ->drop_config("router")
-            ->import(Scheduler::import())
-            ->drop_config("scheduler");
+/*
         ////////////////////////////////////////////////////////////
         ////////////////// USER IMPORT(S) //////////////////////////
         ////////////////////////////////////////////////////////////

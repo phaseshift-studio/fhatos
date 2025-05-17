@@ -1,12 +1,15 @@
 ===
 test boot_config obj
 ===
-[scheduler=>[config=>[def_stack_size=>32384]]@/sys/scheduler
-       router=>[id=>/sys/router,
-                config=>[namespace=>[:=>/mmadt/,fos:=>/fos/],
-                         auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
-                                       /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]],
+[scheduler=>[config=>[def_stack_size=>32384]]@/sys/scheduler,
+ router=>[config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                 /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]@/sys/router,
+ typer=>[config=>[module=>[/mmadt/#,/fos/#]]]@/sys/typer,
  import=>[/fos/q/#,/fos/sys/#,/fos/util/#,/fos/io/#,/fos/s/#,/fos/ui/#,/io/#,/sys/#,/mmadt/#],
  -------------------------------------------------------------------------------------
- setup=>setup?obj{?}<=obj{.}()[]
+ setup=>setup?obj{?}<=obj{.}()[
+     /mnt/boot -> noobj;
+     heap[[pattern=><+/#>]]@/mnt/var;
+     /sys/router::mount(@/mnt/var);
+ ]
 ]@/boot/config

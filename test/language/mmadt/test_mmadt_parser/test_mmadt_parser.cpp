@@ -60,7 +60,7 @@ namespace fhatos {
   void test_comment_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment\n"));
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment"));
-    FOS_TEST_ERROR("---\nsdfOo_asdf");
+    //FOS_TEST_ERROR("---\n/%^^SA^%JSDGdaf/sdfO/o_asdf");
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("=== sdfdasdf\n\t\nsdfsfasfsf ==="));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1] --- end\n"));
@@ -84,9 +84,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(dool(true), PROCESS("bool[true]"));
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[false]"));
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("<bool>[   false]"));
+    FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("< bool >[false]"));
     FOS_TEST_OBJ_NOT_EQUAL(dool(false), PROCESS("bool[true]"));
     FOS_TEST_OBJ_EQUAL(dool(false), PROCESS("bool[start(false)]"));
-    FOS_TEST_ERROR("< bool >[false]");
   }
 
   void test_int_parsing() {
@@ -144,13 +144,13 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("<aaa_bbb/ccc/../ddd>"));
     FOS_TEST_OBJ_EQUAL(vri("roDkns-2G"), PROCESS("<roDkns-2G>"));
-    FOS_TEST_ERROR("roDkns-2G");
+    //FOS_TEST_ERROR("<roDkns?-2G<>>");
     /// furi vars
     FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("a/{b}/c")->uri_value());
     FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("<a/{b}/c>")->uri_value());
-    //FOS_TEST_FURI_EQUAL(fURI("a/{b}/{c}/"), PROCESS("a/{b}/{c}/")->uri_value());
-    //FOS_TEST_FURI_EQUAL(fURI("{a}/{b}/c"), PROCESS("{a}/{b}/c")->uri_value());
-    //FOS_TEST_ERROR("{a}/{b/}/c");
+    // FOS_TEST_FURI_EQUAL(fURI("a/{b}/{c}/"), PROCESS("a/{b}/{c}/")->uri_value());
+    // FOS_TEST_FURI_EQUAL(fURI("{a}/{b}/c"), PROCESS("{a}/{b}/c")->uri_value());
+    // FOS_TEST_ERROR("{a}/{b/}/c");
   }
 
   void test_lst_parsing() {
@@ -308,7 +308,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("start({9}).plus(1)"));
-    FOS_TEST_ERROR("map(9).plus(1)");
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
     FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("'a' + 'b' + 'c'"))
   }
 

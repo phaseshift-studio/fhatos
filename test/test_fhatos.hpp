@@ -72,7 +72,9 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #define FOS_STOP_SCHEDULER Scheduler::singleton()->stop();
-#define FOS_DEPLOY_SCHEDULER_2 Kernel::using_scheduler("scheduler");
+#define FOS_DEPLOY_SCHEDULER_2                                                                                         \
+  Scheduler::singleton("/sys/scheduler");                                                                              \
+  Kernel::using_scheduler("scheduler");
 #endif
 /////////////////////////////////////////// ROUTER //////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
@@ -82,10 +84,13 @@
 // FOS_BOOT_CONFIG_HEADER_URI;
 #define FOS_STOP_ROUTER Router::singleton()->stop();
 #define FOS_DEPLOY_ROUTER_2                                                                                            \
+  Router::singleton("/sys/router");                                                                                    \
+  load_processor();                                                                                                    \
   Kernel::mount(Heap<>::create("/sys/#"))                                                                              \
       ->mount(Heap<>::create("/mnt/+"))                                                                                \
       ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))                                                            \
-      ->mount(Heap<>::create("/io/#", id_p("/mnt/io")));                                                               \
+      ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))                                                                \
+      ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")));                                                         \
   Kernel::using_boot_config("/../test/data/boot/test_boot_config.obj");                                                \
   LOG_WRITE(INFO, Router::singleton().get(), L("{}\n", Kernel::boot()->toString()));                                   \
   Kernel::using_router("router");
@@ -109,7 +114,6 @@
 #include "../src/lang/type.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_MMADT_TYPE_2                                                                                        \
-  Kernel::mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")));                                                       \
   Processor::import();                                                                                                 \
   load_processor();                                                                                                    \
   mmadt::mmADT::import({"/mmadt/#"});
@@ -131,7 +135,9 @@
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_FOS_TYPE_2                                                                                          \
   Kernel::mount(Heap<>::create("/fos/#", id_p("/mnt/fos")));                                                           \
-  fOS::import({"/fos/#"});
+  Typer::singleton("/sys/typer");                                                                                      \
+  LOG_WRITE(INFO, Typer::singleton().get(), L("{}\n", Kernel::boot()->toString()));                                    \
+  Kernel::using_typer("typer")->import2("import");
 #else
 #define FOS_DEPLOY_FOS_TYPE_2 ;
 #endif
@@ -290,10 +296,9 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
 #define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \
   try {                                                                                                                \
     (x);                                                                                                               \
-    TEST_ASSERT(false);                                                                                                \
+    TEST_FAIL_MESSAGE("!rno exception occurred!!: " STR(__FILE__) ":" STR(__LINE__));                                  \
   } catch(const fError &e) {                                                                                           \
     FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                     \
-    TEST_ASSERT(true);                                                                                                 \
   }
 
 #ifdef FOS_DEPLOY_PARSER
@@ -375,8 +380,9 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    PROCESS(monoid)->objs_value();
-    TEST_ASSERT_TRUE_MESSAGE(false, ("!rno exception thrown!! in " + monoid).c_str());
+    const Obj_p result = PROCESS(monoid);
+    FOS_TEST_MESSAGE("!rno exception thrown!! in %s: %s", monoid.c_str(), result->toString().c_str());
+    TEST_ASSERT_TRUE(false);
   } catch(const fError &error) {
     FOS_TEST_MESSAGE("!gexpected !rexception thrown!!: %s", error.what());
     // LOG_WRITE(INFO, Scheduler::singleton().get(), L("expected !rexception thrown!!: {}\n", error.what()));
