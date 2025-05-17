@@ -33,13 +33,13 @@ namespace fhatos {
 
   void test_monad_set() {
     LOG(INFO, "creating processor\n");
-    ptr<Processor> processor = make_shared<Processor>(__(jnt(14)));
+    const ptr<Processor> processor = make_shared<Processor>(__(jnt(14)));
     LOG(INFO, "processor created\n");
-    P::MonadSet mset = processor->make_monad_set();
+    const P::MonadSet mset = processor->make_monad_set();
     //  LOG(INFO,"monad set created\n");
-    P::Monad_p m1 = processor->make_monad(jnt(10), noobj());
-    P::Monad_p m2 = processor->make_monad(jnt(20), noobj());
-    P::Monad_p m3 = processor->make_monad(jnt(10), noobj());
+    const P::Monad_p m1 = processor->make_monad(jnt(10), noobj());
+    const P::Monad_p m2 = processor->make_monad(jnt(20), noobj());
+    const P::Monad_p m3 = processor->make_monad(jnt(10), noobj());
     FOS_TEST_OBJ_EQUAL(m1, m3);
     FOS_TEST_OBJ_NTEQL(m1, m2);
     //LOG(INFO,"monads created\n");
@@ -57,14 +57,14 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(2, mset.bulk_of(m1));
     TEST_ASSERT_EQUAL_INT(2, mset.bulk_of(m3));
     TEST_ASSERT_EQUAL_INT(2, mset.size());
-    int total_runs = 20;
+    constexpr int total_runs = 20;
     for(int i = 1; i < total_runs; i++) {
       mset.push_back(m3);
       FOS_TEST_OBJ_EQUAL(m1, mset.front());
-      TEST_ASSERT_EQUAL_INT(2+i, mset.bulk_of(m1));
+      TEST_ASSERT_EQUAL_INT(2 + i, mset.bulk_of(m1));
       TEST_ASSERT_EQUAL_INT(2, mset.size());
     }
-    P::Monad_p m4 = processor->make_monad(jnt(10), __().from("abc"));
+    const P::Monad_p m4 = processor->make_monad(jnt(10), __().from("abc"));
     m4->bulk = 1000;
     mset.push_back(m4);
     TEST_ASSERT_EQUAL_INT(1+total_runs, mset.bulk_of(m1));
