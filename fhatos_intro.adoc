@@ -1,4 +1,4 @@
-== FhatOS Features
+= FhatOS Features
 
 . A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for executing multi-threaded https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
 . A memory architecture enabling the integration of various storage mediums within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] https://en.wikipedia.org/wiki/Tuple_space[address space].
@@ -12,13 +12,40 @@
 
 == FhatOS Boot Loader
 
-The following output is from a Linux boot of [red]#F#​[lime]*H*​[fuchsia]#A#​[yellow]*t*​[aqua]#O#​[blue]#S#​.
-The purpose of this documentation is to explain the mechanics of the boot process and beyond.
+To boot [fhatos], the environmental variable `FHATOS_HOME` must be set to the root directory of the distribution and `$FHATOS_HOME/bin` must be added to the shell environment's `PATH` variable. This is required for all boot processes as well as development processes afforded by `bin/fhat-dev`. See `fhatos --help` for more information.
 
 [source,bash]
 ----
-$ fhatos --boot:config=../conf/boot-loader.obj
+$ fhatos --help
+FhAtoS: A Distributed Operating System
+  --help           = noobj
+  --boot:config    = uri?local_dir_path
+  --ansi           = bool?colorize
+  --log            = uri?{INFO,WARN,ERROR,DEBUG,TRACE,ALL,NONE}
+  --fs:mount       = uri?local_dir_path
+  --mqtt:broker    = uri?server uri
+  --mqtt:client    = uri?client_name
+  --console:nest   = int?depth
+  --console:prompt = str?prompt_string
+  --lib            = uri?{module,...}
+
 ----
+
+=== Booting on Linux/Unix/Mac
+
+To boot on Linux, `fhatos` is executed.
+
+[source,bash]
+----
+$ fhatos --boot:config=/boot/boot_config.obj
+----
+
+====
+TIP: The default boot configuration is located at `${FHATOS_HOME}/data/boot/boot_config.obj`}.
+If this is the desired boot configuration, then calling `fhatos` with no arguments is sufficient.
+====
+
+The following output is from a Linux boot of [red]#F#​[lime]*H*​[fuchsia]#A#​[yellow]*t*​[aqua]#O#​[blue]#S#​.
 
 ++++
 <!-- 🐖 ./boot_runner.out -->
@@ -141,11 +168,12 @@ $ fhatos --boot:config=../conf/boot-loader.obj
 <!-- 🐓 -->
 ++++
 
-=== Booting on Linux/Unix/Mac
-
 === Booting on ESP32
 
-=== Booting on ESP8266
+[source,json]
+----
+$esp_boards
+----
 
 === Booting on RaspberryPi
 

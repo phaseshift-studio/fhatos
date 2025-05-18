@@ -9,7 +9,7 @@
 :stem: latexmath
 :source-highlighter: highlight.js
 :highlightjsdir: ./highlight
-:highlightjs-languages: mmadt, bash
+:highlightjs-languages: mmadt,bash,json
 :stylesheet: ./css/fhatos.css
 // :linkcss:
 :data-uri:

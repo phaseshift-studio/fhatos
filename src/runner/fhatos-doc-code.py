@@ -15,6 +15,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+import json
+import configparser
+import pprint
+from os import listdir
 
 from colors import *
 
@@ -36,6 +40,25 @@ else:  # pragma: no cover
     __version__ = pkg_resources.get_distribution("markdown-code-runner").version
 
 DEBUG: bool = os.environ.get("DEBUG", "0") == "1"
+
+def supported_esp_boards() -> dict:
+    boards = dict()
+    config = configparser.ConfigParser()
+    config.read('../../../platformio.ini')
+    sections = filter(lambda x: x.startswith('env:'), config.sections())
+    for s in sections:
+        key = config[s].name.removeprefix("env:")
+        file = config[s].get("board")
+        for f in listdir("../../../board/"):
+            if (f.endswith(".json") and f.startswith(file)):
+                data = json.load(open(f"../../../board/{f}", "r"))
+                value = dict()
+                value["name"] = data["name"].lower()
+                value["vendor"] = data["vendor"].lower()
+                value["url"] = data["url"]
+                boards[key] = value
+    pprint.pprint(boards)
+    return boards
 
 
 def remove_html_comment(commented_text: str) -> str:
@@ -144,38 +167,42 @@ class ProcessingState:
 
     def process_line(self, line: str, *, verbose: bool = False) -> None:
         """Process a line of the Markdown file."""
-        if line.strip().startswith("|==="):
-            self.in_table = not self.in_table
-        ################################################################################
-        if (self.section == "👨‍🌾" and
-                line.lstrip().startswith("<!--") and
-                line.find("🐖") != -1):
-            self.section = "🐖"
-            self.code.append(remove_html_comment(line.strip()).replace("🐖", ""))
-            if line.rstrip().endswith("-->"):
-                self._process_chicken_code(verbose=verbose)
-                self._process_output_start(line)
-                self.section = "🐓"
-        elif self.section == "🐖":
-            if line.lstrip() == "-->":
-                self.new_lines.append(line)
-                self._process_chicken_code(verbose=verbose)
-                self._process_output_start("")
-                self.section = "🐓"
-            else:
-                self.code.append(line)
-        ############################################
-        if self.section == "👨‍🌾" or self.section == "🐖":
-            if -1 != line.find("[fhatos]"):
-                self.new_lines.append(line.replace("[fhatos]", self.random_fhat()))
-            else:
-                self.new_lines.append(line)
-        elif self.section == "🐓":
-            if line == "<!-- 🐓 -->":
-                self.new_lines.append("")
-                self.new_lines.append("++++")
-                self.new_lines.append("<!-- 🐓 -->")
-                self.section = "👨‍🌾"
+        if line.strip().startswith("$esp_boards"):
+            esp_boards = pprint.pformat(supported_esp_boards())
+            self.new_lines.append(esp_boards)
+        else:
+            if line.strip().startswith("|==="):
+                self.in_table = not self.in_table
+            ################################################################################
+            if (self.section == "👨‍🌾" and
+                    line.lstrip().startswith("<!--") and
+                    line.find("🐖") != -1):
+                self.section = "🐖"
+                self.code.append(remove_html_comment(line.strip()).replace("🐖", ""))
+                if line.rstrip().endswith("-->"):
+                    self._process_chicken_code(verbose=verbose)
+                    self._process_output_start(line)
+                    self.section = "🐓"
+            elif self.section == "🐖":
+                if line.lstrip() == "-->":
+                    self.new_lines.append(line)
+                    self._process_chicken_code(verbose=verbose)
+                    self._process_output_start("")
+                    self.section = "🐓"
+                else:
+                    self.code.append(line)
+            ############################################
+            if self.section == "👨‍🌾" or self.section == "🐖":
+                if -1 != line.find("[fhatos]"):
+                    self.new_lines.append(line.replace("[fhatos]", self.random_fhat()))
+                else:
+                    self.new_lines.append(line)
+            elif self.section == "🐓":
+                if line == "<!-- 🐓 -->":
+                    self.new_lines.append("")
+                    self.new_lines.append("++++")
+                    self.new_lines.append("<!-- 🐓 -->")
+                    self.section = "👨‍🌾"
 
     def _post_process_output(self, c: str, in_table: bool = True) -> str | None:
         if c.count("thrown at inst console") != 0:
