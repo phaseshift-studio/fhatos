@@ -64,6 +64,9 @@ namespace fhatos {
       import_ui(patterns);
       import_util(patterns);
       Time::import();
+#ifdef ESP_PLATFORM
+      WIFIx::load_module();
+#endif
       return nullptr;
     }
 

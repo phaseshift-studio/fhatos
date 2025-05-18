@@ -337,6 +337,7 @@ video {
     font-style: italic;
 }
 
+.hljs-punctuation,
 .hljs-mmadt-rec,
 .hljs-mmadt-furi-query {
     color: #d4de68;
@@ -379,6 +380,7 @@ video {
     color: #c2aa2f;
 }
 
+.hljs-comment,
 .hljs-mmadt-keyword,
 .hljs-mmadt-uri,
 .hljs-mmadt-type {

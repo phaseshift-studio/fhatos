@@ -42,7 +42,7 @@
     "arduino",
     "espidf"
   ],
-  "name": "Waveshare ESP32-S3 1.28 LCD  (16MB QD, 2MB PSRAM)",
+  "name": "Waveshare ESP32-S3",
   "upload": {
     "flash_size": "16MB",
     "maximum_ram_size": 327680,

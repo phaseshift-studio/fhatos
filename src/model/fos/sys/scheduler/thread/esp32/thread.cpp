@@ -71,7 +71,7 @@ namespace fhatos {
                                                             // name of the task (for debugging)
                                                             FOS_PRE_PSRAM_THREAD_STACK_SIZE, // stack size (bytes)
                                                             static_cast<void *>(this), // parameter to pass
-                                                            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // task priority
+                                                            1, // CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // task priority
                                                             this->get_handler<TaskHandle_t *>(), // task handle
                                                             tskNO_AFFINITY); // processor core
     if(pdPASS != threadResult)

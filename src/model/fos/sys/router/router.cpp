@@ -61,13 +61,26 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////
     ROUTER_APPEND = [this](const fURI &furi, const Obj_p &obj) { this->append(furi, obj); };
     ////////////////////////////////////////////////////////////////////////////////////
+    ROUTER_EXEC_WITHIN_FRAME = [this](const Pattern &span, const Rec_p &frame, const Supplier<Obj_p> &to_exec) {
+      bool frame_set = false;
+      Obj_p result = nullptr;
+      try {
+        Router::push_frame(span, frame);
+        frame_set = true;
+        result = to_exec();
+      } catch(std::exception &) {
+        if(frame_set)
+          Router::pop_frame();
+        throw;
+      }
+      this->pop_frame();
+      return result;
+    };
     LOG_WRITE(INFO, this, L("!yrouter!! started\n"));
   }
 
   void Router::push_frame(const Pattern &pattern, const Rec_p &frame_data) {
     THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
-    // LOG_OBJ(TRACE, this, "!gpushed!! to frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
-    //         THREAD_FRAME_STACK->full_frame()->toString().c_str());
   }
 
   void Router::pop_frame() {

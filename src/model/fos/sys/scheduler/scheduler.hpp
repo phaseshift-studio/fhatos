@@ -31,6 +31,8 @@ namespace fhatos {
 
   protected:
     Mutex mutex = Mutex();
+  public:
+    MutexDeque<Runnable> for_scheduler;
 
   public:
     explicit Scheduler(const ID &id);

@@ -113,7 +113,7 @@ namespace fhatos {
 
     [[nodiscard]] bool available() const { return this->available_.load(); }
 
-    virtual void setup() {
+    void setup() override {
       if(this->available_.load()) {
         LOG_WRITE(WARN, this,
                   L("!ystructure!! !b{}!! spanning !b{}!! already mounted\n",

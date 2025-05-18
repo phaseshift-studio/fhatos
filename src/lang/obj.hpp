@@ -308,16 +308,21 @@ namespace fhatos {
         LOG(log_type, "%s", message().c_str());
       };
   inline Supplier<Obj_p> ROUTER_GET_FRAME_DATA = []() {
-    LOG(ERROR, "!ROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
+    LOG(ERROR, "!yROUTER_GET_FRAME!! undefined at this point in bootstrap\n");
     return nullptr;
   };
+  inline TriFunction<const Pattern, const Rec_p, const Supplier<Obj_p>, Obj_p> ROUTER_EXEC_WITHIN_FRAME =
+      [](const Pattern &, const Rec_p &, const Supplier<Obj_p> &) {
+        LOG(TRACE, "!yROUTER_EXEC_WITHIN_FRAME!! undefined at this point in bootstrap\n");
+        return nullptr;
+      };
   inline Runnable ROUTER_POP_FRAME = [] { LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n"); };
   inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &) {
-    LOG(DEBUG, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
+    LOG(DEBUG, "!yROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
   inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF = [](const ID_p &is_type_id,
                                                                                            const ID_p &, List<ID_p> *) {
-    LOG(DEBUG, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
+    LOG(DEBUG, "!yIS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
   inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &code) {
@@ -2095,28 +2100,26 @@ namespace fhatos {
             return Obj::create(body, OType::TYPE, inst->range(), lhs->vid);
           }
           const Inst_p inst = Compiler().resolve_inst(lhs, this->shared_from_this());
-          ROUTER_PUSH_FRAME("#", inst->inst_args());
-          try {
-            if(!inst->has_inst_f()) {
-              throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
-                           lhs->tid->name().c_str(), lhs->toString().c_str());
+          return ROUTER_EXEC_WITHIN_FRAME("#", inst->inst_args(), [this, inst, lhs]() {
+            try {
+              if(!inst->has_inst_f()) {
+                throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
+                             lhs->tid->name().c_str(), lhs->toString().c_str());
+              }
+              const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
+                                       ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+                                       : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
+              // TODO: type check should take coefficients into consideration
+              // if(!result->is_noobj() || !inst->range_coefficient().first == 0)
+              //  Compiler(false).with_derivation_tree().type_check(result, *inst->range());
+              return result;
+            } catch(const fError &e) {
+              const string error_message =
+                  fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(), lhs->toString(),
+                              this->toString(), ROUTER_GET_FRAME_DATA()->toString());
+              throw fError("%s", error_message.c_str());
             }
-            const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
-                                     ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
-                                     : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
-            // TODO: type check should take coefficients into consideration
-            //if(!result->is_noobj() || !inst->range_coefficient().first == 0)
-            //  Compiler(false).with_derivation_tree().type_check(result, *inst->range());
-            ROUTER_POP_FRAME();
-            return result;
-          } catch(const fError &e) {
-            // TODO: does this clear all frames automatically through exception recurssion?
-            const string error_message =
-                fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(), lhs->toString(), this->toString(),
-                            ROUTER_GET_FRAME_DATA()->toString());
-            ROUTER_POP_FRAME();
-            throw fError("%s", error_message.c_str());
-          }
+          });
         }
         case OType::BCODE: {
           if(this->is_empty_bcode())

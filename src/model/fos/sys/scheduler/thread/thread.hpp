@@ -106,7 +106,6 @@ namespace fhatos {
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }
 
-
     static void *import() {
       MODEL_CREATOR2->insert_or_assign(*THREAD_FURI,
                                        [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });

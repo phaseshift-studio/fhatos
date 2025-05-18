@@ -16,13 +16,13 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #ifdef ARDUINO
+#include "../mqtt_client.hpp"
 #include <PubSubClient.h>
 #include <WiFiClient.h>
-#include "../mqtt_client.hpp"
 
-//#ifndef MQTT_MAX_PACKET_SIZE
+// #ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
-//#endif
+// #endif
 /*
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
@@ -49,25 +49,24 @@ namespace fhatos {
 
 
   void MqttClient::loop() {
-    const ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
+    const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(!h->connected()) {
-      LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
-      if(!h->connect(this->Obj::rec_get("config/client")->uri_value().toString().c_str())) {
+      LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
+      if(!h->connect(this->client().toString().c_str())) {
         Thread::delay(FOS_MQTT_RETRY_WAIT);
       }
     }
     if(!h->loop()) {
-      LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n",MQTT_STATE_CODES.at(h->state())));
+      LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
     }
   }
 
   MqttClient::MqttClient(const Rec_p &config) :
-    Rec(std::move(config->rec_value()), OType::REC, REC_FURI),
-    handler_(nullptr) {
+      Rec(std::move(config->rec_value()), OType::REC, REC_FURI), handler_(nullptr) {
     //// MQTT MESSAGE CALLBACK]
-    const char* host = strdup(this->broker().host()); // TODO: get this off the heap
+    const char *host = strdup(this->broker().host()); // TODO: get this off the heap
     const int port = this->broker().port();
-    WiFiClient* client = new WiFiClient(); //  TODO: get this off the heap
+    WiFiClient *client = new WiFiClient(); //  TODO: get this off the heap
     const ptr<PubSubClient> h = std::make_shared<PubSubClient>(host, port, *client);
     this->handler_ = std::any(h);
     h->setServer(host, port);
@@ -79,7 +78,7 @@ namespace fhatos {
       const auto bobj = make_shared<BObj>(length, const_cast<fbyte *>(data));
       const auto [payload, retained] = make_payload(bobj);
       const Message_p message = Message::create(id_p(topic), payload, retained);
-     this->receive(message);
+      this->on_recv(message);
     });
   }
 
@@ -93,27 +92,26 @@ namespace fhatos {
 
   void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
 
-    this->subscriptions_->remove_if([this,&source,&pattern](const Subscription_p &sub) {
+    this->subscriptions_->remove_if([this, &source, &pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
-        const   ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
-   h->unsubscribe(pattern.toString().c_str());
-   FEED_WATCHDOG();
-   h->loop();
-
-        }
+        const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
+        h->unsubscribe(pattern.toString().c_str());
+        FEED_WATCHDOG();
+        h->loop();
+      }
       return remove;
     });
   }
 
   void MqttClient::publish(const Message_p &message, const bool async) const {
-    const   ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
+    const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(message->payload()->is_noobj()) {
       h->publish(message->target()->toString().c_str(), nullptr, 0, message->retain());
     } else {
       const BObj_p source_payload = make_bobj(message->payload(), message->retain());
       h->publish(message->target()->toString().c_str(), source_payload->second, source_payload->first,
-                               message->retain());
+                 message->retain());
     }
     FEED_WATCHDOG();
     h->loop();
@@ -122,7 +120,7 @@ namespace fhatos {
   bool MqttClient::disconnect(const ID &source, const bool async) const {
     this->unsubscribe(source, "#");
     this->clients_->remove(source);
-    const   ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
+    const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(this->clients_->empty() && h->connected()) {
       h->disconnect();
       CLIENTS.erase(this->broker());
@@ -150,25 +148,24 @@ namespace fhatos {
       return true;
     }
     try {
-      const ptr<PubSubClient> h =std::any_cast<ptr<PubSubClient>>(this->handler_);
+      const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
       int counter = 0;
       while(counter < FOS_MQTT_MAX_RETRIES) {
         if(!h->connect(this->client().toString().c_str())) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw fError("__wrapped below__");
-          LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n",
-                        this->broker().toString()));
+          LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n", this->broker().toString()));
           Thread::delay(FOS_MQTT_RETRY_WAIT);
         }
         if(h->connected()) {
           this->clients_->push_back(source);
           return true;
-          }
+        }
       }
-      } catch(const std::exception &e) {
+    } catch(const std::exception &e) {
       LOG_WRITE(ERROR, this, L("unable to connect to !b{}!!: {}\n", this->broker().toString(), e.what()));
     }
     return false;
   }
-}
+} // namespace fhatos
 #endif

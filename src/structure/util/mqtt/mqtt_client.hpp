@@ -33,16 +33,24 @@ namespace fhatos {
     std::any handler_;
     uptr<MutexDeque<ID>> clients_ = make_unique<MutexDeque<ID>>();
     uptr<MutexDeque<Subscription_p>> subscriptions_ = make_unique<MutexDeque<Subscription_p>>();
+    Consumer<Message_p> on_recv = [this](const Message_p &message) {
+      this->subscriptions_->forEach([this, &message](const Subscription_p &sub) {
+        /* if(this->clients_->find([this,sub](const ID &client) {
+           return sub->source()->equals(client);
+         }).has_value()) {*/
+        if(message->target()->matches(*sub->pattern())) {
+          if(sub->on_recv().get())
+            sub->apply(message);
+        }
+        // }
+      });
+    };
 
     explicit MqttClient(const Rec_p &config);
 
-    [[nodiscard]] ID broker() const {
-      return this->rec_get("broker")->uri_value();
-    }
+    [[nodiscard]] ID broker() const { return this->rec_get("broker")->uri_value(); }
 
-    [[nodiscard]] ID client() const {
-      return this->rec_get("client")->uri_value();
-    }
+    [[nodiscard]] ID client() const { return this->rec_get("client")->uri_value(); }
 
     [[nodiscard]] bool is_connected() const;
 
@@ -51,20 +59,6 @@ namespace fhatos {
     void unsubscribe(const ID &source, const fURI &pattern, bool async = true) const;
 
     void publish(const Message_p &message, bool async = true) const;
-
-    void receive(const Message_p &message) const {
-      LOG_WRITE(DEBUG, this, L("{} received\n", message->toString()));
-      this->subscriptions_->forEach([this,&message](const Subscription_p &sub) {
-       /* if(this->clients_->find([this,sub](const ID &client) {
-          return sub->source()->equals(client);
-        }).has_value()) {*/
-          if(message->target()->matches(*sub->pattern())) {
-            if(sub->on_recv().get())
-              sub->apply(message);
-          }
-       // }
-      });
-    }
 
     Obj_p query(const fURI &pattern) {
       const Objs_p results;
@@ -100,8 +94,7 @@ namespace fhatos {
     static ptr<MqttClient> get_or_create(const fURI &broker, const fURI &client) {
       if(CLIENTS.count(broker))
         return CLIENTS.at(broker);
-      ptr<MqttClient> mqtt = make_shared<MqttClient>(
-          Obj::to_rec({{"broker", vri(broker)}, {"client", vri(client)}}));
+      ptr<MqttClient> mqtt = make_shared<MqttClient>(Obj::to_rec({{"broker", vri(broker)}, {"client", vri(client)}}));
       CLIENTS.insert_or_assign(broker, mqtt);
       return mqtt;
     }

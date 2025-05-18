@@ -56,7 +56,7 @@ namespace fhatos {
                     L("!b{} !ymqtt message!! received: {}\n", mqtt_message->get_topic().c_str(),
                       mqtt_message->get_payload().c_str()));
           const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
-          this->receive(message);
+          this->on_recv(message);
         });
     /// MQTT CONNECTION ESTABLISHED CALLBACK
     std::any_cast<ptr<async_client>>(this->handler_)->set_connected_handler([this](const string &) {

@@ -11,11 +11,6 @@ basic boot_config obj
     /mnt/boot -> noobj;
     heap[[pattern=><+/#>]]@/mnt/var;
     /sys/router::mount(@/mnt/var);
-    ===
-    dsm[[pattern=></shared/#>,
-         config=>[broker=><mqtt://chibi.local:1883>,client=>client]]]@/mnt/dsm;
-    /sys/router::mount(@/mnt/dsm);
-    ===
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
     /io/console/config/stack_size -> 259072;

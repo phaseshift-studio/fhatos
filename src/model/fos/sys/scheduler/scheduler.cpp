@@ -44,6 +44,8 @@ namespace fhatos {
   }
   void Scheduler::loop() {
     try {
+      if(!this->for_scheduler.empty())
+        this->for_scheduler.pop_back().value()();
       Thread::current_thread() = std::nullopt;
       this->handle_bundle();
       // this->handle_spawn();

@@ -20,9 +20,9 @@
 #define fhatos_pubsub_hpp
 
 #include "../fhatos.hpp"
-#include  "../lang/obj.hpp"
-#include "../util/obj_helper.hpp"
 #include "../lang/mmadt/mmadt_obj.hpp"
+#include "../lang/obj.hpp"
+#include "../util/obj_helper.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -46,9 +46,9 @@ namespace fhatos {
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((subscription).source().toString().c_str()), ((subscription).pattern().toString().c_str()),                     \
       ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
-                                                        : ((message).target().toString().c_str()),                     \
+                                                            : ((message).target().toString().c_str()),                 \
       ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
-                                                        : (message).payload()->toString.c_str())
+                                                            : (message).payload()->toString.c_str())
 
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
@@ -83,28 +83,17 @@ namespace fhatos {
   // static const ID_p SUBSCRIPTION_FURI = id_p(/*FOS_URI*/ "/fos/q/sub");
 
   struct Message final : Rec {
-    explicit Message(const Rec_p &rec) :
-      Rec(*rec) {
-    }
+    explicit Message(const Rec_p &rec) : Rec(*rec) {}
 
     explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) :
-      Rec(rmap({
-              {"target", vri(target)},
-              {"payload", payload},
-              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+        Rec(rmap({{"target", vri(target)}, {"payload", payload}, {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
-    ID_p target() const {
-      return id_p(this->rec_get("target")->uri_value());
-    }
+    ID_p target() const { return id_p(this->rec_get("target")->uri_value()); }
 
-    Obj_p payload() const {
-      return this->rec_get("payload");
-    }
+    Obj_p payload() const { return this->rec_get("payload"); }
 
-    bool retain() const {
-      return this->rec_get("retain")->bool_value();
-    }
+    bool retain() const { return this->rec_get("retain")->bool_value(); }
 
     static Message_p create(const ID_p &target, const Obj_p &payload, const bool retain) {
       return std::make_shared<Message>(target, payload, retain);
@@ -133,59 +122,41 @@ namespace fhatos {
 
 
   struct Subscription final : Rec {
-    explicit Subscription(const Rec_p &rec) :
-      Rec(*rec) {
-    }
+    explicit Subscription(const Rec_p &rec) : Rec(*rec) {}
 
-    void post() const {
-      ROUTER_WRITE(this->pattern()->query("sub"),this->shared_from_this(),true);
-    }
+    void post() const { ROUTER_WRITE(this->pattern()->query("sub"), this->shared_from_this(), true); }
 
     explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) :
-      Rec(rmap({
-              {"source", vri(source)},
-              {"pattern", vri(pattern)},
-              {"on_recv", on_recv}
-          }), OType::REC, SUBSCRIPTION_FURI) {
-    }
+        Rec(rmap({{"source", vri(source)}, {"pattern", vri(pattern)}, {"on_recv", on_recv}}), OType::REC,
+            SUBSCRIPTION_FURI) {}
 
-    ID_p source() const {
-      return id_p(this->rec_get("source")->uri_value());
-    }
+    ID_p source() const { return id_p(this->rec_get("source")->uri_value()); }
 
-    Pattern_p pattern() const {
-      return p_p(this->rec_get("pattern")->uri_value());
-    }
+    Pattern_p pattern() const { return p_p(this->rec_get("pattern")->uri_value()); }
 
-    BCode_p on_recv() const {
-      return this->rec_get("on_recv");
-    }
+    BCode_p on_recv() const { return this->rec_get("on_recv"); }
 
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) {
       return make_shared<Subscription>(source, pattern, on_recv->clone());
     }
 
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Cpp &on_recv) {
-      return Subscription::create(source, pattern, InstBuilder::build(INST_FURI)
-                                  ->inst_args(Obj::to_inst_args({
-                                      {"target", __().from("target", noobj())},
-                                      {"payload", __().from("payload", noobj())},
-                                      {"retain", __().from("retain", noobj())}}))
-                                  ->inst_f(on_recv)->create());
+      return Subscription::create(
+          source, pattern,
+          InstBuilder::build(INST_FURI)
+              ->inst_args(Obj::to_inst_args({{"target", __().from(__().block(vri("target")), noobj())},
+                                             {"payload", __().from(__().block(vri("payload")), noobj())},
+                                             {"retain", __().from(__().block(vri("retain")), noobj())}}))
+              ->inst_f(on_recv)
+              ->create());
     }
 
     void apply(const Message_p &message) const {
-      const Uri_p target_obj = vri(message->target());
-      const Obj_p payload_obj = message->payload();
-      const Bool_p retain_obj = dool(message->retain());
-      const bool is_no = payload_obj->is_noobj();
-      const Inst_p pubsub_inst = InstBuilder::build("pubsub")->inst_args(to_rec({
-              {"target", is_no && false ? target_obj : __().block(target_obj)},
-              {"payload", is_no ? payload_obj : __().block(payload_obj)},
-              {"retain", is_no ? retain_obj : __().block(retain_obj)}}))
-          ->inst_f(this->on_recv())
-          ->create();
-      pubsub_inst->apply(payload_obj);
+      const Obj_p payload = message->payload();
+      ROUTER_EXEC_WITHIN_FRAME(
+          "#",
+          Obj::to_rec({{"target", vri(message->target())}, {"payload", payload}, {"retain", dool(message->retain())}}),
+          [this, payload] { return this->on_recv()->apply(payload); });
     }
   };
 } // namespace fhatos

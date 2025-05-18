@@ -22,8 +22,9 @@
 #ifndef NATIVE
 #include "../../../fhatos.hpp"
 #include "../../../lang/type.hpp"
-#include "../../model.hpp"
 #include "../../../util/print_helper.hpp"
+#include "../../fos/sys/scheduler/scheduler.hpp"
+#include "../../model.hpp"
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
@@ -57,42 +58,79 @@ namespace fhatos {
   class WIFIx : public Model<WIFIx> {
 
   public:
-
-    static Obj_p connect_inst(const Obj_p& wifi_obj, const InstArgs&) {
-      if (!WiFi.isConnected())
+    static Obj_p connect_inst(const Obj_p &wifi_obj, const InstArgs &) {
+      if(!WiFi.isConnected())
         WIFIx::connect_to_wifi_station(wifi_obj);
+      else
+        LOG_WRITE(WARN, wifi_obj.get(), L("!ywifi !ralready!! connected"));
       return wifi_obj;
     }
 
-    static Rec_p obj(const std::initializer_list<Pair<const string, Obj_p>> &map, const ID& value_id) {
-      return Obj::to_rec(map,WIFI_FURI,id_p(value_id));
+    static Rec_p obj(const std::initializer_list<Pair<const string, Obj_p>> &map, const ID &value_id) {
+      return Obj::to_rec(map, WIFI_FURI, id_p(value_id));
     }
 
-    static Rec_p obj(const Rec_p& config, const ID& value_id) {
-      return Obj::to_rec(config->rec_value(),WIFI_FURI,id_p(value_id));
+    static Rec_p obj(const Rec_p &config, const ID &value_id) {
+      return Obj::to_rec(config->rec_value(), WIFI_FURI, id_p(value_id));
     }
 
-    static void *import(const Obj_p& wifi_config = nullptr) {
+    static void load_module() {
+      const ID module_id = Typer::singleton()->vid->extend("module").extend(*WIFI_FURI);
+      Typer::singleton()->obj_set(
+          ID("module").extend(*WIFI_FURI),
+          InstBuilder::build(module_id)
+              ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+              ->inst_f([](const Obj_p &, const InstArgs &) {
+                return Obj::to_rec(
+                    {{vri(*WIFI_FURI), Obj::to_rec({{"halt", __().else_(dool(true))},
+                                                    {"config", Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
+                                                                            {"password", Obj::to_type(STR_FURI)},
+                                                                            {"mdns", __().else_(vri("none"))}})}})},
+                     {vri(*MAC_FURI), Obj::to_type(URI_FURI)},
+                     {vri(*IP_FURI), Obj::to_type(URI_FURI)},
+                     {vri(WIFI_FURI->add_component("connect")),
+                      InstBuilder::build(WIFI_FURI->add_component("connect"))
+                          ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
+                          ->inst_f([](const Obj_p &wifi_obj, const InstArgs &args) {
+                            Scheduler::singleton()->for_scheduler.push_back([wifi_obj, args] {
+                              WIFIx::connect_inst(wifi_obj, args);
+                              wifi_obj->obj_set("halt", dool(false));
+                              return wifi_obj;
+                            });
+                            LOG_WRITE(INFO, wifi_obj.get(), L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!!"));
+                            /*while(wifi_obj->obj_get("halt")->bool_value()) {
+                              Ansi<>::singleton()->print(".");
+                              Thread::yield();
+                              Thread::delay(2000);
+                            }*/
+                            return wifi_obj;
+                          })
+                          ->create()}});
+              })
+              ->create());
+    }
+
+
+    static void *import(const Obj_p &wifi_config = nullptr) {
       //////////////////////
-      Typer::singleton()->save_type(*WIFI_FURI, Obj::to_rec({
-              {"halt", Obj::to_type(BOOL_FURI)},
-              {"config", Obj::to_rec({
-                         {"ssid",Obj::to_type(URI_FURI)},
-                         {"password", Obj::to_type(STR_FURI)},
-                         {"mdns", Obj::to_type(URI_FURI)}})}}));
+      Typer::singleton()->save_type(*WIFI_FURI,
+                                    Obj::to_rec({{"halt", __().else_(dool(true))},
+                                                 {"config", Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
+                                                                         {"password", Obj::to_type(STR_FURI)},
+                                                                         {"mdns", __().else_(vri("none"))}})}}));
       Typer::singleton()->save_type(*MAC_FURI, Obj::to_type(URI_FURI));
       Typer::singleton()->save_type(*IP_FURI, Obj::to_type(URI_FURI));
       ///////////////////////////////////////////////////////
       InstBuilder::build(WIFI_FURI->add_component("connect"))
           ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
-          ->inst_f([](const Obj_p &text, const InstArgs &args) {
-            return WIFIx::connect_inst(text, args);
-          })->save();
+          ->inst_f([](const Obj_p &text, const InstArgs &args) { return WIFIx::connect_inst(text, args); })
+          ->save();
       ///////////////////////////////////////////////////////
       if(wifi_config && !wifi_config->is_noobj()) {
-        const Obj_p& wifi_obj = WIFIx::obj({{"halt",dool(false)},{"config",wifi_config->clone()}},"/io/wifi");
-        LOG_OBJ(INFO,wifi_obj,"!ywifi connection!! attempt: !b%s!!\n",wifi_config->rec_get("ssid")->uri_value().toString().c_str());
-        WIFIx::connect_inst(wifi_obj,Obj::to_inst_args());
+        const Obj_p &wifi_obj = WIFIx::obj({{"halt", dool(false)}, {"config", wifi_config->clone()}}, "/io/wifi");
+        LOG_OBJ(INFO, wifi_obj, "!ywifi connection!! attempt: !b%s!!\n",
+                wifi_config->rec_get("ssid")->uri_value().toString().c_str());
+        WIFIx::connect_inst(wifi_obj, Obj::to_inst_args());
       }
       return nullptr;
     }
@@ -100,57 +138,57 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////
 
   private:
-    static bool connect_to_wifi_station(const Obj_p& wifi_obj) {
-     const Obj_p config = wifi_obj->rec_get("config");
+    static bool connect_to_wifi_station(const Obj_p &wifi_obj) {
+      const Obj_p config = wifi_obj->rec_get("config");
       WiFi.mode(WIFI_STA);
       WiFi.setAutoReconnect(true);
       const char *delim = ":";
-      char * ssidsTemp = strdup(config->rec_get("ssid")->uri_value().toString().c_str());
+      char *ssidsTemp = strdup(config->rec_get("ssid")->uri_value().toString().c_str());
       char *ssid = strtok(ssidsTemp, delim);
       int i = 0;
       char *ssids_parsed[10];
-      //LOG_STRUCTURE(DEBUG, this, "\tWiFi SSIDs:\n");
-      while (ssid != NULL) {
-        //LOG_STRUCTURE(DEBUG, this, "\t\t%s\n", ssid);
+      // LOG_STRUCTURE(DEBUG, this, "\tWiFi SSIDs:\n");
+      while(ssid != nullptr) {
+        // LOG_STRUCTURE(DEBUG, this, "\t\t%s\n", ssid);
         ssids_parsed[i++] = ssid;
-        ssid = strtok(NULL, delim);
+        ssid = strtok(nullptr, delim);
       }
       i = 0;
       char passwordsTemp[50];
       sprintf(passwordsTemp, "%s", config->rec_get("password")->str_value().c_str());
       char *passwords_parsed[10];
       char *password = strtok(passwordsTemp, delim);
-      while (password != NULL) {
+      while(password != nullptr) {
         passwords_parsed[i++] = password;
-        password = strtok(NULL, delim);
+        password = strtok(nullptr, delim);
       }
       WIFI_MULTI_CLIENT multi;
-      for (int j = 0; j < i; j++) {
+      for(int j = 0; j < i; j++) {
         multi.addAP(ssids_parsed[j], passwords_parsed[j]);
       }
       WiFi.hostname(config->rec_get("mdns")->uri_value().toString().c_str());
       uint8_t attempts = 0;
-      while (attempts < 10) {
+      while(attempts < 10) {
         attempts++;
-        if (multi.run() == WL_CONNECTED) {
+        if(multi.run() == WL_CONNECTED) {
           const string mdns_name = config->rec_get("mdns")->uri_value().toString();
-          if (const bool mdns_status = MDNS.begin(mdns_name.c_str()); !mdns_status) {
+          if(const bool mdns_status = MDNS.begin(mdns_name.c_str()); !mdns_status) {
             LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", mdns_name.c_str());
           }
           LOG_OBJ(DEBUG, wifi_obj, "connection attempts: %i\n", attempts);
           attempts = 100;
         }
       }
-      if (attempts != 100) {
+      if(attempts != 100) {
         LOG_OBJ(ERROR, wifi_obj, "unable to connect to WIFI after %i attempts\n", attempts);
         return false;
       }
-      wifi_obj->rec_set("mac",vri(WiFi.macAddress().c_str(),MAC_FURI));
-      wifi_obj->rec_set("ip",vri(WiFi.localIP().toString().c_str(),IP_FURI));
-      wifi_obj->rec_set("host",vri(WiFi.getHostname()));
-      wifi_obj->rec_set("gateway",vri(WiFi.gatewayIP().toString().c_str(),IP_FURI));
-      wifi_obj->rec_set("subnet",vri(WiFi.subnetMask().toString().c_str(),IP_FURI));
-      wifi_obj->rec_set("dns",vri(WiFi.dnsIP().toString().c_str(),IP_FURI));
+      wifi_obj->rec_set("mac", vri(WiFi.macAddress().c_str(), MAC_FURI));
+      wifi_obj->rec_set("ip", vri(WiFi.localIP().toString().c_str(), IP_FURI));
+      wifi_obj->rec_set("host", vri(WiFi.getHostname()));
+      wifi_obj->rec_set("gateway", vri(WiFi.gatewayIP().toString().c_str(), IP_FURI));
+      wifi_obj->rec_set("subnet", vri(WiFi.subnetMask().toString().c_str(), IP_FURI));
+      wifi_obj->rec_set("dns", vri(WiFi.dnsIP().toString().c_str(), IP_FURI));
       string wifi_str = PrintHelper::pretty_print_obj(wifi_obj, 3);
       StringHelper::prefix_each_line(FOS_TAB_1, &wifi_str);
       WiFi.begin();

@@ -272,8 +272,10 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const string boot_dir = fs::current_path().string();
+      ROUTER_WRITE("/sys",vri("native"),true);
 #else
       const string boot_dir = "/";
+      ROUTER_WRITE("/sys",vri("esp32"),true);
 #endif
       LOG_WRITE(INFO, Router::singleton().get(), L("!yboot working directory!!: !b{}!!\n", boot_dir));
       boot_config_obj_copy_len = 0;
@@ -313,7 +315,6 @@ namespace fhatos {
       return Kernel::using_boot_config(config_obj);
     }
 
-
     static void loop() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
@@ -325,7 +326,6 @@ namespace fhatos {
         Scheduler::singleton()->loop();
         Router::singleton()->loop();
         FEED_WATCHDOG();
-        Thread::delay(500); // todo: look into setting priorities for threads
       }
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
       Scheduler::singleton()->stop();

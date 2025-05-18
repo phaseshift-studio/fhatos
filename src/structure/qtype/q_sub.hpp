@@ -59,16 +59,16 @@ namespace fhatos {
         // unsubscribe
         const ID source_id =
             Thread::current_thread().has_value() ? *Thread::current_thread().value()->thread_obj_->vid : *SCHEDULER_ID;
-        this->subscriptions_->remove_if([this, &furi_no_query, &source_id](const Subscription_p &sub) {
-          const bool removing = sub->source()->equals(source_id) && (sub->pattern()->matches(furi_no_query));
-          if(removing)
-            LOG_WRITE(
-                DEBUG, this,
-                L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", sub->source()->toString(), furi_no_query.toString()));
-          return removing;
-        });
-        // if obj, subscribe
-        if(!obj->is_noobj()) {
+        if(obj->is_noobj()) {
+          this->subscriptions_->remove_if([this, &furi_no_query, &source_id](const Subscription_p &sub) {
+            const bool removing = sub->source()->equals(source_id) && (sub->pattern()->matches(furi_no_query));
+            if(removing)
+              LOG_WRITE(
+                  DEBUG, this,
+                  L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", sub->source()->toString(), furi_no_query.toString()));
+            return removing;
+          });
+        } else {
           if(obj->tid->equals("/fos/q/sub")) {
             this->subscriptions_->push_back(make_shared<Subscription>(obj));
           } else {
