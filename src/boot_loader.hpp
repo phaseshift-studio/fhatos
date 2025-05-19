@@ -102,7 +102,6 @@ namespace fhatos {
             ->display_note("!yimporting !bfos/mmadt !ytypes!!");
 
         kp->display_memory()
-            ->import2("import")
             ->import(Processor::import())
             ->install(
                 mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));

@@ -22,8 +22,8 @@
 #include "../../../fhatos.hpp"
 #include "../../../lang/obj.hpp"
 #include "../../model.hpp"
-#include "../../../lang/type.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
+#include "../sys/typer/typer.hpp"
 
 namespace fhatos {
   const ID_p POLL_FURI = id_p(FOS_URI "/util/poll");

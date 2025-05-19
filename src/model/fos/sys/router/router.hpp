@@ -71,12 +71,17 @@ namespace fhatos {
     template<typename STRUCTURE>
     static void *import_structure(const ID &type_id) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
-      Typer::singleton()->save_type(type_id, Obj::to_rec({{"pattern?uri", __()}}));
       MODEL_CREATOR2->insert_or_assign(type_id, [](const Obj_p &structure_obj) {
         return STRUCTURE::create(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
                                  structure_obj->rec_get("config")->or_else(Obj::to_rec()));
       });
-      // LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !ytype!! imported\n", type_id.toString()));
+      Typer::singleton()->install_module(type_id,
+                                  InstBuilder::build(Typer::singleton()->vid->add_component(type_id))
+                                      ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                                      ->inst_f([type_id](const Obj_p &, const InstArgs &) {
+                                        return Obj::to_rec({{vri(type_id), Obj::to_rec({{"pattern?uri", __()}})}});
+                                      })
+                                      ->create());
       return nullptr;
     }
 

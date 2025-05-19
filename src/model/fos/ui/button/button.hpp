@@ -4,11 +4,11 @@
 
 //
 #include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include "../../io/gpio/gpio.hpp"
 #include "../../../model.hpp"
+#include "../../io/gpio/gpio.hpp"
+#include "../../sys/typer/typer.hpp"
 //
 
 

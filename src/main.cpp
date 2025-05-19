@@ -30,7 +30,7 @@ auto *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void setup() { fhatos::BootLoader::primary_boot(args_parser)->loop(); }
+void setup() { fhatos::BootLoader::primary_boot(args_parser)->done(); }
 
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler

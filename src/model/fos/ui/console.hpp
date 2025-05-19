@@ -23,10 +23,10 @@
 #include "../../../fhatos.hpp"
 #include "../../../lang/mmadt/parser.hpp"
 #include "../../../lang/obj.hpp"
-#include "../../../lang/type.hpp"
 #include "../../../util/print_helper.hpp"
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
+#include "../sys/typer/typer.hpp"
 #include "terminal.hpp"
 #ifdef NATIVE
 #include <cpptrace/cpptrace.hpp>

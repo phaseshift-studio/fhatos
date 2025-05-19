@@ -29,7 +29,7 @@
  *                                    A Dogturd Stynx Production
  */
 #define BACKWARD_HAS_BFD 1
-
+#define NATIVE
 // define ESP_PLATFORM as generalized ESPXXXX flag
 #ifdef ESP32
 #define ESP_PLATFORM

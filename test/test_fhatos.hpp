@@ -30,7 +30,7 @@
 #define RETAIN true
 #define FOS_MAX_PATH_SEGMENTS 15
 
-#include "../../src/kernel.hpp"
+#include "../src/kernel.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
 #include "../src/boot_config_loader.hpp"
 #include "../src/fhatos.hpp"
@@ -111,7 +111,7 @@
 ////////////////////////////////////////// TYPE ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_MMADT_TYPE
 #include "../src/lang/mmadt/mmadt_obj.hpp"
-#include "../src/lang/type.hpp"
+#include "../src/model/fos/sys/typer/typer.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_MMADT_TYPE_2                                                                                        \
   Processor::import();                                                                                                 \
@@ -123,21 +123,21 @@
 ////////////////////////////////////////// EXT ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_MMADT_EXT_TYPE
 #include "../src/lang/mmadt/mmadt_obj.hpp"
-#include "../src/lang/type.hpp"
+#include "../src/model/fos/sys/typer/typer.hpp"
 #define FOS_DEPLOY_MMADT_EXT_TYPE_2 mmadt::mmADT::import({"/mmadt/ext/+"});
 #else
 #define FOS_DEPLOY_MMADT_EXT_TYPE_2 ;
 #endif
 ////////////////////////////////////////// FOS ////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_FOS_TYPE
-#include "../src/lang/type.hpp"
+#include "../src/model/fos/sys/typer/typer.hpp"
 #include "../src/model/fos/fos_obj.hpp"
 #include "../src/model/fos/sys/router/structure/heap.hpp"
 #define FOS_DEPLOY_FOS_TYPE_2                                                                                          \
   Kernel::mount(Heap<>::create("/fos/#", id_p("/mnt/fos")));                                                           \
   Typer::singleton("/sys/typer");                                                                                      \
   LOG_WRITE(INFO, Typer::singleton().get(), L("{}\n", Kernel::boot()->toString()));                                    \
-  Kernel::using_typer("typer")->import2("import");
+  Kernel::using_typer("typer");
 #else
 #define FOS_DEPLOY_FOS_TYPE_2 ;
 #endif

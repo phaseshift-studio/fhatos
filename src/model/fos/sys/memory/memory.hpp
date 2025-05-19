@@ -21,24 +21,24 @@ FhatOS: A Distributed Operating System
 
 #include "../../../../fhatos.hpp"
 #include "../../../../furi.hpp"
-#include "../../../../lang/obj.hpp"
+#include "../../../../lang/mmadt/mmadt.hpp"
 #include "../../../../lang/mmadt/mmadt_obj.hpp"
+#include "../../../../lang/obj.hpp"
 #ifdef NATIVE
-#include <unistd.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <unistd.h>
 #endif
 
 namespace fhatos {
   static ID_p MEMORY_FURI = id_p("/sys/memory");
-
+  using namespace mmadt;
   class Memory final : public Rec {
   protected:
     Obj_p internal_use_custom_stack(const Inst_p &inst, const Obj_p &lhs, int stack_size);
 
   public:
-    explicit Memory(const ID &id) : Rec(std::make_shared<RecMap<>>(), OType::REC, MEMORY_FURI, id_p(id)) {
-    }
+    explicit Memory(const ID &id) : Rec(std::make_shared<RecMap<>>(), OType::REC, MEMORY_FURI, id_p(id)) {}
 
     static int get_stack_size(const Obj_p &source, const fURI &relative_uri, const int default_stack_size = 0) {
       if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_code()) {
@@ -88,8 +88,10 @@ namespace fhatos {
       LOG_WRITE(INFO, Memory::singleton().get(),
                 L("!b{}!! {}\n", "main", Memory::singleton()->main_memory()->toString()));
 #ifdef ESP_PLATFORM
-      LOG_WRITE(INFO, Memory::singleton().get(), L("!b{}!! {}\n", "inst", Memory::singleton()->inst_memory()->toString()));
-      LOG_WRITE(INFO, Memory::singleton().get(), L("!b{}!! {}\n", "psram", Memory::singleton()->psram_memory()->toString()));
+      LOG_WRITE(INFO, Memory::singleton().get(),
+                L("!b{}!! {}\n", "inst", Memory::singleton()->inst_memory()->toString()));
+      LOG_WRITE(INFO, Memory::singleton().get(),
+                L("!b{}!! {}\n", "psram", Memory::singleton()->psram_memory()->toString()));
 #endif
     }
 
@@ -97,38 +99,28 @@ namespace fhatos {
       Typer::singleton()->save_type(*MEMORY_FURI, __());
       InstBuilder::build(Memory::singleton()->vid->add_component("main"))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
-          ->inst_f([](const Obj_p &, const InstArgs &) {
-            return Memory::singleton()->main_memory();
-          })
+          ->inst_f([](const Obj_p &, const InstArgs &) { return Memory::singleton()->main_memory(); })
           ->save();
 #ifdef ESP_PLATFORM
       InstBuilder::build(Memory::singleton()->vid->add_component("freq"))
-           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
-           ->inst_f([](const Obj_p &, const InstArgs &) {
-             return Memory::singleton()->cpu_frequency();
-           })
-           ->save();
+          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
+          ->inst_f([](const Obj_p &, const InstArgs &) { return Memory::singleton()->cpu_frequency(); })
+          ->save();
       InstBuilder::build(Memory::singleton()->vid->add_component("inst"))
-      ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
-      ->inst_f([](const Obj_p &, const InstArgs &) {
-        return Memory::singleton()->inst_memory();
-      })
-      ->save();
+          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
+          ->inst_f([](const Obj_p &, const InstArgs &) { return Memory::singleton()->inst_memory(); })
+          ->save();
       InstBuilder::build(Memory::singleton()->vid->add_component("psram"))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
-          ->inst_f([](const Obj_p &, const InstArgs &) {
-            return Memory::singleton()->psram_memory();
-          })
+          ->inst_f([](const Obj_p &, const InstArgs &) { return Memory::singleton()->psram_memory(); })
           ->save();
       InstBuilder::build(Memory::singleton()->vid->add_component("hwm"))
           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {0, 1})
-          ->inst_f([](const Obj_p &, const InstArgs &) {
-            return Memory::singleton()->high_water_mark();
-          })
+          ->inst_f([](const Obj_p &, const InstArgs &) { return Memory::singleton()->high_water_mark(); })
           ->save();
 #endif
       return nullptr;
     }
   };
-}
+} // namespace fhatos
 #endif

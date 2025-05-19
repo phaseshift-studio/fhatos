@@ -21,10 +21,10 @@
 #define fhatos_wifi_hpp
 #ifndef NATIVE
 #include "../../../fhatos.hpp"
-#include "../../../lang/type.hpp"
 #include "../../../util/print_helper.hpp"
 #include "../../fos/sys/scheduler/scheduler.hpp"
 #include "../../model.hpp"
+#include "../sys/typer/typer.hpp"
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>

@@ -26,67 +26,71 @@ namespace mmadt {
   using namespace fhatos;
 
   static void module_base_types() {
-    InstBuilder::build(Typer::singleton()->vid->extend("module/mmadt/base"))
-        ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-        ->inst_f([](const Obj_p &, const InstArgs &) {
-          return Obj::to_rec({{vri(OBJ_FURI), Obj::to_type(OBJ_FURI)},
-                              {vri(NOOBJ_FURI), Obj::to_type(NOOBJ_FURI)},
-                              {vri(BOOL_FURI), Obj::to_type(BOOL_FURI)},
-                              {vri(INT_FURI), Obj::to_type(INT_FURI)},
-                              {vri(REAL_FURI), Obj::to_type(REAL_FURI)},
-                              {vri(STR_FURI), Obj::to_type(STR_FURI)},
-                              {vri(URI_FURI), Obj::to_type(URI_FURI)},
-                              {vri(LST_FURI), Obj::to_type(LST_FURI)},
-                              {vri(REC_FURI), Obj::to_type(REC_FURI)},
-                              {vri(OBJS_FURI), Obj::to_type(OBJS_FURI)},
-                              {vri(BCODE_FURI), Obj::to_type(BCODE_FURI)},
-                              {vri(INST_FURI), Obj::to_type(INST_FURI)},
-                              {vri(ERROR_FURI), Obj::to_type(ERROR_FURI)}});
-        })
-        ->save();
+    Typer::singleton()->install_module("/mmadt/base",
+                                       InstBuilder::build(Typer::singleton()->vid->add_component("/mmadt/base"))
+                                           ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                                           ->inst_f([](const Obj_p &, const InstArgs &) {
+                                             return Obj::to_rec({{vri(OBJ_FURI), Obj::to_type(OBJ_FURI)},
+                                                                 {vri(NOOBJ_FURI), Obj::to_type(NOOBJ_FURI)},
+                                                                 {vri(BOOL_FURI), Obj::to_type(BOOL_FURI)},
+                                                                 {vri(INT_FURI), Obj::to_type(INT_FURI)},
+                                                                 {vri(REAL_FURI), Obj::to_type(REAL_FURI)},
+                                                                 {vri(STR_FURI), Obj::to_type(STR_FURI)},
+                                                                 {vri(URI_FURI), Obj::to_type(URI_FURI)},
+                                                                 {vri(LST_FURI), Obj::to_type(LST_FURI)},
+                                                                 {vri(REC_FURI), Obj::to_type(REC_FURI)},
+                                                                 {vri(OBJS_FURI), Obj::to_type(OBJS_FURI)},
+                                                                 {vri(BCODE_FURI), Obj::to_type(BCODE_FURI)},
+                                                                 {vri(INST_FURI), Obj::to_type(INST_FURI)},
+                                                                 {vri(ERROR_FURI), Obj::to_type(ERROR_FURI)}});
+                                           })
+                                           ->create());
   }
 
   static void module_ext_types() {
-    InstBuilder::build(Typer::singleton()->vid->extend("module/mmadt/ext"))
-        ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-        ->inst_f([](const Obj_p &, const InstArgs &) {
-          return Obj::to_rec(
-              {{vri(CHAR_FURI), __(*CHAR_FURI, *INT_FURI, *STR_FURI).merge(jnt(2)).count().is(__().eq(jnt(1)))},
-               {vri(INT8_FURI), __(*UINT8_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(-127))).is(__().lte(jnt(128)))},
-               {vri(UINT8_FURI), __(*UINT8_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0))).is(__().lte(jnt(255)))},
-               {vri(INT16_FURI), Obj::to_type(INT16_FURI)},
-               {vri(INT32_FURI), Obj::to_type(INT32_FURI)},
-               {vri(NAT_FURI), __(*NAT_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0)))},
-               {vri(CELSIUS_FURI), __(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(-273.15)))},
-               {vri(PERCENT_FURI),
-                __(*PERCENT_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(0.0))).is(__().lte(real(100.0)))},
-               {vri(HEX_FURI), __(*HEX_FURI, *URI_FURI, *URI_FURI).is(dool(true))},
-               ///////////////////////////////////////////////////////////////////////////////////////////////////////
-               {vri(MILLISECOND_FURI), Obj::to_type(REAL_FURI)},
-               {vri(MMADT_PREFIX "as"), InstBuilder::build(MILLISECOND_FURI->add_component(MMADT_PREFIX "as"))
-                                            ->domain_range(MILLISECOND_FURI, {1, 1}, SECOND_FURI, {1, 1})
-                                            ->inst_args(lst({__().is(__().eq(vri(SECOND_FURI)))}))
-                                            ->inst_f([](const Obj_p &millis_obj, const InstArgs &) {
-                                              return Obj::to_real(millis_obj->real_value() * 1000.0, SECOND_FURI);
-                                            })
-                                            ->create()},
-               {vri(SECOND_FURI), Obj::to_type(REAL_FURI)},
-               ///////////////////////////////////////////////////////////////////////////////////////////////////////
-               {vri(SECRET_FURI), Obj::to_type(STR_FURI)},
-               {vri(MMADT_PREFIX "as"), InstBuilder::build(SECRET_FURI->add_component(MMADT_PREFIX "as"))
-                                            ->domain_range(SECRET_FURI, {1, 1}, OBJ_FURI, {1, 1})
-                                            ->inst_args(rec({{"type", Obj::to_bcode()}}))
-                                            ->inst_f([](const Obj_p &secret_obj, const InstArgs &args) {
-                                              if(args->arg(0)->is_uri() &&
-                                                 ROUTER_RESOLVE(args->arg(0)->uri_value()).equals(*STR_FURI)) {
-                                                const size_t length = secret_obj->str_value().length();
-                                                return Obj::to_str(StringHelper::repeat(length, "*"), STR_FURI);
-                                              }
-                                              return ROUTER_READ(MMADT_PREFIX "as")->apply(secret_obj);
-                                            })
-                                            ->create()}});
-        })
-        ->save();
+    Typer::singleton()->install_module(
+        "/mmadt/ext",
+        InstBuilder::build(Typer::singleton()->vid->add_component("/mmadt/ext"))
+            ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+            ->inst_f([](const Obj_p &, const InstArgs &) {
+              return Obj::to_rec(
+                  {{vri(CHAR_FURI), __(*CHAR_FURI, *INT_FURI, *STR_FURI).merge(jnt(2)).count().is(__().eq(jnt(1)))},
+                   {vri(INT8_FURI),
+                    __(*UINT8_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(-127))).is(__().lte(jnt(128)))},
+                   {vri(UINT8_FURI), __(*UINT8_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0))).is(__().lte(jnt(255)))},
+                   {vri(INT16_FURI), Obj::to_type(INT16_FURI)},
+                   {vri(INT32_FURI), Obj::to_type(INT32_FURI)},
+                   {vri(NAT_FURI), __(*NAT_FURI, *INT_FURI, *INT_FURI).is(__().gte(jnt(0)))},
+                   {vri(CELSIUS_FURI), __(*CELSIUS_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(-273.15)))},
+                   {vri(PERCENT_FURI),
+                    __(*PERCENT_FURI, *REAL_FURI, *REAL_FURI).is(__().gte(real(0.0))).is(__().lte(real(100.0)))},
+                   {vri(HEX_FURI), __(*HEX_FURI, *URI_FURI, *URI_FURI).is(dool(true))},
+                   ///////////////////////////////////////////////////////////////////////////////////////////////////////
+                   {vri(MILLISECOND_FURI), Obj::to_type(REAL_FURI)},
+                   {vri(MMADT_PREFIX "as"), InstBuilder::build(MILLISECOND_FURI->add_component(MMADT_PREFIX "as"))
+                                                ->domain_range(MILLISECOND_FURI, {1, 1}, SECOND_FURI, {1, 1})
+                                                ->inst_args(lst({__().is(__().eq(vri(SECOND_FURI)))}))
+                                                ->inst_f([](const Obj_p &millis_obj, const InstArgs &) {
+                                                  return Obj::to_real(millis_obj->real_value() * 1000.0, SECOND_FURI);
+                                                })
+                                                ->create()},
+                   {vri(SECOND_FURI), Obj::to_type(REAL_FURI)},
+                   ///////////////////////////////////////////////////////////////////////////////////////////////////////
+                   {vri(SECRET_FURI), Obj::to_type(STR_FURI)},
+                   {vri(MMADT_PREFIX "as"), InstBuilder::build(SECRET_FURI->add_component(MMADT_PREFIX "as"))
+                                                ->domain_range(SECRET_FURI, {1, 1}, OBJ_FURI, {1, 1})
+                                                ->inst_args(rec({{"type", Obj::to_bcode()}}))
+                                                ->inst_f([](const Obj_p &secret_obj, const InstArgs &args) {
+                                                  if(args->arg(0)->is_uri() &&
+                                                     ROUTER_RESOLVE(args->arg(0)->uri_value()).equals(*STR_FURI)) {
+                                                    const size_t length = secret_obj->str_value().length();
+                                                    return Obj::to_str(StringHelper::repeat(length, "*"), STR_FURI);
+                                                  }
+                                                  return ROUTER_READ(MMADT_PREFIX "as")->apply(secret_obj);
+                                                })
+                                                ->create()}});
+            })
+            ->create());
   }
 
   void import_base_types(const std::vector<fURI> &patterns) {
@@ -218,29 +222,6 @@ namespace mmadt {
             return inst->apply(obj, Obj::to_rec({{"_back", vri("none")}}));
           })
           ->save();*/
-
-    InstBuilder::build(MMADT_PREFIX "import")
-        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-        ->inst_args("modules?lst", __())
-        ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-          for(const Obj_p &module_uri: *args->arg("modules")->lst_value()) {
-            const Inst_p module = ROUTER_READ(module_uri->uri_value());
-            if(!module->is_noobj()) {
-              const Rec_p m = module->apply(Obj::to_noobj());
-              if(m->is_rec()) {
-                for(const auto &[id, type_def]: *m->rec_value()) {
-                  Typer::singleton()->save_type(ID(id->uri_value()), type_def);
-                }
-              } else {
-                LOG_WRITE(ERROR, module.get(), L("module not a rec: {}\n", module->toString().c_str()));
-              }
-            } else {
-              LOG_WRITE(ERROR, module.get(), L("module not found: {}\n", module_uri->toString().c_str()));
-            }
-          }
-          return obj;
-        })
-        ->save();
 
     InstBuilder::build(MMADT_PREFIX "not")
         ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
@@ -1463,9 +1444,9 @@ namespace mmadt {
   void *mmADT::import(const std::vector<fURI> &patterns) {
     module_base_types();
     module_ext_types();
-    import_base_types(patterns);
+   // import_base_types(patterns);
     import_base_inst(patterns);
-    import_ext_types(patterns);
+   // import_ext_types(patterns);
     return nullptr;
   }
 

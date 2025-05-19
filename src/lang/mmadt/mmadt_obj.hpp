@@ -20,10 +20,10 @@
 #define mmadt_obj_hpp
 
 #include "../../fhatos.hpp"
-#include "../obj.hpp"
-#include "../type.hpp"
-#include "mmadt.hpp"
+#include "../../model/fos/sys/typer/typer.hpp"
 #include "../../structure/qtype/q_type.hpp"
+#include "../obj.hpp"
+#include "mmadt.hpp"
 
 #define MMADT_PREFIX "/mmadt/"
 #define MMADT_URI "/mmadt"

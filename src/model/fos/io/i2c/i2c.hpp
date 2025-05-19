@@ -21,10 +21,10 @@ FhatOS: A Distributed Operating System
 
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include "../gpio/gpio.hpp"
 #include "../../../model.hpp"
+#include "../../sys/typer/typer.hpp"
+#include "../gpio/gpio.hpp"
 
 #ifdef ARDUINO
 #include <Arduino.h>

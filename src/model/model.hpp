@@ -87,7 +87,7 @@ namespace fhatos {
       else {
         const ptr<FORCED_MODEL_STATE> model_state =
             MODEL_CREATOR->count(*model_obj->tid)
-                ? any_cast<ptr<FORCED_MODEL_STATE>>(MODEL_CREATOR->at(*model_obj->tid)(model_obj))
+                ? std::any_cast<ptr<FORCED_MODEL_STATE>>(MODEL_CREATOR->at(*model_obj->tid)(model_obj))
                 : FORCED_MODEL_STATE::create_state(model_obj);
         MODEL_STATES::singleton()->store(*model_obj->vid, model_state);
         return model_state;

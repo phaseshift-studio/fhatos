@@ -21,10 +21,10 @@ FhatOS: A Distributed Operating System
 
 #ifndef NATIVE
 #include "../../../../../fhatos.hpp"
-#include "../../../../../lang/type.hpp"
 #include "../../../../../lang/obj.hpp"
-#include "../../../../../util/obj_helper.hpp"
 #include "../../../../../structure/router.hpp"
+#include "../../../../../util/obj_helper.hpp"
+#include "../../../sys/typer/typer.hpp"
 //
 #ifdef ARDUINO
 #include <Arduino.h>

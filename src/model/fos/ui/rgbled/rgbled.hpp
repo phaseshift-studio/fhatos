@@ -3,13 +3,13 @@
 #define fhatos_rgbled_hpp
 
 #ifndef NATIVE
-#include "ext/rgbledxx.h"
 #include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
-#include "../../io/gpio/gpio.hpp"
 #include "../../../../util/obj_helper.hpp"
+#include "../../io/gpio/gpio.hpp"
 #include "../../sys/router/router.hpp"
+#include "../../sys/typer/typer.hpp"
+#include "ext/rgbledxx.h"
 
 namespace fhatos {
   static ID_p RGBLED_FURI = id_p(FOS_URI "/rgbled");

@@ -80,9 +80,10 @@ namespace fhatos {
         ->drop_config("router")
         ->using_scheduler("scheduler")
         ->drop_config("scheduler")
+        ->using_typer("typer")
+        ->drop_config("typer")
         ////////////////// USER STRUCTURE(S)
         ->display_note("!yloading !blanguage !yobjs!!")
-        ->import2("import")
         ->display_note("!yloading !bio !yobjs!!")
         ->mount(Structure::create<Heap<>>("/io/#"))
         ->install(make_shared<Log>(Obj::to_rec(rmap({{"config", Router::singleton()
@@ -101,12 +102,12 @@ namespace fhatos {
     BOOTING = false;
     FOS_TEST_OBJ_NTEQL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID)));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), Router::singleton()->read(ID(FOS_BOOT_CONFIG_VALUE_ID).extend("router")));
-   /* FOS_TEST_OBJ_EQUAL(Obj::to_int(1),
-                       jnt(Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()->size()));
-    FOS_TEST_OBJ_EQUAL(Obj::to_uri("/io/console"), Scheduler::singleton()->obj_get("spawn")->lst_value()->at(0));*/
+    /* FOS_TEST_OBJ_EQUAL(Obj::to_int(1),
+                        jnt(Scheduler::singleton()->obj_get("spawn")->or_else(lst())->lst_value()->size()));
+     FOS_TEST_OBJ_EQUAL(Obj::to_uri("/io/console"), Scheduler::singleton()->obj_get("spawn")->lst_value()->at(0));*/
     FOS_TEST_OBJ_EQUAL(Obj::to_int(0),
                        jnt(Scheduler::singleton()->obj_get("bundle")->or_else(lst())->lst_value()->size()));
-    //ROUTER_WRITE("/io/console/halt", dool(true), true);
+    // ROUTER_WRITE("/io/console/halt", dool(true), true);
     ROUTER_WRITE(SCHEDULER_ID->extend("halt"), dool(true), true);
     Router::singleton()->loop();
     Scheduler::singleton()->loop();

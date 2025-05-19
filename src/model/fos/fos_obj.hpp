@@ -23,7 +23,6 @@
 #include "../../lang/mmadt/mmadt.hpp"
 #include "../../lang/obj.hpp"
 #include "../../lang/processor/processor.hpp"
-#include "../../lang/type.hpp"
 #include "io/fs/fs.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
@@ -31,8 +30,10 @@
 #include "sys/router/structure/dsm.hpp"
 #include "sys/router/structure/heap.hpp"
 #include "sys/scheduler/thread/thread.hpp"
+#include "sys/typer/typer.hpp"
 #include "ui/button/button.hpp"
 #include "ui/console.hpp"
+#include "util/log.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
 #include "util/time.hpp"
@@ -53,44 +54,48 @@ namespace fhatos {
 
   class fOS {
   public:
-    static void *import(const std::vector<fURI> &patterns) {
+    static void install_modules() {
       modules_fos_qproc();
       modules_fos_io();
-      import_q_proc(patterns);
-      import_io(patterns);
-      import_sys(patterns);
-      import_structure(patterns);
-      import_sensor(patterns);
-      import_ui(patterns);
-      import_util(patterns);
-      Time::import();
+      import_q_proc({});
+      // import_io(patterns);
+      //  import_sys(patterns);
+      // import_sensor(patterns);
+      import_ui({});
+      import_util({});
+      // Time::import();
+      Thread::import();
+      Heap<>::import();
+      DSM::import();
+      FS::import();
+      GPIO::import();
+
 #ifdef ESP_PLATFORM
       WIFIx::load_module();
 #endif
-      return nullptr;
     }
 
     static void modules_fos_qproc() {
       const ID module_id = Typer::singleton()->vid->extend("module/fos/qproc");
       Typer::singleton()->obj_set("module/fos/qproc",
-      InstBuilder::build(module_id)
-          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-          ->inst_f([](const Obj_p &, const InstArgs &) {
-        return Obj::to_rec({{vri(MESSAGE_FURI), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                                             {"payload", Obj::to_bcode()},
-                                                             {"retain", Obj::to_type(BOOL_FURI)}})},
-                            {vri(SUBSCRIPTION_FURI), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                                                  {"pattern", Obj::to_type(URI_FURI)},
-                                                                  {"on_recv", Obj::to_bcode()}})},
-                            {vri(Q_PROC_FURI), Obj::to_rec()},
-                            {vri(Q_PROC_FURI->extend("sub")), Obj::to_rec()},
-                            {vri(Q_PROC_FURI->extend("doc")), Obj::to_rec()}});
-          })
-          ->create());
+                                  InstBuilder::build(module_id)
+                                      ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                                      ->inst_f([](const Obj_p &, const InstArgs &) {
+                                        return Obj::to_rec(
+                                            {{vri(MESSAGE_FURI), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                                                              {"payload", Obj::to_bcode()},
+                                                                              {"retain", Obj::to_type(BOOL_FURI)}})},
+                                             {vri(SUBSCRIPTION_FURI), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                                                                   {"pattern", Obj::to_type(URI_FURI)},
+                                                                                   {"on_recv", Obj::to_bcode()}})},
+                                             {vri(Q_PROC_FURI), Obj::to_rec()},
+                                             {vri(Q_PROC_FURI->extend("sub")), Obj::to_rec()},
+                                             {vri(Q_PROC_FURI->extend("doc")), Obj::to_rec()}});
+                                      })
+                                      ->create());
     }
 
     static void modules_fos_io() {
-      GPIO::load_module();
       //     I2C::import();
 #ifdef ARDUINO
       //    PWM::import();
@@ -113,14 +118,14 @@ namespace fhatos {
       Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
       Typer::singleton()->clear_filters();
       Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yquery types!! imported!g]!! \n", FOS_URI "/q/+"));
+          format("\n\t\t!^u1^ !g[!b{} !yquery types!! imported!g]!! \n", FOS_URI "/q/+"));
       return nullptr;
     }
 
     static void *import_io(const std::vector<fURI> &patterns = {}) {
       Typer::singleton()->start_progress_bar(6);
       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      GPIO::import();
+
       I2C::import();
 #ifdef ARDUINO
       PWM::import();
@@ -137,25 +142,12 @@ namespace fhatos {
       Typer::singleton()->start_progress_bar(2);
       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
       Memory::import();
-      Thread::import();
+
       Typer::singleton()->clear_filters();
       Typer::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! imported!g]!! \n", FOS_URI "/sys/+"));
       return nullptr;
     }
-
-    static void *import_structure(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(3);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      Heap<>::import();
-      DSM::import();
-      FS::import();
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ystructure types!! loaded!g]!! \n", FOS_URI "/s/+"));
-      return nullptr;
-    }
-
     static void *import_sensor(const std::vector<fURI> &patterns = {}) {
       Typer::singleton()->start_progress_bar(3);
       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));

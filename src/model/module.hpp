@@ -22,7 +22,7 @@
 #include "../fhatos.hpp"
 #include "../furi.hpp"
 #include "../lang/obj.hpp"
-#include "../lang/type.hpp"
+#include "fos/sys/typer/typer.hpp"
 
 namespace fhatos {
   using ModuleTypes = std::vector<std::pair<ID, Obj_p>>;

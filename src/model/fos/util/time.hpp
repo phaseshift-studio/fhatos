@@ -21,7 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include "../../../furi.hpp"
-#include "../../../lang/type.hpp"
+#include "../sys/typer/typer.hpp"
 
 namespace fhatos {
   static const ID_p TIME_FURI = id_p(FOS_URI "/util/time");

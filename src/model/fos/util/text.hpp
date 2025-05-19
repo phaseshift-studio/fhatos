@@ -5,9 +5,9 @@
 #include "../../../fhatos.hpp"
 #include "../../../lang/mmadt/parser.hpp"
 #include "../../../lang/obj.hpp"
-#include "../../../lang/type.hpp"
 #include "../../../util/obj_helper.hpp"
 #include "../../model.hpp"
+#include "../sys/typer/typer.hpp"
 #include "../ui/terminal.hpp"
 
 namespace fhatos {

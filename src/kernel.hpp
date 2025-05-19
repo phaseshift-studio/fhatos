@@ -30,8 +30,7 @@
 #include "util/print_helper.hpp"
 #ifdef ESP_PLATFORM
 #include <esp_freertos_hooks.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <esp_system.h>
 #else
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -167,11 +166,16 @@ namespace fhatos {
       const ptr<Typer> typer = Typer::singleton(*typer_obj->vid);
       typer->obj_set("config", typer_obj->rec_get("config"));
       typer->save();
-      fOS::import({});
+      Typer::import();
+      fOS::install_modules();
       mmADT::import({});
-      // Typer::import();
-      LOG_WRITE(INFO, typer.get(),
-                L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", typer->toString()));
+      Typer::singleton()->import_modules("/fos/q/#");
+      Typer::singleton()->import_modules("/mmadt/base");
+      Typer::singleton()->import_modules("/mmadt/ext");
+      Typer::singleton()->import_modules("/fos/s/heap");
+      Typer::singleton()->import_modules("/fos/s/fs");
+      Typer::singleton()->import_modules("/fos/s/dsm");
+      LOG_WRITE(INFO, typer.get(), L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", typer->toString()));
       return Kernel::build();
     }
 
@@ -216,21 +220,6 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> import2(const ID &import_id) {
-      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      const Lst_p uris = Kernel::boot()->rec_get(import_id);
-      fOS::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
-      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      mmADT::import(uris->lst_value<fURI>([](const Obj_p &o) { return o->uri_value(); }));
-      // TODO: arg should take a tid
-      // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
-      return Kernel::build();
-    }
-
-    /*static ptr<Kernel> import(const fURI &) {
-      return Kernel::build();
-    }*/
-
     static ptr<Kernel> mount(const Structure_p &structure) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->attach(structure);
@@ -272,10 +261,10 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const string boot_dir = fs::current_path().string();
-      ROUTER_WRITE("/sys",vri("native"),true);
+      ROUTER_WRITE("/sys", vri("native"), true);
 #else
       const string boot_dir = "/";
-      ROUTER_WRITE("/sys",vri("esp32"),true);
+      ROUTER_WRITE("/sys", vri("esp32"), true);
 #endif
       LOG_WRITE(INFO, Router::singleton().get(), L("!yboot working directory!!: !b{}!!\n", boot_dir));
       boot_config_obj_copy_len = 0;
@@ -315,7 +304,7 @@ namespace fhatos {
       return Kernel::using_boot_config(config_obj);
     }
 
-    static void loop() {
+    static void done() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
@@ -323,9 +312,7 @@ namespace fhatos {
       // booting complete, tighter type constraints enforced
       BOOTING = false;
       while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
-        Scheduler::singleton()->loop();
-        Router::singleton()->loop();
-        FEED_WATCHDOG();
+        Kernel::loop();
       }
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
       Scheduler::singleton()->stop();
@@ -336,7 +323,27 @@ namespace fhatos {
       exit(EXIT_SUCCESS);
 #endif
     }
+
+#ifdef ESP_PLATFORM
+    /*  // idle processor code
+      Supplier<bool> loop_hook = [](){
+        if(!BOOTING)
+          Kernel::loop();
+        return true;
+      };
+      const esp_err_t er = esp_register_freertos_idle_hook_for_cpu(loop_hook, 0);
+      if(er != ESP_OK) {
+        LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to hook idle task\n"));
+      }*/
+#endif
+
+    static void loop() {
+      Scheduler::singleton()->loop();
+      Router::singleton()->loop();
+      FEED_WATCHDOG();
+    }
   };
 } // namespace fhatos
+
 
 #endif

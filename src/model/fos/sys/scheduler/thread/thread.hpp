@@ -21,9 +21,9 @@ FhatOS: A Distributed Operating System
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
 #include "../../../../../lang/obj.hpp"
-#include "../../../../../lang/type.hpp"
 #include "../../../../fos/sys/memory/memory.hpp"
 #include "../../../../model.hpp"
+#include "../../typer/typer.hpp"
 
 namespace fhatos {
   using namespace mmadt;
@@ -75,23 +75,20 @@ namespace fhatos {
                 const Obj_p thread_loop_obj =
                     thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
                         ? thread_obj->obj_get("loop")
-                        : Compiler(false)
-                              .resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
-                                                                     id_p(thread_obj->vid->extend("loop"))));
+                        : Compiler(false).resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                                id_p(thread_obj->vid->extend("loop"))));
                 const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
                 LOG_WRITE(INFO, thread_obj.get(),
                           L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                            thread_loop_inst->toString(), thread_obj->obj_get("config/stack_size")->toString()));
+                            thread_loop_inst->toString(),
+                            Memory::singleton()->get_stack_size(thread_obj, "config/stack_size", 0)));
                 while(!thread_obj->obj_get("halt")->or_else_<bool>(false)) {
                   FEED_WATCHDOG();
                   try {
                     thread_loop_inst->apply(thread_obj);
-                    if(const int delay = thread_obj->obj_get("delay")->or_else_<int>(0); delay > 0) {
-                      Thread::delay(delay);
-                      thread_obj->obj_set("delay", jnt(0, NAT_FURI));
-                    }
                   } catch(const fError &e) {
                     LOG_WRITE(ERROR, thread_obj.get(), L("!rthread loop error!!: {}\n", e.what()));
+                    break;
                   }
                 }
                 return Obj::to_noobj();
@@ -109,15 +106,22 @@ namespace fhatos {
     static void *import() {
       MODEL_CREATOR2->insert_or_assign(*THREAD_FURI,
                                        [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });
-      const Rec_p thread_t = Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}});
-      Typer::singleton()->save_type(*THREAD_FURI, thread_t);
-      InstBuilder::build(THREAD_FURI->add_component("spawn"))
-          ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
-          ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
-            ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
-            return Obj::to_noobj();
-          })
-          ->save();
+      Typer::singleton()->install_module(
+          *THREAD_FURI,
+          InstBuilder::build(Typer::singleton()->vid->add_component(*THREAD_FURI))
+              ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+              ->inst_f([](const Obj_p &, const InstArgs &) {
+                return Obj::to_rec({{vri(THREAD_FURI), Obj::to_rec({{"loop", __()}, {"halt", __().else_(dool(true))}})},
+                                    {vri(THREAD_FURI->add_component("spawn")),
+                                     InstBuilder::build(THREAD_FURI->add_component("spawn"))
+                                         ->domain_range(THREAD_FURI, {1, 1}, OBJ_FURI, {0, 0})
+                                         ->inst_f([](const Obj_p &thread_obj, const InstArgs &) {
+                                           ROUTER_READ(*SCHEDULER_ID)->inst_apply("spawn", {thread_obj});
+                                           return Obj::to_noobj();
+                                         })
+                                         ->create()}});
+              })
+              ->create());
       return nullptr;
     }
   };
