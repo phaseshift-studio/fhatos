@@ -39,13 +39,9 @@ namespace fhatos {
 
     static ptr<Scheduler> &singleton(const ID &id = ID("/sys/scheduler"));
 
-    static bool shutting_down();
-
     void stop();
 
     void loop();
-
-    void handle_memory();
 
     void spawn_thread(const Obj_p &thread_obj);
 

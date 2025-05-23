@@ -5,15 +5,15 @@
 #ifdef ARDUINO
 #define I2C_ADDRESS 0x3C
 
+#include <Arduino.h>
+#include <Wire.h>
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
+#include "../../../model.hpp"
 #include "../../sys/router/router.hpp"
+#include "../../sys/typer/typer.hpp"
 #include "ext/SSD1306Ascii.h"
 #include "ext/SSD1306AsciiWire.h"
-#include <Wire.h>
-#include <Arduino.h>
-#include "../../../../lang/type.hpp"
-#include "../../../model.hpp"
 
 namespace fhatos {
   static ID_p OLED_FURI = id_p(FOS_URI "/oled");
@@ -31,21 +31,13 @@ namespace fhatos {
       return {row, col};
     }
 
-    void clear() override {
-      this->ssd1306.clear();
-    }
+    void clear() override { this->ssd1306.clear(); }
 
-    void normal() override {
-      this->ssd1306.setFont(Verdana12);
-    }
+    void normal() override { this->ssd1306.setFont(Verdana12); }
 
-    void bold() override {
-      this->ssd1306.setFont(Verdana12_bold);
-    }
+    void bold() override { this->ssd1306.setFont(Verdana12_bold); }
 
-    void italic() override {
-      this->ssd1306.setFont(Verdana12_italic);
-    }
+    void italic() override { this->ssd1306.setFont(Verdana12_italic); }
 
     void up(const uint16_t rows) override {
       const ptr<std::vector<Obj_p>> pos = this->oled_obj->rec_get("pos")->lst_value();
@@ -100,9 +92,8 @@ namespace fhatos {
       auto oled_state = make_shared<OLED>();
       oled_state->oled_obj = const_cast<Obj *>(oled.get());
       oled_state->ssd1306.begin(&Adafruit128x64, oled_state->oled_obj->rec_get("config/addr")->int_value());
-      oled_state->ssd1306.setCursor(
-          oled_state->oled_obj->rec_get("pos/0")->int_value(),
-          oled_state->oled_obj->rec_get("pos/1")->int_value());
+      oled_state->ssd1306.setCursor(oled_state->oled_obj->rec_get("pos/0")->int_value(),
+                                    oled_state->oled_obj->rec_get("pos/1")->int_value());
       oled_state->ssd1306.setFont(Verdana12);
       oled_state->ssd1306.clear();
       return oled_state;
@@ -111,15 +102,11 @@ namespace fhatos {
     static Obj_p print_inst(const Obj_p &oled, const InstArgs &args) {
       const ptr<OLED> oled_state = OLED::get_state(oled);
       oled_state->oled_obj = const_cast<Obj *>(oled.get());
-      oled_state->ssd1306.setCursor(
-          oled_state->oled_obj->rec_get("pos/0")->int_value(),
-          oled_state->oled_obj->rec_get("pos/1")->int_value());
+      oled_state->ssd1306.setCursor(oled_state->oled_obj->rec_get("pos/0")->int_value(),
+                                    oled_state->oled_obj->rec_get("pos/1")->int_value());
       const string text = args->arg(0)->str_value();
       parse(text.c_str(), text.length(), oled_state.get());
-      oled_state->oled_obj->rec_set("pos",
-                                    lst({
-                                        jnt(oled_state->ssd1306.col()),
-                                        jnt(oled_state->ssd1306.row())}));
+      oled_state->oled_obj->rec_set("pos", lst({jnt(oled_state->ssd1306.col()), jnt(oled_state->ssd1306.row())}));
       return oled;
     }
 
@@ -135,22 +122,22 @@ namespace fhatos {
     }*/
 
   public:
-    static void *import() {
+    static void register_module() {
       ////////////////////////// TYPE ////////////////////////////////
-      Typer::singleton()->save_type(
-          *OLED_FURI, Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
-                                  {"config", rec({
-                                       {"i2c", Obj::to_type(URI_FURI)},
-                                       {"addr", Obj::to_type(UINT8_FURI)}})}}));
-      ////////////////////////// INSTS ////////////////////////////////
-      InstBuilder::build(OLED_FURI->add_component("print"))
-          ->domain_range(OLED_FURI, {1, 1}, OLED_FURI, {1, 1})
-          ->inst_args(rec({{"text", Obj::to_type(STR_FURI)}}))
-          ->inst_f([](const Obj_p &oled, const InstArgs &args) {
-            return OLED::print_inst(oled, args);
-          })
-          ->save();
-      return nullptr;
+      REGISTERED_MODULES->insert_or_assign(
+          *OLED_FURI,
+          Obj::to_rec({{"pos", Obj::to_type(LST_FURI)},
+                       {"config", Obj::to_rec({{vri("i2c"), Obj::to_type(URI_FURI)},
+                                               {vri("addr"), Obj::to_type(UINT8_FURI)},
+                                               ////////////////////////// INSTS ////////////////////////////////
+                                               {vri(OLED_FURI->add_component("print")),
+                                                InstBuilder::build(OLED_FURI->add_component("print"))
+                                                    ->domain_range(OLED_FURI, {1, 1}, OLED_FURI, {1, 1})
+                                                    ->inst_args(Obj::to_rec({{"text", Obj::to_type(STR_FURI)}}))
+                                                    ->inst_f([](const Obj_p &oled, const InstArgs &args) {
+                                                      return OLED::print_inst(oled, args);
+                                                    })
+                                                    ->create()}})}}));
     }
 
     static void parse(const char *buffer, const uint16_t buffer_length, PPrinter *p) {
@@ -211,14 +198,14 @@ namespace fhatos {
             p->bold();
           else if('~' == j)
             p->italic();
-            /*else if('*' == j)
-              this->blink();*/
+          /*else if('*' == j)
+            this->blink();*/
           else if('X' == j)
             p->clear();
-            /* else if('Q' == j)                ////////////// !Q
-               p->top_left();
-             else if('Z' == j)
-               p->bottom_left();*/
+          /* else if('Q' == j)                ////////////// !Q
+             p->top_left();
+           else if('Z' == j)
+             p->bottom_left();*/
           else if('H' == j) ////////////// !H
             p->home();
           else if(!isalpha(j)) {
@@ -256,11 +243,11 @@ namespace fhatos {
           p->print(buffer[i]);
         }
       }
-      //p->print(buffer);
+      // p->print(buffer);
       p->flush();
     }
   };
 
-}
+} // namespace fhatos
 #endif
 #endif

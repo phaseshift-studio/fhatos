@@ -253,6 +253,7 @@ namespace fhatos {
 
   static ID_p SCHEDULER_ID = id_p("/sys/scheduler");
   static ID_p ROUTER_ID = id_p("/sys/router");
+  static ID_p TYPER_ID = id_p("/sys/typer");
 
 
   struct ObjPrinter {
@@ -313,16 +314,16 @@ namespace fhatos {
   };
   inline TriFunction<const Pattern, const Rec_p, const Supplier<Obj_p>, Obj_p> ROUTER_EXEC_WITHIN_FRAME =
       [](const Pattern &, const Rec_p &, const Supplier<Obj_p> &) {
-        LOG(TRACE, "!yROUTER_EXEC_WITHIN_FRAME!! undefined at this point in bootstrap\n");
+        LOG(ERROR, "!yROUTER_EXEC_WITHIN_FRAME!! undefined at this point in bootstrap\n");
         return nullptr;
       };
   inline Runnable ROUTER_POP_FRAME = [] { LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n"); };
   inline BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &) {
-    LOG(DEBUG, "!yROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
+    LOG(ERROR, "!yROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
   inline TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF = [](const ID_p &is_type_id,
                                                                                            const ID_p &, List<ID_p> *) {
-    LOG(DEBUG, "!yIS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
+    LOG(ERROR, "!yIS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
     return false;
   };
   inline Function<const string &, const Obj_p> OBJ_PARSER = [](const string &code) {
@@ -334,22 +335,23 @@ namespace fhatos {
     return nullptr;
   };
   inline Function<const fURI, const fURI> ROUTER_RESOLVE = [](const fURI &furi) {
-    LOG(DEBUG, "!yROUTER_RESOLVE!! undefined at this point in bootstrap\n");
+    if(!BOOTING)
+      LOG(ERROR, "!yROUTER_RESOLVE!! undefined at this point in bootstrap\n");
     return furi;
   };
   inline TriConsumer<const fURI &, const Obj_p &, const bool> ROUTER_WRITE = [](const fURI &, const Obj_p &,
                                                                                 const bool) -> void {
-    LOG(DEBUG, "!yROUTER_WRITE!! undefined at this point in bootstrap\n");
+    LOG(ERROR, "!yROUTER_WRITE!! undefined at this point in bootstrap\n");
   };
   inline BiConsumer<const fURI &, const Obj_p &> ROUTER_APPEND = [](const fURI &, const Obj_p &) -> void {
-    LOG(DEBUG, "!yROUTER_APPEND!! undefined at this point in bootstrap\n");
+    LOG(ERROR, "!yROUTER_APPEND!! undefined at this point in bootstrap\n");
   };
   inline Function<const fURI &, const Obj_p> ROUTER_READ = [](const fURI &furi) -> Obj_p {
     LOG(ERROR, "!yROUTER_READ!! undefined at this point in bootstrap: !b%s!!\n", furi.toString().c_str());
     return nullptr;
   };
-  inline BiConsumer<const ID, const Obj_p> TYPE_SAVER = [](const ID &type_id, const Obj_p &obj) {
-    LOG(DEBUG, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
+  inline BiConsumer<const ID, const Obj_p> TYPER_SAVE_TYPE = [](const ID &type_id, const Obj_p &obj) {
+    LOG(ERROR, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id.toString().c_str());
     ROUTER_WRITE(type_id, obj, true);
   };
   inline BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [](const Obj_p &, const Inst_p &) {
@@ -951,6 +953,11 @@ namespace fhatos {
         ROUTER_WRITE(this->vid->extend(key), value, true);
     }
 
+    void obj_set_component(const fURI &key, const Obj_p &value) const {
+      const ID comp_key = ID(COMPONENT_SEPARATOR).extend(key);
+      this->obj_set(comp_key, value);
+    }
+
     template<typename T>
     [[nodiscard]] T get(const fURI &key) const {
       try {
@@ -1443,9 +1450,10 @@ namespace fhatos {
             obj_string = fmt::format("{:.5f}", this->real_value());
             break;
           case OType::URI:
-            obj_string =
-                "!_" + (obj_printer->strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) +
-                "!!";
+            obj_string = "!_" +
+                         (obj_printer->strict || this->uri_value().empty() ? "<" + this->uri_value().toString() + ">"
+                                                                           : this->uri_value().toString()) +
+                         "!!";
             break;
           case OType::STR:
             obj_string = "!m'!!!~" + this->str_value() + "!m'!!";

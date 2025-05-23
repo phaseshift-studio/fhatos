@@ -21,8 +21,8 @@ FhatOS: A Distributed Operating System
 #include "../../io/i2c/i2c.hpp"
 #ifndef NATIVE
 #include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
+#include "../../../../model/fos/sys/typer/typer.hpp"
 #include "../../../../util/obj_helper.hpp"
 #include "../../../model.hpp"
 #ifdef ARDUINO
@@ -40,10 +40,7 @@ namespace fhatos {
     MLX90614xx_I2C mlx90614xx;
 
   public:
-    explicit MLX90614(const uint8_t addr) :
-      mlx90614xx(MLX90614xx_I2C(addr)) {
-        this->mlx90614xx.begin();
-    }
+    explicit MLX90614(const uint8_t addr) : mlx90614xx(MLX90614xx_I2C(addr)) { this->mlx90614xx.begin(); }
 
     static ptr<MLX90614> create_state(const Obj_p &mlx90614) {
       I2C::get_state(Router::singleton()->read(mlx90614->rec_get("config/i2c")->uri_value()));
@@ -57,19 +54,20 @@ namespace fhatos {
       return mlx90614;
     }
 
-    static void *import() {
-      Typer::singleton()->save_type(*MLX90614_FURI, Obj::to_rec(
-                                    {{"ambient", Obj::to_type(CELSIUS_FURI)},
-                                     {"object", Obj::to_type(CELSIUS_FURI)},
-                                     {"config", Obj::to_rec({
-                                          {"addr", Obj::to_type(UINT8_FURI)},
-                                          {"i2c", Obj::to_type(URI_FURI)}})}}));
-      InstBuilder::build(MLX90614_FURI->add_component("refresh"))
-          ->domain_range(MLX90614_FURI, {1, 1}, MLX90614_FURI, {1, 1})
-          ->inst_f([](const Obj_p &mlx90614, const InstArgs &args) {
-            return MLX90614::refresh_inst(mlx90614, args);
-          })->save();
-      return nullptr;
+    static void register_module() {
+      REGISTERED_MODULES->insert_or_assign(
+          *MLX90614_FURI,
+          Obj::to_rec({{"ambient", Obj::to_type(CELSIUS_FURI)},
+                       {"object", Obj::to_type(CELSIUS_FURI)},
+                       {"config", Obj::to_rec({{vri("addr"), Obj::to_type(UINT8_FURI)},
+                                               {vri("i2c"), Obj::to_type(URI_FURI)},
+                                               {vri(MLX90614_FURI->add_component("refresh")),
+                                                InstBuilder::build(MLX90614_FURI->add_component("refresh"))
+                                                    ->domain_range(MLX90614_FURI, {1, 1}, MLX90614_FURI, {1, 1})
+                                                    ->inst_f([](const Obj_p &mlx90614, const InstArgs &args) {
+                                                      return MLX90614::refresh_inst(mlx90614, args);
+                                                    })
+                                                    ->create()}})}}));
     }
   };
 } // namespace fhatos

@@ -54,34 +54,31 @@ namespace fhatos {
        return this->get_shared_from_this<Time>();
      }*/
 
-    static void *import() {
+    static void register_module() {
       MODEL_CREATOR2->insert_or_assign(*TIME_FURI, [](const Obj_p &time_obj) {
-        ptr<Time> t = make_shared<Time>(time_obj);
+        auto t = make_shared<Time>(time_obj);
         t->reset();
         return t;
       });
       ////////////////////////// TYPE ////////////////////////////////
-      const ID module_id = Typer::singleton()->vid->extend("module").extend(*TIME_FURI);
-      Typer::singleton()->obj_set(ID("module").extend(*TIME_FURI),
-                                  InstBuilder::build(module_id)
-                                      ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-                                      ->inst_f([](const Obj_p &, const InstArgs &) {
-                                        return Obj::to_rec(
-                                            {{vri(*TIME_FURI), __().isa(*REAL_FURI)},
-                                             {vri(TIME_FURI->add_component("reset")),
-                                              InstBuilder::build(TIME_FURI->add_component("reset"))
-                                                  ->domain_range(TIME_FURI, {1, 1}, TIME_FURI, {1, 1})
-                                                  ->inst_f([](const Obj_p &obj, const InstArgs &) {
-                                                    Time *t = obj->get_model<Time>();
-                                                    LOG_WRITE(INFO, obj.get(),
-                                                              L("!ytime since start!!: {}!gs!!\n", t->duration()));
-                                                    t->reset();
-                                                    return t->shared_from_this();
-                                                  })
-                                                  ->create()}});
-                                      })
-                                      ->create());
-      return nullptr;
+      REGISTERED_MODULES->insert_or_assign(
+          *TIME_FURI, InstBuilder::build(Typer::singleton()->vid->add_component(*TIME_FURI))
+                          ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                          ->inst_f([](const Obj_p &, const InstArgs &) {
+                            return Obj::to_rec({{vri(*TIME_FURI), __().isa(*REAL_FURI)},
+                                                {vri(TIME_FURI->add_component("reset")),
+                                                 InstBuilder::build(TIME_FURI->add_component("reset"))
+                                                     ->domain_range(TIME_FURI, {1, 1}, TIME_FURI, {1, 1})
+                                                     ->inst_f([](const Obj_p &obj, const InstArgs &) {
+                                                       Time *t = obj->get_model<Time>();
+                                                       LOG_WRITE(INFO, obj.get(),
+                                                                 L("!ytime since start!!: {}!gs!!\n", t->duration()));
+                                                       t->reset();
+                                                       return t->shared_from_this();
+                                                     })
+                                                     ->create()}});
+                          })
+                          ->create());
     }
   };
 } // namespace fhatos

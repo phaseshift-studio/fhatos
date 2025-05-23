@@ -22,11 +22,11 @@ FhatOS: A Distributed Operating System
 #ifndef NATIVE
 
 #include "../../../../fhatos.hpp"
-#include "../../../../lang/type.hpp"
 #include "../../../../lang/obj.hpp"
+#include "../../../../model/fos/sys/typer/typer.hpp"
 #include "../../../../util/obj_helper.hpp"
-#include "ext/ahtxx.hpp"
 #include "../../../model.hpp"
+#include "ext/ahtxx.hpp"
 #ifdef ARDUINO
 #include "ext/ahtxx.hpp"
 #endif
@@ -42,9 +42,7 @@ namespace fhatos {
     AHTxx ahtxx;
 
   public:
-    explicit AHT10(const uint8_t addr) :
-      ahtxx(AHTxx(addr)) {
-    }
+    explicit AHT10(const uint8_t addr) : ahtxx(AHTxx(addr)) {}
 
     static ptr<AHT10> create_state(const Obj_p &aht10) {
       I2C::get_state(Router::singleton()->read(aht10->rec_get("config/i2c")->uri_value()));
@@ -58,19 +56,19 @@ namespace fhatos {
       return aht10;
     }
 
-    static void *import() {
-      Typer::singleton()->save_type(*AHT10_FURI, Obj::to_rec(
-                                    {{"celsius", Obj::to_type(CELSIUS_FURI)},
-                                     {"humidity", Obj::to_type(PERCENT_FURI)},
-                                     {"config", Obj::to_rec({
-                                          {"addr", Obj::to_type(UINT8_FURI)},
-                                          {"i2c", Obj::to_type(URI_FURI)}})}}));
-      InstBuilder::build(AHT10_FURI->add_component("refresh"))
-          ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
-          ->inst_f([](const Obj_p &aht10, const InstArgs &args) {
-            return AHT10::refresh_inst(aht10, args);
-          })->save();
-      return nullptr;
+    static void register_module() {
+      REGISTERED_MODULES->insert_or_assign(
+          *AHT10_FURI, Obj::to_rec({{"celsius", Obj::to_type(CELSIUS_FURI)},
+                                    {"humidity", Obj::to_type(PERCENT_FURI)},
+                                    {"config", Obj::to_rec({{vri("addr"), Obj::to_type(UINT8_FURI)},
+                                                            {vri("i2c"), Obj::to_type(URI_FURI)},
+                                                            {vri(AHT10_FURI->add_component("refresh")),
+                                                             InstBuilder::build(AHT10_FURI->add_component("refresh"))
+                                                                 ->domain_range(AHT10_FURI, {1, 1}, AHT10_FURI, {1, 1})
+                                                                 ->inst_f([](const Obj_p &aht10, const InstArgs &args) {
+                                                                   return AHT10::refresh_inst(aht10, args);
+                                                                 })
+                                                                 ->create()}})}}));
     }
   };
 } // namespace fhatos

@@ -19,7 +19,7 @@
 #include "router.hpp"
 #include "../../../../util/obj_helper.hpp"
 #include "../../../../util/print_helper.hpp"
-#include "structure/frame.hpp"
+#include "../../s/frame.hpp"
 
 namespace fhatos {
 
@@ -90,24 +90,18 @@ namespace fhatos {
   }
 
   void Router::loop() const {
-    bool remove = false;
-    for(const Structure_p &s: *this->structures_) {
-      if(!s->available())
-        remove = true;
-      else
+    const uint8_t size = this->structures_->size();
+    this->structures_->remove_if([this](const Structure_p &s) {
+      if(!s->available()) {
+        LOG_WRITE(INFO, this, L("!b{} !y{}!! detached\n", s->pattern->toString(), s->tid->name()));
+        return true;
+      } else {
         s->loop();
-    }
-    if(remove) {
-      this->structures_->remove_if([this](const Structure_p &structure) {
-        if(!structure->available()) {
-          LOG_WRITE(INFO, this, L("!b{} !y{}!! detached\n", structure->pattern->toString(), structure->tid->name()));
-          return true;
-        }
         return false;
-      });
+      }
+    });
+    if(this->structures_->size() != size)
       this->save();
-    }
-    // this->load();
   }
 
   void Router::stop() {
@@ -125,7 +119,7 @@ namespace fhatos {
     }
     this->structures_->forEach([](const Structure_p &structure) {
       if(structure->available()) {
-        // structure->stop();
+         structure->stop();
       }
     });
     // while(!this->structures_->empty()) {
@@ -156,6 +150,7 @@ namespace fhatos {
         LOG_WRITE(INFO, this,
                   L("!y{} !b{} !yspanning !b{}!! mounted\n", structure->tid->name(),
                     structure->vid ? structure->vid->toString().c_str() : "<none>", structure->pattern->toString()));
+        this->save();
       } else {
         LOG_WRITE(ERROR, this,
                   L("!runable to mount!! {}: {} at {}!!\n", structure->pattern->toString(), structure->tid->name(),
@@ -163,7 +158,6 @@ namespace fhatos {
         this->structures_->pop_back();
       }
     }
-    this->save();
   }
 
 
@@ -229,24 +223,14 @@ namespace fhatos {
               const Obj_p structure_obj = args->arg("structure");
               const auto s = ptr<Structure>(structure_obj->get_model<Structure>());
               Router::singleton()->attach(s);
-              //////////////////////////////////////////////////////////////////////////////////////////////////////////
-              Subscription::create(
-                  Router::singleton()->vid, p_p(*s->vid),
-                  [](const Obj_p &obj, const InstArgs &args) { // target = thread_id/halt
-                    if(obj->is_noobj()) {
-                      Router::singleton()->structures_->remove_if([&args](const Structure_p &structure) {
-                        if(structure->vid->equals(args->arg("target")->uri_value())) {
-                          LOG_WRITE(INFO, Router::singleton().get(),
-                                    L("!ystructure !b{}!! unmounted\n", args->arg("target")->uri_value().toString()));
-                          return true;
-                        }
-                        return false;
-                      });
-                      Router::singleton()->save();
-                    }
-                    return Obj::to_noobj();
-                  })
-                  ->post();
+              Subscription::create(Router::singleton()->vid, p_p(*s->vid), [](const Obj_p &obj, const InstArgs &args) {
+                if(obj->is_noobj()) {
+                  const ID s_id = args->arg("target")->uri_value();
+                  const Obj_p s_obj = Router::singleton()->read(s_id);
+                  s_obj->get_model<Structure>()->stop();
+                }
+                return Obj::to_noobj();
+              })->post();
               return s;
             })
             ->create());

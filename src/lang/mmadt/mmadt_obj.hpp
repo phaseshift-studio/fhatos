@@ -53,7 +53,7 @@ namespace mmadt {
       return __().isa(*id);
     }
 
-    static void *import(const std::vector<fURI>& patterns = {});
+    static void register_module();
 
     static Obj_p delift(const Obj_p &obj) {
       if(obj->is_not_empty_bcode() && obj->bcode_value()->front()->tid->equals(MMADT_PREFIX "lift"))

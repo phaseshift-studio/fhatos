@@ -23,12 +23,12 @@
 #include "../../lang/mmadt/mmadt.hpp"
 #include "../../lang/obj.hpp"
 #include "../../lang/processor/processor.hpp"
-#include "io/fs/fs.hpp"
+#include "s/fs/fs.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
+#include "s/dsm.hpp"
+#include "s/heap.hpp"
 #include "sys/memory/memory.hpp"
-#include "sys/router/structure/dsm.hpp"
-#include "sys/router/structure/heap.hpp"
 #include "sys/scheduler/thread/thread.hpp"
 #include "sys/typer/typer.hpp"
 #include "ui/button/button.hpp"
@@ -54,45 +54,61 @@ namespace fhatos {
 
   class fOS {
   public:
-    static void install_modules() {
-      modules_fos_qproc();
+    static void register_module() {
+      modules_fos_q();
       modules_fos_io();
-      import_q_proc({});
+      modules_fos_ui();
+      // import_q_proc({});
       // import_io(patterns);
       //  import_sys(patterns);
       // import_sensor(patterns);
-      import_ui({});
-      import_util({});
-      // Time::import();
-      Thread::import();
-      Heap<>::import();
-      DSM::import();
-      FS::import();
-      GPIO::import();
-
+      // import_ui({});
+      // import_util({});
 #ifdef ESP_PLATFORM
-      WIFIx::load_module();
+      WIFIx::register_module();
 #endif
+      Time::register_module();
+      Thread::register_module();
+      Typer::singleton()->start_progress_bar(5);
+      Heap<>::register_module();
+      DSM::register_module();
+      FS::register_module();
+      Typer::singleton()->end_progress_bar("!b/fos/s !ystructures!! installed");
+      GPIO::register_module();
     }
 
-    static void modules_fos_qproc() {
-      const ID module_id = Typer::singleton()->vid->extend("module/fos/qproc");
-      Typer::singleton()->obj_set("module/fos/qproc",
-                                  InstBuilder::build(module_id)
-                                      ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-                                      ->inst_f([](const Obj_p &, const InstArgs &) {
-                                        return Obj::to_rec(
-                                            {{vri(MESSAGE_FURI), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                                                              {"payload", Obj::to_bcode()},
-                                                                              {"retain", Obj::to_type(BOOL_FURI)}})},
-                                             {vri(SUBSCRIPTION_FURI), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                                                                   {"pattern", Obj::to_type(URI_FURI)},
-                                                                                   {"on_recv", Obj::to_bcode()}})},
-                                             {vri(Q_PROC_FURI), Obj::to_rec()},
-                                             {vri(Q_PROC_FURI->extend("sub")), Obj::to_rec()},
-                                             {vri(Q_PROC_FURI->extend("doc")), Obj::to_rec()}});
-                                      })
-                                      ->create());
+    static void modules_fos_ui() {
+      REGISTERED_MODULES->insert_or_assign("/fos/ui", InstBuilder::build(Typer::singleton()->vid->add_component("/fos/ui"))
+                                                        ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
+                                                        ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                          Button::import();
+                                                          Terminal::import();
+                                                          Console::import();
+#ifdef ARDUINO
+                                                          RGBLED::import();
+                                                          OLED::register_module();
+#endif
+                                                          return Obj::to_rec();
+                                                        })
+                                                        ->create());
+    }
+
+    static void modules_fos_q() {
+      REGISTERED_MODULES->insert_or_assign(
+          "/fos/q", InstBuilder::build(Typer::singleton()->vid->add_component("/fos/q"))
+                        ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
+                        ->inst_f([](const Obj_p &, const InstArgs &) {
+                          return Obj::to_rec({{vri(MESSAGE_FURI), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                                                               {"payload", Obj::to_bcode()},
+                                                                               {"retain", Obj::to_type(BOOL_FURI)}})},
+                                              {vri(SUBSCRIPTION_FURI), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                                                                    {"pattern", Obj::to_type(URI_FURI)},
+                                                                                    {"on_recv", Obj::to_bcode()}})},
+                                              {vri(Q_PROC_FURI), Obj::to_rec()},
+                                              {vri(Q_PROC_FURI->extend("sub")), Obj::to_rec()},
+                                              {vri(Q_PROC_FURI->extend("doc")), Obj::to_rec()}});
+                        })
+                        ->create());
     }
 
     static void modules_fos_io() {
@@ -104,90 +120,78 @@ namespace fhatos {
 #endif
     }
 
-    static void *import_q_proc(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(5);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      Typer::singleton()->save_type(*MESSAGE_FURI, Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                                                {"payload", Obj::to_bcode()},
-                                                                {"retain", Obj::to_type(BOOL_FURI)}}));
-      Typer::singleton()->save_type(*SUBSCRIPTION_FURI, Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                                                     {"pattern", Obj::to_type(URI_FURI)},
-                                                                     {"on_recv", Obj::to_bcode()}}));
-      Typer::singleton()->save_type(*Q_PROC_FURI, Obj::to_rec());
-      Typer::singleton()->save_type(Q_PROC_FURI->extend("sub"), Obj::to_rec());
-      Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          format("\n\t\t!^u1^ !g[!b{} !yquery types!! imported!g]!! \n", FOS_URI "/q/+"));
-      return nullptr;
-    }
+    /* static void *import_q_proc(const std::vector<fURI> &patterns = {}) {
+       Typer::singleton()->start_progress_bar(5);
+       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
+       Typer::singleton()->save_type(*MESSAGE_FURI, Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                                                 {"payload", Obj::to_bcode()},
+                                                                 {"retain", Obj::to_type(BOOL_FURI)}}));
+       Typer::singleton()->save_type(*SUBSCRIPTION_FURI, Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                                                      {"pattern", Obj::to_type(URI_FURI)},
+                                                                      {"on_recv", Obj::to_bcode()}}));
+       Typer::singleton()->save_type(*Q_PROC_FURI, Obj::to_rec());
+       Typer::singleton()->save_type(Q_PROC_FURI->extend("sub"), Obj::to_rec());
+       Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
+       Typer::singleton()->clear_filters();
+       Typer::singleton()->end_progress_bar(
+           format("\n\t\t!^u1^ !g[!b{} !yquery types!! imported!g]!! \n", FOS_URI "/q/+"));
+       return nullptr;
+     }*/
 
-    static void *import_io(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(6);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
+    /* static void *import_io(const std::vector<fURI> &patterns = {}) {
+       Typer::singleton()->start_progress_bar(6);
+       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
 
-      I2C::import();
-#ifdef ARDUINO
-      PWM::import();
-      WIFIx::import();
-      OTA::import();
-#endif
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! imported!g]!! \n", FOS_URI "/io/+"));
-      return nullptr;
-    }
+       I2C::import();
+ #ifdef ARDUINO
+       PWM::import();
+       WIFIx::import();
+       OTA::import();
+ #endif
+       Typer::singleton()->clear_filters();
+       Typer::singleton()->end_progress_bar(
+           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yio types!! imported!g]!! \n", FOS_URI "/io/+"));
+       return nullptr;
+     }
 
-    static void *import_sys(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(2);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      Memory::import();
+     static void *import_sys(const std::vector<fURI> &patterns = {}) {
+       Typer::singleton()->start_progress_bar(2);
+       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
+       Memory::import();
 
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! imported!g]!! \n", FOS_URI "/sys/+"));
-      return nullptr;
-    }
-    static void *import_sensor(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(3);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-#ifdef ARDUINO
-      AHT10::import();
-      MLX90614::import();
-#endif
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysensor types!! loaded!g]!! \n", FOS_URI "/sensor/+"));
-      return nullptr;
-    }
+       Typer::singleton()->clear_filters();
+       Typer::singleton()->end_progress_bar(
+           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysys types!! imported!g]!! \n", FOS_URI "/sys/+"));
+       return nullptr;
+     }
+     static void *import_sensor(const std::vector<fURI> &patterns = {}) {
+       Typer::singleton()->start_progress_bar(3);
+       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
+ #ifdef ARDUINO
+       AHT10::import();
+       MLX90614::import();
+ #endif
+       Typer::singleton()->clear_filters();
+       Typer::singleton()->end_progress_bar(
+           StringHelper::format("\n\t\t!^u1^ !g[!b%s !ysensor types!! loaded!g]!! \n", FOS_URI "/sensor/+"));
+       return nullptr;
+     }
 
-    static void *import_ui(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(6);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      Button::import();
-      Terminal::import();
-      Console::import();
-#ifdef ARDUINO
-      RGBLED::import();
-      OLED::import();
-#endif
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yui types!! loaded!g]!! \n", FOS_URI "/ui/+"));
-      return nullptr;
-    }
+     static void *import_ui(const std::vector<fURI> &patterns = {}) {
 
-    static void *import_util(const std::vector<fURI> &patterns = {}) {
-      Typer::singleton()->start_progress_bar(3);
-      Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-      Log::import();
-      Poll::import();
-      Text::import();
-      Typer::singleton()->clear_filters();
-      Typer::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n", FOS_URI "/util/+"));
-      return nullptr;
-    }
+     }
+
+     static void *import_util(const std::vector<fURI> &patterns = {}) {
+       Typer::singleton()->start_progress_bar(3);
+       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
+       Log::import();
+       Poll::import();
+       Text::import();
+       Typer::singleton()->clear_filters();
+       Typer::singleton()->end_progress_bar(
+           StringHelper::format("\n\t\t!^u1^ !g[!b%s !yutil types!! loaded!g]!! \n", FOS_URI "/util/+"));
+       return nullptr;
+     }*/
   };
 } // namespace fhatos
 #endif

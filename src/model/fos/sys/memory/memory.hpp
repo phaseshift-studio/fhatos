@@ -41,14 +41,9 @@ namespace fhatos {
     explicit Memory(const ID &id) : Rec(std::make_shared<RecMap<>>(), OType::REC, MEMORY_FURI, id_p(id)) {}
 
     static int get_stack_size(const Obj_p &source, const fURI &relative_uri, const int default_stack_size = 0) {
-      if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_code()) {
-        if(const Obj_p result = mmADT::delift(stack_size)->apply(source); result->is_int())
-          return result->int_value();
-      } else if(stack_size->is_int()) {
+      if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_int())
         return stack_size->int_value();
-      } else {
-        return ROUTER_READ(SCHEDULER_ID->extend("config/stack_size"))->or_else_<int>(default_stack_size);
-      }
+      return ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_<int>(default_stack_size);
     }
 
     // TODO: flash/partition/0x4434

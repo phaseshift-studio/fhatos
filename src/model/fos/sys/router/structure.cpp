@@ -34,7 +34,7 @@ namespace fhatos {
   }
 
    void Structure::write(const fURI &furi, const Obj_p &obj, const bool retain) {
-    auto lock = lock_guard<Mutex>(mutex);
+    auto lock = lock_guard<Mutex>(this->mutex);
     this->write_internal(furi, obj, retain);
   }
 

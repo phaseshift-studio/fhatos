@@ -23,7 +23,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_PROCESSOR
-#include "../../../../../src/model/fos/io/fs/fs.hpp"
+#include "../../../../../src/model/fos/s/fs/fs.hpp"
 #include "../../../../structure/stype/generic_structure_test.hpp"
 #include "../../../../test_fhatos.hpp"
 

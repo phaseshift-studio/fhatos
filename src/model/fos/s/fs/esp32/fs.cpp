@@ -75,12 +75,28 @@ namespace fhatos {
 
   FS::FS(const Pattern &pattern, const ID_p &value_id, const Rec_p &config) :
       Structure(pattern, id_p(FS_TID), value_id, config), root(config->rec_get("root")->uri_value()) {
+    if(vid && this->root.equals(ID("."))) {
+      this->root = ID("data").extend(string("/").append(vid->name()));
+      this->obj_set("config", vri(this->root));
+    } else {
+      this->root = ID("data").extend(config->rec_get("root")->or_else(vri("."))->uri_value());
+    }
     if(!FS_MOUNTED) {
       if(!FOS_FS.begin()) {
         throw fError("!runable to mount!! file system at !b%s!!", this->root.toString().c_str());
         return;
       }
       FS_MOUNTED = true;
+      /*const esp_partition_t* partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+      if (partition) {
+        ESP_LOGI("Memory Info", "Found App partition");
+        ESP_LOGI("Memory Info", "Partition Label: %s", partition->label);
+        ESP_LOGI("Memory Info", "Partition Type: %d", partition->type);
+        ESP_LOGI("Memory Info", "Partition Subtype: %d", partition->subtype);
+        ESP_LOGI("Memory Info", "Partition Size: %" PRIu32 " bytes", partition->size);
+      } else {
+        ESP_LOGE("Memory Info", "Failed to get the App partition");
+      }*/
     }
   }
 
@@ -111,9 +127,9 @@ namespace fhatos {
       }
       boot_config_obj_copy[boot_config_obj_copy_len] = '\0';
       if(boot_config_obj_copy) {
-        LOG_WRITE(INFO, Router::singleton().get(),
-                  L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", file.path(),
-                    boot_config_obj_copy_len));
+        LOG_WRITE(
+            INFO, Router::singleton().get(),
+            L("!b{} !yboot config file!! loaded !g[!msize!!: {} bytes!g]!!\n", file.path(), boot_config_obj_copy_len));
       } else {
         file.close();
         FOS_FS.end();

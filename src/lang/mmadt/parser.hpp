@@ -22,6 +22,7 @@ FhatOS: A Distributed Operating System
 #include "../../fhatos.hpp"
 #include "../../model/fos/sys/memory/memory.hpp"
 #include "../obj.hpp"
+#include "../processor/processor.hpp"
 #include "../util/peglib.h"
 
 #define WRAP(LEFT, DEFINITION, RIGHT) cho(seq(ign(lit((LEFT))), (DEFINITION), ign(lit((RIGHT)))), (DEFINITION))
@@ -103,7 +104,9 @@ namespace mmadt {
         if(last[0] == '>')
           angles++;
       } else if(c == '-' && last[0] != '-') {
-        if(last[0] == '>' && last[1] != '=') // >-
+        if(last[0] == '<') // <-
+          angles--;
+        else if(last[0] == '>' && last[1] != '=') // >-
           angles++;
       } else if(c == '{')
         braces++;
@@ -141,23 +144,20 @@ namespace mmadt {
   public:
     static ptr<Parser> singleton(const ID &id = "/io/parser",
                                  const Rec_p &config = rec({{"stack_size", Obj::to_noobj()}})) {
-      static auto parser_p = ptr<Parser>(new Parser(id, config));
+      static auto parser_p = make_shared<Parser>(id, config);
       return parser_p;
     }
 
-    static void *import(const ID &id = "/mmadt/lib/parser") {
-      // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      /*InstBuilder::build(id.extend("create"))
-          ->type_args(x(0, "pattern", Obj::to_bcode()))
-          //->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-          ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-            OBJ_PARSER = [](const string &obj_string) {
-              return Parser::singleton()->parse(obj_string);
-            };
-          Parser::singleton(args->arg(0)->uri_value());
-          return dool(true);
-        })->save();*/
-      return nullptr;
+    static void register_module() {
+      REGISTERED_MODULES->insert_or_assign(
+          "/mmadt/util/parser",
+          InstBuilder::build(Typer::singleton()->vid->add_component("/mmadt/util/parser"))
+              ->inst_f([](const Obj_p &, const InstArgs &) {
+                return Obj::to_rec(
+                    {{"/mmadt/util/parser",
+                      Obj::to_rec({{"config", __().else_(Obj::to_rec({{"stack_size", jnt(32000)}}))}})}});
+              })
+              ->create());
     }
 
   private:
@@ -167,7 +167,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition APPEND, IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS, MULT,
-        PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ, SPLIT, EACH, CHOOSE, CHAIN, LIFT;
+        PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ, SPLIT, EACH, CHOOSE, CHAIN, LIFT, TO;
 #endif
 
   public:
@@ -183,13 +183,14 @@ namespace mmadt {
       if(0 == strlen(source))
         return Obj::to_noobj();
       Obj_p result;
-      Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER);
 
-      if(ret.ret) {
+      if(Definition::Result ret = START.parse_and_get_value<Obj_p>(source, result, nullptr, PARSER_LOGGER); ret.ret) {
         LOG_WRITE(DEBUG, this,
                   L("!gsuccessful!! parse of {} !g==>!!\n\t{}\n", str(source)->toString(), result->toString()));
         if(result->is_empty_bcode() && strcmp(source, "_") != 0)
           return Obj::to_noobj(); // if the source is empty, contains only comments, or is _ (empty bcode)
+        // if(ret.error_info.error_pos)
+        // ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
         return result->inst_bcode_obj();
       } else {
         ret.error_info.output_log(PARSER_LOGGER, source, strlen(source));
@@ -199,10 +200,13 @@ namespace mmadt {
 
     explicit Parser() : Obj(make_shared<RecMap<>>(), OType::REC, REC_FURI) { initialize(); }
 
-  protected:
     explicit Parser(const ID &id, const Rec_p &config) :
         Obj(rmap({{"config", config}}), OType::REC, REC_FURI, id_p(id)) {
       initialize();
+    }
+
+  protected:
+    void initialize() {
       OBJ_PARSER = [](const string &obj_string) {
         // StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
         const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(0));
@@ -219,9 +223,6 @@ namespace mmadt {
                                                          ->create(),
                                                      Obj::to_str(obj_string), int_stack_size);
       };
-    }
-
-    void initialize() {
       auto noobj_action = [](const SemanticValues &) -> Pair<Any, OType> { return {nullptr, OType::NOOBJ}; };
       auto bool_action = [](const SemanticValues &vs) -> Pair<Any, OType> { return {vs.choice() == 0, OType::BOOL}; };
       auto int_action = [](const SemanticValues &vs) -> Pair<Any, OType> {
@@ -558,7 +559,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
       SUGAR_INST <= cho(APPEND, EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, PLUS, MULT,
                         BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS, LIFT, DROP, REF, CHOOSE, CHAIN, BLOCK, EACH, END,
-                        MERGE, SPLIT /*, REPEAT*/);
+                        MERGE, SPLIT, TO /*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; // seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(RSHIFT, ">>", MMADT_PREFIX "rshift");
@@ -582,6 +583,7 @@ namespace mmadt {
       SUGAR_GENERATOR(LT, "?<", MMADT_PREFIX "lt");
       SUGAR_GENERATOR(LTE, "?<=", MMADT_PREFIX "lte");
       SUGAR_GENERATOR(IS_A, "?", MMADT_PREFIX "isa");
+      SUGAR_GENERATOR(TO,"<-",MMADT_PREFIX "to");
       // SUGAR_GENERATOR(IS_NOT_A, "?!", MMADT_PREFIX "nota");
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")),
           [](const SemanticValues &vs) -> Inst_p { return __().is(__().eq(any_cast<Obj_p>(vs[0]))); };

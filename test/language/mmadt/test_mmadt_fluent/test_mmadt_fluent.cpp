@@ -20,7 +20,6 @@
 #define FOS_DEPLOY_MMADT_TYPE
 #define FOS_DEPLOY_FOS_TYPE
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_SHARED_MEMORY
 #include "../../../test_fhatos.hpp"
 
 namespace fhatos {

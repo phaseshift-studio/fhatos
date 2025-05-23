@@ -27,7 +27,7 @@
 #include "../mmadt/rewriter.hpp"
 #include "../obj.hpp"
 
-#define PROCESSOR_TID "/mmadt/proc"
+#define PROCESSOR_TID "/mmadt/util/proc"
 
 namespace fhatos {
   ///////////////////////////////////////////////////////////////////////////
@@ -179,23 +179,29 @@ namespace fhatos {
 
     static Objs_p compute(const string &bcode) { return Processor::compute(OBJ_PARSER(bcode)); }
 
-    static void *import() {
+    static void register_module() {
       BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p {
         const Objs_p objs = Processor::compute(bcode);
         return objs;
         // return nullptr == objs ? Obj::to_noobj() : objs;
       };
-
-      Typer::singleton()->save_type(PROCESSOR_TID, Obj::to_rec());
-      InstBuilder::build(ID(PROCESSOR_TID).add_component("eval"))
-          ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({{"code?str", Obj::to_bcode()}}))
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            Objs_p result = Processor::compute(OBJ_PARSER(args->arg("code")->str_value()));
-            return result;
-          })
-          ->save();
-      return nullptr;
+      REGISTERED_MODULES->insert_or_assign(
+          PROCESSOR_TID, InstBuilder::build(Typer::singleton()->vid->add_component(PROCESSOR_TID))
+                             ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                             ->inst_f([](const Obj_p &, const InstArgs &) {
+                               return Obj::to_rec({{Obj::to_uri(PROCESSOR_TID), Obj::to_rec()},
+                                                   {Obj::to_uri(ID(PROCESSOR_TID).add_component("eval")),
+                                                    InstBuilder::build(ID(PROCESSOR_TID).add_component("eval"))
+                                                        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+                                                        ->inst_args(rec({{"code?str", Obj::to_bcode()}}))
+                                                        ->inst_f([](const Obj_p &, const InstArgs &args) {
+                                                          Objs_p result = Processor::compute(
+                                                              OBJ_PARSER(args->arg("code")->str_value()));
+                                                          return result;
+                                                        })
+                                                        ->create()}});
+                             })
+                             ->create());
     }
 
 
@@ -270,7 +276,7 @@ namespace fhatos {
                   L(FOS_TAB_2 "monad at !grange!! of %s !m=>!! %s [%s]\n",
                     this->processor_->M(next_obj, this->inst)->toString(), current_inst_resolved->toString(),
                     "SIGNATURE HERE"));
-    //    next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
+        //    next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         const Inst_p next_inst = this->processor_->bcode_->next_inst(this->inst);
         if(next_inst->is_generative()) {
           LOG_WRITE(TRACE, this->processor_, L("monad {} dying [{}]\n", this->toString().c_str(), "SIGNATURE HERE"));

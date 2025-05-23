@@ -51,7 +51,6 @@ include::fhatos_intro.adoc[]
 include::fhatos_mmadt.adoc[]
 include::fhatos_router.adoc[]
 
-
 == FhatOS Modules
 
 === Kernel Modules
@@ -109,23 +108,11 @@ Two wire access
 ==== plus
 
 ++++
-
 <!-- 🐖 ./main_runner.out "true.plus(false)" "1.plus(2)" "'a'.plus('b')" -->
 ++++
 
-[source,mmadt]
-----
-fhatos> true.plus(false)
-==>true
-fhatos> 1.plus(2)
-==>3
-fhatos> 'a'.plus('b')
-==>'ab'
-----
-
 ++++
 <!-- 🐓 -->
-
 ++++
 
 ==== mult
@@ -155,18 +142,11 @@ fhatos> 'a'.plus('b')
 ==== match `~`
 
 ++++
-
 <!-- 🐖 ./main_runner.out "[a=>2].match([a=>3])" "[a=>2].match([a=>_])" -->
 ++++
 
-[source,mmadt]
-----
-fhatos> [a=>2].match([a=>3])
-----
-
 ++++
 <!-- 🐓 -->
-
 ++++
 
 ==== eq

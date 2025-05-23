@@ -20,11 +20,11 @@
 #ifndef fhatos_structure_hpp
 #define fhatos_structure_hpp
 
-#include "../../../../../fhatos.hpp"
-#include "../../../../../lang/obj.hpp"
-#include "../../../../../structure/pubsub.hpp"
-#include "../../../../../structure/q_proc.hpp"
-#include "../../../../../structure/qtype/q_sub.hpp"
+#include "../../../../fhatos.hpp"
+#include "../../../../lang/obj.hpp"
+#include "../../../../structure/pubsub.hpp"
+#include "../../../../structure/q_proc.hpp"
+#include "../../../../structure/qtype/q_sub.hpp"
 
 
 #define FOS_TRY_META                                                                                                   \
@@ -57,7 +57,7 @@ namespace fhatos {
 
   public:
     const Pattern_p pattern{};
-
+    Structure_p shared_from_this() { return ptr<Structure>(this); }
     explicit Structure(const Pattern &span, const ID_p &tid, const ID_p &vid = nullptr,
                        const Rec_p &config = Obj::to_rec()) :
         Rec(config->rec_value()->empty()
@@ -68,8 +68,8 @@ namespace fhatos {
                               })
                       ->rec_value()
                 : Obj::to_rec({{"pattern", vri(span)},
-                               {"q_proc", rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
-                                               {"#", QType::create()}})},
+                               {"q_proc",
+                                rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")}, {"#", QType::create()}})},
                                {"config", config->clone()}})
                       ->rec_value(),
             OType::REC, tid, vid),
@@ -83,8 +83,7 @@ namespace fhatos {
     }
 
     template<typename STRUCTURE>
-    static ptr<STRUCTURE> create(const Pattern &span, const ID_p &vid = nullptr,
-                                 const Rec_p &config = Obj::to_rec()) {
+    static ptr<STRUCTURE> create(const Pattern &span, const ID_p &vid = nullptr, const Rec_p &config = Obj::to_rec()) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
       ptr<STRUCTURE> s = make_shared<STRUCTURE>(span, vid, config);
       s->save();

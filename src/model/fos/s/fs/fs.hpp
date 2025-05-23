@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../../../fhatos.hpp"
 #include "../../sys/router/router.hpp"
-#include "../../sys/router/structure/structure.hpp"
+#include "../../sys/router/structure.hpp"
 
 #define FS_TID "/fos/s/fs"
 
@@ -55,9 +55,8 @@ namespace fhatos {
 
     ID map_fs_to_fos(const string &fs_id) const;
 
-    static void *import() {
-      Router::import_structure<FS>(FOS_URI "/s/fs");
-      return nullptr;
+    static void register_module() {
+      Router::register_structure_module<FS>(FOS_URI "/s/fs");
     }
   };
 } // namespace fhatos

@@ -21,31 +21,6 @@ The function of the router is to:
 <!-- 🐖 ./main_runner.out "/io/console/config/nest->3" "*/sys/router/#/" -->
 ++++
 
-[source,mmadt]
-----
-fhatos> /io/console/config/nest->3
-==>3
-fhatos> */sys/router/#/
->[
-==>/sys/router=>[
-===>structure=>[
-====>/sys/#
-====>/mnt/#
-====>/fos/#
-====>/mmadt/#
-====>/io/#
-====>+/#
-==>]
-===>config=>[
-====>auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]
-==>]
-===>::=>[
-====>mount=>mount?obj<=obj{?}(structure=>_)[cpp]
-==>]
-=>]@/sys/router
->]
-----
-
 ++++
 <!-- 🐓 -->
 ++++
@@ -77,26 +52,6 @@ a -> 'meangirl'            --- <5>
 *b                         --- <6>
 -->
 ++++
-
-[source,mmadt]
-----
-fhatos> a -> 'snowbutt'            // <1>
-==>'snowbutt'
-fhatos> *a                         // <2>
-==>'snowbutt'
-fhatos> a?sub -> |to(b)            // <3>
-==>to?noobj<=obj(b)[noobj]
-fhatos> *a?sub                     // <4>
->sub[
-==>source=>/sys/scheduler
-==>pattern=>a
-==>on_recv=>to(b)
->]
-fhatos> a -> 'meangirl'            // <5>
-==>'meangirl'
-fhatos> *b                         // <6>
-==>'meangirl'
-----
 
 ++++
 <!-- 🐓 -->
@@ -138,14 +93,6 @@ from(u)
 -->
 ++++
 
-[source,mmadt]
-----
-fhatos> from(u)
-==>'fhatos'
-fhatos> *u
-==>'fhatos'
-----
-
 ++++
 <!-- 🐓 -->
 ++++
@@ -161,16 +108,6 @@ u.ref(o)
 o.to(u)
 -->
 ++++
-
-[source,mmadt]
-----
-fhatos> u -> o
-==>o
-fhatos> u.ref(o)
-==>o
-fhatos> o.to(u)
-==>o
-----
 
 ++++
 <!-- 🐓 -->
@@ -188,10 +125,11 @@ An example itemization is provided below:
 ** `node`: a pattern referencing zero or more `objs`.
 ** `branch`: a pattern referencing zero or more collections of `objs`.
 
-[cols="4,5"]
+[cols="4,5",separator=🧱]
 |===
 
-a|
+a🧱
+
 ++++
 <!-- 🐖 ./main_runner.out
 a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
@@ -204,42 +142,11 @@ a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
 -->
 ++++
 
-[source,mmadt]
-----
-fhatos> a/a -> 1; a/b -> 2; a/b/c -> 3; a/b/d -> 4;
-fhatos> *a/b            // <1>
-==>2
-fhatos> *a/b/           // <2>
->[
-==>a/b=>2
->]
-fhatos> *a/+            // <3>
-==>1
-==>2
-fhatos> *a/+/           // <4>
->[
-==>a/a=>1
-==>a/b=>2
->]
-fhatos> *a/#            // <5>
-==>1
-==>2
-==>3
-==>4
-fhatos> *a/#/           // <6>
->[
-==>a/a=>1
-==>a/b=>2
-==>a/b/c=>3
-==>a/b/d=>4
->]
-----
-
 ++++
 <!-- 🐓 -->
 ++++
 
-a|
+a🧱
 
 The first line in the example appears to be 4 https://en.wikipedia.org/wiki/Pascal_(programming_language)#Semicolons_as_statement_separators[individual statements].
 In fact, it is a single fluent expression. The signature of the `end` `inst` (sugar'd `;`) is `end?obj{0}\<=obj{*}`.
@@ -281,6 +188,7 @@ Query parameters are used by structures to modulate the semantics of a read/writ
 However, nothing prevents the `obj` at an address to be a `uri[]` with a query.
 Be sure to use the non-sugar'd `< >` fURI syntax when multiple values are associated with a key as the value separating
 `,` will be preferentially parsed as a `lst`, `rec`, or `inst` argument separator.
+
 ++++
 <!-- 🐖 ./main_runner.out
 abc?k1=v1&k2=v2&k3=v3                     --- <1>
@@ -292,24 +200,6 @@ abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   --- <5>
 *abc
 -->
 ++++
-
-[source,mmadt]
-----
-fhatos> abc?k1=v1&k2=v2&k3=v3                     // <1>
-==>abc?k1=v1&k2=v2&k3=v3
-fhatos> abc?k1=v1,v2&k2=v3&k3=v4,v5,v6            // <2>
-==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>          // <3>
-==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6> -> 12    // <4>
-==>12
-fhatos> *abc
-==>12
-fhatos> abc -> <abc?k1=v1,v2&k2=v3&k3=v4,v5,v6>   // <5>
-==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-fhatos> *abc
-==>abc?k1=v1,v2&k2=v3&k3=v4,v5,v6
-----
 
 ++++
 <!-- 🐓 -->
@@ -347,12 +237,6 @@ This section will explore the following considerations when designing a _multi-m
 1.plus(2)
 -->
 ++++
-
-[source,mmadt]
-----
-fhatos> 1.plus(2)
-==>3
-----
 
 ++++
 <!-- 🐓 -->
@@ -425,161 +309,34 @@ m/2/3 -> 11
 -->
 ++++
 
-[source,mmadt]
-----
-fhatos> --- write matrix
-fhatos> m/0/0 -> 0
-==>0
-fhatos> m/0/1 -> 1
-==>1
-fhatos> m/0/2 -> 2
-==>2
-fhatos> m/0/3 -> 3
-==>3
-fhatos> m/1/0 -> 4
-==>4
-fhatos> m/1/1 -> 5
-==>5
-fhatos> m/1/2 -> 6
-==>6
-fhatos> m/1/3 -> 7
-==>7
-fhatos> m/2/0 -> 8
-==>8
-fhatos> m/2/1 -> 9
-==>9
-fhatos> m/2/2 -> 10
-==>10
-fhatos> m/2/3 -> 11
-==>11
-fhatos> --- read matrix
-fhatos> *m/0/0      // <1>
-==>0
-fhatos> *m/0/+      // <2>
-==>0
-==>1
-==>2
-==>3
-fhatos> *m/+/0      // <3>
-==>0
-==>4
-==>8
-----
-
 ++++
 <!-- 🐓 -->
 ++++
 
 a🧱
-++++
 
+++++
 <!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
 --- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
-
 ++++
 
-[source,mmadt]
-----
-fhatos> --- write matrix
-fhatos> m/0 -> [0,1,2,3]
-=>[
-===>0
-===>1
-===>2
-===>3
-=>]
-fhatos> m/1 -> [4,5,6,7]
-=>[
-===>4
-===>5
-===>6
-===>7
-=>]
-fhatos> m/2 -> [8,9,10,11]
-=>[
-===>8
-===>9
-===>10
-===>11
-=>]
-fhatos> --- read matrix
-==>x
-fhatos> *m/0/0      // <1>
-==>0
-fhatos> *m/0/+      // <2>
-==>0
-==>1
-==>2
-==>3
-fhatos> *m/+/0      // <3>
-==>0
-==>4
-==>8
-----
-
 ++++
-
 <!-- 🐓 -->
-
 ++++
 
 a🧱
-++++
 
+++++
 <!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
 [4,5,6,7], /
 [8,9,10,11]]
 --- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
-
 ++++
 
-[source,mmadt]
-----
-fhatos> --- write matrix
-fhatos> m -> [[0,1,2,3],
-              [4,5,6,7],
-              [8,9,10,11]]
-=>[
-=>[
-===>0
-===>1
-===>2
-===>3
-=>]
-=>[
-===>4
-===>5
-===>6
-===>7
-=>]
-=>[
-===>8
-===>9
-===>10
-===>11
-=>]
-=>]
-fhatos> --- read matrix
-==>x
-fhatos> *m/0/0      // <1>
-==>0
-fhatos> *m/0/+      // <2>
-==>0
-==>1
-==>2
-==>3
-fhatos> *m/+/0      // <3>
-==>0
-==>4
-==>8
-----
-
 ++++
-
 <!-- 🐓 -->
-
 ++++
 
 |===
@@ -633,12 +390,6 @@ The different embeddings also have different space costs, where space is defined
 
 ----
 
-++++
-
-<!-- ######################################################################################################## ############################################################################################################# ########################################### SCHEDULER ####################################################### ############################################################################################################# ############################################################################################################# -->
-
-++++
-
 === The Scheduler Process
 
 
@@ -683,43 +434,17 @@ TIP: The more `/` in the fURI prefix, the more distributed the fURI repeat.
 .Monoid power method
 [latexmath]
 ++++
-
 M = aM
-
 ++++
 
 ++++
-
 <!-- 🐖 ./main_runner.out
 {1,2,3}
 {1,2,3}.plus(10)
 {1,2,3}.plus(_)
 {1,2,3}.plus(plus(_)) -->
-
 ++++
 
-[source,mmadt,subs="-replacements"]
-----
-fhatos> {1,2,3}
-==>1
-==>2
-==>3
-fhatos> {1,2,3}.plus(10)
-==>11
-==>12
-==>13
-fhatos> {1,2,3}.plus(_)
-==>2
-==>4
-==>6
-fhatos> {1,2,3}.plus(plus(_))
-==>3
-==>6
-==>9
-----
-
 ++++
-
 <!-- 🐓 -->
-
 ++++

@@ -133,7 +133,6 @@ namespace fhatos {
 
     static void print_obj(const Obj_p &obj, std::streambuf *sb, const ObjPrinter *obj_printer = nullptr) {
       auto ss = std::ostream(sb);
-      string close;
       if(!obj_printer)
         obj_printer = GLOBAL_PRINTERS.at(obj->otype);
       if(obj->is_noobj())
@@ -196,7 +195,9 @@ namespace fhatos {
             ss << fmt::format("{:f}", obj->real_value());
             break;
           case OType::URI:
-            ss << "!_" + (obj_printer->strict ? "<" + obj->uri_value().toString() + ">" : obj->uri_value().toString()) +
+            ss << "!_" +
+                      (obj_printer->strict || obj->uri_value().empty() ? "<" + obj->uri_value().toString() + ">"
+                                                                       : obj->uri_value().toString()) +
                       "!!";
             break;
           case OType::STR:

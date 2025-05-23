@@ -23,12 +23,14 @@
 #include "fhatos.hpp"
 #include "lang/mmadt/parser.hpp"
 #include "model/fos/fos_obj.hpp"
-#include "model/fos/io/fs/fs.hpp"
+#include "model/fos/s/fs/fs.hpp"
 #include "model/fos/sys/memory/memory.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "model/fos/sys/scheduler/thread/thread.hpp"
+#include "model/module.hpp"
 #include "util/print_helper.hpp"
 #ifdef ESP_PLATFORM
+#include <esp_chip_info.h>
 #include <esp_freertos_hooks.h>
 #include <esp_system.h>
 #else
@@ -158,24 +160,42 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> import_module(const Pattern &pattern) {
+      Typer::singleton()->import_module(pattern);
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> install_module(const Pattern &pattern) {
+      for(auto it = REGISTERED_MODULES->begin(); it != REGISTERED_MODULES->end();) {
+        if(it->first.matches(pattern)) {
+          Typer::singleton()->install_module(it->first, it->second);
+          it = REGISTERED_MODULES->erase(it);
+        } else {
+          ++it;
+        }
+      }
+      return Kernel::build();
+    }
+
     static ptr<Kernel> using_typer(const ID &type_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p typer_obj = Kernel::boot()->rec_get(type_config_id);
       if(!typer_obj->is_rec())
         throw fError("!ytyper config!! !rmust be!! a !brec!!: %s", typer_obj->toString().c_str());
       const ptr<Typer> typer = Typer::singleton(*typer_obj->vid);
-      typer->obj_set("config", typer_obj->rec_get("config"));
+      typer->rec_merge(typer_obj->rec_value());
       typer->save();
       Typer::import();
-      fOS::install_modules();
-      mmADT::import({});
-      Typer::singleton()->import_modules("/fos/q/#");
-      Typer::singleton()->import_modules("/mmadt/base");
-      Typer::singleton()->import_modules("/mmadt/ext");
-      Typer::singleton()->import_modules("/fos/s/heap");
-      Typer::singleton()->import_modules("/fos/s/fs");
-      Typer::singleton()->import_modules("/fos/s/dsm");
-      LOG_WRITE(INFO, typer.get(), L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", typer->toString()));
+      mmADT::register_module();
+      fOS::register_module();
+      for(const Pattern &module_pattern:
+          Typer::singleton()->obj_get("config/module")->or_else(Obj::to_lst())->lst_value<Pattern>([](const Uri_p u) {
+            return u->uri_value();
+          })) {
+        Kernel::install_module(module_pattern);
+      }
+      LOG_WRITE(INFO, typer.get(),
+                L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", PrintHelper::pretty_print_obj(typer, 4, false)));
       return Kernel::build();
     }
 
@@ -185,11 +205,13 @@ namespace fhatos {
       if(!scheduler_obj->is_rec())
         throw fError("!yscheduler obj!! !rmust be!! a !brec!!: %s", scheduler_obj->toString().c_str());
       const ptr<Scheduler> scheduler = Scheduler::singleton(*scheduler_obj->vid);
-      scheduler->obj_set("config", scheduler_obj->rec_get("config"));
+      scheduler->rec_merge(scheduler_obj->rec_value());
+      // scheduler->obj_set("config", scheduler_obj->rec_get("config"));
       scheduler->save();
       Scheduler::import();
       LOG_WRITE(INFO, scheduler.get(),
-                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", scheduler->toString()));
+                L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n",
+                  PrintHelper::pretty_print_obj(scheduler, 4, false)));
       return Kernel::build();
     }
 
@@ -199,10 +221,13 @@ namespace fhatos {
       if(!router_obj->is_rec())
         throw fError("!yrouter obj!! !rmust be!! a !brec!!: %s", router_obj->toString().c_str());
       const ptr<Router> router = Router::singleton(*router_obj->vid);
-      router->obj_set("config", router_obj->rec_get("config"));
+      router->rec_merge(router_obj->rec_value());
+      // router->obj_set("config", router_obj->rec_get("config"));
       router->save();
       Router::import();
-      LOG_WRITE(INFO, router.get(), L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", router->toString()));
+      LOG_WRITE(
+          INFO, router.get(),
+          L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", PrintHelper::pretty_print_obj(router, 4, false)));
       return Kernel::build();
     }
 
@@ -254,6 +279,18 @@ namespace fhatos {
       string boot_str = PrintHelper::pretty_print_obj(boot_config, 4);
       StringHelper::prefix_each_line(FOS_TAB_2, &boot_str);
       LOG_WRITE(INFO, Kernel::boot().get(), L("\n{}\n", boot_str));
+      //////////////////////////////////////////////////////////////////////////////
+#ifdef NATIVE
+      const bool plat = true;
+#elif defined(ESP_PLATFORM)
+      const bool plat = false;
+#endif
+      const Rec_p info_rec = Obj::to_rec({{"platform", plat ? vri("native") : vri("esp32")},
+                                          {"arch", vri(STR(FOS_MACHINE_ARCH))},
+                                          {"model", vri(STR(FOS_MACHINE_MODEL))},
+                                          {"subos", vri(STR(FOS_MACHINE_SUBOS))}});
+      ROUTER_WRITE("/sys/info", info_rec, true);
+      ///////////////////////////////////////////////////////////////////////////////
       return Kernel::build();
     }
 
@@ -261,10 +298,8 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const string boot_dir = fs::current_path().string();
-      ROUTER_WRITE("/sys", vri("native"), true);
 #else
       const string boot_dir = "/";
-      ROUTER_WRITE("/sys", vri("esp32"), true);
 #endif
       LOG_WRITE(INFO, Router::singleton().get(), L("!yboot working directory!!: !b{}!!\n", boot_dir));
       boot_config_obj_copy_len = 0;
@@ -310,6 +345,7 @@ namespace fhatos {
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! started\n", "main"));
       // booting complete, tighter type constraints enforced
+      delete REGISTERED_MODULES;
       BOOTING = false;
       while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
         Kernel::loop();
@@ -340,7 +376,11 @@ namespace fhatos {
     static void loop() {
       Scheduler::singleton()->loop();
       Router::singleton()->loop();
+#ifdef ESP_PLATFORM
+      vTaskDelay(500); // feeds the watchdog for the task
+#else
       FEED_WATCHDOG();
+#endif
     }
   };
 } // namespace fhatos

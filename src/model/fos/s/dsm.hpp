@@ -20,13 +20,12 @@
 #ifndef fhatos_dsm_hpp
 #define fhatos_dsm_hpp
 
-#include "../../../../../fhatos.hpp"
-#include "../../../../../lang/mmadt/mmadt_obj.hpp"
-#include "../../../../../lang/obj.hpp"
-#include "../../../../../structure/util/mqtt/mqtt_client.hpp"
-#include "../../../../../util/mutex_map.hpp"
-#include "../router.hpp"
-#include "structure.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../lang/obj.hpp"
+#include "../../../structure/util/mqtt/mqtt_client.hpp"
+#include "../../../util/mutex_map.hpp"
+#include "../sys/router/router.hpp"
+#include "../sys/router/structure.hpp"
 
 /*
 #ifdef ESP_PLATFORM
@@ -78,8 +77,8 @@ namespace fhatos {
       return Structure::create<DSM>(pattern, value_id, config);
     }
 
-    static void *import() {
-      Router::import_structure<DSM>(DSM_TID);
+    static void *register_module() {
+      Router::register_structure_module<DSM>(DSM_TID);
       return nullptr;
     }
 

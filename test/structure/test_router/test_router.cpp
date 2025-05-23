@@ -27,7 +27,6 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_SHARED_MEMORY /router/#
 #include "../../../src/fhatos.hpp"
 #include "../../test_fhatos.hpp"
-#include "../../../src/util/string_helper.hpp"
 
 namespace fhatos {
   using namespace mmadt;

@@ -34,7 +34,12 @@ namespace fhatos {
 
   FS::FS(const Pattern &span, const ID_p &vid, const Rec_p &config) :
       Structure(span, id_p(FS_TID), vid, config), root(config->rec_get("root")->uri_value()) {
-    this->root = fURI("data").extend(config->rec_get("root")->or_else(vri("."))->uri_value());
+    if(vid && this->root.equals(ID("."))) {
+      this->root = ID("data").extend(string("/").append(vid->name()));
+      this->obj_set("config", vri(this->root));
+    } else {
+      this->root = ID("data").extend(config->rec_get("root")->or_else(vri("."))->uri_value());
+    }
     const auto root_path = fs::path(root.toString());
     if(!fs::exists(root_path))
       fs::create_directories(root_path);

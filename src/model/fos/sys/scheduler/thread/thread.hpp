@@ -33,7 +33,7 @@ namespace fhatos {
 
   class Thread {
   public:
-    Consumer<std::pair<Thread *, Obj_p>> thread_function_;
+    Consumer<Thread *> thread_function_;
     Any handler_;
     Obj_p thread_obj_;
 
@@ -65,48 +65,45 @@ namespace fhatos {
     void halt() const;
 
     explicit Thread(
-        const Obj_p &thread_obj,
-        const Consumer<std::pair<Thread *, Obj_p>> &thread_function =
-            [](const std::pair<const Thread *, const Obj_p &> &pair) {
-              auto [thread_ptr, thread_obj] = pair;
+        const Obj_p &thread_obj, const Consumer<Thread *> &thread_function = [](const Thread *thread_ptr) {
+          try {
+            thread_ptr->thread_obj_->obj_set("halt", dool(false));
+            const Obj_p thread_loop_obj =
+                thread_ptr->thread_obj_->is_rec() && !thread_ptr->thread_obj_->rec_get("loop")->is_noobj()
+                    ? thread_ptr->thread_obj_->obj_get("loop")
+                    : Compiler(false).resolve_inst(thread_ptr->thread_obj_,
+                                                   Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
+                                                                id_p(thread_ptr->thread_obj_->vid->extend("loop"))));
+            const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
+            LOG_WRITE(INFO, thread_ptr->thread_obj_.get(),
+                      L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
+                        thread_loop_inst->toString(),
+                        Memory::singleton()->get_stack_size(thread_ptr->thread_obj_, "config/stack_size", 0)));
+            while(!thread_ptr->thread_obj_->obj_get("halt")->or_else_<bool>(false)) {
+              FEED_WATCHDOG();
               try {
-                // const ptr<Thread> current = Thread::get_state(thread_obj);
-                thread_obj->obj_set("halt", dool(false));
-                const Obj_p thread_loop_obj =
-                    thread_obj->is_rec() && !thread_obj->rec_get("loop")->is_noobj()
-                        ? thread_obj->obj_get("loop")
-                        : Compiler(false).resolve_inst(thread_obj, Obj::to_inst(Obj::to_inst_args(), id_p("loop"),
-                                                                                id_p(thread_obj->vid->extend("loop"))));
-                const Inst_p thread_loop_inst = mmADT::delift(thread_loop_obj);
-                LOG_WRITE(INFO, thread_obj.get(),
-                          L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
-                            thread_loop_inst->toString(),
-                            Memory::singleton()->get_stack_size(thread_obj, "config/stack_size", 0)));
-                while(!thread_obj->obj_get("halt")->or_else_<bool>(false)) {
-                  FEED_WATCHDOG();
-                  try {
-                    thread_loop_inst->apply(thread_obj);
-                  } catch(const fError &e) {
-                    LOG_WRITE(ERROR, thread_obj.get(), L("!rthread loop error!!: {}\n", e.what()));
-                    break;
-                  }
-                }
-                return Obj::to_noobj();
+                thread_loop_inst->apply(thread_ptr->thread_obj_);
               } catch(const fError &e) {
-                LOG_WRITE(ERROR, thread_obj.get(), L("!rthread construction error!!: {}\n", e.what()));
+                LOG_WRITE(ERROR, thread_ptr->thread_obj_.get(), L("!rthread loop error!!: {}\n", e.what()));
+                break;
               }
-              thread_obj->delete_model();
-              thread_obj->obj_set("halt", dool(true));
-              LOG_WRITE(INFO, thread_obj.get(), L("!ythread!! stopped\n"));
-              thread_ptr->halt();
-            });
+            }
+            return Obj::to_noobj();
+          } catch(const fError &e) {
+            LOG_WRITE(ERROR, thread_ptr->thread_obj_.get(), L("!rthread construction error!!: {}\n", e.what()));
+          }
+          thread_ptr->thread_obj_->delete_model();
+          thread_ptr->thread_obj_->obj_set("halt", dool(true));
+          LOG_WRITE(INFO, thread_ptr->thread_obj_.get(), L("!ythread!! stopped\n"));
+          thread_ptr->halt();
+        });
 
     static ptr<Thread> create_state(const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); }
 
-    static void *import() {
+    static void register_module() {
       MODEL_CREATOR2->insert_or_assign(*THREAD_FURI,
                                        [](const Obj_p &thread_obj) { return make_shared<Thread>(thread_obj); });
-      Typer::singleton()->install_module(
+      REGISTERED_MODULES->insert_or_assign(
           *THREAD_FURI,
           InstBuilder::build(Typer::singleton()->vid->add_component(*THREAD_FURI))
               ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
@@ -122,7 +119,6 @@ namespace fhatos {
                                          ->create()}});
               })
               ->create());
-      return nullptr;
     }
   };
 

@@ -140,11 +140,11 @@ namespace fhatos {
     static void *import() {
       MODEL_CREATOR2->insert_or_assign(*LOG_FURI, [](const Obj_p &log_obj) { return make_shared<Log>(log_obj); });
       ////////////////////////// TYPE ////////////////////////////////
-      TYPE_SAVER(LOG_FURI->extend("level"),
+      TYPER_SAVE_TYPE(LOG_FURI->extend("level"),
                  __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)
                      .is(__().or_(__().eq(vri("INFO")), __().eq(vri("ERROR")), __().eq(vri("DEBUG")),
                                   __().eq(vri("WARN")), __().eq(vri("TRACE")))));
-      TYPE_SAVER(*LOG_FURI, Obj::to_rec({{"config", __().else_(rec({{"INFO", __().else_(lst({vri("#")}))},
+      TYPER_SAVE_TYPE(*LOG_FURI, Obj::to_rec({{"config", __().else_(rec({{"INFO", __().else_(lst({vri("#")}))},
                                                                     {"ERROR", __().else_(lst({vri("#")}))},
                                                                     {"DEBUG", __().else_(lst())},
                                                                     {"WARN", __().else_(lst())},

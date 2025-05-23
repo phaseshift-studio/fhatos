@@ -24,4 +24,4 @@ source colors.sh
 echo -e "${FHATOS} MQTT Mosquitto Script"
 echo -e "  ${MAGENTA}mosquitto configuration${NC} at ${BLUE}conf/mosquitto.conf${NC}"
 
-$(which mosquitto) -c "${FHATOS_HOME}conf/mosquitto.conf"
+$(which mosquitto) -c "${FHATOS_HOME}/conf/mosquitto.conf"

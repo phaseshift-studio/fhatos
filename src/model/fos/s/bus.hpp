@@ -20,10 +20,10 @@
 #ifndef fhatos_bus_hpp
 #define fhatos_bus_hpp
 
-#include "../../../../../fhatos.hpp"
-#include "../../../../../lang/obj.hpp"
-#include "../../scheduler/thread/mutex.hpp"
-#include "structure.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../lang/obj.hpp"
+#include "../sys/router/structure/structure.hpp"
+#include "../sys/scheduler/thread/mutex.hpp"
 
 #define BUS_TID  "/fos/s/bus"
 

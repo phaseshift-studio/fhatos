@@ -21,15 +21,14 @@
 #define fhatos_heaped_hpp
 
 #include <shared_mutex>
-#include "../../../../../fhatos.hpp"
-#include "../../../../../lang/obj.hpp"
-#include "../../scheduler/thread/mutex.hpp"
-#include "../router.hpp"
-#include "structure.hpp"
-
+#include "../../../fhatos.hpp"
+#include "../../../lang/obj.hpp"
+#include "../sys/router/router.hpp"
+#include "../sys/router/structure.hpp"
+#include "../sys/scheduler/thread/mutex.hpp"
 
 #ifdef ESP_PLATFORM
-#include "../../../../../util/esp32/psram_allocator.hpp"
+#include "../../../util/esp32/psram_allocator.hpp"
 #endif
 
 #define HEAP_TID  "/fos/s/heap"
@@ -55,9 +54,8 @@ namespace fhatos {
       return Structure::create<Heap<ALLOCATOR>>(span, vid, config);
     }
 
-    static void *import() {
-      Router::import_structure<Heap>(HEAP_TID);
-      return nullptr;
+    static void register_module() {
+      Router::register_structure_module<Heap>(HEAP_TID);
     }
 
     void stop() override {

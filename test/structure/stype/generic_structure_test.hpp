@@ -15,10 +15,11 @@ FhatOS: A Distributed Operating System
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+#pragma once
 
 #include "../../../src/fhatos.hpp"
 #include "../../../src/model/fos/sys/router/router.hpp"
-#include "../../../src/model/fos/sys/router/structure/structure.hpp"
+#include "../../../src/model/fos/sys/router/structure.hpp"
 #include "../../../src/structure/qtype/q_doc.hpp"
 #include "../../test_fhatos.hpp"
 

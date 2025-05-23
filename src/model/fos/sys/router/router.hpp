@@ -22,8 +22,8 @@
 
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
-#include "structure/frame.hpp"
-#include "structure/structure.hpp"
+#include "../../s/frame.hpp"
+#include "structure.hpp"
 
 #define FOS_ROUTER_STRUCTURE "structure"
 #define FOS_ROUTER_QUERY "query"
@@ -69,13 +69,13 @@ namespace fhatos {
     static void *import();
 
     template<typename STRUCTURE>
-    static void *import_structure(const ID &type_id) {
+    static void *register_structure_module(const ID &type_id) {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>, "STRUCTURE should be derived from Structure");
       MODEL_CREATOR2->insert_or_assign(type_id, [](const Obj_p &structure_obj) {
         return STRUCTURE::create(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
                                  structure_obj->rec_get("config")->or_else(Obj::to_rec()));
       });
-      Typer::singleton()->install_module(type_id,
+       REGISTERED_MODULES->insert_or_assign(type_id,
                                   InstBuilder::build(Typer::singleton()->vid->add_component(type_id))
                                       ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
                                       ->inst_f([type_id](const Obj_p &, const InstArgs &) {

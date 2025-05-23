@@ -53,9 +53,7 @@ namespace fhatos {
       LOG_WRITE(ERROR, this, L("scheduling error: {}\n", e.what()));
     }
   }
-  void Scheduler::handle_memory() {
-    // check memory and if low, warn logging.
-  }
+
   void Scheduler::spawn_thread(const Obj_p &thread_obj) {
     if(!thread_obj->vid)
       fError::create(this->vid->toString(), "!ythread !rmust have!y a vid!!: %s", thread_obj->toString().c_str());

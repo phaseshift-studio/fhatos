@@ -29,8 +29,8 @@
  *                                    A Dogturd Stynx Production
  */
 #define BACKWARD_HAS_BFD 1
-#define NATIVE
-// define ESP_PLATFORM as generalized ESPXXXX flag
+// #define NATIVE
+//  define ESP_PLATFORM as generalized ESPXXXX flag
 #ifdef ESP32
 #define ESP_PLATFORM
 #endif
@@ -53,6 +53,9 @@
 #ifndef FOS_SERIAL_TIMEOUT
 #define FOS_SERIAL_TIMEOUT 10
 #endif
+#include <esp_chip_info.h>
+#include <esp_system.h>
+#include <inttypes.h>
 #include "util/esp32/psram_allocator.hpp"
 #endif
 #include "util/ansi.hpp"
@@ -239,7 +242,7 @@ namespace fhatos {
 #define XSTR(a) #a
 #define L(a, ...) [=]() { return fmt::format((string((a))), ##__VA_ARGS__); }
 #define FURI_WRAP "!g[!b%s!g]!!"
-#define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
+#define FURI_WRAP_C(color) STR(!g[!color % s !g] !!)
 #define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) (a)) / (1024.0f * 1024.0f))
@@ -325,6 +328,11 @@ namespace fhatos {
 #error "unknown architecture"
 #endif
 
-   inline bool BOOTING = true;
+  /**
+   * A global inline variable representing the system booting state.
+   * It indicates whether the system is currently in the booting process.
+   * The default value is set to `true`.
+   */
+  inline bool BOOTING = true;
 } // namespace fhatos
 #endif

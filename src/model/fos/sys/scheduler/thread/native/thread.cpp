@@ -24,10 +24,9 @@
 
 namespace fhatos {
 
-  Thread::Thread(const Obj_p &thread_obj, const Consumer<std::pair<Thread *, Obj_p>> &thread_function) :
-      thread_obj_(thread_obj), thread_function_(thread_function),
-      handler_(std::make_any<std::thread *>(
-          new std::thread(thread_function, std::pair<Thread *, Obj_p>(this, thread_obj)))) {}
+  Thread::Thread(const Obj_p &thread_obj, const Consumer<Thread *> &thread_function) :
+      thread_function_(thread_function), handler_(std::make_any<std::thread *>(new std::thread(thread_function, this))),
+      thread_obj_(thread_obj) {}
 
   void Thread::halt() const {
     if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {

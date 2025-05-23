@@ -25,8 +25,8 @@
 #include "lang/obj.hpp"
 #include "lang/processor/processor.hpp"
 #include "model/fos/fos_obj.hpp"
+#include "model/fos/s/heap.hpp"
 #include "model/fos/sys/router/router.hpp"
-#include "model/fos/sys/router/structure/heap.hpp"
 #include "util/argv_parser.hpp"
 /////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
@@ -80,6 +80,8 @@ namespace fhatos {
             ->mount(Heap<>::create("/mnt/#"))
             ->mount(Heap<>::create("/sys/#", id_p("/mnt/sys")))
             ->mount(Heap<>::create("/boot/#", id_p("/mnt/boot")))
+            ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
+            ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->using_boot_config(args_parser->option_furi("--boot:config", "/boot/boot_config.obj"));
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
@@ -87,24 +89,21 @@ namespace fhatos {
             ->display_memory()
             ->using_router("router")
             ->drop_config("router")
-            ->using_scheduler("scheduler")
-            ->drop_config("scheduler")
-            ->mount(Heap<>::create("/fos/#", id_p("/mnt/fos")))
-            ->mount(Heap<>::create("/mmadt/#", id_p("/mnt/mmadt")))
             ->using_typer("typer")
-            ->drop_config("typer");
+            ->drop_config("typer")
+            ->using_scheduler("scheduler")
+            ->drop_config("scheduler");
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
-        kp->display_note("!ymounting !bfos/mmadt !ystructures!!")
+        kp->display_note("!yinstalling !bfos/mmadt !ymodules!!")
             ->display_memory()
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->display_note("!yimporting !bfos/mmadt !ytypes!!");
-
-        kp->display_memory()
-            ->import(Processor::import())
-            ->install(
-                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")));
+            ->import_module("/mmadt/#")
+            ->import_module("/fos/s/#") //  structures
+            ->import_module("/fos/q") // query processors
+            ->import_module("/fos/sys/#") //  sys
+            ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yevaluating !bsetup !yinst!!")
@@ -112,56 +111,60 @@ namespace fhatos {
             ->evalulating_setup()
             ->display_memory()
             ->stop_timer();
-/*
-        ////////////////////////////////////////////////////////////
-        ////////////////// USER IMPORT(S) //////////////////////////
-        ////////////////////////////////////////////////////////////
-        return kp
-            ////////////////// USER STRUCTURE(S)
-            ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
-            ->import(fOS::import_sys())
-            ->import(fOS::import_structure())
-            ->import(fOS::import_q_proc())
-            ->import(Processor::import())
-            ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
-            ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
-                                         QDoc::create("/mnt/mmadt/q/doc")))
-            ->import(mmADT::import())
-            ->import(mmADT::import_ext_types())
-            ->eval([]() {
-              Router::singleton()->write("/sys/vm/config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/vm"));
-            })
-            ->drop_config("vm")
-            ////////
-            ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
-            ->import(fOS::import_io())
-            ->import(fOS::import_sensor())
-            ->import(fOS::import_ui())
-            ->import(fOS::import_util())
-            /////////
-            ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->install(
-                mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/parser")))
-            ->drop_config("parser")
-            ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
-            ->drop_config("log")
-            ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
-            ->mount(FS::create("/fs/#", id_p("/mnt/fs"), Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/fs")))
-            ->drop_config("fs")
-#ifdef ESP_PLATFORM
-            ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
-            ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
-            ->install(
-                *__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
-                                            {"config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/wifi")}}),
-                               "/io/wifi"))
-                     .inst("connect")
-                     .compute()
-                     .begin())
-            ->drop_config("wifi")
-            /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                     {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
-                                   "/io/ota")).inst("start").compute().begin())*/
+        /*
+                ////////////////////////////////////////////////////////////
+                ////////////////// USER IMPORT(S) //////////////////////////
+                ////////////////////////////////////////////////////////////
+                return kp
+                    ////////////////// USER STRUCTURE(S)
+                    ->mount(Heap<>::create(FOS_URI "/#", id_p("/mnt/fos")))
+                    ->import(fOS::import_sys())
+                    ->import(fOS::import_structure())
+                    ->import(fOS::import_q_proc())
+                    ->import(Processor::import())
+                    ->display_note("!r.!go!bO !yloading !bmmadt !ylang!! !bO!go!r.!!")
+                    ->mount(Structure::add_qproc(Heap<>::create(MMADT_SCHEME "/#", id_p("/mnt/mmadt")),
+                                                 QDoc::create("/mnt/mmadt/q/doc")))
+                    ->import(mmADT::import())
+                    ->import(mmADT::import_ext_types())
+                    ->eval([]() {
+                      Router::singleton()->write("/sys/vm/config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
+        "/vm"));
+                    })
+                    ->drop_config("vm")
+                    ////////
+                    ->display_note("!r.!go!bO !yloading !bfos !ymodels!! !bO!go!r.!!")
+                    ->import(fOS::import_io())
+                    ->import(fOS::import_sensor())
+                    ->import(fOS::import_ui())
+                    ->import(fOS::import_util())
+                    /////////
+                    ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
+                    ->install(
+                        mmadt::Parser::singleton("/io/parser", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
+        "/parser")))
+                    ->drop_config("parser")
+                    ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
+                    ->drop_config("log")
+                    ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
+                    ->mount(FS::create("/fs/#", id_p("/mnt/fs"), Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
+        "/fs")))
+                    ->drop_config("fs")
+        #ifdef ESP_PLATFORM
+                    ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
+                    ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
+                    ->install(
+                        *__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
+                                                    {"config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
+        "/wifi")}}),
+                                       "/io/wifi"))
+                             .inst("connect")
+                             .compute()
+                             .begin())
+                    ->drop_config("wifi")
+                    /*->install(*__(OTA::obj({{"halt", dool(false)},
+                                             {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
+                                           "/io/ota")).inst("start").compute().begin())*/
         // ->drop_config("ota")
         //->mount(HeapPSRAM::create("/psram/#"))
         // #endif

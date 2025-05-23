@@ -40,9 +40,9 @@ namespace fhatos {
   class GPIO final {
 
   public:
-    static void import() {
+    static void register_module() {
       const ID module_id = Typer::singleton()->vid->add_component(*GPIO_FURI);
-      Typer::singleton()->install_module(*GPIO_FURI,
+      REGISTERED_MODULES->insert_or_assign(*GPIO_FURI,
           InstBuilder::build(module_id)
               ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
               ->inst_f([](const Obj_p &, const InstArgs &) {
