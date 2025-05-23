@@ -1,0 +1,15 @@
+===
+basic boot_config obj
+===
+[info     =>[name  =>doc1],
+ scheduler=>[config=>[def_stack_size=>32384]]@/sys/scheduler,
+ router   =>[config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
+                                    /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]@/sys/router,
+ typer    =>[config=>[module=>[/fos/#,/mmadt/#]]]@/sys/typer,
+ -------------------------------------------------------------------------------------
+ setup=>setup?obj{?}<=obj{.}()[
+    /mnt/boot -> noobj;
+    heap[[pattern=><+/#>]]@/mnt/var;
+    /sys/router::mount(@/mnt/var);
+ ]
+]@/boot/config

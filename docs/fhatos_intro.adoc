@@ -117,12 +117,15 @@ The [.h]#router# is responsible for storing and retrieving `objs` from a pool of
 ++++
 --
 
-/mmadt::
+/sys/typer::
 +
 --
-The [.h]#mmADT# language is embedded in the fURI address space thus enabling https://en.wikipedia.org/wiki/Reflective_programming[reflective] programming.
+The [.h]#typer# holds a reference to all installed modules. Installed modules can be used when they are imported.
 ++++
-<!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
+<!-- 🐖 ./main_runner.out
+[HIDDEN] /io/console/config/nest -> 5
+*/sys/typer
+-->
 ++++
 
 ++++
