@@ -51,119 +51,6 @@ The following output is from a Linux boot of [red]#F#​[lime]*H*​[fuchsia]#A#
 <!-- 🐖 ./boot_runner.out -->
 ++++
 
-[source,mmadt]
-----
-            PhaseShift Studio Presents
- <`--'>____  ______ __  __  ______  ______  ______  ______
- /. .  `'  \/\  ___/\ \_\ \/\  __ \/\__  _\/\  __ \/\  ___\
-(`')  ,     @ \  __\ \  __ \ \  __ \/_/\ \/\ \ \_\ \ \___  \
- `-._,     / \ \_\  \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\
-    )-)_/-(>  \/_/   \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
-                                   A Dogturd Stynx Production
-    fhatos-0.1-alpha > linux-6.8.0-59-generic > x86_64
-       [x86_64]
-      .oO mounting kernel structures Oo.
-[INFO]  main [total=>11395072,free=>11393664,used=>0.01236]
-[INFO]  [/sys/router] router started
-[INFO]  [/sys/router] heap <none> spanning /sys/# mounted
-[INFO]  [/sys/router] heap <none> spanning /mnt/# mounted
-[WARN]  [/sys/router] no mounted structure for /fos/s/heap
-[INFO]  [/sys/router] heap /mnt/boot spanning /boot/# mounted
-[INFO]  [/sys/router] boot working directory: /home/killswitch/software/fhatos/build/docs/build
-[INFO]  [/sys/router] /home/killswitch/software/fhatos/build/docs/build/data/boot/boot_config.obj boot loader native location
-[WARN]  [/sys/router] no mounted structure for heap
-[WARN]  [/sys/router] no mounted structure for terminal
-[WARN]  [/sys/router] no mounted structure for /io/terminal
-[WARN]  [/sys/router] no mounted structure for console
-[WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] /boot/config boot config file loaded [size: 656 bytes]
-[INFO]  [/boot/config] boot loader config:
-[INFO]  [/boot/config]
-   [
-     scheduler=>[
-      config=>[
-       def_stack_size=>32384
-     ]
-    ]@/sys/scheduler
-     router=>[
-      config=>[
-       auto_prefix=>[
-
-        /mmadt/
-        /mmadt/ext/
-        /fos/
-        /fos/sys/
-        /fos/s/
-        /fos/io/
-        /fos/sensor/
-        /fos/ui/
-        /fos/util/
-        /sys/
-      ]
-     ]
-    ]@/sys/router
-     typer=>[
-      config=>[
-       module=>[
-        /mmadt/#
-        /fos/#
-      ]
-     ]
-    ]@/sys/typer
-     import=>[
-      /fos/q/#
-      /fos/sys/#
-      /fos/util/#
-      /fos/io/#
-      /fos/s/#
-      /fos/ui/#
-      /io/#
-      /sys/#
-      /mmadt/#
-    ]
-     setup=>setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=>+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
-   ]@/boot/config
-      .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=>11808768,free=>11807008,used=>0.01491]
-[INFO]  [/sys/router] router configured
-            [structure=>[/sys/#,/mnt/#,/boot/#],config=>[auto_prefix=>[,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,/fos/sensor/,/fos/ui/,/fos/util/,/sys/]],::=>[mount=>mount?obj<=obj{?}(structure=>_)[cpp]]]@/sys/router
-[INFO]  [/boot/config] router boot config dropped
-[INFO]  [/sys/scheduler] scheduler started
-[INFO]  [/sys/scheduler] scheduler configured
-            [spawn=>[],bundle=>[],config=>[def_stack_size=>32384]]@/sys/scheduler
-[INFO]  [/boot/config] scheduler boot config dropped
-[WARN]  [/sys/router] no mounted structure for /fos/s/heap
-[INFO]  [/sys/router] heap /mnt/fos spanning /fos/# mounted
-[INFO]  [/sys/router] heap /mnt/mmadt spanning /mmadt/# mounted
-[INFO]  [/sys/typer] typer started
-[INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
-[INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
-[INFO]  [/sys/typer] typer configured
-            [module=>[fos=>[qproc=>qproc?rec<=obj{?}()[cpp],io=>[gpio=>gpio?rec<=obj{?}()[cpp]],util=>[time=>time?obj{?}<=obj{?}()[cpp]]]],config=>[module=>[/mmadt/#,/fos/#]]]@/sys/typer
-[INFO]  [/boot/config] typer boot config dropped
-      .oO mounting fos/mmadt structures Oo.
-[INFO]  [/sys/mem] main [total=>12484608,free=>12482720,used=>0.01512]
-[INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
-      .oO importing fos/mmadt types Oo.
-[INFO]  [/sys/mem] main [total=>12476416,free=>12474496,used=>0.01539]
-[INFO]  [/sys/typer] /sys/typer/module/mmadt/base type defined
-[INFO]  [/sys/typer] /sys/typer/module/mmadt/ext type defined
-[INFO]  [/sys/typer] /mmadt/proc type defined
-[INFO]  [/sys/typer] /mmadt/proc/::/eval type defined
-[INFO]  [/sys/router] /io/parser obj loaded
-      .oO evaluating setup inst Oo.
-[INFO]  [/sys/mem] main [total=>12611584,free=>12609632,used=>0.01548]
-[INFO]  [/boot/config] exiting boot state: stricter type checking enabled
-[INFO]  [/boot/config] applying setup inst
-            setup()[start({/mnt/boot}).ref(noobj).end().start({heap[[pattern=>+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().start({terminal[[=>]]@/io/terminal}).end().start({console[[=>]]@/io/console}).end().start({/io/console/config/stack_size}).ref(259072).end().spawn(at(/io/console)).end()]
-[WARN]  [/mnt/boot] structure /mnt/boot spanning /boot/# already stopped
-[INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
-[INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/mem] main [total=>88248320,free=>88246304,used=>0.00228]
-[INFO]  [/boot/config] boot time: 0.059197468 seconds
-
-----
-
 ++++
 <!-- 🐓 -->
 ++++
@@ -208,25 +95,6 @@ The [.h]#scheduler# controls and provides access to the various *processes* that
 <!-- 🐖 ./main_runner.out "*/sys/scheduler" -->
 ++++
 
-[source,mmadt]
-----
-fhatos> */sys/scheduler
->[
-==>spawn=>[
-===>/io/console
-=>]
-==>bundle=>[
-=>]
-==>config=>[
-===>def_stack_size=>32384
-=>]
-==>::=>[
-===>spawn=>spawn?obj<=obj{?}(thread=>_)[cpp]
-===>bundle=>bundle?obj<=obj{?}(fiber=>_)[cpp]
-=>]
->]@/sys/scheduler
-----
-
 ++++
 <!-- 🐓 -->
 ++++
@@ -244,232 +112,21 @@ The [.h]#router# is responsible for storing and retrieving `objs` from a pool of
 -->
 ++++
 
-[source,mmadt]
-----
-fhatos> */sys/router
->[
-==>structure=>[
-===>/sys/#
-===>/mnt/#
-===>/fos/#
-===>/mmadt/#
-===>/io/#
-===>+/#
-=>]
-==>config=>[
-===>auto_prefix=>[
-====>
-====>/mmadt/
-====>/mmadt/ext/
-====>/fos/
-====>/fos/sys/
-====>/fos/s/
-====>/fos/io/
-====>/fos/sensor/
-====>/fos/ui/
-====>/fos/util/
-====>/sys/
-==>]
-=>]
-==>::=>[
-===>mount=>mount?obj<=obj{?}(structure=>_)[cpp]
-=>]
->]@/sys/router
-----
-
 ++++
 <!-- 🐓 -->
 ++++
 --
 
-/mmadt::
+/sys/typer::
 +
 --
-The [.h]#mmADT# language is embedded in the fURI address space thus enabling https://en.wikipedia.org/wiki/Reflective_programming[reflective] programming.
+The [.h]#typer# holds a reference to all installed modules. Installed modules can be used when they are imported.
 ++++
-<!-- 🐖 ./main_runner.out "*/mmadt/#/" -->
+<!-- 🐖 ./main_runner.out
+[HIDDEN] /io/console/config/nest -> 5
+*/sys/typer
+-->
 ++++
-
-[source,mmadt]
-----
-fhatos> */mmadt/#/
->[
-==>/mmadt/and=>and?bool<=obj{?}(con?lst=>_)[cpp]
-==>/mmadt/append=>append?obj{?}<=uri(obj=>_)[cpp]
-==>/mmadt/apply=>apply?obj{?}<=obj{?}(rhs=>_,args=>isa(/mmadt/rec))[cpp]
-==>/mmadt/as=>as?obj{?}<=obj{?}(type?uri=>_)[cpp]
-==>/mmadt/at=>at?obj{?}<=obj{?}(isa(/mmadt/uri))[cpp]
-==>/mmadt/barrier=>barrier?objs{*}<=objs{*}(_)[cpp]
-==>/mmadt/bcode=>[bcode][_]
-==>/mmadt/bcode/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/block=>block?obj<=obj{?}(_)[cpp]
-==>/mmadt/bool=>[bool][_]
-==>/mmadt/bool/::/mmadt/as=>as?obj{?}<=bool(isa(/mmadt/uri))[cpp]
-==>/mmadt/bool/::/mmadt/div=>div(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/bool/::/mmadt/minus=>minus(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/mult=>mult(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/neg=>neg(isa(/mmadt/bool))[cpp]
-==>/mmadt/bool/::/mmadt/plus=>plus(isa(/mmadt/bool))[cpp]
-==>/mmadt/chain=>chain(_)[cpp]
-==>/mmadt/choose=>choose(_)[cpp]
-==>/mmadt/count=>count?int<=objs{*}()[cpp]
-==>/mmadt/delay=>delay?obj{?}<=obj{?}(millis?nat=>_)[cpp]
-==>/mmadt/div=>div(_)
-==>/mmadt/drop=>drop?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/each=>each(isa(/mmadt/obj))
-==>/mmadt/else=>else?obj<=obj{?}(other=>_)[cpp]
-==>/mmadt/embed=>embed()[cpp]
-==>/mmadt/end=>end?noobj{.}<=obj{*}()[cpp]
-==>/mmadt/eq=>eq(_)[cpp]
-==>/mmadt/error=>[error][_]
-==>/mmadt/explain=>explain()[cpp]
-==>/mmadt/ext/C=>C()[is(gte(-273.14999))]
-==>/mmadt/ext/Ox=>Ox()[is(true)]
-==>/mmadt/ext/char=>char()[merge(2).count().is(eq(1))]
-==>/mmadt/ext/int16=>[int16][_]
-==>/mmadt/ext/int32=>[int32][_]
-==>/mmadt/ext/int8=>uint8()[is(gte(-127)).is(lte(128))]
-==>/mmadt/ext/ms=>[real][_]
-==>/mmadt/ext/ms/::/mmadt/as=>as(is(eq(/mmadt/ext/sec)))[cpp]
-==>/mmadt/ext/nat=>nat()[is(gte(0))]
-==>/mmadt/ext/prnt=>prnt()[is(gte(0.00000)).is(lte(100.00000))]
-==>/mmadt/ext/sec=>[real][_]
-==>/mmadt/ext/secret=>[str][_]
-==>/mmadt/ext/secret/::/mmadt/as=>as(type=>_)[cpp]
-==>/mmadt/ext/uint8=>uint8()[is(gte(0)).is(lte(255))]
-==>/mmadt/flip=>flip(_)[cpp]
-==>/mmadt/frame=>frame?rec<=obj{?}()[cpp]
-==>/mmadt/from=>from?obj{?}<=obj{?}(_,else(noobj))[cpp]
-==>/mmadt/gt=>gt?bool<=obj{?}()
-==>/mmadt/gte=>gte?bool<=obj{?}()
-==>/mmadt/import=>import?obj{?}<=obj{?}(modules?lst=>_)[cpp]
-==>/mmadt/inspect=>inspect(_)
-==>/mmadt/inst=>[inst][_]
-==>/mmadt/inst/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/inst/blockers=>[
-===>block
-===>each
-===>within
-===>isa
-===>split
-===>lift
-===>apply
-===>choose
-===>chain
-=>]
-==>/mmadt/int=>[int][_]
-==>/mmadt/int/::/mmadt/as=>as?obj{?}<=int(isa(/mmadt/uri))[cpp]
-==>/mmadt/int/::/mmadt/div=>div(0?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/gt=>gt(arg?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/gte=>gte(arg?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/int/::/mmadt/lt=>lt(arg?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/lte=>lte(arg?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/minus=>minus(0?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/mod=>mod(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/mult=>mult(0?int=>_)[cpp]
-==>/mmadt/int/::/mmadt/neg=>neg(isa(/mmadt/int))[cpp]
-==>/mmadt/int/::/mmadt/plus=>plus(0?int=>_)[cpp]
-==>/mmadt/is=>is?obj{?}<=obj(_)[cpp]
-==>/mmadt/isa=>isa?obj{?}<=obj(type?uri=>_)[cpp]
-==>/mmadt/lift=>lift(_)[cpp]
-==>/mmadt/lock=>lock(user=>_)[cpp]
-==>/mmadt/lshift=>lshift()
-==>/mmadt/lst=>[lst][_]
-==>/mmadt/lst/::/mmadt/div=>div(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/each=>each(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/lst/::/mmadt/lshift=>lshift(amount?int=>else(1))[cpp]
-==>/mmadt/lst/::/mmadt/merge=>merge?objs{*}<=lst()[cpp]
-==>/mmadt/lst/::/mmadt/minus=>minus(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/mult=>mult(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/plus=>plus(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/rshift=>rshift(amount?int=>else(1))[cpp]
-==>/mmadt/lst/::/mmadt/split=>split(isa(/mmadt/lst))[cpp]
-==>/mmadt/lst/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/lt=>lt?bool<=obj{?}()
-==>/mmadt/lte=>lte?bool<=obj{?}()
-==>/mmadt/map=>map?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/merge=>merge?obj{*}<=obj()[cpp]
-==>/mmadt/minus=>minus(_)
-==>/mmadt/mod=>mod(isa(/mmadt/int))
-==>/mmadt/mult=>mult(_)
-==>/mmadt/neg=>neg(isa(/mmadt/obj))
-==>/mmadt/neq=>neq(_)[cpp]
-==>/mmadt/noobj=>[noobj][_]
-==>/mmadt/not=>not?obj{?}<=obj(_)[cpp]
-==>/mmadt/obj=>[obj][_]
-==>/mmadt/objs=>[objs][_]
-==>/mmadt/option=>option?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/or=>or?bool<=obj{?}(con?lst=>_)[cpp]
-==>/mmadt/plus=>plus(_)
-==>/mmadt/print=>print?obj{?}<=obj{?}(_)[cpp]
-==>/mmadt/proc=>[
-===>::=>[eval=>eval?obj{?}<=obj{?}(code?str=>_)[cpp]]
-=>]
-==>/mmadt/prod=>prod?obj<=objs{*}()[cpp]
-==>/mmadt/real=>[real][_]
-==>/mmadt/real/::/mmadt/as=>as?obj{?}<=real(isa(/mmadt/uri))[cpp]
-==>/mmadt/real/::/mmadt/div=>div(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/gt=>gt(arg?real=>_)[cpp]
-==>/mmadt/real/::/mmadt/gte=>gte(arg?real=>_)[cpp]
-==>/mmadt/real/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/real/::/mmadt/lt=>lt(arg?real=>_)[cpp]
-==>/mmadt/real/::/mmadt/lte=>lte(arg?real=>_)[cpp]
-==>/mmadt/real/::/mmadt/minus=>minus(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/mult=>mult(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/neg=>neg(isa(/mmadt/real))[cpp]
-==>/mmadt/real/::/mmadt/plus=>plus(isa(/mmadt/real))[cpp]
-==>/mmadt/rec=>[rec][_]
-==>/mmadt/rec/::/mmadt/div=>div(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/each=>each(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/rec/::/mmadt/lshift=>lshift(isa(/mmadt/int))[cpp]
-==>/mmadt/rec/::/mmadt/merge=>merge?objs{*}<=rec()[cpp]
-==>/mmadt/rec/::/mmadt/minus=>minus(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/mult=>mult(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/plus=>plus(isa(/mmadt/rec))[cpp]
-==>/mmadt/rec/::/mmadt/rshift=>rshift(isa(/mmadt/uri))[cpp]
-==>/mmadt/rec/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/ref=>ref?obj{?}<=uri(payload=>_,retain=>else(noobj))[cpp]
-==>/mmadt/repeat=>repeat(code=>_,until=>true,emit=>false)[cpp]
-==>/mmadt/rshift=>rshift()
-==>/mmadt/split=>split(_)[cpp]
-==>/mmadt/start=>start?objs{*}<=noobj{.}(_)[cpp]
-==>/mmadt/str=>[str][_]
-==>/mmadt/str/::/mmadt/as=>as?obj{?}<=str(isa(/mmadt/uri))[cpp]
-==>/mmadt/str/::/mmadt/div=>div(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/gt=>gt(arg?str=>_)[cpp]
-==>/mmadt/str/::/mmadt/gte=>gte(arg?str=>_)[cpp]
-==>/mmadt/str/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/str/::/mmadt/lt=>lt(arg?str=>_)[cpp]
-==>/mmadt/str/::/mmadt/lte=>lte(arg?str=>_)[cpp]
-==>/mmadt/str/::/mmadt/merge=>merge?objs{*}<=str()[cpp]
-==>/mmadt/str/::/mmadt/minus=>minus(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/mult=>mult(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/plus=>plus(isa(/mmadt/str))[cpp]
-==>/mmadt/str/::/mmadt/within=>within(_)[cpp]
-==>/mmadt/sum=>sum?obj<=objs{*}()[cpp]
-==>/mmadt/to=>to(_,true)[cpp]
-==>/mmadt/type=>type?uri<=obj{?}(_)[cpp]
-==>/mmadt/uri=>[uri][_]
-==>/mmadt/uri/::/mmadt/as=>as?obj{?}<=uri(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/div=>div(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/gt=>gt(arg?uri=>_)[cpp]
-==>/mmadt/uri/::/mmadt/gte=>gte(arg?uri=>_)[cpp]
-==>/mmadt/uri/::/mmadt/inspect=>inspect(_)[cpp]
-==>/mmadt/uri/::/mmadt/lshift=>lshift(_)[cpp]
-==>/mmadt/uri/::/mmadt/lt=>lt(arg?uri=>_)[cpp]
-==>/mmadt/uri/::/mmadt/lte=>lte(arg?uri=>_)[cpp]
-==>/mmadt/uri/::/mmadt/merge=>merge?objs{*}<=uri()[cpp]
-==>/mmadt/uri/::/mmadt/minus=>minus(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/mult=>mult(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/plus=>plus(isa(/mmadt/uri))[cpp]
-==>/mmadt/uri/::/mmadt/rshift=>rshift(_)[cpp]
-==>/mmadt/within=>within(_)
->]
-----
 
 ++++
 <!-- 🐓 -->
@@ -486,15 +143,10 @@ When the instruction implementation is written in mmADT, the instruction value i
 |===
 a|
 An `inst` written in C++.
+
 ++++
 <!-- 🐖 ./main_runner.out "*int::lt" -->
 ++++
-
-[source,mmadt]
-----
-fhatos> *int::lt
-==>lt?bool<=int(arg?int=>_)[cpp]
-----
 
 ++++
 <!-- 🐓 -->
@@ -502,15 +154,10 @@ fhatos> *int::lt
 
 a|
 An `inst` written in mmADT.
+
 ++++
 <!-- 🐖 ./main_runner.out "*nat" -->
 ++++
-
-[source,mmadt]
-----
-fhatos> *nat
-==>nat?int<=int()[is(gte(0))]
-----
 
 ++++
 <!-- 🐓 -->
@@ -525,14 +172,6 @@ A [yellow]#f#​[fuchsia]#h#​[aqua]*A*​[lime]*T*​[red]*O*​[blue]#s#​ i
 ++++
 <!-- 🐖 ./main_runner.out "# -> noobj" -->
 ++++
-
-[source,mmadt]
-----
-fhatos> # -> noobj
-[INFO]  [/sys/router] 6 heap(s) closing
-[INFO]  [/sys/router] router /sys/router stopped
-[ERROR] [/sys/router] # crosses multiple structures
-----
 
 ++++
 <!-- 🐓 -->

@@ -58,7 +58,7 @@ int main(int arg, char **argsv) {
     args[1] = "--headers=false";
     args[2] = "--log=INFO";
     args[3] = "--ansi=false";
-    args[4] = "--boot:config=boot/boot_config.obj";
+    args[4] = "--boot:config=/boot/doc_boot_config.obj";
     ArgvParser *argv_parser = new ArgvParser();
     argv_parser->init(5, args);
     printer()->printer_switch(false);
@@ -95,7 +95,7 @@ int main(int arg, char **argsv) {
     }
   } catch(const std::exception &e) {
     printer()->printer_switch(true);
-    fhatos::LOG(ERROR, "error occurred processing docs: %s", e.what());
+    fhatos::LOG(ERROR, "error occurred processing docs: %s\n", e.what());
     throw;
   }
   printer()->printer_switch(false);
