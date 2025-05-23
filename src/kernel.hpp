@@ -83,6 +83,7 @@ namespace fhatos {
       LOG_WRITE(INFO, Kernel::boot().get(),
                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
       const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       std::holds_alternative<Obj_p>(main_inst->inst_f())
           ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
           : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
@@ -156,16 +157,19 @@ namespace fhatos {
     }
 
     static ptr<Kernel> display_memory() {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Memory::singleton()->log_memory_stats();
       return Kernel::build();
     }
 
     static ptr<Kernel> import_module(const Pattern &pattern) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Typer::singleton()->import_module(pattern);
       return Kernel::build();
     }
 
     static ptr<Kernel> install_module(const Pattern &pattern) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       for(auto it = REGISTERED_MODULES->begin(); it != REGISTERED_MODULES->end();) {
         if(it->first.matches(pattern)) {
           Typer::singleton()->install_module(it->first, it->second);
@@ -185,6 +189,7 @@ namespace fhatos {
       const ptr<Typer> typer = Typer::singleton(*typer_obj->vid);
       typer->rec_merge(typer_obj->rec_value());
       typer->save();
+      TYPER_ID = typer->vid;
       Typer::import();
       mmADT::register_module();
       fOS::register_module();
@@ -208,6 +213,7 @@ namespace fhatos {
       scheduler->rec_merge(scheduler_obj->rec_value());
       // scheduler->obj_set("config", scheduler_obj->rec_get("config"));
       scheduler->save();
+      SCHEDULER_ID = scheduler->vid;
       Scheduler::import();
       LOG_WRITE(INFO, scheduler.get(),
                 L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n",
@@ -224,6 +230,7 @@ namespace fhatos {
       router->rec_merge(router_obj->rec_value());
       // router->obj_set("config", router_obj->rec_get("config"));
       router->save();
+      ROUTER_ID = router->vid;
       Router::import();
       LOG_WRITE(
           INFO, router.get(),

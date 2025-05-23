@@ -115,9 +115,9 @@ namespace fhatos {
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
         ->inst_args(rec({{"fiber", Obj::to_bcode()}}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
-          const Obj_p fiber = args->arg("fiber");
-          Scheduler::singleton()->bundle_fiber(fiber);
-          return fiber;
+          const Obj_p fiber_obj = args->arg("fiber");
+          Scheduler::singleton()->bundle_fiber(fiber_obj);
+          return fiber_obj;
         })
         ->save();
     /* Subscription::create(Scheduler::singleton()->vid, p_p(Scheduler::singleton()->vid->extend("spawn")),

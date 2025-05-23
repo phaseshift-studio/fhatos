@@ -41,9 +41,16 @@ namespace fhatos {
     explicit Memory(const ID &id) : Rec(std::make_shared<RecMap<>>(), OType::REC, MEMORY_FURI, id_p(id)) {}
 
     static int get_stack_size(const Obj_p &source, const fURI &relative_uri, const int default_stack_size = 0) {
-      if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_int())
-        return stack_size->int_value();
-      return ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"))->or_else_<int>(default_stack_size);
+     /* try {
+        if(const Obj_p stack_size = source->obj_get(relative_uri); stack_size->is_int())
+          return stack_size->int_value();
+        if(const Int_p def = ROUTER_READ(SCHEDULER_ID->extend("config/def_stack_size"));
+         def->is_int() && def->int_value() > 0)
+          return def->int_value();
+      } catch(const std::exception &) {
+        // do nothing
+      }*/
+      return default_stack_size;
     }
 
     // TODO: flash/partition/0x4434
@@ -57,15 +64,15 @@ namespace fhatos {
       return ret;
     }
 
-    Rec_p main_memory() const;
+    [[nodiscard]] Rec_p main_memory() const;
 
-    Rec_p inst_memory() const;
+    [[nodiscard]] Rec_p inst_memory() const;
 
-    Rec_p psram_memory() const;
+    [[nodiscard]] Rec_p psram_memory() const;
 
-    Rec_p cpu_frequency() const;
+    [[nodiscard]] Rec_p cpu_frequency() const;
 
-    Rec_p high_water_mark() const;
+    [[nodiscard]] Rec_p high_water_mark() const;
 
     /* static const TaskSnapshot_t *find_snapshot_linked_to_status(const TaskStatus_t *taskStatus,
                                                                  const TaskSnapshot_t *taskSnapshotArray,

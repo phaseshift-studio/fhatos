@@ -209,13 +209,13 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    virtual Obj_p read(const ID &source, const fURI &pattern);
+   // virtual Obj_p read(const ID &source, const fURI &pattern);
 
     virtual Obj_p read(const fURI &furi);
 
-    virtual void write(const ID &source, const fURI &target, const Obj_p &obj);
+   // virtual void write(const ID &source, const fURI &target, const Obj_p &obj);
 
-    virtual void write(const fURI &furi, const Obj_p &obj, const bool retain = RETAIN);
+    virtual void write(const fURI &furi, const Obj_p &obj, bool retain);
 
     virtual void append(const fURI &furi, const Obj_p &obj);
 

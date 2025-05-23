@@ -20,18 +20,18 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
 
-   Obj_p Structure::read(const ID &source, const fURI &pattern) {
+  /* Obj_p Structure::read(const ID &source, const fURI &pattern) {
     return this->read(pattern);
-  }
+  }*/
 
    Obj_p Structure::read(const fURI &furi) {
     auto lock = shared_lock<Mutex>(mutex);
     return this->read_internal(furi);
   }
 
-  void Structure::write(const ID &source, const fURI &target, const Obj_p &obj) {
+ /* void Structure::write(const ID &source, const fURI &target, const Obj_p &obj) {
     this->write(target, obj, true);
-  }
+  }*/
 
    void Structure::write(const fURI &furi, const Obj_p &obj, const bool retain) {
     auto lock = lock_guard<Mutex>(this->mutex);
@@ -43,6 +43,7 @@ namespace fhatos {
       if(furi.is_node())
         return !this->read(furi)->is_noobj();
       const fURI plus_extension = furi.extend("+");
+     auto lock = shared_lock<Mutex>(mutex);
       return !this->read_raw_pairs(plus_extension).empty();
     }
 

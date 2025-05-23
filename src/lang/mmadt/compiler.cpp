@@ -151,7 +151,7 @@ namespace fhatos {
     // obj field
     if(inst_obj->is_inst_stub()) {
       if(const Obj_p code = lhs->obj_get(inst->tid->name())->inst_bcode_obj(); !code->is_noobj()) {
-        inst_obj = convert_to_inst(lhs, inst, mmADT::delift(code));
+        inst_obj = convert_to_inst(lhs, inst, code);
       }
     }
     if(inst_obj->is_inst_stub() && inst_obj->vid) {

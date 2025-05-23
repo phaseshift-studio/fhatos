@@ -54,7 +54,7 @@ namespace fhatos {
       ROUTER_WRITE(*structure_->vid, Obj::to_noobj(), true); // unmount structure
       Router::singleton()->loop();
       FOS_TEST_ERROR(p("fake1").toString().append(" -> 23")); // ensure unmounted
-      FOS_TEST_ASSERT_EXCEPTION([this]{ROUTER_WRITE(p("fake2"),jnt(24),true);});
+      FOS_TEST_ASSERT_EXCEPTION([this] { ROUTER_WRITE(p("fake2"), jnt(24), true); });
     }
 
     void test_clear() const {
@@ -68,10 +68,10 @@ namespace fhatos {
 
     void test_delete() const {
       for(int i = 0; i < 50; i++) {
-        structure_->write(p(string("delete/a").append(to_string(i))), jnt(i * 10));
+        structure_->write(p(string("delete/a").append(to_string(i))), jnt(i * 10), true);
       }
       TEST_ASSERT_EQUAL_INT(50, structure_->read(p("delete/#"))->objs_value()->size());
-      structure_->write(p("delete/#"), Obj::to_noobj());
+      structure_->write(p("delete/#"), Obj::to_noobj(), true);
       for(int i = 0; i < 50; i++) {
         FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("delete/a").append(to_string(i)))));
       }
@@ -81,7 +81,7 @@ namespace fhatos {
 
     void test_write() const {
       for(int i = 0; i < 50; i++) {
-        structure_->write(p(string("a/a").append(to_string(i))), jnt(i * 10));
+        structure_->write(p(string("a/a").append(to_string(i))), jnt(i * 10), true);
       }
       for(int i = 0; i < 50; i++) {
         FOS_TEST_OBJ_EQUAL(jnt(i * 10), structure_->read(p(string("a/a").append(to_string(i)))));
@@ -90,7 +90,7 @@ namespace fhatos {
         FOS_TEST_OBJ_EQUAL(jnt(i * 10), structure_->read(p(string("a/a").append(to_string(i)))));
       }
       for(int i = 0; i < 50; i++) {
-        structure_->write(p(string("a/a").append(to_string(i))), Obj::to_noobj());
+        structure_->write(p(string("a/a").append(to_string(i))), Obj::to_noobj(), true);
       }
       for(int i = 0; i < 50; i++) {
         FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("a/a").append(to_string(i)))));
@@ -102,13 +102,13 @@ namespace fhatos {
     }
 
     void test_mono_embedding() const {
-     // structure_->write(p("b"), dool(true), true);
+      // structure_->write(p("b"), dool(true), true);
       structure_->write(p("i"), jnt(10), true);
       structure_->write(p("r"), real(22.5), true);
       structure_->write(p("s"), str("fhatty"), true);
       structure_->write(p("u"), vri("fhat://pig.com:8080"), true);
       ////////////////////////////////////////////////////
-    //  FOS_TEST_OBJ_EQUAL(dool(true), structure_->read(p("b")));
+      //  FOS_TEST_OBJ_EQUAL(dool(true), structure_->read(p("b")));
       FOS_TEST_OBJ_EQUAL(jnt(10), structure_->read(p("i")));
       FOS_TEST_OBJ_EQUAL(real(22.5), structure_->read(p("r")));
       FOS_TEST_OBJ_EQUAL(str("fhatty"), structure_->read(p("s")));
@@ -207,7 +207,7 @@ namespace fhatos {
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "sub")));
       ROUTER_WRITE(p("abc", "sub"), __().to(p("bcd")), true);
       Router::singleton()->loop();
-      //FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "sub")));
+      // FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "sub")));
       ////////// transient
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("bcd")));

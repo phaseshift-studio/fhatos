@@ -26,20 +26,20 @@ namespace fhatos {
   static void THREAD_FUNCTION(void *vptr_thread) {
     auto *fthread = static_cast<Thread *>(vptr_thread);
     if(!fthread) {
-      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread state"));
+      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread state\n"));
       return;
     }
     if(!fthread->thread_obj_) {
-      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread obj"));
+      LOG_WRITE(ERROR, Obj::to_noobj().get(), L("unable to acquire thread obj\n"));
       return;
     }
     if(!fthread->thread_function_) {
       LOG_WRITE(ERROR, fthread->thread_obj_.get(),
-                L("unable to acquire thread function: {}", fthread->thread_obj_->toString()));
+                L("unable to acquire thread function: {}\n", fthread->thread_obj_->toString()));
       return;
     }
     try {
-      int stack_size = Memory::get_stack_size(fthread->thread_obj_, "config/stack_size", 129536);
+      int stack_size = Memory::get_stack_size(fthread->thread_obj_, "config/stack_size", 65536);
       THREAD_PTR = fthread;
       Memory::singleton()->use_custom_stack(InstBuilder::build("thread_stack")
                                                 ->inst_f([](const Obj_p &, const InstArgs &) {
@@ -50,7 +50,7 @@ namespace fhatos {
                                             Obj::to_noobj(), stack_size);
       vTaskDelete(nullptr);
     } catch(const std::exception &e) {
-      LOG_WRITE(ERROR, fthread->thread_obj_.get(), L("{}", e.what()));
+      LOG_WRITE(ERROR, fthread->thread_obj_.get(), L("{}\n", e.what()));
     }
   }
 

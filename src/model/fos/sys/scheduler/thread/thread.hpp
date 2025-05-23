@@ -78,11 +78,11 @@ namespace fhatos {
             LOG_WRITE(INFO, thread_ptr->thread_obj_.get(),
                       L("!g[!bfhatos!g] !ythread!! spawned: {} !m[!ystack size:!!{}!m]!!\n",
                         thread_loop_inst->toString(),
-                        Memory::singleton()->get_stack_size(thread_ptr->thread_obj_, "config/stack_size", 0)));
+                        Memory::singleton()->get_stack_size(thread_ptr->thread_obj_, "config/stack_size", 65536)));
             while(!thread_ptr->thread_obj_->obj_get("halt")->or_else_<bool>(false)) {
-              FEED_WATCHDOG();
               try {
                 thread_loop_inst->apply(thread_ptr->thread_obj_);
+                FEED_WATCHDOG();
               } catch(const fError &e) {
                 LOG_WRITE(ERROR, thread_ptr->thread_obj_.get(), L("!rthread loop error!!: {}\n", e.what()));
                 break;

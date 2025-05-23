@@ -22,8 +22,8 @@ FhatOS: A Distributed Operating System
 #include "../../../../fhatos.hpp"
 //
 #include "../../../../furi.hpp"
-#include "../../../../lang/obj.hpp"
 #include "../../../../lang/mmadt/mmadt_obj.hpp"
+#include "../../../../lang/obj.hpp"
 
 namespace fhatos {
 
@@ -70,9 +70,10 @@ namespace fhatos {
                   return true;
                 }
                 try {
-                  const Inst_p fiber_loop_inst = Compiler().with_derivation_tree().resolve_inst(
-                      fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-                  mmADT::delift(fiber_loop_inst)->apply(fiber);
+                  //  const Inst_p fiber_loop_inst = Compiler().with_derivation_tree().resolve_inst(
+                  //      fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+                  mmADT::delift(fiber->obj_get("loop"))->apply(fiber);
+                  // mmADT::delift(fiber_loop_inst)->apply(fiber);
                   return false;
                 } catch(const fError &e) {
                   LOG_WRITE(ERROR, bundler,
