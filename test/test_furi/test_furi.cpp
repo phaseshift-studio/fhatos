@@ -846,6 +846,22 @@ void test_uri_retract_pattern() {
   FOS_TEST_FURI_EQUAL(fURI("scheme://host/int/path/a/b/c?dom=a&dc=0,9&rng=b&rc=0,0"),fURI("scheme://host/int/path/a/b/c").dom_rng("a",{0,9},"b",{0,0}));
   }
 
+void test_uri_is_subpattern() {
+    TEST_ASSERT_TRUE(fURI("a").is_subpattern("#"));
+    TEST_ASSERT_TRUE(fURI("a/b/c/d").is_subpattern("#"));
+    TEST_ASSERT_TRUE(fURI("a").is_subpattern("+"));
+    TEST_ASSERT_FALSE(fURI("a").is_subpattern("+/+"));
+    TEST_ASSERT_TRUE(fURI("a/b/c").is_subpattern("+/+/+"));
+    TEST_ASSERT_TRUE(fURI("a/b/c").is_subpattern("a/+/+"));
+    TEST_ASSERT_TRUE(fURI("a/b/c").is_subpattern("a/+/c"));
+    TEST_ASSERT_TRUE(fURI("a/+/c").is_subpattern("a/+/+"));
+    TEST_ASSERT_FALSE(fURI("+/+/c").is_subpattern("a/+/+"));
+    TEST_ASSERT_FALSE(fURI("+/+/+").is_subpattern("a/+/+"));
+    TEST_ASSERT_TRUE(fURI("a/b/+").is_subpattern("a/b/#"));
+    TEST_ASSERT_TRUE(fURI("a/#").is_subpattern("#"));
+    TEST_ASSERT_FALSE(fURI("#").is_subpattern("#"));
+  }
+
   void test_uri_is_pattern() {
    TEST_ASSERT_TRUE(fURI("a/b/+").is_pattern());
   TEST_ASSERT_TRUE(fURI("a/b/#").is_pattern());
@@ -967,6 +983,7 @@ void test_uri_retract_pattern() {
       FOS_RUN_TEST(test_uri_branch_node);
       FOS_RUN_TEST(test_uri_resolve); //
       FOS_RUN_TEST(test_uri_match); //
+      FOS_RUN_TEST(test_uri_is_subpattern); //
       FOS_RUN_TEST(test_uri_domain_range); //
       FOS_RUN_TEST(test_uri_is_pattern); //
       //

@@ -255,6 +255,8 @@ namespace fhatos {
 
     [[nodiscard]] virtual bool is_pattern() const;
 
+    [[nodiscard]] virtual bool is_subpattern(const fURI& pattern) const;
+
     [[nodiscard]] virtual bool bimatches(const fURI &other) const;
 
     [[nodiscard]] virtual bool matches(const fURI &pattern) const;

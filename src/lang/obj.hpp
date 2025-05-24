@@ -1988,7 +1988,9 @@ namespace fhatos {
     }
 
     void resolve() const {
-      const_cast<Obj *>(this)->tid = id_p(ROUTER_RESOLVE(fURI(*this->tid)));
+      const auto f = fURI(*this->tid);
+      const ID r = ROUTER_RESOLVE(f);
+      const_cast<Obj *>(this)->tid = id_p(r);
       switch(this->otype) {
         case OType::REC: {
           for(const auto &[k, v]: *this->rec_value()) {

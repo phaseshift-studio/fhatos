@@ -562,6 +562,9 @@ namespace fhatos {
     const bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
     return result;
   }
+  bool fURI::is_subpattern(const fURI &pattern) const {
+    return this->matches(pattern) && !pattern.matches(*this);
+  }
   bool fURI::bimatches(const fURI &other) const { return this->matches(other) || other.matches(*this); }
   bool fURI::matches(const fURI &pattern) const {
     // if (this->has_query() || pattern.has_query()) {

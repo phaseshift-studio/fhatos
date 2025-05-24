@@ -70,10 +70,11 @@ namespace fhatos {
                   return true;
                 }
                 try {
-                  //  const Inst_p fiber_loop_inst = Compiler().with_derivation_tree().resolve_inst(
-                  //      fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
-                  mmADT::delift(fiber->obj_get("loop"))->apply(fiber);
-                  // mmADT::delift(fiber_loop_inst)->apply(fiber);
+                  const Inst_p fiber_loop_inst = Compiler().with_derivation_tree().resolve_inst(
+                      fiber, Obj::to_inst(Obj::to_inst_args(), id_p("loop")));
+                  // mmADT::delift(fiber->obj_get("loop"))->apply(fiber);
+                  const Inst_p code = mmADT::delift(fiber_loop_inst);
+                  code->apply(fiber);
                   return false;
                 } catch(const fError &e) {
                   LOG_WRITE(ERROR, bundler,
