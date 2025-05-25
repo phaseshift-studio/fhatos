@@ -37,8 +37,8 @@
 #include "../src/kernel.hpp"
 #include "../src/lang/obj.hpp"
 #include "../src/model/fos/fos_obj.hpp"
-#include "../src/model/fos/sys/router/router.hpp"
 #include "../src/model/fos/s/heap.hpp"
+#include "../src/model/fos/sys/router/router.hpp"
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #include "../src/model/fos/ui/terminal.hpp"
 #include "../src/model/fos/util/log.hpp"
@@ -54,7 +54,7 @@
 ////////////////////////////////////////////////////////
 using namespace fhatos;
 #ifndef FOS_DEPLOY_SHARED_MEMORY
-#define FOS_DEPLOY_SHARED_MEMORY +/#
+#define FOS_DEPLOY_SHARED_MEMORY +/ #
 #endif
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
@@ -66,6 +66,18 @@ using namespace fhatos;
     }                                                                                                                  \
   }
 
+#ifdef NO_BOOT
+#define FOS_RUN_TESTS(x)                                                                                               \
+  void RUN_UNITY_TESTS() {                                                                                             \
+    try {                                                                                                              \
+      UNITY_BEGIN();                                                                                                   \
+      x;                                                                                                               \
+      UNITY_END();                                                                                                     \
+    } catch(const std::exception &e) {                                                                                 \
+      TEST_FAIL_MESSAGE(e.what());                                                                                     \
+    }                                                                                                                  \
+  }
+#else
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
@@ -82,6 +94,8 @@ using namespace fhatos;
       TEST_FAIL_MESSAGE(e.what());                                                                                     \
     }                                                                                                                  \
   }
+#endif
+
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////

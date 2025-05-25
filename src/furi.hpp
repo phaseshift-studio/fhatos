@@ -45,15 +45,15 @@ namespace fhatos {
 
   class fURI {
   protected:
-    mutable const char *scheme_ = nullptr;
-    mutable const char *user_ = nullptr;
+    std::string scheme_;
+    std::string user_;
     mutable const char *password_ = nullptr;
     mutable const char *host_ = nullptr;
     uint16_t port_ = 0;
-    mutable char **path_ = nullptr;
+    std::vector<string> path_;
+    //mutable char **path_ = nullptr;
     bool sprefix_ = false;
     bool spostfix_ = false;
-    uint8_t path_length_ = 0;
     mutable const char *query_ = nullptr;
     mutable const char *coefficient_ = nullptr;
     // const char *fragment_ = nullptr;
@@ -61,14 +61,14 @@ namespace fhatos {
     void delete_path();
 
   public:
-    [[nodiscard]] const char *scheme() const;
+    [[nodiscard]] string scheme() const;
 
     [[nodiscard]] fURI scheme(const char *scheme);
 
     [[nodiscard]] bool has_scheme() const;
 
     /// USER
-    [[nodiscard]] const char *user() const;
+    [[nodiscard]] string user() const;
 
     fURI user(const char *user) const;
 
@@ -111,7 +111,7 @@ namespace fhatos {
 
     [[nodiscard]] const char *segment(uint8_t segment) const;
 
-    [[nodiscard]] fURI segment(const uint8_t segment, const fURI &replacement) const;
+    [[nodiscard]] fURI segment(uint8_t segment, const fURI &replacement) const;
 
     [[nodiscard]] bool starts_with(const fURI &prefix_path) const;
 
@@ -255,7 +255,7 @@ namespace fhatos {
 
     [[nodiscard]] virtual bool is_pattern() const;
 
-    [[nodiscard]] virtual bool is_subpattern(const fURI& pattern) const;
+    [[nodiscard]] virtual bool is_subpattern(const fURI &pattern) const;
 
     [[nodiscard]] virtual bool bimatches(const fURI &other) const;
 
@@ -287,9 +287,6 @@ namespace fhatos {
     [[nodiscard]] bool equals(const fURI &other) const;
 
     [[nodiscard]] string toString() const;
-
-  private:
-    void check_path_length(const char *self) const;
   };
 
   class ID final : public fURI {
