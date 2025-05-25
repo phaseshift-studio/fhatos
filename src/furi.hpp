@@ -45,18 +45,16 @@ namespace fhatos {
 
   class fURI {
   protected:
-    std::string scheme_;
-    std::string user_;
-    mutable const char *password_ = nullptr;
-    mutable const char *host_ = nullptr;
+    string scheme_;
+    string user_;
+    string password_;
+    string host_;
     uint16_t port_ = 0;
     std::vector<string> path_;
-    //mutable char **path_ = nullptr;
     bool sprefix_ = false;
     bool spostfix_ = false;
-    mutable const char *query_ = nullptr;
-    mutable const char *coefficient_ = nullptr;
-    // const char *fragment_ = nullptr;
+    string query_;
+    string coefficient_;
     ////////////////////////////////////////
     void delete_path();
 
@@ -101,7 +99,7 @@ namespace fhatos {
     [[nodiscard]] fURI authority(const char *authority) const;
 
     /// PATH
-    [[nodiscard]] string subpath(uint8_t start, const uint8_t end = UINT8_MAX) const;
+    [[nodiscard]] string subpath(uint8_t start, uint8_t end = UINT8_MAX) const;
 
     [[nodiscard]] bool has_path(const char *segment, uint8_t start_index = 0) const;
 
@@ -178,9 +176,9 @@ namespace fhatos {
     template<typename T = std::string>
     [[nodiscard]] std::optional<T>
     query_value(const char *key, const Function<string, T> &transformer = [](const string &s) { return s; }) const {
-      if(!this->query_)
+      if(this->query_.empty())
         return {};
-      const char *index = strstr(this->query_, key);
+      const char *index = strstr(this->query_.c_str(), key);
       if(!index)
         return {};
       size_t counter = 0;

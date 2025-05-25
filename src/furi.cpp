@@ -5,7 +5,7 @@ namespace fhatos {
   void fURI::delete_path() {
     this->path_.clear();
     this->spostfix_ = false;
-    this->sprefix_ = !this->scheme_.empty() || this->host_ || !this->user_.empty() || this->password_;
+    this->sprefix_ = !this->scheme_.empty() || !this->host_.empty() || !this->user_.empty() || !this->password_.empty();
   }
   std::string fURI::scheme() const { return this->scheme_; }
   fURI fURI::scheme(const char *scheme) {
@@ -21,26 +21,24 @@ namespace fhatos {
     return new_uri;
   }
   bool fURI::has_user() const { return !this->user_.empty(); }
-  const char *fURI::password() const { return this->password_ ? this->password_ : ""; }
+  const char *fURI::password() const { return this->password_.c_str(); }
   fURI fURI::password(const char *password) const {
     auto new_uri = fURI(*this);
-    free((void *) new_uri.password_);
-    new_uri.password_ = 0 == strlen(password) ? nullptr : strdup(password);
+    new_uri.password_ = password;
     return new_uri;
   }
-  bool fURI::has_password() const { return this->password_; }
-  const char *fURI::host() const { return this->host_ ? this->host_ : ""; }
+  bool fURI::has_password() const { return !this->password_.empty(); }
+  const char *fURI::host() const { return this->host_.c_str(); }
   fURI fURI::host(const char *host) const {
     auto new_uri = fURI(*this);
-    free((void *) new_uri.host_);
-    new_uri.host_ = 0 == strlen(host) ? nullptr : strdup(host);
+    new_uri.host_ = host;
     if(new_uri.path_.empty())
       new_uri.spostfix_ = false;
     else
       new_uri.sprefix_ = true;
     return new_uri;
   }
-  bool fURI::has_host() const { return this->host_; }
+  bool fURI::has_host() const { return !this->host_.empty(); }
   uint16_t fURI::port() const { return this->port_; }
   fURI fURI::port(const uint16_t port) const {
     auto new_uri = fURI(*this);
@@ -53,12 +51,12 @@ namespace fhatos {
     if(!this->user_.empty()) {
       authority += this->user_;
     }
-    if(this->password_) {
+    if(!this->password_.empty()) {
       authority += ':';
       authority += this->password_;
     }
-    if(this->host_) {
-      if(!this->user_.empty() || this->password_)
+    if(!this->host_.empty()) {
+      if(!this->user_.empty() || !this->password_.empty())
         authority += '@';
       authority += this->host_;
     }
@@ -71,8 +69,7 @@ namespace fhatos {
   fURI fURI::authority(const char *authority) const {
     const string authority_string =
         (strlen(authority) > 1 && authority[0] == '/' && authority[1] == '/') ? authority : string("//") + authority;
-    const auto furi =
-        fURI(!this->scheme_.empty() ? string(this->scheme_) + ":" + authority_string : authority_string);
+    const auto furi = fURI(!this->scheme_.empty() ? string(this->scheme_) + ":" + authority_string : authority_string);
     return !this->path_.empty() ? furi.path(this->path()) : furi;
   }
   std::string fURI::subpath(const uint8_t start, const uint8_t end) const {
@@ -97,7 +94,7 @@ namespace fhatos {
     if(this->path_.empty())
       return false;
     for(int i = start_index; i < this->path_.size(); i++) {
-      if(strcmp(this->path_[i].c_str(),segment) == 0)
+      if(strcmp(this->segment(i), segment) == 0)
         return true;
     }
   }
@@ -173,7 +170,7 @@ namespace fhatos {
     if(new_path[new_path.length() - 1] == '/')
       new_uri.spostfix_ = true;
     free(dup);
-    if(new_uri.host_ || !new_uri.scheme_.empty())
+    if(!new_uri.host_.empty() || !new_uri.scheme_.empty())
       new_uri.sprefix_ = true;
     return new_uri;
   }
@@ -193,8 +190,8 @@ namespace fhatos {
     return "";
   }
   bool fURI::empty() const {
-    return this->path_.empty() && !this->host_ && this->scheme_.empty() && this->user_.empty() && !this->password_ &&
-           !this->query_;
+    return this->path_.empty() && this->host_.empty() && this->scheme_.empty() && this->user_.empty() &&
+           this->password_.empty() && this->query_.empty();
   }
   uint8_t fURI::path_length() const { return this->path_.size(); }
   fURI::DomainRange fURI::dom_rng() const {
@@ -212,10 +209,10 @@ namespace fhatos {
          {FOS_RANGE, range.no_query().toString()},
          {FOS_RNG_COEF, to_string(range_coeff.first).append(",").append(to_string(range_coeff.second))}});
   }
-  bool fURI::has_coefficient() const { return nullptr != this->coefficient_; }
-  const char *fURI::coefficient() const { return this->coefficient_ ? this->coefficient_ : ""; }
+  bool fURI::has_coefficient() const { return !this->coefficient_.empty(); }
+  const char *fURI::coefficient() const { return this->coefficient_.c_str(); }
   std::pair<int, int> fURI::coefficients() const {
-    if(!this->coefficient_)
+    if(this->coefficient_.empty())
       return make_pair<int, int>(1, 1);
     const auto coeff_str = string(this->coefficient_);
     if(this->coefficient_[coeff_str.length() - 1] == ',')
@@ -232,26 +229,24 @@ namespace fhatos {
   }
   fURI fURI::coefficient(const char *coefficient) const {
     auto new_uri = fURI(*this);
-    FOS_SAFE_FREE(new_uri.coefficient_);
-    new_uri.coefficient_ = nullptr == coefficient || 0 == strlen(coefficient) ? nullptr : strdup(coefficient);
+    new_uri.coefficient_ = coefficient;
     return new_uri;
   }
   fURI fURI::coefficient(const int low, const int high) const {
     auto new_uri = fURI(*this);
-    FOS_SAFE_FREE(new_uri.coefficient_);
     if(low == INT_MIN)
-      new_uri.coefficient_ = high == INT_MAX ? strdup(",") : strdup(to_string(high).insert(0, ",").c_str());
+      new_uri.coefficient_ = high == INT_MAX ? "," : to_string(high).insert(0, ",");
     else if(high == INT_MAX)
-      new_uri.coefficient_ = strdup((to_string(low) + ",").c_str());
+      new_uri.coefficient_ = to_string(low) + ",";
     else if(low == high)
-      new_uri.coefficient_ = strdup(to_string(low).c_str());
+      new_uri.coefficient_ = to_string(low);
     else
-      new_uri.coefficient_ = strdup((to_string(low) + "," + to_string(high)).c_str());
+      new_uri.coefficient_ = to_string(low) + "," + to_string(high);
     return new_uri;
   }
-  const char *fURI::query() const { return this->query_ ? this->query_ : ""; }
+  const char *fURI::query() const { return this->query_.c_str(); }
   bool fURI::has_query(const char *key) const {
-    if(!this->query_ || 0 == strlen(this->query_))
+    if(this->query_.empty())
       return false;
     if(nullptr == key)
       return true;
@@ -259,8 +254,7 @@ namespace fhatos {
   }
   fURI fURI::query(const char *query) const {
     auto new_uri = fURI(*this);
-    FOS_SAFE_FREE(new_uri.query_);
-    new_uri.query_ = nullptr == query || 0 == strlen(query) ? nullptr : strdup(query);
+    new_uri.query_ = query;
     return new_uri;
   }
   fURI fURI::no_query() const {
@@ -281,7 +275,7 @@ namespace fhatos {
     return this->query(query_string.c_str());
   }
   List<Pair<string, string>> fURI::query_values() const {
-    if(!this->query_)
+    if(this->query_.empty())
       return {};
     std::vector<std::pair<string, string>> key_values;
     for(const string &pairs: StringHelper::tokenize('&', this->query_)) {
@@ -332,7 +326,8 @@ namespace fhatos {
       new_uri.spostfix_ = this->spostfix_;
       new_uri.sprefix_ = this->sprefix_;
     } else {
-      new_uri.sprefix_ = !new_uri.scheme_.empty() || new_uri.host_ || !new_uri.user_.empty() || new_uri.password_;
+      new_uri.sprefix_ =
+          !new_uri.scheme_.empty() || !new_uri.host_.empty() || !new_uri.user_.empty() || !new_uri.password_.empty();
       new_uri.spostfix_ = false;
     }
     return new_uri.path_.size() > 1 && new_uri.path_.back() == COMPONENT_SEPARATOR ? new_uri.retract() : new_uri;
@@ -441,7 +436,8 @@ namespace fhatos {
   bool fURI::is_branch() const { return this->spostfix_ || (this->path_.empty() && this->sprefix_); }
   bool fURI::is_node() const { return !this->spostfix_; }
   bool fURI::is_scheme_path() const {
-    return !this->scheme_.empty() && !this->path_.empty() && !this->host_ && this->user_.empty() && !this->password_;
+    return !this->scheme_.empty() && !this->path_.empty() && this->host_.empty() && this->user_.empty() &&
+           this->password_.empty();
   }
   bool fURI::has_components() const {
     if(this->path_.empty())
@@ -552,14 +548,12 @@ namespace fhatos {
     //   return fURI(this->toString().substr(1)).matches(fURI(pattern_str.substr(1)));
     if(pattern_str[0] == ':')
       return this->name() == pattern_str; // ./blah/:setup ~ :setup
-    if(pattern.toString() == "#")
+    if(pattern.toString() == "#" || pattern.scheme_ == "#")
       return true;
     if(pattern_str.find('+') == string::npos && pattern_str.find('#') == string::npos)
       return this->toString() == pattern_str;
-    if(pattern.scheme() == "#")
-      return true;
-    if((this->scheme().empty() && !pattern.scheme().empty() ||
-        (pattern.scheme() != "+" && this->scheme() != pattern.scheme())))
+    if((this->scheme_.empty() && !pattern.scheme_.empty() ||
+        (pattern.scheme_ != "+" && this->scheme_ != pattern.scheme_)))
       return false;
     if(strcmp(pattern.host(), "#") == 0)
       return true;
@@ -602,16 +596,12 @@ namespace fhatos {
     if(&other == this)
       return *this;
     this->scheme_ = other.scheme_;
-    free((void *) this->host_);
-    this->host_ = other.host_ ? strdup(other.host_) : nullptr;
+    this->host_ = other.host_;
     this->port_ = other.port_;
     this->user_ = other.user_;
-    free((void *) this->password_);
-    this->password_ = other.password_ ? strdup(other.password_) : nullptr;
-    free((void *) this->coefficient_);
-    this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
-    free((void *) this->query_);
-    this->query_ = other.query_ ? strdup(other.query_) : nullptr;
+    this->password_ = other.password_;
+    this->coefficient_ = other.coefficient_;
+    this->query_ = other.query_;
     this->delete_path();
     if(!other.path_.empty()) {
       for(const auto &i: other.path_) {
@@ -626,10 +616,6 @@ namespace fhatos {
     if(&other == this)
       return *this;
     ///////////////////////////////////
-    free((void *) this->host_);
-    free((void *) this->password_);
-    free((void *) this->coefficient_);
-    free((void *) this->query_);
     this->delete_path();
     ///////////////////////////////////
     this->scheme_ = other.scheme_;
@@ -643,38 +629,33 @@ namespace fhatos {
     this->sprefix_ = other.sprefix_;
     this->spostfix_ = other.spostfix_;
     ///////////////////////////////////
-    // other.scheme_.clear();
-    other.host_ = nullptr;
-    other.user_ = nullptr;
-    other.password_ = nullptr;
-    other.coefficient_ = nullptr;
-    other.query_ = nullptr;
-    // other.path_.clear();
+     other.scheme_.clear();
+    other.host_.clear();
+    other.user_.clear();
+    other.password_.clear();
+    other.coefficient_.clear();
+    other.query_.clear();
+     other.path_.clear();
     ///////////////////////////////////
     return *this;
   }
   bool fURI::headless() const {
     const char first = this->toString()[0];
-    return first == '.' || first == ':' || (first != '/' && this->scheme_.empty() && !this->host_);
+    return first == '.' || first == ':' || (first != '/' && this->scheme_.empty() && this->host_.empty());
   }
   fURI::~fURI() {
-    free((void *) this->host_);
-    free((void *) this->password_);
-    free((void *) this->coefficient_);
-    free((void *) this->query_);
-    // free((void *) this->fragment_);
     this->delete_path();
   }
   fURI::fURI(const fURI &other) {
     this->scheme_ = other.scheme_;
     this->user_ = other.user_;
-    this->password_ = other.password_ ? strdup(other.password_) : nullptr;
-    this->host_ = other.host_ ? strdup(other.host_) : nullptr;
+    this->password_ = other.password_;
+    this->host_ = other.host_;
     this->port_ = other.port_;
     this->sprefix_ = other.sprefix_;
     this->spostfix_ = other.spostfix_;
-    this->coefficient_ = other.coefficient_ ? strdup(other.coefficient_) : nullptr;
-    this->query_ = other.query_ ? strdup(other.query_) : nullptr;
+    this->coefficient_ = other.coefficient_;
+    this->query_ = other.query_;
     if(!other.path_.empty()) {
       this->path_.clear();
       for(const auto &i: other.path_) {
@@ -689,7 +670,7 @@ namespace fhatos {
       this->spostfix_ = false;
       return;
     }
-    const char *dups = strdup(uri_chars);
+    //const char *dups = strdup(uri_chars);
     /*for (size_t i = 0; i < strlen(dups); i++) {
       if (dups[i] == '#' && i != strlen(dups) - 1) {
         const string temp = string(dups);
@@ -698,10 +679,10 @@ namespace fhatos {
       }
     }*/
     try {
-      auto ss = std::stringstream(dups);
+      auto ss = std::stringstream(uri_chars);
       string token;
       auto part = URI_PART::SCHEME;
-      bool hasUserInfo = strchr(dups, '@') != nullptr;
+      bool hasUserInfo = strchr(uri_chars, '@') != nullptr;
       bool foundAuthority = false;
       while(!ss.eof()) {
         char c = static_cast<char>(ss.get());
@@ -734,15 +715,15 @@ namespace fhatos {
             part = URI_PART::USER;
           } else if(part == URI_PART::USER) {
             if(hasUserInfo) {
-              this->user_ = strdup(token.c_str());
+              this->user_  = token;
               part = URI_PART::PASSWORD;
             } else {
-              this->host_ = strdup(token.c_str());
+              this->host_ = token;
               part = URI_PART::PORT;
             }
             token.clear();
           } else if(part == URI_PART::HOST) {
-            this->host_ = strdup(token.c_str());
+            this->host_ = token;
             part = URI_PART::PORT;
             token.clear();
           } else {
@@ -751,9 +732,9 @@ namespace fhatos {
         } else if(c == '@') {
           if(part == URI_PART::USER || part == URI_PART::PASSWORD) {
             if(!this->user_.empty()) {
-              this->password_ = strdup(token.c_str());
+              this->password_ = token;
             } else {
-              this->user_ = strdup(token.c_str());
+              this->user_ = token;
             }
             part = URI_PART::HOST;
             token.clear();
@@ -771,7 +752,7 @@ namespace fhatos {
           } else if(part == URI_PART::SCHEME || part == URI_PART::HOST || part == URI_PART::USER ||
                     part == URI_PART::PASSWORD) {
             if(foundAuthority) {
-              this->host_ = strdup(token.c_str());
+              this->host_ = token;
               part = URI_PART::PATH;
               this->sprefix_ = true;
             } else {
@@ -815,7 +796,7 @@ namespace fhatos {
             // this->query_ = strdup("");
             token.clear();
           } else if(part == URI_PART::HOST || part == URI_PART::USER) {
-            this->host_ = strdup(token.c_str());
+            this->host_ = token;
             part = URI_PART::COEFFICIENT;
             token.clear();
           } else {
@@ -824,9 +805,7 @@ namespace fhatos {
         } else if(c == '?') {
           if(part == URI_PART::COEFFICIENT) {
             if(!token.empty()) {
-              if(this->coefficient_)
-                free((void *) this->coefficient_);
-              this->coefficient_ = strdup(token.c_str());
+              this->coefficient_ = token;
             }
             part = URI_PART::QUERY;
             token.clear();
@@ -838,7 +817,7 @@ namespace fhatos {
             // this->query_ = strdup("");
             token.clear();
           } else if(part == URI_PART::HOST || part == URI_PART::USER) {
-            this->host_ = strdup(token.c_str());
+            this->host_ =token;
             part = URI_PART::QUERY;
             token.clear();
           } else {
@@ -858,20 +837,16 @@ namespace fhatos {
            part == URI_PART::SCHEME) {
           this->path_.push_back(token);
         } else if(part == URI_PART::HOST || part == URI_PART::USER) {
-          this->host_ = strdup(token.c_str());
+          this->host_ = token;
         } else if(part == URI_PART::PORT) {
           if(!StringHelper::is_integer(token))
             throw fError("!yuri!! port not an !bint!!: %s", token.c_str());
           this->port_ = stoi(token);
         } else if(part == URI_PART::COEFFICIENT) {
-          free((void *) this->coefficient_);
-          this->coefficient_ = strdup(token.c_str());
+          this->coefficient_ =token;
         } else if(part == URI_PART::QUERY) {
-          free((void *) this->query_);
-          this->query_ = strdup(token.c_str());
-        } // else if (part == URI_PART::FRAGMENT) {
-        // this->_fragment = strdup(token.c_str());
-        // }
+          this->query_ = token;
+        }
       }
       if(!this->path_.empty()) {
         for(size_t i = 0; i < this->path_.size(); i++) {
@@ -888,10 +863,8 @@ namespace fhatos {
         }
       }
     } catch(const std::exception &) {
-      FOS_SAFE_FREE(dups);
       throw;
     }
-    FOS_SAFE_FREE(dups);
   }
   bool fURI::operator<(const fURI &other) const { return this->toString() < other.toString(); }
   bool fURI::operator!=(const fURI &other) const { return !this->equals(other); }
@@ -904,24 +877,25 @@ namespace fhatos {
         return false;
     }
     return (this->spostfix_ == other.spostfix_) && (this->sprefix_ == other.sprefix_) &&
-           StringHelper::char_ptr_equal(this->coefficient_, other.coefficient_) &&
-           StringHelper::char_ptr_equal(this->query_, other.query_) && this->scheme_ == other.scheme_ &&
-           StringHelper::char_ptr_equal(this->host_, other.host_) && this->port_ == other.port_ &&
-           this->user_ == other.user_ && StringHelper::char_ptr_equal(this->password_, other.password_);
+           this->coefficient_ == other.coefficient_ &&
+           this->query_ == other.query_ &&
+             this->scheme_ == other.scheme_ &&
+           this->host_ == other.host_ && this->port_ == other.port_ &&
+           this->user_ == other.user_ && this->password_ == other.password_;
   }
   string fURI::toString() const {
     string uri;
     if(!this->scheme_.empty())
       uri.append(this->scheme_).append(":");
-    if(this->host_ || !this->user_.empty()) {
+    if(!this->host_.empty() || !this->user_.empty()) {
       uri.append("//");
       if(!this->user_.empty()) {
         uri.append(this->user_);
-        if(this->password_)
+        if(!this->password_.empty())
           uri.append(":").append(this->password_);
         uri.append("@");
       }
-      if(this->host_) {
+      if(!this->host_.empty()) {
         uri.append(this->host_);
         if(this->port_ > 0)
           uri.append(":").append(std::to_string(this->port_));
@@ -934,9 +908,9 @@ namespace fhatos {
       if((i < (this->path_.size() - 1)) || this->spostfix_)
         uri.append("/");
     }
-    if(this->coefficient_)
+    if(!this->coefficient_.empty())
       uri.append("$").append(this->coefficient_);
-    if(this->query_)
+    if(!this->query_.empty())
       uri.append("?").append(this->query_);
     // if (this->_fragment)
     //   uri.append("#").append(this->_fragment);
