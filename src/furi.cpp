@@ -97,7 +97,7 @@ namespace fhatos {
     if(this->path_.empty())
       return false;
     for(int i = start_index; i < this->path_.size(); i++) {
-      if(this->path_[i] == segment)
+      if(strcmp(this->path_[i].c_str(),segment) == 0)
         return true;
     }
   }
@@ -543,15 +543,18 @@ namespace fhatos {
     // if (this->has_query() || pattern.has_query()) {
     //   return this->query("").matches(pattern.query(""));
     //  }
-    if(this == &pattern || (pattern.path_.size() == 1 && pattern.path_[0] == "#") || this->equals(pattern))
+    if(pattern.empty() && !this->empty())
+      return false;
+    if(this->equals(pattern))
       return true;
     const string pattern_str = pattern.toString();
     // if (pattern_str[0] == ':' && this->toString()[0] == ':')
     //   return fURI(this->toString().substr(1)).matches(fURI(pattern_str.substr(1)));
-    if(!pattern_str.empty() && pattern_str[0] == ':')
+    if(pattern_str[0] == ':')
       return this->name() == pattern_str; // ./blah/:setup ~ :setup
+    if(pattern.toString() == "#")
+      return true;
     if(pattern_str.find('+') == string::npos && pattern_str.find('#') == string::npos)
-      // if(!pattern.has_wildcard())
       return this->toString() == pattern_str;
     if(pattern.scheme() == "#")
       return true;
