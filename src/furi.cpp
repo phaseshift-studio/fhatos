@@ -71,12 +71,9 @@ namespace fhatos {
   fURI fURI::authority(const char *authority) const {
     const string authority_string =
         (strlen(authority) > 1 && authority[0] == '/' && authority[1] == '/') ? authority : string("//") + authority;
-    auto furi = fURI(!this->scheme_.empty() ? string(this->scheme_) + ":" + authority_string : authority_string);
-    if(!this->path_.empty()) {
-      for(const auto &i: this->path_)
-        furi.path_.push_back(i);
-    }
-    return furi;
+    const auto furi =
+        fURI(!this->scheme_.empty() ? string(this->scheme_) + ":" + authority_string : authority_string);
+    return !this->path_.empty() ? furi.path(this->path()) : furi;
   }
   std::string fURI::subpath(const uint8_t start, const uint8_t end) const {
     if(start > this->path_.size() || start > end)
@@ -343,7 +340,7 @@ namespace fhatos {
   fURI fURI::head() const {
     if(this->empty())
       return *this;
-    return fURI(this->path_[0]);
+    return fURI(this->segment(0));
   }
   fURI fURI::pretract(const fURI &prefix) const {
     if(!this->starts_with(prefix))
@@ -401,8 +398,8 @@ namespace fhatos {
     return false;
   }
   fURI fURI::retract_pattern() const {
-    for(size_t i = 0; i < this->path_.size(); i++) {
-      if(this->path_[i] == "+" || this->path_[i] == "#") {
+    for(uint8_t i = 0; i < this->path_.size(); i++) {
+      if(strcmp(this->segment(i), "+") == 0 || 0 == strcmp(this->segment(i), "#")) {
         auto retracted = fURI(*this);
         for(size_t j = i; j < this->path_.size(); j++) {
           retracted.path_.pop_back();
@@ -516,11 +513,11 @@ namespace fhatos {
       return this->retract().extend(other_path_chars.get()).query(other.query());
     }
     fURI *temp = path_end_slash || this->path_.empty() ? new fURI(*this) : new fURI(this->retract());
-    for(uint8_t i = 0; i < other.path_.size(); i++) {
+    for(size_t i = 0; i < other.path_.size(); i++) {
       if(strcmp(other.segment(i), "..") == 0) {
         const fURI *temp2 = new fURI(*temp);
         delete temp;
-        temp = temp2->path_length() > 0 ? new fURI(temp2->retract()) : new fURI(*temp2);
+        temp = !temp2->path_.empty() ? new fURI(temp2->retract()) : new fURI(*temp2);
         delete temp2;
       } else if(strcmp(other.segment(i), ".") != 0) {
         const fURI *temp2 = new fURI(*temp);
@@ -553,7 +550,8 @@ namespace fhatos {
     //   return fURI(this->toString().substr(1)).matches(fURI(pattern_str.substr(1)));
     if(!pattern_str.empty() && pattern_str[0] == ':')
       return this->name() == pattern_str; // ./blah/:setup ~ :setup
-    if(!pattern.has_wildcard())
+    if(pattern_str.find('+') == string::npos && pattern_str.find('#') == string::npos)
+      // if(!pattern.has_wildcard())
       return this->toString() == pattern_str;
     if(pattern.scheme() == "#")
       return true;
@@ -575,13 +573,13 @@ namespace fhatos {
       return true;
     if(strcmp(pattern.password(), "+") != 0 && strcmp(this->password(), pattern.password()) != 0)
       return false;
-    for(size_t i = 0; i < pattern.path_.size(); i++) {
-      if(pattern.path_[i] == "#")
+    for(uint8_t i = 0; i < pattern.path_length(); i++) {
+      if(strcmp(pattern.segment(i), "#") == 0)
         return true;
       if(0 == i && (this->sprefix_ != pattern.sprefix_))
         return false;
-      if(pattern.path_[i] == "+") {
-        if(this->path_.size() > i && this->path_[i] == "#")
+      if(strcmp(pattern.segment(i), "+") == 0) {
+        if(strcmp(this->segment(i), "#") == 0)
           return false;
         if((i == (pattern.path_.size() - 1)) && this->is_branch() != pattern.is_branch())
           return false;
@@ -590,8 +588,8 @@ namespace fhatos {
       }
       if(this->path_.size() <= i)
         return false;
-      if(this->path_[i].empty() && !pattern.path_[i].empty() ||
-         (pattern.path_[i] != "+" && this->path_[i] != pattern.path_[i]))
+      if((strlen(this->segment(i)) == 0 && strlen(pattern.segment(i)) != 0) ||
+         (strcmp(pattern.segment(i), "+") != 0 && strcmp(this->segment(i), pattern.segment(i)) != 0))
         return false;
     }
     return (0 == strlen(pattern.query()) || this->query() == pattern.query()) &&
