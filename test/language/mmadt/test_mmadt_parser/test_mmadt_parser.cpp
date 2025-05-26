@@ -60,7 +60,7 @@ namespace fhatos {
   void test_comment_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment\n"));
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("--- a single line comment"));
-    //FOS_TEST_ERROR("---\n/%^^SA^%JSDGdaf/sdfO/o_asdf");
+    // FOS_TEST_ERROR("---\n/%^^SA^%JSDGdaf/sdfO/o_asdf");
     FOS_TEST_OBJ_EQUAL(noobj(), PROCESS("=== sdfdasdf\n\t\nsdfsfasfsf ==="));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("--- start \nint[1]"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("int[1] --- end\n"));
@@ -144,7 +144,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), PROCESS("<aaa_bbb/ccc/../ddd>"));
     FOS_TEST_OBJ_EQUAL(vri("roDkns-2G"), PROCESS("<roDkns-2G>"));
-    //FOS_TEST_ERROR("<roDkns?-2G<>>");
+    // FOS_TEST_ERROR("<roDkns?-2G<>>");
     /// furi vars
     FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("a/{b}/c")->uri_value());
     FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("<a/{b}/c>")->uri_value());
@@ -356,6 +356,19 @@ namespace fhatos {
                        PROCESS(" /abc/at -> (\n\tmap(10).mult(\n10)  ).@\t/abc/at"));
   }
 
+  void test_ref_inst_sugar_parsing() {
+    FOS_TEST_OBJ_EQUAL(vri("/abc/g"), PROCESS("/abc/a -> /abc/b -> /abc/c -> /abc/d <- /abc/e <- /abc/f <- /abc/g"));
+    FOS_TEST_OBJ_EQUAL(vri("/abc/d"), PROCESS("***/abc/a"));
+    FOS_TEST_OBJ_EQUAL(vri("/abc/d"), PROCESS("***/abc/g"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("****/abc/a"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("****/abc/g"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("/abc/d -> 6"));
+    FOS_TEST_OBJ_EQUAL(vri("/abc/d"), PROCESS("6 <- /abc/d"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("****/abc/a"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("****/abc/g"));
+    FOS_TEST_OBJ_EQUAL(jnt(12),PROCESS("****</abc/a>.plus(****/abc/g)"))
+  }
+
   void test_from_inst_sugar_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("</abc/o1o>->101"));
     FOS_TEST_OBJ_EQUAL(jnt(101), PROCESS("/abc/o1o -> 101"));
@@ -447,6 +460,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_plus_inst_sugar_parsing); //
       FOS_RUN_TEST(test_mult_inst_sugar_parsing); //
       FOS_RUN_TEST(test_at_inst_sugar_parsing); //
+      FOS_RUN_TEST(test_ref_inst_sugar_parsing); //
       FOS_RUN_TEST(test_from_inst_sugar_parsing); //
       FOS_RUN_TEST(test_proto_map_inst_sugar_parsing); //
       FOS_RUN_TEST(test_apply_inst_sugar_parsing); //

@@ -419,8 +419,27 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<HASH, EQ>>;
     ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
+
     explicit Obj(Any value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
-        Typed(type_id), Valued(value_id), otype(otype), value_(std::move(value)) {}
+        Typed(type_id), Valued(value_id), otype(otype), value_(value) {}
+
+    Obj(Obj &&other) noexcept : Obj(std::move(other.value_), other.otype, std::move(other.tid), std::move(other.vid)) {
+      other.value_ = nullptr;
+    }
+
+    Obj &operator=(Obj &&other) noexcept {
+      if(this == &other) {
+        return *this;
+      }
+      this->value_ = std::move(other.value_);
+      this->otype = other.otype;
+      this->vid = std::move(other.vid);
+      this->tid = std::move(other.tid);
+      other.value_ = nullptr;
+      return *this;
+    }
+
+    virtual ~Obj() override = default ;
 
     Obj(const Obj &other) : Obj(any(nullptr), other.otype, other.tid, other.vid) {
       switch(other.otype) {
@@ -550,7 +569,7 @@ namespace fhatos {
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
       const auto error =
-          fError(FURI_WRAP " %s !yaccessed!! as !b%s!!", obj->vid_or_tid()->toString().c_str(), obj->toString().c_str(),
+          fError(FURI_WRAP " %s !yaccessed!! using !b%s!!", obj->vid_or_tid()->toString().c_str(), obj->toString().c_str(),
                  index == string::npos ? function : string(function).replace(index, 6, "").c_str());
       return error;
     }
@@ -1229,7 +1248,7 @@ namespace fhatos {
       return id_p(this->tid->no_query());
     }
 
-    [[nodiscard]] bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
+    /*[[nodiscard]] bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
                                                    const bool throw_exception = true) const {
       this->resolve();
       resolved->resolve();
@@ -1285,7 +1304,7 @@ namespace fhatos {
         }
       }
       return true;
-    }
+    }*/
 
 
     [[nodiscard]] Obj_p type() const { return ROUTER_READ(*this->tid); }
@@ -2016,8 +2035,8 @@ namespace fhatos {
             k->resolve();
             v->resolve();
           }
-          if(std::holds_alternative<Obj_p>(this->inst_f()))
-            std::get<Obj_p>(this->inst_f())->resolve();
+          // if(std::holds_alternative<Obj_p>(this->inst_f()))
+          //   std::get<Obj_p>(this->inst_f())->resolve();
           break;
         }
         case OType::OBJS: {
@@ -2688,7 +2707,7 @@ namespace fhatos {
     }
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
-    Obj_p clone() const { return std::make_shared<Obj>(*this); }
+    [[nodiscard]] Obj_p clone() const { return std::make_shared<Obj>(*this); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

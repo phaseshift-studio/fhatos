@@ -27,7 +27,7 @@
 namespace mmadt {
   using namespace fhatos;
 
-   void mmADT::register_module() {
+  void mmADT::register_module() {
     Parser::register_module();
     Processor::register_module();
     REGISTERED_MODULES->insert_or_assign("/mmadt/base",
@@ -886,14 +886,27 @@ namespace mmadt {
 
 
               InstBuilder::build(MMADT_PREFIX "ref")
-                  ->inst_args(rec({{"payload", Obj::to_bcode()}, {"retain", __().else_(Obj::to_noobj())}}))
+                  ->inst_args("obj", Obj::to_bcode(), "retain?bool", __().else_(dool(true)))
                   ->domain_range(URI_FURI, {1, 1}, OBJ_FURI, {0, 1})
                   ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                    const Obj_p payload = args->arg("payload");
-                    const Obj_p retain = args->arg("retain");
-                    ROUTER_WRITE(lhs->uri_value(), payload, retain->is_noobj() ? true : retain->bool_value());
-                    return payload;
+                    ROUTER_WRITE(lhs->uri_value(), args->arg("obj"), args->arg("retain")->bool_value());
+                    return args->arg("obj");
                   })
+                  ->save();
+
+              InstBuilder::build(MMADT_PREFIX "ref_op")
+                  ->domain_range(OBJ_FURI, {0, 1}, URI_FURI, {1, 1})
+                  ->inst_args("furi?uri", Obj::to_bcode(), "retain?bool", __().else_(dool(true)))
+                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                    ROUTER_WRITE(args->arg("furi")->uri_value(), lhs, args->arg("retain")->bool_value());
+                    return args->arg("furi");
+                  })
+                  ->save();
+
+              InstBuilder::build(MMADT_PREFIX "op")
+                  ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+                  ->inst_args("obj", Obj::to_bcode())
+                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) { return args->arg("obj")->apply(lhs); })
                   ->save();
 
               InstBuilder::build(MMADT_PREFIX "append")

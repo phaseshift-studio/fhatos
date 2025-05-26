@@ -167,7 +167,7 @@ namespace mmadt {
 
 #ifndef FOS_SUGARLESS_MMADT
     Definition APPEND, IS_A, EMPTY_BCODE, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, REPEAT, END, FROM, REF, PASS, MULT,
-        PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ, SPLIT, EACH, CHOOSE, CHAIN, LIFT, TO;
+        PLUS, BLOCK, WITHIN, BARRIER, MERGE, DROP, EQ, GT, GTE, LT, LTE, NEQ, SPLIT, EACH, CHOOSE, CHAIN, LIFT, REF_OP;
 #endif
 
   public:
@@ -559,7 +559,7 @@ namespace mmadt {
 #ifndef FOS_SUGARLESS_MMADT
       SUGAR_INST <= cho(APPEND, EQ, GTE, GT, LTE, LT, NEQ, IS_A, AT, RSHIFT, LSHIFT, RSHIFT_0, LSHIFT_0, PLUS, MULT,
                         BARRIER, WITHIN, EMPTY_BCODE, FROM, PASS, LIFT, DROP, REF, CHOOSE, CHAIN, BLOCK, EACH, END,
-                        MERGE, SPLIT, TO /*, REPEAT*/);
+                        MERGE, SPLIT, REF_OP /*, REPEAT*/);
       EMPTY_BCODE <= lit("_"), empty_bcode_action; // seq(lit("_"), ncls("0-9")), empty_bcode_action;
       SUGAR_GENERATOR(AT, "@", "at");
       SUGAR_GENERATOR(RSHIFT, ">>", MMADT_PREFIX "rshift");
@@ -583,7 +583,7 @@ namespace mmadt {
       SUGAR_GENERATOR(LT, "?<", MMADT_PREFIX "lt");
       SUGAR_GENERATOR(LTE, "?<=", MMADT_PREFIX "lte");
       SUGAR_GENERATOR(IS_A, "?", MMADT_PREFIX "isa");
-      SUGAR_GENERATOR(TO,"<-",MMADT_PREFIX "to");
+      SUGAR_GENERATOR(REF_OP,"<-",MMADT_PREFIX "ref_op");
       // SUGAR_GENERATOR(IS_NOT_A, "?!", MMADT_PREFIX "nota");
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")),
           [](const SemanticValues &vs) -> Inst_p { return __().is(__().eq(any_cast<Obj_p>(vs[0]))); };
