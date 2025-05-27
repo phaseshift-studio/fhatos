@@ -26,7 +26,12 @@ namespace fhatos {
 
   Thread::Thread(const Obj_p &thread_obj, const Consumer<Thread *> &thread_function) :
       thread_function_(thread_function), handler_(std::make_any<std::thread *>(new std::thread(thread_function, this))),
-      thread_obj_(thread_obj) {}
+      thread_obj_(thread_obj) {
+    const int cpu = sched_getcpu();
+    LOG_WRITE(INFO, thread_obj.get(),
+              L("!g[!bnative!g] !ythread!! spawned: {} !m[!ycpu:!!{}!m]!!\n",
+                this->thread_obj_->obj_get("loop")->toString(), cpu));
+  }
 
   void Thread::halt() const {
     if(const auto xthread = this->get_handler<std::thread *>(); xthread->joinable()) {

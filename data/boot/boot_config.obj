@@ -8,7 +8,6 @@ basic boot_config obj
  typer    =>[config=>[module=>[/fos/#,/mmadt/#]]]@/sys/typer,
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
-    /mnt/boot -> noobj;
     heap[[pattern=><+/#>]]@/mnt/var;
     /sys/router::mount(@/mnt/var);
     /sys/typer::import(/fos/ui);

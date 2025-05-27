@@ -1998,14 +1998,6 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Obj_p try_apply(const Obj_p &lhs, const Obj_p &or_else = Obj::to_noobj()) const {
-      try {
-        return this->apply(lhs)->or_else(or_else);
-      } catch(std::exception &) {
-        return or_else;
-      }
-    }
-
     void resolve() const {
       const auto f = fURI(*this->tid);
       const ID r = ROUTER_RESOLVE(f);
