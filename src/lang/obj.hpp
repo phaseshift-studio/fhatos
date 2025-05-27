@@ -439,7 +439,7 @@ namespace fhatos {
       return *this;
     }
 
-    virtual ~Obj() override = default ;
+    virtual ~Obj() override = default;
 
     Obj(const Obj &other) : Obj(any(nullptr), other.otype, other.tid, other.vid) {
       switch(other.otype) {
@@ -568,9 +568,9 @@ namespace fhatos {
 
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
       const size_t index = string(function).find("_value");
-      const auto error =
-          fError(FURI_WRAP " %s !yaccessed!! using !b%s!!", obj->vid_or_tid()->toString().c_str(), obj->toString().c_str(),
-                 index == string::npos ? function : string(function).replace(index, 6, "").c_str());
+      const auto error = fError(FURI_WRAP " %s !yaccessed!! using !b%s!!", obj->vid_or_tid()->toString().c_str(),
+                                obj->toString().c_str(),
+                                index == string::npos ? function : string(function).replace(index, 6, "").c_str());
       return error;
     }
 
@@ -2078,6 +2078,14 @@ namespace fhatos {
       }
     }
 
+    [[nodiscard]] std::vector<Obj_p> values() const {
+      if(this->is_objs())
+        return *this->objs_value();
+      else {
+        const std::vector<Obj_p> ret = {this->shared_from_this()};
+        return ret;
+      }
+    }
 
     [[nodiscard]] Obj_p apply(const Obj_p &lhs) const {
       switch(this->otype) {

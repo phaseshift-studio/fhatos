@@ -322,9 +322,12 @@ namespace fhatos {
   bool Compiler::type_check(const Obj *obj, const ID &type_id) const {
     if(BOOTING)
       return true;
+    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code
+    // equivalence
+    if(obj->otype == OType::TYPE || obj->otype == OType::INST || obj->otype == OType::BCODE)
+      return true;
     // if(obj->is_inst())
     // return this->type_check(Router::singleton()->read(*obj->range()),type_id);
-    auto fail_reason = std::stack<string>();
     if(obj->is_noobj()) {
       if(const vector<string> coef = type_id.query_values(FOS_RNG_COEF); !coef.empty() && stoi(coef.front()) == 0) {
         return true;
@@ -347,10 +350,6 @@ namespace fhatos {
     // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
     // if(obj->tid->equals(type_no_query_id))
     //   return true;
-    // don't type check code yet -- this needs to be thought through more carefully as to the definition of code
-    // equivalence
-    if(obj->otype == OType::TYPE || obj->otype == OType::INST || obj->otype == OType::BCODE)
-      return true;
     if(type_no_query_id.equals(*NOOBJ_FURI) && (obj->otype == OType::NOOBJ || obj->tid->equals(*OBJ_FURI)))
       return true;
     if(const Obj_p type = Router::singleton()->read(type_no_query_id); !type->is_noobj()) {
@@ -358,6 +357,7 @@ namespace fhatos {
       //  ObjHelper::check_coefficients(value_obj->range_coefficient(), type->domain_coefficient());
       // if(type->is_type() && !obj->apply(type)->is_noobj())
       //   return true;
+      auto fail_reason = std::stack<string>();
       if(obj->match(type, &fail_reason))
         return true;
       if(this->throw_on_miss) {

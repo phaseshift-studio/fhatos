@@ -248,7 +248,9 @@ Three general approaches to embedding a matrix or table into a `fos:structure` a
 
 [cols="5,5,5",separator=🧱]
 |===
+
 ^a🧱
+
 [.big]
 [source,mmadt]
 ----
@@ -261,7 +263,9 @@ Three general approaches to embedding a matrix or table into a `fos:structure` a
  /    |   |    \
 
 ----
+
 ^a🧱
+
 [.big]
 [source,mmadt]
 ----
@@ -275,6 +279,7 @@ Three general approaches to embedding a matrix or table into a `fos:structure` a
 ----
 
 ^a🧱
+
 [.big]
 [source,mmadt]
 ----
@@ -286,7 +291,9 @@ Three general approaches to embedding a matrix or table into a `fos:structure` a
 [■]-[■]-[■]-[■]
 ​
 ----
+
 a🧱
+
 ++++
 <!-- 🐖 ./main_runner.out
 --- write matrix
@@ -316,10 +323,16 @@ m/2/3 -> 11
 a🧱
 
 ++++
-<!-- 🐖 ./main_runner.out --- write matrix m/0 -> [0,1,2,3]
+<!-- 🐖 ./main_runner.out
+--- write matrix
+m/0 -> [0,1,2,3]
 m/1 -> [4,5,6,7]
 m/2 -> [8,9,10,11]
---- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+--- read matrix
+*m/0/0 --- <1>
+*m/0/+ --- <2>
+*m/+/0 --- <3>
+-->
 ++++
 
 ++++
@@ -329,10 +342,16 @@ m/2 -> [8,9,10,11]
 a🧱
 
 ++++
-<!-- 🐖 ./main_runner.out --- write matrix m -> [[0,1,2,3], /
-[4,5,6,7], /
-[8,9,10,11]]
---- read matrix *m/0/0 --- <1> *m/0/+ --- <2> *m/+/0 --- <3> -->
+<!-- 🐖 ./main_runner.out
+--- write matrix
+m -> [[0,1,2,3], /
+      [4,5,6,7], /
+      [8,9,10,11]]
+--- read matrix
+*m/0/0 --- <1>
+*m/0/+ --- <2>
+*m/+/0 --- <3>
+-->
 ++++
 
 ++++

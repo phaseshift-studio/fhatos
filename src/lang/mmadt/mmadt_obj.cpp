@@ -603,10 +603,21 @@ namespace mmadt {
 
               InstBuilder::build(MMADT_PREFIX "from")
                   ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-                  ->inst_args(lst({Obj::to_bcode(), __().else_(Obj::to_noobj())}))
+                  ->inst_args(lst({__(), __().else_(Obj::to_noobj())}))
                   ->inst_f([](const Obj_p &, const InstArgs &args) {
-                    const Obj_p result = ROUTER_READ(args->arg(0)->uri_value());
-                    return result->is_noobj() ? args->arg(1) : result;
+                    if(const Obj_p uris = args->arg(0); uris->is_objs()) {
+                      const Obj_p results = Obj::to_objs();
+                      for(const auto u: *uris->objs_value()) {
+                        if(const Obj_p result = ROUTER_READ(u->uri_value()); result->is_noobj())
+                          results->add_obj(args->arg(1));
+                        else
+                          results->add_obj(result);
+                      }
+                      return results->none_one_all();
+                    } else {
+                      const Obj_p result = ROUTER_READ(uris->uri_value());
+                      return result->is_noobj() ? args->arg(1) : result;
+                    }
                   })
                   ->save();
 
