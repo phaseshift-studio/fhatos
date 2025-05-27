@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <span class="blue">f</span>​<strong class="yellow">h</strong>​<span class="aqua">A</span>​<span class="red">T</span>​<span class="lime">o</span>​<strong class="fuchsia">S</strong>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <span class="blue">f</span>​<strong class="fuchsia">h</strong>​<span class="red">a</span>​<strong class="aqua">t</strong>​<strong class="lime">O</strong>​<span class="yellow">S</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11350016,free=&gt;11348512,used=&gt;0.01325]
+[INFO]  main [total=&gt;11350016,free=&gt;11348544,used=&gt;0.01297]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -870,7 +870,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
      setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(65536).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753632,used=&gt;0.01606]
+[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753600,used=&gt;0.01633]
 [INFO]  [/sys/router] router configured
              [
    structure=&gt;[
@@ -972,7 +972,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
  ]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
       .oO installing fos/mmadt modules Oo.
-[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753600,used=&gt;0.01633]
+[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753568,used=&gt;0.01661]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [INFO]  [/sys/typer] /mmadt/inst types imported
 [WARN]  [/sys/router] no mounted structure for parser
@@ -1008,7 +1008,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12431360,free=&gt;12429312,used=&gt;0.01647]
+[INFO]  [/sys/mem] main [total=&gt;12431360,free=&gt;12429248,used=&gt;0.01699]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(65536).end().spawn(at(/io/console)).end()]
@@ -1024,10 +1024,10 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
-[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:0]
+[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:4]
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/mem] main [total=&gt;88203264,free=&gt;88201152,used=&gt;0.00240]
-[INFO]  [/boot/config] boot time: 0.058583514 seconds</code></pre>
+[INFO]  [/sys/mem] main [total=&gt;88203264,free=&gt;88201120,used=&gt;0.00243]
+[INFO]  [/boot/config] boot time: 0.059427124 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2432,7 +2432,7 @@ thread[[loop=>^( /
 ==&gt;halt=&gt;true
 &gt;]@t
 fhatos&gt; /sys/scheduler::spawn(@t)
-[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:5]
+[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:0]
 [INFO]  [/sys/scheduler] t thread spawned
 &gt;thread[
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
@@ -4907,7 +4907,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-27 09:39:55 -0600
+Last updated 2025-05-27 12:48:20 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

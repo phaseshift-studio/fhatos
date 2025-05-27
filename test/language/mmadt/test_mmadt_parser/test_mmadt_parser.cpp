@@ -358,6 +358,7 @@ namespace fhatos {
 
   void test_ref_inst_sugar_parsing() {
     FOS_TEST_OBJ_EQUAL(vri("/abc/g"), PROCESS("/abc/a -> /abc/b -> /abc/c -> /abc/d <- /abc/e <- /abc/f <- /abc/g"));
+    FOS_TEST_OBJ_EQUAL(vri("/abc/g"), PROCESS("/abc/a->/abc/b->/abc/c->/abc/d<-/abc/e<-/abc/f<-/abc/g"));
     FOS_TEST_OBJ_EQUAL(vri("/abc/d"), PROCESS("***/abc/a"));
     FOS_TEST_OBJ_EQUAL(vri("/abc/d"), PROCESS("***/abc/g"));
     FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("****/abc/a"));
