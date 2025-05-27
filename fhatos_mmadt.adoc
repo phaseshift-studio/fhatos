@@ -482,7 +482,7 @@ dependent args::
 
 [stem]
 ++++
-\tt{obj}_\tt{in}.f(a_1 \Rightarrow x,a_2 \Rightarrow \color{yellow}{g(\*a_1)},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
+\tt{obj}_\tt{in}.f(a_1 \Rightarrow x,a_2 \Rightarrow \color{yellow}{g(*a_1)},\ldots,a_n) \mapsto \tt{obj}_\tt{out}
 ++++
 
 If an argument's type is dependent on the value of another argument, then the argument is a https://en.m.wikipedia.org/wiki/Dependent_type[dependent argument].
@@ -667,6 +667,47 @@ a🧱
 subscribes to `a` with bcode of the form \$f(a) -> b\$. `12` is written to `a` which triggers the subscription bcode to write `12` to `b`.
 |===
 --
+
+ref <- ->::
++
+--
+
+[cols="5,6",separator=🧱]
+|===
+a🧱
+++++
+<!-- 🐖 ./main_runner.out
+a -> b -> c -> d <- e <- f <- g
+*a
+**a
+***a
+***g
+d -> 'ojito'
+****a
+****g
+-->
+++++
+
+++++
+<!-- 🐓 -->
+++++
+
+a🧱
+[source,mmadt]
+----
+   a[b]──⮞b[c]──⮞c[d]e⮜──[g]f⮜──[f]g
+                   │
+                   ⮟
+                'ojito'💦
+----
+The instructions `ref` (sugar'd `->`) and `ref_op` (sugar'd `<-`) enable the unification of a fURI and any `obj`. When a
+reference is made from a fURI to another fURI, then a https://en.wikipedia.org/wiki/Directed_graph[directed graph] is formed linking fURIs.
+The `from` instruction (sugar'd `\*`) dereferences a structurally embedded fURI, yielding its associated `obj`. When that `obj` is yet another fURI, then a chain of such `*`-dereferences enables the traversing of an underlying _reference graph_.
+
+Further graphical modeling constructs can be incorporated in to this basic framework to create and search arbitrary graphical structures (i.e. data structures) up to and including https://en.wikipedia.org/wiki/Reification_(computer_science)[reified] https://en.wikipedia.org/wiki/Hypergraph[hypergraphs].
+|===
+--
+
 ====
 
 [tabs]
