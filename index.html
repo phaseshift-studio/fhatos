@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <span class="blue">f</span>​<strong class="fuchsia">h</strong>​<span class="red">a</span>​<strong class="aqua">t</strong>​<strong class="lime">O</strong>​<span class="yellow">S</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <span class="blue">F</span>​<span class="red">H</span>​<span class="aqua">a</span>​<strong class="fuchsia">t</strong>​<strong class="yellow">o</strong>​<span class="lime">S</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11350016,free=&gt;11348544,used=&gt;0.01297]
+[INFO]  main [total=&gt;11354112,free=&gt;11352672,used=&gt;0.01268]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -826,11 +826,13 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/router] boot working directory: /home/killswitch/software/fhatos/build/docs/build
 [ERROR] [/mmadt/noobj] boot config file not found: data/boot/boot_config.obj
 [WARN]  [/sys/router] no mounted structure for heap
+[WARN]  [/sys/router] no mounted structure for /io/wifi
+[WARN]  [/sys/router] no mounted structure for dsm
 [WARN]  [/sys/router] no mounted structure for terminal
 [WARN]  [/sys/router] no mounted structure for /io/terminal
 [WARN]  [/sys/router] no mounted structure for console
 [WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 758 bytes]
+[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 1284 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config]
    [
@@ -843,6 +845,8 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
      ]
     ]@/sys/scheduler
      router=&gt;[
+      memory=&gt;[
+     ]
       config=&gt;[
        auto_prefix=&gt;[
         &lt;&gt;
@@ -867,10 +871,13 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
       ]
      ]
     ]@/sys/typer
-     setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(65536).end().spawn(at(/io/console)).end()]
+     setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect()]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753600,used=&gt;0.01633]
+[INFO]  [/sys/router/memory] main [total=&gt;11894784,free=&gt;11892896,used=&gt;0.01587]
+[INFO]  [/boot/typer] typer started
+[INFO]  [/boot/typer] /fos/memory bcode type defined
+[INFO]  [/boot/typer] /sys/router/memory/::/main inst type defined
 [INFO]  [/sys/router] router configured
              [
    structure=&gt;[
@@ -879,6 +886,8 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     /boot/#
     /fos/#
     /mmadt/#
+  ]
+   memory=&gt;[
   ]
    config=&gt;[
     auto_prefix=&gt;[
@@ -900,7 +909,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
   ]
  ]@/sys/router
 [INFO]  [/boot/config] router boot config dropped
-[INFO]  [/sys/typer] typer started
+[INFO]  [/sys/typer] typer id reassigned
 [INFO]  [/sys/typer] /fos/io/gpio inst module installed
 [INFO]  [/sys/typer] /fos/q inst module installed
 [INFO]  [/sys/typer] /fos/s/dsm inst module installed
@@ -972,7 +981,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
  ]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
       .oO installing fos/mmadt modules Oo.
-[INFO]  [/sys/mem] main [total=&gt;11755520,free=&gt;11753568,used=&gt;0.01661]
+[INFO]  [/sys/router/memory] main [total=&gt;11894784,free=&gt;11892896,used=&gt;0.01587]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [INFO]  [/sys/typer] /mmadt/inst types imported
 [WARN]  [/sys/router] no mounted structure for parser
@@ -997,6 +1006,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/sys/thread rec type defined
 [INFO]  [/sys/typer] /fos/sys/thread/::/spawn inst type defined
 [INFO]  [/sys/typer] /fos/sys/thread types imported
+[ERROR] [/mmadt/noobj] module not a rec: noobj
 [INFO]  [/sys/typer] /fos/ui/button rec type defined
 [INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
 [INFO]  [/sys/typer] /fos/ui/terminal rec type defined
@@ -1008,11 +1018,14 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/mem] main [total=&gt;12431360,free=&gt;12429248,used=&gt;0.01699]
+[INFO]  [/sys/router/memory] main [total=&gt;12570624,free=&gt;12568576,used=&gt;0.01629]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
-            setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(65536).end().spawn(at(/io/console)).end()]
+            setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;Rodkins-2G,password=&gt;'puppymama',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect()]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
+[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt native connected
+[INFO]  [/mnt/shared] structure pattern /shared/# subscribed
+[INFO]  [/sys/router] dsm /mnt/shared spanning /shared/# mounted
 [WARN]  [/sys/typer] /fos/ui/button rec type [pin=&gt;_,on_push=&gt;_,::=&gt;[loop=&gt;loop?obj{?}&lt;=button()[cpp]]] overwritten
 [INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
 [WARN]  [/sys/typer] /fos/ui/terminal rec type [::=&gt;[stdout=&gt;stdout?obj{.}&lt;=terminal{?}(output?str=&gt;_)[cpp],stdin=&gt;stdin?str{?}&lt;=terminal{?}(until?str=&gt;else('
@@ -1024,10 +1037,9 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
-[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:4]
+[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:2]
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/sys/mem] main [total=&gt;88203264,free=&gt;88201120,used=&gt;0.00243]
-[INFO]  [/boot/config] boot time: 0.059427124 seconds</code></pre>
+[INFO]  [/boot/config] boot time: 0.079249739 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1655,7 +1667,15 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 	[merge(2).count().is(eq(1))]
 fhatos&gt; --- char['a']@a
 fhatos&gt; --- char['b']@b
-fhatos&gt; @a + @b</code></pre>
+fhatos&gt; @a + @b
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+	         lhs id      inst id        resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+fhatos&gt; *a
+fhatos&gt; @a.as(str) + @b
+[ERROR] [/mmadt/parser] noobj is not a /mmadt/str as defined by [str][_]
+		 \_/mmadt/str is not a subtype of /mmadt/str
+	  thrown at inst noobj =&gt; as?obj{?}&lt;=obj{?}(type?uri=&gt;str)[cpp] [type=&gt;str]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1847,7 +1867,9 @@ fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"
 ==&gt;3
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;3
-fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
+[ERROR] [ /mmadt/str ]  band inst unresolved
+	         lhs id  inst id    resolve obj</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2432,7 +2454,7 @@ thread[[loop=>^( /
 ==&gt;halt=&gt;true
 &gt;]@t
 fhatos&gt; /sys/scheduler::spawn(@t)
-[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:0]
+[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:3]
 [INFO]  [/sys/scheduler] t thread spawned
 &gt;thread[
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
@@ -2530,7 +2552,20 @@ a -> int8[126]                       --- <2>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
-          *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+          *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
+[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+	         lhs id      inst id        resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
+fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
+==&gt;int8[126]
+fhatos&gt; @a + 1
+==&gt;int8[127]@a
+fhatos&gt; @a + 1
+==&gt;int8[128]@a
+fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
+[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8()[is(gte(-127)).is(lte(128))]
+		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+	  thrown at inst int8[128]@a =&gt; plus(0?int=&gt;1)[cpp] [0=&gt;1]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3205,7 +3240,12 @@ fhatos&gt; person[[name=&gt;'marko',age=&gt;29]]
 ==&gt;name?str=&gt;'marko'
 ==&gt;age?nat=&gt;29
 &gt;]
-fhatos&gt; person[[name=&gt;'lili',age=&gt;129]]</code></pre>
+fhatos&gt; person[[name=&gt;'lili',age=&gt;129]]
+[ERROR] [/mmadt/parser] noobj is not a nat as defined by nat()[is(gte(0))]
+		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id       resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gte =&gt; gte?bool&lt;=obj{?}()
+	  thrown at inst noobj =&gt; nat()[is(gte(0))] [=&gt;]</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3286,7 +3326,14 @@ For instance, <code>if</code> is implemented with a two entry <code>rec</code>, 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
-fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()
+fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
+[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+	         lhs id      inst id      resolve obj
+	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt?bool&lt;=obj{?}()</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4907,7 +4954,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-27 12:48:20 -0600
+Last updated 2025-05-28 23:08:20 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
