@@ -7,6 +7,6 @@ test boot_config obj
  typer=>[config=>[module=>[/mmadt/#,/fos/#]]]@/sys/typer,
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
-     /mnt/boot -> noobj;
+
  ]
 ]@/boot/config

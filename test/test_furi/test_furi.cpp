@@ -19,11 +19,6 @@
 #ifndef fhatos_test_furi_cpp
 #define fhatos_test_furi_cpp
 
-/*#define FOS_DEPLOY_SCHEDULER
-#define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_TYPES
-#define FOS_DEPLOY_SHARED_MEMORY*/
 #include "../../src/furi.hpp"
 #include "../test_fhatos.hpp"
 

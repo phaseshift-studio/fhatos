@@ -37,8 +37,8 @@
 #include "../src/kernel.hpp"
 #include "../src/lang/obj.hpp"
 #include "../src/model/fos/fos_obj.hpp"
-#include "../src/model/fos/sys/router/router.hpp"
 #include "../src/model/fos/s/heap.hpp"
+#include "../src/model/fos/sys/router/router.hpp"
 #include "../src/model/fos/sys/scheduler/scheduler.hpp"
 #include "../src/model/fos/ui/terminal.hpp"
 #include "../src/model/fos/util/log.hpp"
@@ -59,6 +59,7 @@ using namespace fhatos;
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
+      LOG(INFO, "!gtesting!!: %s\n", x);                                                                               \
       RUN_TEST(x);                                                                                                     \
     } catch(const std::exception &e) {                                                                                 \
       LOG_WRITE(ERROR, Obj::to_noobj().get(), L("failed test due to {}\n", e.what()));                                 \
@@ -230,7 +231,6 @@ static auto serialization_check = [](const Obj_p &obj) -> Obj_p {
       TEST_FAIL_MESSAGE("failure: " STR(__FILE__) ":" STR(__LINE__));                                                  \
   }
 
-// #ifdef FOS_DEPLOY_PARSER
 static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_result = true) {
   FOS_TEST_MESSAGE("!ytesting!!: %s", bcode->toString().c_str());
   if(!bcode->is_bcode())
@@ -245,8 +245,6 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   }
   return result;
 }
-
-// #endif
 
 #define FOS_TEST_OBJ_GT(obj_a, obj_b)                                                                                  \
   FOS_TEST_MESSAGE("!ytesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
@@ -264,7 +262,6 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   FOS_TEST_MESSAGE("!ytesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),                            \
                    OTypes.to_chars(obj->otype).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
 
-#ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
     const Obj_p result = PROCESS(monoid);
@@ -276,5 +273,4 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     TEST_ASSERT_TRUE(true);
   }
 }
-#endif
 #endif

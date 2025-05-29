@@ -181,7 +181,7 @@ namespace fhatos {
   using string = std::string;
   using fbyte = uint8_t;
   using uint = unsigned int;
-  static const char *EMPTY_CHARS = "";
+  [[maybe_unused]] static const char *EMPTY_CHARS = "";
 
   ////////////
   // MACROS //
