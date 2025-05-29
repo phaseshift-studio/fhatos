@@ -203,9 +203,11 @@ namespace fhatos {
       if(dt)
         this->print_derivation_tree(&derivation_string);
       else {
-        const auto c = Compiler(false).with_derivation_tree();
+        DerivationTree* d = new DerivationTree();
+        const auto c = Compiler(false).with_derivation_tree(d);
         c.resolve_inst(lhs, inst);
         c.print_derivation_tree(&derivation_string);
+        delete d;
       }
       throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
                    inst->vid_or_tid()->toString().c_str(), derivation_string.c_str());

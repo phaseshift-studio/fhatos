@@ -354,6 +354,7 @@ namespace fhatos {
       // booting complete, tighter type constraints enforced
       delete REGISTERED_MODULES;
       BOOTING = false;
+      Kernel::display_memory();
       while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
         Kernel::loop();
       }

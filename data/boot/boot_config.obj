@@ -3,17 +3,32 @@ basic boot_config obj
 ===
 [info     =>[name  =>fhat1],
  scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
- router   =>[config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,/fos/sys/,/fos/s/,/fos/io/,
-                                    /fos/sensor/,/fos/ui/,/fos/util/,/sys/]]]@/sys/router,
+ router   =>[memory=>[=>],config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,
+                                    /fos/sys/,/fos/s/,/fos/io/,
+                                    /fos/sensor/,/fos/ui/,/fos/util/,
+                                    /sys/]]]@/sys/router,
  typer    =>[config=>[module=>[/fos/#,/mmadt/#]]]@/sys/typer,
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
     /sys/router::mount(@/mnt/var);
+    *</sys/info/platform>-<
+      [is(eq(esp32))=>
+        /sys/typer::import(/fos/net/#);
+        /fos/net/wifi[[config=>[
+          ssid=><fhatos_2g>,
+          password=>'mmadt',
+          mdns=>esp32]]]@/io/wifi;
+        */io/wifi.connect()]>-;
+    dsm[[pattern=>/shared/#,config=>[
+      broker=><mqtt://chibi.local:1883>,
+      client=>*/sys/info/platform,
+      async=>true]]]@/mnt/shared;
+    /sys/router::mount(@/mnt/shared);
     /sys/typer::import(/fos/ui);
     terminal[[=>]]@/io/terminal;
     console[[=>]]@/io/console;
-    /io/console/config/stack_size -> 65536;
+    /io/console/config/stack_size -> 81920;
     /sys/scheduler::spawn(@/io/console);
  ]
 ]@/boot/config

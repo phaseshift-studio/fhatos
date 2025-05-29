@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #ifdef NATIVE
-#include <mqtt/async_client.h>
 #include "../mqtt_client.hpp"
+#include <mqtt/async_client.h>
 #include <unistd.h>
 
 /*
@@ -61,6 +61,7 @@ namespace fhatos {
     /// MQTT CONNECTION ESTABLISHED CALLBACK
     std::any_cast<ptr<async_client>>(this->handler_)->set_connected_handler([this](const string &) {
       LOG_WRITE(INFO, this, L("!b{} !ymqtt!! {} connected\n", this->broker().toString(), this->client().toString()));
+      this->on_connect();
     });
   }
 
@@ -147,7 +148,7 @@ namespace fhatos {
       const connect_options connect_options_ = pre_connection_options.finalize();
       int counter = 0;
       while(counter < FOS_MQTT_MAX_RETRIES) {
-        if(!std::any_cast<ptr<async_client>>(this->handler_)->connect(connect_options_)->wait_for(1000)) {
+        if(!std::any_cast<ptr<async_client>>(this->handler_)->connect(connect_options_)->wait_for(5000)) {
           if(++counter > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
           LOG_WRITE(WARN, this, L("!b{} !yconnection!! retry\n", this->broker().toString()));

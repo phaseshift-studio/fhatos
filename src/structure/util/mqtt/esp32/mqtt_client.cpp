@@ -32,7 +32,7 @@ FhatOS: A Distributed Operating System
 */
 
 #define FOS_MQTT_MAX_RETRIES 10
-#define FOS_MQTT_RETRY_WAIT 5
+#define FOS_MQTT_RETRY_WAIT 2500
 
 namespace fhatos {
 
@@ -51,10 +51,12 @@ namespace fhatos {
   void MqttClient::loop() {
     const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(!h->connected()) {
-      LOG_WRITE(WARN, this, L("reconnecting to mqtt broker: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
-      if(!h->connect(this->client().toString().c_str())) {
+      LOG_WRITE(WARN, this, L("!yreconnecting to !b{}!!: !r{}!!\n", this->broker().toString(), MQTT_STATE_CODES.at(h->state())));
+      while(!h->connect(this->client().toString().c_str())) {
         Thread::delay(FOS_MQTT_RETRY_WAIT);
+        Thread::yield();
       }
+      this->on_connect();
     }
     if(!h->loop()) {
       LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
@@ -91,7 +93,6 @@ namespace fhatos {
   }
 
   void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
-
     this->subscriptions_->remove_if([this, &source, &pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
@@ -136,7 +137,8 @@ namespace fhatos {
     if(!this->handler_.has_value())
       return false;
     const auto h = std::any_cast<ptr<PubSubClient>>(this->handler_);
-    return h->connected() /*&& h->get_server() == this->broker().toString()*/;
+    bool conn = h->connected() /*&& h->get_server() == this->broker().toString()*/;
+    return conn;
   }
 
 
@@ -159,6 +161,7 @@ namespace fhatos {
         }
         if(h->connected()) {
           this->clients_->push_back(source);
+          this->on_connect();
           return true;
         }
       }

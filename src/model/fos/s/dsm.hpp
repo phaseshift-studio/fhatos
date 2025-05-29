@@ -67,7 +67,6 @@ namespace fhatos {
         Structure(pattern, id_p(DSM_TID), value_id, config), mqtt{nullptr} {
       this->cache_size_ = config->rec_get("cache_size")->or_else_(100);
       this->async = this->rec_get("config/async")->or_else_(false);
-      // this->Obj::rec_set("config",config->rec_merge(Router::singleton()->rec_get("config/default_config")->clone()->rec_value()));
     }
 
     static Structure_p create(const Pattern &pattern, const ID_p &value_id = nullptr,
@@ -89,8 +88,12 @@ namespace fhatos {
 
     void setup() override {
       this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"), this->get<fURI>("config/client"));
-      if(this->mqtt->connect(*this->vid))
-        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), false);
+      this->mqtt->on_connect = [this]() {
+        LOG_WRITE(INFO, this, L("!ystructure pattern !b{}!! subscribed\n", this->pattern->toString()));
+        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), true);
+      };
+      if(!this->mqtt->connect(*this->vid))
+        LOG_WRITE(WARN, this, L("!runable!y to connect to !b{}!!\n", this->get<fURI>("config/broker").toString()));
       Structure::setup();
     }
 
@@ -127,11 +130,14 @@ namespace fhatos {
         } else {
           if(-1 != this->cache_size_ && this->data_->size() >= this->cache_size_)
             this->clear_cache(this->data_->size() - 1);
-          this->mqtt->subscribe(this->generate_sync_subscription(match), this->async);
+          if(!this->pattern->equals(match))
+            this->mqtt->subscribe(this->generate_sync_subscription(match), this->async);
           // this->loop();
           // Thread::delay_current_thread(MQTT_WAIT_MS);
           this->loop();
-          this->mqtt->unsubscribe(*this->vid, match, this->async);
+          if(!this->pattern->equals(match))
+            this->mqtt->unsubscribe(*this->vid, match, this->async);
+          // this->mqtt->on_connect();
           if(this->data_->exists(match)) {
             const IdObjPairs pairs = {{match, this->data_->at(match)}};
             return pairs;

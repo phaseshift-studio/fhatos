@@ -31,7 +31,7 @@ FhatOS: A Distributed Operating System
 #endif
 
 namespace fhatos {
-  static ID_p MEMORY_FURI = id_p("/sys/memory");
+  static ID_p MEMORY_FURI = id_p("/fos/memory");
   using namespace mmadt;
   class Memory final : public Rec {
   protected:
@@ -54,7 +54,7 @@ namespace fhatos {
     }
 
     // TODO: flash/partition/0x4434
-    static ptr<Memory> singleton(const ID &id = ID("/sys/mem")) {
+    static ptr<Memory> singleton(const ID &id = ID("/sys/router/memory")) {
       static auto mem_p = std::make_shared<Memory>(id);
       return mem_p;
     }

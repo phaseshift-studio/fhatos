@@ -82,30 +82,34 @@ namespace fhatos {
           InstBuilder::build(Typer::singleton()->vid->add_component(*WIFI_FURI))
               ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
               ->inst_f([](const Obj_p &, const InstArgs &) {
-                return Obj::to_rec({{vri(MAC_FURI), Obj::to_type(URI_FURI)},
-                                    {vri(IP_FURI), Obj::to_type(URI_FURI)},
-                                    {vri("halt"), __().else_(dool(true))},
-                                    {vri("config"), Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
-                                                                 {"password", Obj::to_type(STR_FURI)},
-                                                                 {"mdns", __().else_(vri("none"))}})},
-                                    {vri(WIFI_FURI->add_component("connect")),
-                                     InstBuilder::build(WIFI_FURI->add_component("connect"))
-                                         ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
-                                         ->inst_f([](const Obj_p &wifi_obj, const InstArgs &args) {
-                                           Scheduler::singleton()->for_scheduler.push_back([wifi_obj, args] {
-                                             WIFIx::connect_inst(wifi_obj, args);
-                                             wifi_obj->obj_set("halt", dool(false));
-                                             return wifi_obj;
-                                           });
-                                           LOG_WRITE(INFO, wifi_obj.get(), L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!!"));
-                                           while(wifi_obj->obj_get("halt")->bool_value()) {
-                                             Ansi<>::singleton()->print(".");
-                                             Thread::yield();
-                                             Thread::delay(2000);
-                                           }
-                                           return wifi_obj;
-                                         })
-                                         ->create()}});
+                return Obj::to_rec(
+                    {{vri(MAC_FURI), Obj::to_type(URI_FURI)},
+                     {vri(IP_FURI), Obj::to_type(URI_FURI)},
+                     {vri(WIFI_FURI), Obj::to_rec({{vri("halt"), __().else_(dool(true))},
+                                                   {vri("config"), Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
+                                                                                {"password", Obj::to_type(STR_FURI)},
+                                                                                {"mdns", __().else_(vri("none"))}})}})},
+                     {vri(WIFI_FURI->add_component("connect")),
+                      InstBuilder::build(WIFI_FURI->add_component("connect"))
+                          ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
+                          ->inst_f([](const Obj_p &wifi_obj, const InstArgs &args) {
+                            Scheduler::singleton()->for_scheduler.push_back([wifi_obj, args] {
+                              WIFIx::connect_inst(wifi_obj, args);
+                              wifi_obj->obj_set("halt", dool(false));
+                              return wifi_obj;
+                            });
+                            LOG_WRITE(INFO, wifi_obj.get(), L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!!"));
+                            Thread::yield();
+                            Thread::delay(2000);
+                            Thread::yield();
+                            //while(wifi_obj->obj_get("halt")->bool_value()) {
+                              //Ansi<>::singleton()->print(".");
+                             // Thread::yield();
+                              //Thread::delay(2000);
+                            //}
+                            return wifi_obj;
+                          })
+                          ->create()}});
               })
               ->create());
       /*
@@ -157,10 +161,12 @@ namespace fhatos {
           const string mdns_name = config->rec_get("mdns")->uri_value().toString();
           if(const bool mdns_status = MDNS.begin(mdns_name.c_str()); !mdns_status) {
             LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", mdns_name.c_str());
+            Thread::delay(3000);
           }
           LOG_OBJ(DEBUG, wifi_obj, "connection attempts: %i\n", attempts);
           attempts = 100;
         }
+        Thread::delay(3000);
       }
       if(attempts != 100) {
         LOG_OBJ(ERROR, wifi_obj, "unable to connect to WIFI after %i attempts\n", attempts);

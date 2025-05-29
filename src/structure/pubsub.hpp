@@ -29,27 +29,6 @@ namespace fhatos {
 #define RETAIN true
 #define TRANSIENT false
 
-#define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source)->toString().c_str()),  \
-      nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
-#define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      ((message).payload()->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                     \
-      ((message).target().toString().c_str()))
-#define LOG_RECEIVE(rc, subscription, message)                                                                         \
-  LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
-      (((subscription).pattern().equals((message).target()))                                                           \
-           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!!\n"                                         \
-           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!!\n"),                                       \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
-      ((subscription).source().toString().c_str()), ((subscription).pattern().toString().c_str()),                     \
-      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
-                                                            : ((message).target().toString().c_str()),                 \
-      ((subscription).pattern().equals((message).target())) ? ((message).payload()->toString().c_str())                \
-                                                            : (message).payload()->toString.c_str())
-
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
   //////////////////////////////////////////////
@@ -65,22 +44,19 @@ namespace fhatos {
     MUTEX_LOCKOUT
   };
 
-  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-                                                                    {NO_TARGETS, "no targets"},
-                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-                                                                    {NO_SUBSCRIPTION, "no subscription"},
-                                                                    {NO_MESSAGE, "no message"},
-                                                                    {ROUTER_ERROR, "internal router error"},
-                                                                    {MUTEX_TIMEOUT, "router timeout"}});
+  static auto ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
+                                                    {NO_TARGETS, "no targets"},
+                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                    {NO_MESSAGE, "no message"},
+                                                    {ROUTER_ERROR, "internal router error"},
+                                                    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
   //////////////////////////////////////////////
   struct Message;
   using Message_p = ptr<Message>;
-
-  // static const ID_p MESSAGE_FURI = id_p(/*FOS_URI*/ "/fos/q/msg");
-  // static const ID_p SUBSCRIPTION_FURI = id_p(/*FOS_URI*/ "/fos/q/sub");
 
   struct Message final : Rec {
     explicit Message(const Rec_p &rec) : Rec(*rec) {}
@@ -89,11 +65,11 @@ namespace fhatos {
         Rec(rmap({{"target", vri(target)}, {"payload", payload}, {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
-    ID_p target() const { return id_p(this->rec_get("target")->uri_value()); }
+    [[nodiscard]] ID_p target() const { return id_p(this->rec_get("target")->uri_value()); }
 
-    Obj_p payload() const { return this->rec_get("payload"); }
+    [[nodiscard]] Obj_p payload() const { return this->rec_get("payload"); }
 
-    bool retain() const { return this->rec_get("retain")->bool_value(); }
+    [[nodiscard]] bool retain() const { return this->rec_get("retain")->bool_value(); }
 
     static Message_p create(const ID_p &target, const Obj_p &payload, const bool retain) {
       return std::make_shared<Message>(target, payload, retain);
@@ -130,11 +106,11 @@ namespace fhatos {
         Rec(rmap({{"source", vri(source)}, {"pattern", vri(pattern)}, {"on_recv", on_recv}}), OType::REC,
             SUBSCRIPTION_FURI) {}
 
-    ID_p source() const { return id_p(this->rec_get("source")->uri_value()); }
+    [[nodiscard]] ID_p source() const { return id_p(this->rec_get("source")->uri_value()); }
 
-    Pattern_p pattern() const { return p_p(this->rec_get("pattern")->uri_value()); }
+    [[nodiscard]] Pattern_p pattern() const { return p_p(this->rec_get("pattern")->uri_value()); }
 
-    BCode_p on_recv() const { return this->rec_get("on_recv"); }
+    [[nodiscard]] BCode_p on_recv() const { return this->rec_get("on_recv"); }
 
     static Subscription_p create(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) {
       return make_shared<Subscription>(source, pattern, on_recv->clone());
