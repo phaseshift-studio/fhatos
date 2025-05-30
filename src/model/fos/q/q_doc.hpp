@@ -20,8 +20,8 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_q_doc_hpp
 #define fhatos_q_doc_hpp
 
-#include "../q_proc.hpp"
-#include "../../fhatos.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../structure/q_proc.hpp"
 
 namespace fhatos {
   class QDoc final : public QProc {

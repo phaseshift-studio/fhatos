@@ -24,7 +24,7 @@
 #include "../../../../lang/obj.hpp"
 #include "../../../../structure/pubsub.hpp"
 #include "../../../../structure/q_proc.hpp"
-#include "../../../../structure/qtype/q_sub.hpp"
+#include "../../q/q_sub.hpp"
 
 
 #define FOS_TRY_META                                                                                                   \
@@ -115,7 +115,7 @@ namespace fhatos {
     void setup() override {
       if(this->available_.load()) {
         LOG_WRITE(WARN, this,
-                  L("!ystructure!! !b{}!! spanning !b{}!! already mounted\n",
+                  L("!ystructure!! !b{} !yspanning !b{}!! already mounted\n",
                     this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
         return;
       }
@@ -127,7 +127,7 @@ namespace fhatos {
     virtual void stop() {
       if(!this->available_.load())
         LOG_WRITE(WARN, this,
-                  L("!ystructure!! !b{}!! spanning !b{}!! already stopped\n",
+                  L("!ystructure!! !b{} !yspanning !b{}!! already stopped\n",
                     this->vid ? this->vid->toString() : "<none>", this->pattern->toString()));
       this->available_ = false;
     }

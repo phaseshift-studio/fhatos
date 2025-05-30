@@ -20,11 +20,11 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_q_sub_mqtt_hpp
 #define fhatos_q_sub_mqtt_hpp
 
-#include "../q_proc.hpp"
-#include "../../fhatos.hpp"
-#include "../pubsub.hpp"
-#include "../../util/mutex_deque.hpp"
-#include "../util/mqtt/mqtt_client.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../structure/pubsub.hpp"
+#include "../../../structure/q_proc.hpp"
+#include "../../../structure/util/mqtt/mqtt_client.hpp"
+#include "../../../util/mutex_deque.hpp"
 
 
 namespace fhatos {

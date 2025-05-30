@@ -20,10 +20,10 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_q_type_hpp
 #define fhatos_q_type_hpp
 
-#include "../../fhatos.hpp"
-#include "../../furi.hpp"
-#include "../../lang/mmadt/compiler.hpp"
-#include "../q_proc.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../furi.hpp"
+#include "../../../lang/mmadt/compiler.hpp"
+#include "../../../structure/q_proc.hpp"
 
 namespace fhatos {
   class QType final : public QProc {

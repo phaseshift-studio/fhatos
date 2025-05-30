@@ -20,10 +20,10 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_q_sub_hpp
 #define fhatos_q_sub_hpp
 
-#include "../q_proc.hpp"
-#include "../../fhatos.hpp"
-#include "../pubsub.hpp"
-#include "../../util/mutex_map.hpp"
+#include "../../../fhatos.hpp"
+#include "../../../structure/pubsub.hpp"
+#include "../../../structure/q_proc.hpp"
+#include "../../../util/mutex_map.hpp"
 
 namespace fhatos {
   class QDefault final : public QProc {
