@@ -24,7 +24,7 @@
 #include "lang/mmadt/parser.hpp"
 #include "model/fos/fos_obj.hpp"
 #include "model/fos/s/fs/fs.hpp"
-#include "model/fos/sys/memory/memory.hpp"
+#include "model/fos/sys/router/memory/memory.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "model/fos/sys/scheduler/thread/thread.hpp"
 #include "model/module.hpp"
@@ -172,7 +172,7 @@ namespace fhatos {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       for(auto it = REGISTERED_MODULES->begin(); it != REGISTERED_MODULES->end();) {
         if(it->first.matches(pattern)) {
-          Typer::singleton()->install_module(it->first, it->second);
+          Typer::singleton()->register_module(it->first, it->second);
           it = REGISTERED_MODULES->erase(it);
         } else {
           ++it;
@@ -286,17 +286,24 @@ namespace fhatos {
       string boot_str = PrintHelper::pretty_print_obj(boot_config, 4);
       StringHelper::prefix_each_line(FOS_TAB_2, &boot_str);
       LOG_WRITE(INFO, Kernel::boot().get(), L("\n{}\n", boot_str));
-      //////////////////////////////////////////////////////////////////////////////
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> using_info(const ID &info_config_id) {
+      FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const bool plat = true;
 #elif defined(ESP_PLATFORM)
       const bool plat = false;
 #endif
-      const Rec_p info_rec = Obj::to_rec({{"platform", plat ? vri("native") : vri("esp32")},
-                                          {"arch", vri(STR(FOS_MACHINE_ARCH))},
-                                          {"model", vri(STR(FOS_MACHINE_MODEL))},
-                                          {"subos", vri(STR(FOS_MACHINE_SUBOS))}});
-      ROUTER_WRITE("/sys/info", info_rec, true);
+      if(const Obj_p info = Kernel::boot()->rec_get(info_config_id); info->is_rec()) {
+        info->rec_merge(rmap({{"platform", plat ? vri("native") : vri("esp32")},
+                              {"arch", vri(STR(FOS_MACHINE_ARCH))},
+                              {"model", vri(STR(FOS_MACHINE_MODEL))},
+                              {"subos", vri(STR(FOS_MACHINE_SUBOS))}}));
+        //  ROUTER_WRITE("/sys/info", info, true);
+        info->save();
+      }
       ///////////////////////////////////////////////////////////////////////////////
       return Kernel::build();
     }

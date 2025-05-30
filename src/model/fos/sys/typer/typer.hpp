@@ -33,7 +33,7 @@ namespace fhatos {
   static const ID_p MESSAGE_FURI = id_p(FOS_URI "/q/sub/msg");
   static const ID_p SUBSCRIPTION_FURI = id_p(FOS_URI "/q/sub/sub");
 
-  inline Map<ID,Inst_p>* REGISTERED_MODULES = new Map<ID,Inst_p>();
+  inline auto REGISTERED_MODULES = new Map<ID,Inst_p>();
 
   class Typer final : public Obj {
   protected:
@@ -52,11 +52,11 @@ namespace fhatos {
 
     void end_progress_bar(const string &message);
 
-    static void *import();
+    static void import();
 
     void save_type(const ID &type_id, const Obj_p &type_def) const;
 
-    void install_module(const ID &module_id, const Inst_p &module) const;
+    void register_module(const ID &module_id, const Inst_p &module) const;
     void import_module(const Pattern &module_furi);
   };
 

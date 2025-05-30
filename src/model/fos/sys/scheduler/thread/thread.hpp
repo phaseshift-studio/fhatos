@@ -21,8 +21,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
 #include "../../../../../lang/obj.hpp"
-#include "../../../../fos/sys/memory/memory.hpp"
-#include "../../../../model.hpp"
+#include "../../../../fos/sys/router/memory/memory.hpp"
 #include "../../typer/typer.hpp"
 
 namespace fhatos {

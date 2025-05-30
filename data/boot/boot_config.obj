@@ -1,13 +1,13 @@
 ===
 basic boot_config obj
 ===
-[info     =>[name  =>fhat1],
+[info     =>[name  =>fhat1]@/sys/info,
  scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
- router   =>[memory=>[=>],config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,
+ router   =>[memory=>memory[[=>]],config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,
                                     /fos/sys/,/fos/s/,/fos/io/,
                                     /fos/sensor/,/fos/ui/,/fos/util/,
                                     /sys/]]]@/sys/router,
- typer    =>[config=>[module=>[/fos/#,/mmadt/#]]]@/sys/typer,
+ typer    =>[config=>[module=>[/fos/#/,/fos/sys/router/#/,/mmadt/#/]]]@/sys/typer,
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
@@ -17,11 +17,11 @@ basic boot_config obj
         /sys/typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
           ssid=><fhatos_2g>,
-          password=>'mmadt',
+          password=>'fhat_mmadt',
           mdns=>esp32]]]@/io/wifi;
         */io/wifi.connect()]>-;
     dsm[[pattern=>/shared/#,config=>[
-      broker=><mqtt://chibi.local:1883>,
+      broker=><mqtt://fhat.local:1883>,
       client=>*/sys/info/platform,
       async=>true]]]@/mnt/shared;
     /sys/router::mount(@/mnt/shared);

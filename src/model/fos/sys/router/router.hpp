@@ -24,6 +24,7 @@
 #include "../../../../lang/obj.hpp"
 #include "../../s/frame.hpp"
 #include "structure.hpp"
+#include "memory/memory.hpp"
 
 #define FOS_ROUTER_STRUCTURE "structure"
 #define FOS_ROUTER_QUERY "query"

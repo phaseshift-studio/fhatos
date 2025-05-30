@@ -19,6 +19,7 @@ FhatOS: A Distributed Operating System
 #include "typer.hpp"
 #include "../../../../lang/mmadt/mmadt.hpp"
 #include "../../../../lang/obj.hpp"
+#include "../router/memory/memory.hpp"
 namespace fhatos {
   using namespace mmadt;
 
@@ -177,22 +178,20 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  void Typer::install_module(const ID &module_id, const Inst_p &module) const {
+  void Typer::register_module(const ID &module_id, const Inst_p &module) const {
     if(module->is_code()) {
       this->obj_set_component(module_id, module);
       LOG_WRITE(INFO, this,
-                L("!b{} !g{} !ymodule!! installed\n", module_id.toString(), OTypes.to_chars(module->otype)));
+                L("!b{} !g{} !ymodule!! registered\n", module_id.toString(), OTypes.to_chars(module->otype)));
     } else {
       LOG_WRITE(WARN, this,
-                L("!b{} !r{} !ymodule !rnot!! installed!!\n", module_id.toString(), OTypes.to_chars(module->otype)));
+                L("!b{} !r{} !ymodule !rnot!! registered!!\n", module_id.toString(), OTypes.to_chars(module->otype)));
     }
   }
 
   void Typer::import_module(const Pattern &module_furi) {
     const Objs_p x = ROUTER_READ(this->vid->add_component(module_furi));
     for(const Inst_p &module: x->is_objs() ? *x->objs_value() : std::vector<Obj_p>({x})) {
-      const fURI module_id = module->vid_or_tid()->no_query();
-      const string pretracted_module_id = module_id.pretract(this->vid->extend("::")).toString();
       if(const Rec_p mod = module->apply(Obj::to_noobj()); mod->is_rec()) {
         const size_t size = mod->rec_value()->size();
         const bool do_prog_bar = size > 5;
@@ -201,27 +200,31 @@ namespace fhatos {
         for(const auto &[id, type_def]: *mod->rec_value()) {
           this->save_type(id->uri_value(), type_def);
         }
+        const fURI module_id = module->vid_or_tid()->no_query();
+        const string pretracted_module_id = module_id.pretract(this->vid->extend("::")).toString();
         if(do_prog_bar)
           this->end_progress_bar(format("\n\t\t!^u1^ !g[!b{} !ytypes!! imported!g]!!\n", pretracted_module_id));
         else
           LOG_WRITE(INFO, this, L("!b{} !ytypes!! imported!!\n", pretracted_module_id));
       } else {
-        LOG_WRITE(ERROR, module.get(), L("!ymodule !rnot a rec!!: {}\n", module->toString()));
+        LOG_WRITE(ERROR, module.get(),
+                  L("!b{} !ymodule !rnot a rec!!: {}\n", module_furi.toString(), module->toString()));
       }
     }
   }
-  void *Typer::import() {
+
+  void Typer::import() {
     // const Rec_p modules = Typer::singleton()->rec_get("::/#/")->or_else(Rec::to_rec());
     // LOG(INFO, "HERE: %s\n", modules->toString().c_str());
     Typer::singleton()->obj_set_component(
-        "install", InstBuilder::build(Typer::singleton()->vid->add_component("install"))
-                       ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-                       ->inst_args("module_id?uri", __(), "module?inst", __())
-                       ->inst_f([](const Obj_p &obj, const InstArgs &args) {
-                         Typer::singleton()->install_module(args->arg("module_id")->uri_value(), args->arg("module"));
-                         return obj;
-                       })
-                       ->create());
+        "register", InstBuilder::build(Typer::singleton()->vid->add_component("register"))
+                        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+                        ->inst_args("module_id?uri", __(), "module?inst", __())
+                        ->inst_f([](const Obj_p &obj, const InstArgs &args) {
+                          Typer::singleton()->register_module(args->arg("module_id")->uri_value(), args->arg("module"));
+                          return obj;
+                        })
+                        ->create());
     Typer::singleton()->obj_set_component("import",
                                           InstBuilder::build(Typer::singleton()->vid->add_component("import"))
                                               ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
@@ -231,11 +234,16 @@ namespace fhatos {
                                                 return obj;
                                               })
                                               ->create());
-
-    return nullptr;
+    if(!ROUTER_READ(ROUTER_ID->extend("memory"))->is_noobj()) {
+      Memory::register_module();
+      Typer::singleton()->import_module(*MEMORY_FURI);
+      const ptr<Memory> mem = Memory::singleton(ROUTER_ID->extend("memory"));
+      mem->save();
+      // Router::singleton()->obj_set("memory",mem);
+    }
   }
   void Typer::save_type(const ID &type_id, const Obj_p &type_def) const {
-    bool allow = nullptr == this->filters || this->filters->empty();
+   /* bool allow = nullptr == this->filters || this->filters->empty();
     if(!allow) {
       for(const fURI &furi: *this->filters) {
         if(type_id.matches(furi)) {
@@ -243,8 +251,8 @@ namespace fhatos {
           break;
         }
       }
-    }
-    if(allow) {
+    }*/
+    if(true) {
       try {
         const Obj_p current = ROUTER_READ(type_id);
         ROUTER_WRITE(type_id, type_def, true);

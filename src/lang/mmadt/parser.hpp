@@ -20,7 +20,7 @@ FhatOS: A Distributed Operating System
 #define mmadt_parser_hpp
 
 #include "../../fhatos.hpp"
-#include "../../model/fos/sys/memory/memory.hpp"
+#include "../../model/fos/sys/router/memory/memory.hpp"
 #include "../obj.hpp"
 #include "../processor/processor.hpp"
 #include "../util/peglib.h"
@@ -98,7 +98,7 @@ namespace mmadt {
         if(last[0] == '<')
           angles--;
       } else if(c == '>') {
-        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?' && (last[0] != '+' && last[1] != '-'))
+        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?' /*&& (last[0] != '+' && last[1] != '-')*/) // TODO APPEND and + wildcard can clash!
           // -> => >> ?> -+>
           angles--;
         if(last[0] == '>')

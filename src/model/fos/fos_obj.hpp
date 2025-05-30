@@ -28,7 +28,7 @@
 #include "io/i2c/i2c.hpp"
 #include "s/dsm.hpp"
 #include "s/heap.hpp"
-#include "sys/memory/memory.hpp"
+#include "sys/router/memory/memory.hpp"
 #include "sys/scheduler/thread/thread.hpp"
 #include "sys/typer/typer.hpp"
 #include "ui/button/button.hpp"
@@ -73,6 +73,7 @@ namespace fhatos {
       Heap<>::register_module();
       DSM::register_module();
       FS::register_module();
+      Memory::register_module();
       Typer::singleton()->end_progress_bar("!b/fos/s !ystructures!! installed");
       GPIO::register_module();
     }

@@ -87,6 +87,8 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yconfiguring !bkernel !yobjs!!")
             ->display_memory()
+            ->using_info("info")
+            ->drop_config("info")
             ->using_router("router")
             ->drop_config("router")
             ->using_typer("typer")
@@ -103,14 +105,13 @@ namespace fhatos {
             ->import_module("/fos/s/#") //  structures
             ->import_module("/fos/q") // query processors
             ->import_module("/fos/sys/#") //  sys
+#ifdef ESP_PLATFORM
             ->import_module("/fos/net/#") //  net
+#endif
             ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yevaluating !bsetup !yinst!!")
-            ->display_memory()
-            ->evalulating_setup()
-            ->stop_timer();
+        kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evalulating_setup()->stop_timer();
         /*
                     ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
                     ->drop_config("log")

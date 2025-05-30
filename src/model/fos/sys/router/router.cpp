@@ -234,12 +234,6 @@ namespace fhatos {
               return s;
             })
             ->create());
-    if(!Router::singleton()->rec_get("memory")->is_noobj()) {
-      Memory::import();
-      const ptr<Memory> mem = Memory::singleton(Router::singleton()->vid->extend("memory"));
-      mem->save();
-      // Router::singleton()->obj_set("memory",mem);
-    }
     /* InstBuilder::build(Router::singleton()->vid->extend(":stop"))
             ->domain_range(OBJ_FURI, {0, 1}, NOOBJ_FURI, {0, 0})
             ->inst_f([](const Obj_p &, const InstArgs &args) {
