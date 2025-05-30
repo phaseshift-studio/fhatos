@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <strong class="yellow">f</strong>​<strong class="blue">H</strong>​<span class="fuchsia">a</span>​<strong class="aqua">t</strong>​<strong class="lime">O</strong>​<span class="red">s</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <span class="yellow">F</span>​<span class="lime">h</span>​<span class="aqua">a</span>​<span class="blue">T</span>​<span class="red">O</span>​<strong class="fuchsia">s</strong>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;11366400,free=&gt;11364960,used=&gt;0.01267]
+[INFO]  main [total=&gt;11366400,free=&gt;11364896,used=&gt;0.01323]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -828,12 +828,13 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [WARN]  [/sys/router] no mounted structure for memory
 [WARN]  [/sys/router] no mounted structure for heap
 [WARN]  [/sys/router] no mounted structure for /io/wifi
+[WARN]  [/sys/router] no mounted structure for fs
 [WARN]  [/sys/router] no mounted structure for dsm
 [WARN]  [/sys/router] no mounted structure for terminal
 [WARN]  [/sys/router] no mounted structure for /io/terminal
 [WARN]  [/sys/router] no mounted structure for console
 [WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 1318 bytes]
+[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 1438 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config]
    [
@@ -873,10 +874,10 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
       ]
      ]
     ]@/sys/typer
-     setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;fhatssid,password=&gt;'fhatpass',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect()]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
+     setup=&gt;setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;fhatssid,password=&gt;'fhatpass',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect(),is(eq(native))=&gt;fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;11907072,free=&gt;11905088,used=&gt;0.01666]
+[INFO]  [/sys/router/memory] main [total=&gt;12042240,free=&gt;12040352,used=&gt;0.01568]
 [INFO]  [/boot/config] info boot config dropped
 [INFO]  [/sys/router] router configured
              [
@@ -985,7 +986,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
  ]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
       .oO installing fos/mmadt modules Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;11907072,free=&gt;11905056,used=&gt;0.01693]
+[INFO]  [/sys/router/memory] main [total=&gt;12042240,free=&gt;12040352,used=&gt;0.01568]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [INFO]  [/sys/typer] /mmadt/inst types imported
 [WARN]  [/sys/router] no mounted structure for parser
@@ -1027,10 +1028,10 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;12582912,free=&gt;12580768,used=&gt;0.01704]
+[INFO]  [/sys/router/memory] main [total=&gt;12582912,free=&gt;12580896,used=&gt;0.01602]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
-            setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;fhatssid,password=&gt;'fhatpass',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect()]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
+            setup()[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;import(/fos/net/#).end().start({wifi[[config=&gt;[ssid=&gt;fhatssid,password=&gt;'fhatpass',mdns=&gt;esp32]]]@/io/wifi}).end().from(/io/wifi).connect(),is(eq(native))=&gt;fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs]).merge().end().start({dsm[[pattern=&gt;/shared/#,config=&gt;[broker=&gt;mqtt://chibi.local:1883,client=&gt;from(/sys/info/platform),async=&gt;true]]]@/mnt/shared}).end().mount(at(/mnt/shared)).end().import(/fos/ui).end().start({terminal[[=&gt;]]@/io/terminal}).end().start({console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().spawn(at(/io/console)).end()]
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
 [INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt native connected
 [INFO]  [/mnt/shared] structure pattern /shared/# subscribed
@@ -1046,9 +1047,9 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
 [INFO]  [/sys/typer] /fos/ui types imported
-[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:0]
+[INFO]  [/io/console] [native] thread spawned: lift(loop?obj{?}&lt;=console()[cpp]) [cpu:2]
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/boot/config] boot time: 0.183303716 seconds</code></pre>
+[INFO]  [/boot/config] boot time: 0.18514827 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2464,7 +2465,7 @@ thread[[loop=>^( /
 ==&gt;halt=&gt;true
 &gt;]@t
 fhatos&gt; /sys/scheduler::spawn(@t)
-[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:1]
+[INFO]  [t] [native] thread spawned: lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n')) [cpu:2]
 [INFO]  [/sys/scheduler] t thread spawned
 &gt;thread[
 ==&gt;loop=&gt;lift(from(block(c),0).print('c: {_}').plus(1).to(c).gt(10).to(t/halt).is(_).print('\n'))
@@ -4964,7 +4965,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-05-30 11:01:32 -0600
+Last updated 2025-05-30 17:42:00 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
