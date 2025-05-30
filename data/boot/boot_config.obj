@@ -16,12 +16,12 @@ basic boot_config obj
       [is(eq(esp32))=>
         /sys/typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
-          ssid=><fhatos_2g>,
-          password=>'fhat_mmadt',
+          ssid=>fhatssid,
+          password=>'fhatpass',
           mdns=>esp32]]]@/io/wifi;
         */io/wifi.connect()]>-;
     dsm[[pattern=>/shared/#,config=>[
-      broker=><mqtt://fhat.local:1883>,
+      broker=><mqtt://chibi.local:1883>,
       client=>*/sys/info/platform,
       async=>true]]]@/mnt/shared;
     /sys/router::mount(@/mnt/shared);

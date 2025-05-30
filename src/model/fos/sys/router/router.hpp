@@ -23,8 +23,8 @@
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../s/frame.hpp"
-#include "structure.hpp"
 #include "memory/memory.hpp"
+#include "structure.hpp"
 
 #define FOS_ROUTER_STRUCTURE "structure"
 #define FOS_ROUTER_QUERY "query"
@@ -76,13 +76,22 @@ namespace fhatos {
         return STRUCTURE::create(structure_obj->rec_get("pattern")->uri_value(), structure_obj->vid,
                                  structure_obj->rec_get("config")->or_else(Obj::to_rec()));
       });
-       REGISTERED_MODULES->insert_or_assign(type_id,
-                                  InstBuilder::build(Typer::singleton()->vid->add_component(type_id))
-                                      ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
-                                      ->inst_f([type_id](const Obj_p &, const InstArgs &) {
-                                        return Obj::to_rec({{vri(type_id), Obj::to_rec({{"pattern?uri", __()}})}});
-                                      })
-                                      ->create());
+      REGISTERED_MODULES->insert_or_assign(
+          type_id, InstBuilder::build(Typer::singleton()->vid->add_component(type_id))
+                       ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+                       ->inst_f([type_id](const Obj_p &, const InstArgs &) {
+                         return Obj::to_rec({{vri(type_id), Obj::to_rec({{"pattern?uri", __()}})},
+                                             {vri(type_id.add_component("mount")),
+                                              InstBuilder::build(type_id.add_component("mount"))
+                                                  ->domain_range(id_p(type_id), {1, 1}, id_p(type_id), {1, 1})
+                                                  ->inst_f([](const Obj_p &structure, const InstArgs &) {
+                                                    Router::singleton()->attach(
+                                                        structure->get_model<Structure>()->shared_from_this());
+                                                    return structure;
+                                                  })
+                                                  ->create()}});
+                       })
+                       ->create());
       return nullptr;
     }
 

@@ -138,7 +138,7 @@ namespace fhatos {
     } else {
       this->structures_->forEach([structure, this](const Structure_p &s) {
         if(structure->pattern->bimatches(*s->pattern)) {
-          // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
+          // symmetric-check necessary as A can't be a subpattern of B and B can't be a subpattern of A
           throw fError(ROUTER_FURI_WRAP " only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
                        this->vid->toString().c_str(), s->pattern->toString().c_str(),
                        structure->pattern->toString().c_str());
@@ -220,8 +220,7 @@ namespace fhatos {
             ->inst_args(rec({{"structure", Obj::to_bcode()}}))
             ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
             ->inst_f([](const Obj_p &, const InstArgs &args) {
-              const Obj_p structure_obj = args->arg("structure");
-              const auto s = ptr<Structure>(structure_obj->get_model<Structure>());
+              const auto s = args->arg("structure")->get_model<Structure>()->shared_from_this();
               Router::singleton()->attach(s);
               Subscription::create(Router::singleton()->vid, p_p(*s->vid), [](const Obj_p &obj, const InstArgs &args) {
                 if(obj->is_noobj()) {
