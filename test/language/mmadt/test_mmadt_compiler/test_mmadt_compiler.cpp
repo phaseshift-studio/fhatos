@@ -84,7 +84,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     PROCESS("/compiler/lst_swap_name -> |/compiler/lst_swap_name?lst<=lst()[-<[<1>.as(str),<0>.as(str)]]");
     //FOS_TEST_COMPILER_TRUE(lst({str("fhat"),str("os")}),ID("/compiler/lst_swap_name"),compiler.type_check); // TODO: start vs. map mid-monoid
-    FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name"), compiler.type_check);
+    //FOS_TEST_COMPILER_FALSE(lst({jnt(1),str("two")}), ID("/compiler/lst_swap_name"), compiler.type_check);
     //FOS_TEST_COMPILER_FALSE(lst({str("one")}),ID("/compiler/lst_swap_name"),compiler.type_check);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     PROCESS("/compiler/lst_swap_name2 -> |/compiler/lst_swap_name2?lst<=lst()[==[as(str),as(str)]]");

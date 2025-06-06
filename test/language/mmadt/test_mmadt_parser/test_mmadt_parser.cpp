@@ -146,10 +146,11 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("roDkns-2G"), PROCESS("<roDkns-2G>"));
     // FOS_TEST_ERROR("<roDkns?-2G<>>");
     /// furi vars
-    FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("a/{b}/c")->uri_value());
-    FOS_TEST_FURI_EQUAL(fURI("a/{b}/c"), PROCESS("<a/{b}/c>")->uri_value());
-    // FOS_TEST_FURI_EQUAL(fURI("a/{b}/{c}/"), PROCESS("a/{b}/{c}/")->uri_value());
-    // FOS_TEST_FURI_EQUAL(fURI("{a}/{b}/c"), PROCESS("{a}/{b}/c")->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("a/{{b}}/c"), PROCESS("a/{{b}}/c")->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("a/b/c"), PROCESS("1.a/{{b}}/c")->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("a/b/c"), PROCESS("1.<a/{{b}}/c>")->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("a/b/c/"), PROCESS("1.a/{{b/c}}/")->uri_value());
+    FOS_TEST_FURI_EQUAL(fURI("a/2/c"), PROCESS("1.a/{{+1}}/c")->uri_value());
     // FOS_TEST_ERROR("{a}/{b/}/c");
   }
 

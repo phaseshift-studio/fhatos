@@ -98,7 +98,8 @@ namespace mmadt {
         if(last[0] == '<')
           angles--;
       } else if(c == '>') {
-        if(last[0] != '-' && last[0] != '=' && last[0] != '>' && last[0] != '?' /*&& (last[0] != '+' && last[1] != '-')*/) // TODO APPEND and + wildcard can clash!
+        if(last[0] != '-' && last[0] != '=' && last[0] != '>' &&
+           last[0] != '?' /*&& (last[0] != '+' && last[1] != '-')*/) // TODO APPEND and + wildcard can clash!
           // -> => >> ?> -+>
           angles--;
         if(last[0] == '>')
@@ -269,6 +270,22 @@ namespace mmadt {
       };
       auto furi_action = [](const SemanticValues &vs) -> fURI_p {
         string s = vs.token_to_string();
+        // process uri code blocks {{...}}
+        /*s = StringHelper::replace_groups(&s, "{{", "}}", [](const string &code) {
+          // LOG(ERROR, "code to process: %s\n", code.c_str());
+          const Obj_p result = BCODE_PROCESSOR(OBJ_PARSER(code))->none_one_all();
+          // LOG(ERROR, "result of process: %s\n", result->toString().c_str());
+          // LOG(ERROR, "type of process: %s\n", result->tid->toString().c_str());
+          if(result->is_uri())
+            return result->uri_value().toString();
+          if(result->is_str())
+            return result->str_value();
+          if(result->is_noobj())
+            return string();
+          throw fError("!yfuri code block !rmust !yreturn !buri!!, !bstr!!, or !bnoobj!!: %s",
+                       OTypes.to_chars(result->otype).c_str());
+        });*/
+        // replace escape characters
         while(s.find("`.") != string::npos) {
           StringHelper::replace(&s, "`.", ".");
         }
@@ -463,7 +480,8 @@ namespace mmadt {
       SINGLE_COMMENT <= seq(~WS, lit("---"), zom(seq(npd(lit("\n")), dot())), lit("\n"), ~WS);
       MULTI_COMMENT <= seq(~WS, lit("==="), zom(seq(npd(lit("===")), dot())), lit("==="), ~WS);
       ////////////////////// FURI VARIANTS ///////////////////////////
-      FURI_VAR <= cho(lit("}/"), lit("{/"), lit("/{"), lit("/}"));
+      //      FURI_VAR <= cho(lit("}/"), lit("{/"), lit("/{"), lit("/}"));
+      FURI_VAR <= seq(lit("{{"), START, lit("}}"));
       FURI <= WRAP("<",
                    tok(seq(npd(chr('-')), zom(cho(FURI_VAR, cls("a-zA-Z0-9:/%_@.#+-"))),
                            opt(seq(chr('?'), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/%_=&@.#+-,"))))), npd(chr('-')))),
@@ -583,7 +601,7 @@ namespace mmadt {
       SUGAR_GENERATOR(LT, "?<", MMADT_PREFIX "lt");
       SUGAR_GENERATOR(LTE, "?<=", MMADT_PREFIX "lte");
       SUGAR_GENERATOR(IS_A, "?", MMADT_PREFIX "isa");
-      SUGAR_GENERATOR(REF_OP,"<-",MMADT_PREFIX "ref_op");
+      SUGAR_GENERATOR(REF_OP, "<-", MMADT_PREFIX "ref_op");
       // SUGAR_GENERATOR(IS_NOT_A, "?!", MMADT_PREFIX "nota");
       EQ <= seq(lit("?="), WRAQ("(", OBJ, START, ")")),
           [](const SemanticValues &vs) -> Inst_p { return __().is(__().eq(any_cast<Obj_p>(vs[0]))); };

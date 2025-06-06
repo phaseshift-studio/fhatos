@@ -26,8 +26,8 @@
 #define FOS_HEX_STRING_MAX_LENGTH 8
 
 namespace fhatos {
-  using std::to_string;
   using std::string;
+  using std::to_string;
   using fbyte = uint8_t;
 
   enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
@@ -108,7 +108,8 @@ namespace fhatos {
 
 
     static void trim(std::string &s) {
-      if(s.empty()) return;
+      if(s.empty())
+        return;
       ltrim(s);
       rtrim(s);
     }
@@ -159,13 +160,12 @@ namespace fhatos {
         if(left_pos != std::string::npos) {
           new_string += s->substr(right_pos, left_pos);
           temp_pos = left_pos + left_delim.length();
-          if(right_pos = s->find(right_delim, left_pos + left_delim.length());
-            right_pos != std::string::npos) {
+          if(right_pos = s->find(right_delim, left_pos + left_delim.length()); right_pos != std::string::npos) {
             temp_pos = right_pos + right_delim.length();
-            // Calculate the length of the substring to be replaced
-            const size_t length_to_replace = right_pos - left_pos - left_delim.length();
-            // Replace the content between delimiters
-            const string to_replace = s->substr(left_pos + 1, length_to_replace);
+            // calculate the length of the substring to be replaced
+            const size_t length_to_replace = right_pos - left_pos - right_delim.size(); // - left_delim.length();
+            // replace the content between delimiters
+            const string to_replace = s->substr(left_pos + left_delim.size(), length_to_replace);
             const string new_replace = replace_function(to_replace);
             new_string += new_replace;
             left_pos += new_replace.length();
@@ -182,17 +182,14 @@ namespace fhatos {
     }
 
     static void ltrim(std::string &s) {
-      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) {
-        return !std::isspace(c) && c < 127 && c != '\0';
-      }));
+      s.erase(s.begin(),
+              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127 && c != '\0'; }));
     }
 
     static void rtrim(std::string &s) {
-      s.erase(
-          std::find_if(s.rbegin(), s.rend(), [](const char c) {
-            return !std::isspace(c) && c < 127 && c != '\0';
-          }).base(),
-          s.end());
+      s.erase(std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c) && c < 127 && c != '\0'; })
+                  .base(),
+              s.end());
     }
 
     static bool has_wildcards(const std::string &s) {
@@ -221,10 +218,9 @@ namespace fhatos {
     }
 
     template<typename T = string>
-    static std::vector<T> tokenize(const char split, const string &parent,
-                                   const std::function<T(const string &)> transformer = [](const string &s) {
-                                     return s;
-                                   }) {
+    static std::vector<T> tokenize(
+        const char split, const string &parent,
+        const std::function<T(const string &)> transformer = [](const string &s) { return s; }) {
       std::vector<T> tokens;
       string sub = parent;
       size_t index;

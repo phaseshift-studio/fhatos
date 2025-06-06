@@ -210,8 +210,6 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////////////
 
   public:
-    class MonadSet;
-
     class Monad : public enable_shared_from_this<Processor::Monad>, public Pair<Obj_p, Inst_p> { // OBJ as well?
       friend MonadSet;
 

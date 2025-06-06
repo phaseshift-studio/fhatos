@@ -1986,11 +1986,18 @@ namespace fhatos {
       return true;
     }
 
-    static string format_str(const Obj_p &lhs, string &to_format) {
-      const string formatted = StringHelper::replace_groups(&to_format, "{", "}", [lhs](const string &match) {
-        const Obj_p result = OBJ_PARSER(match)->apply(lhs);
-        const string clean = result->none_one_all()->toString(NO_ANSI_PRINTER);
-        return clean;
+    static bool has_code_block(const string &obj_string) { return obj_string.find("{{") != string::npos; }
+
+    static string process_code_block(const Obj_p &lhs, string &to_format) {
+      const string formatted = StringHelper::replace_groups(&to_format, "{{", "}}", [lhs](const string &match) {
+        const Obj_p result = OBJ_PARSER(match)->apply(lhs)->none_one_all();
+        if(result->is_str())
+          return result->str_value();
+        if(result->is_uri())
+          return result->uri_value().toString();
+        if(result->is_noobj())
+          return string();
+        return result->toString(NO_ANSI_PRINTER);
       });
       return formatted;
     }
@@ -2095,11 +2102,16 @@ namespace fhatos {
         case OType::NOOBJ:
         case OType::ERROR:
           return this->shared_from_this();
-        case OType::URI:
-          return lhs->deref(this->shared_from_this(), true);
+        case OType::URI: {
+          auto s = string(this->uri_value().toString());
+          return lhs->deref(has_code_block(s) ? Obj::to_uri(process_code_block(lhs, s), this->tid, this->vid)
+                                              : this->shared_from_this(),
+                            true);
+        }
         case OType::STR: {
           auto s = string(this->str_value());
-          return Obj::to_str(format_str(lhs, s), this->tid, this->vid);
+          return has_code_block(s) ? Obj::to_str(process_code_block(lhs, s), this->tid, this->vid)
+                                   : this->shared_from_this();
         }
         case OType::TYPE: {
           Obj_p new_value = this->type_value()->apply(lhs);

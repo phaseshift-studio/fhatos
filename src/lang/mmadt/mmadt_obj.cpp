@@ -314,7 +314,7 @@ namespace mmadt {
                       if(resolution->equals(*REAL_FURI))
                         return real(static_cast<FOS_REAL_TYPE>(atof(lhs->uri_value().toString().c_str())));
                       if(resolution->equals(*STR_FURI))
-                        return vri(lhs->str_value());
+                        return str(lhs->uri_value().toString());
                       if(resolution->equals(*URI_FURI))
                         return lhs->as(resolution);
                       return lhs->as(resolution);

@@ -26,6 +26,7 @@
 #include "lang/processor/processor.hpp"
 #include "model/fos/fos_obj.hpp"
 #include "model/fos/s/heap.hpp"
+#include "model/fos/util/llm/llm.hpp"
 #include "model/fos/sys/router/router.hpp"
 #include "util/argv_parser.hpp"
 /////////////////////////////////////////
@@ -98,6 +99,7 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
+        kp->eval([]() { LLM::create(id_p("/sys/llm")); });
         kp->display_note("!yinstalling !bfos/mmadt !ymodules!!")
             ->display_memory()
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))

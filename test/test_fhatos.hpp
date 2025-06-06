@@ -59,7 +59,7 @@ using namespace fhatos;
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
-      LOG(INFO, "!gtesting!!: %s\n", x);                                                                               \
+      LOG(INFO, "!gtesting!!: %d\n", x);                                                                               \
       RUN_TEST(x);                                                                                                     \
     } catch(const std::exception &e) {                                                                                 \
       LOG_WRITE(ERROR, Obj::to_noobj().get(), L("failed test due to {}\n", e.what()));                                 \
