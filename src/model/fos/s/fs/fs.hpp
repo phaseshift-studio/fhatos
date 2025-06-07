@@ -56,7 +56,7 @@ namespace fhatos {
     ID map_fs_to_fos(const string &fs_id) const;
 
     static void register_module() {
-      Router::register_structure_module<FS>(FOS_URI "/s/fs");
+      Router::register_structure_module<FS>(FS_TID);
     }
   };
 } // namespace fhatos

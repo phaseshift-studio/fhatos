@@ -60,7 +60,7 @@ namespace fhatos {
     return this;
   }
 
-  InstBuilder *InstBuilder::type_args(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2, const Obj_p &arg3,
+  InstBuilder *InstBuilder::inst_args_objs(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2, const Obj_p &arg3,
                                       const Obj_p &arg4) {
     this->args_->rec_set(vri("0"), arg0);
     if(arg1)

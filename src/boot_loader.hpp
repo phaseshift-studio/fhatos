@@ -26,8 +26,8 @@
 #include "lang/processor/processor.hpp"
 #include "model/fos/fos_obj.hpp"
 #include "model/fos/s/heap.hpp"
-#include "model/fos/util/llm/llm.hpp"
 #include "model/fos/sys/router/router.hpp"
+#include "model/fos/util/llm/ollama_server.hpp"
 #include "util/argv_parser.hpp"
 /////////////////////////////////////////
 ///////////// COMMON MODELS /////////////
@@ -99,7 +99,6 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         load_processor();
-        kp->eval([]() { LLM::create(id_p("/sys/llm")); });
         kp->display_note("!yinstalling !bfos/mmadt !ymodules!!")
             ->display_memory()
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
@@ -110,6 +109,7 @@ namespace fhatos {
 #ifdef ESP_PLATFORM
             ->import_module("/fos/net/#") //  net
 #endif
+            ->import_module("/fos/llm/#") // llm
             ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////

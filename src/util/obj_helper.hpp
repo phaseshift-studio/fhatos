@@ -65,14 +65,14 @@ namespace fhatos {
 
     static InstBuilder *build(const fURI_p &type_id = INST_FURI);
 
+    InstBuilder *inst_args_objs(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
+                           const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr);
+
     InstBuilder *inst_args(const char *arg1_name, const Obj_p &arg1_obj, const char *arg2_name = nullptr,
                            const Obj_p &arg2_obj = nullptr, const char *arg3_name = nullptr,
                            const Obj_p &arg3_obj = nullptr);
 
     InstBuilder *inst_args(const Rec_p &args);
-
-    InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
-                           const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr);
 
     InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr);
 

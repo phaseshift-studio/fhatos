@@ -492,7 +492,7 @@ namespace fhatos {
       }
     }
 
-    static ptr<Obj> create(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) {
+    static Obj_p create(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) {
       const auto creation = make_shared<Obj>(value, otype, type_id, value_id);
       creation->type_check();
       if(creation->vid)
@@ -583,6 +583,8 @@ namespace fhatos {
     static Obj_p load(const ID_p &vid) { return ROUTER_READ(*vid); }
 
     static Obj_p load(const Uri_p &vid_uri) { return ROUTER_READ(vid_uri->uri_value()); }
+
+    [[nodiscard]] Obj_p load() const { return ROUTER_READ(*this->vid); }
 
     virtual void sync(const fURI &subset) const {
       if(this->vid) {
@@ -1986,7 +1988,9 @@ namespace fhatos {
       return true;
     }
 
-    static bool has_code_block(const string &obj_string) { return obj_string.find("{{") != string::npos; }
+    static bool has_code_block(const string &obj_string) {
+      return obj_string.find("{{") != string::npos && obj_string.find("}}") != string::npos;
+    }
 
     static string process_code_block(const Obj_p &lhs, string &to_format) {
       const string formatted = StringHelper::replace_groups(&to_format, "{{", "}}", [lhs](const string &match) {
@@ -2104,9 +2108,9 @@ namespace fhatos {
           return this->shared_from_this();
         case OType::URI: {
           auto s = string(this->uri_value().toString());
-          return lhs->deref(has_code_block(s) ? Obj::to_uri(process_code_block(lhs, s), this->tid, this->vid)
-                                              : this->shared_from_this(),
-                            true);
+          const Uri_p uri = has_code_block(s) ? Obj::to_uri(process_code_block(lhs, s), this->tid, this->vid)
+                                              : this->shared_from_this();
+          return lhs->deref(uri, true);
         }
         case OType::STR: {
           auto s = string(this->str_value());

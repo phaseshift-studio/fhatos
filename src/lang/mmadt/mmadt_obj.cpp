@@ -778,7 +778,7 @@ namespace mmadt {
               for(const auto &op: {"split", "choose", "chain"}) {
                 ++op_index;
                 InstBuilder::build(string(MMADT_PREFIX).append(op))
-                    ->inst_args(lst({Obj::to_bcode()}))
+                    ->inst_args_objs(__())
                     ->inst_f([op_index](const Obj_p &lhs, const InstArgs &args) {
                       const Obj_p rhs = args->arg(0);
                       switch(op_index) {

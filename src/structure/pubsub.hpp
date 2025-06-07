@@ -62,8 +62,8 @@ namespace fhatos {
     explicit Message(const Rec_p &rec) : Rec(*rec) {}
 
     explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) :
-        Rec(rmap({{"target", vri(target)}, {"payload", payload}, {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
-    }
+        Rec(rmap({{"target", vri(target)}, {"payload", payload}, {"retain", dool(retain)}}), OType::REC,
+            id_p(FOS_URI "/q/sub/msg")) {}
 
     [[nodiscard]] ID_p target() const { return id_p(this->rec_get("target")->uri_value()); }
 
@@ -100,11 +100,11 @@ namespace fhatos {
   struct Subscription final : Rec {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {}
 
-    void post() const { ROUTER_WRITE(this->pattern()->query("sub"), this->shared_from_this(), true); }
+    void post() const { ROUTER_WRITE(this->pattern()->query("sub"), this->on_recv(), true); }
 
     explicit Subscription(const ID_p &source, const Pattern_p &pattern, const Obj_p &on_recv) :
         Rec(rmap({{"source", vri(source)}, {"pattern", vri(pattern)}, {"on_recv", on_recv}}), OType::REC,
-            SUBSCRIPTION_FURI) {}
+            id_p(FOS_URI "/q/sub/sub")) {}
 
     [[nodiscard]] ID_p source() const { return id_p(this->rec_get("source")->uri_value()); }
 

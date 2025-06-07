@@ -44,6 +44,10 @@ namespace fhatos {
                                                                              type_id, value_id) {
     }
 
+    static void register_module(const Obj_p& module) {
+
+    }
+
     ~QProc() override = default;
 
     virtual void loop() const {

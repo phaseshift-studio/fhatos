@@ -23,16 +23,17 @@
 #include "../../lang/mmadt/mmadt.hpp"
 #include "../../lang/obj.hpp"
 #include "../../lang/processor/processor.hpp"
-#include "s/fs/fs.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
 #include "s/dsm.hpp"
+#include "s/fs/fs.hpp"
 #include "s/heap.hpp"
 #include "sys/router/memory/memory.hpp"
 #include "sys/scheduler/thread/thread.hpp"
 #include "sys/typer/typer.hpp"
 #include "ui/button/button.hpp"
 #include "ui/console.hpp"
+#include "util/llm/ollama_server.hpp"
 #include "util/log.hpp"
 #include "util/poll.hpp"
 #include "util/text.hpp"
@@ -76,40 +77,43 @@ namespace fhatos {
       Memory::register_module();
       Typer::singleton()->end_progress_bar("!b/fos/s !ystructures!! installed");
       GPIO::register_module();
+      OllamaServer::register_module();
     }
 
     static void modules_fos_ui() {
-      REGISTERED_MODULES->insert_or_assign("/fos/ui", InstBuilder::build(Typer::singleton()->vid->add_component("/fos/ui"))
-                                                        ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
-                                                        ->inst_f([](const Obj_p &, const InstArgs &) {
-                                                          Button::import();
-                                                          Terminal::import();
-                                                          Console::import();
+      REGISTERED_MODULES->insert_or_assign("/fos/ui",
+                                           InstBuilder::build(Typer::singleton()->vid->add_component("/fos/ui"))
+                                               ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
+                                               ->inst_f([](const Obj_p &, const InstArgs &) {
+                                                 Button::import();
+                                                 Terminal::import();
+                                                 Console::import();
 #ifdef ARDUINO
-                                                          RGBLED::import();
-                                                          OLED::register_module();
+                                                 RGBLED::import();
+                                                 OLED::register_module();
 #endif
-                                                          return Obj::to_rec();
-                                                        })
-                                                        ->create());
+                                                 return Obj::to_rec();
+                                               })
+                                               ->create());
     }
 
     static void modules_fos_q() {
       REGISTERED_MODULES->insert_or_assign(
-          "/fos/q", InstBuilder::build(Typer::singleton()->vid->add_component("/fos/q"))
-                        ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
-                        ->inst_f([](const Obj_p &, const InstArgs &) {
-                          return Obj::to_rec({{vri(MESSAGE_FURI), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                                                               {"payload", Obj::to_bcode()},
-                                                                               {"retain", Obj::to_type(BOOL_FURI)}})},
-                                              {vri(SUBSCRIPTION_FURI), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                                                                    {"pattern", Obj::to_type(URI_FURI)},
-                                                                                    {"on_recv", Obj::to_bcode()}})},
-                                              {vri(Q_PROC_FURI), Obj::to_rec()},
-                                              {vri(Q_PROC_FURI->extend("sub")), Obj::to_rec()},
-                                              {vri(Q_PROC_FURI->extend("doc")), Obj::to_rec()}});
-                        })
-                        ->create());
+          FOS_URI "/q",
+          InstBuilder::build(Typer::singleton()->vid->add_component(FOS_URI "/q"))
+              ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
+              ->inst_f([](const Obj_p &, const InstArgs &) {
+                return Obj::to_rec({{vri(FOS_URI "/q/sub/msg"), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                                                             {"payload", Obj::to_bcode()},
+                                                                             {"retain", Obj::to_type(BOOL_FURI)}})},
+                                    {vri(FOS_URI "/q/sub/sub"), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                                                             {"pattern", Obj::to_type(URI_FURI)},
+                                                                             {"on_recv", Obj::to_bcode()}})},
+                                    {vri(FOS_URI "/q"), Obj::to_rec()},
+                                    {vri(FOS_URI "/q/sub"), Obj::to_rec()},
+                                    {vri(FOS_URI "/q/doc"), Obj::to_rec()}});
+              })
+              ->create());
     }
 
     static void modules_fos_io() {

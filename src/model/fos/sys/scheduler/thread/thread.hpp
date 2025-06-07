@@ -28,7 +28,7 @@ namespace fhatos {
   using namespace mmadt;
   class Thread;
   static auto this_thread = atomic<Thread *>(nullptr);
-  static ID_p THREAD_FURI = id_p(FOS_URI "/sys/thread");
+  static ID_p THREAD_FURI = id_p("/fos/sys/thread");
 
   class Thread {
   public:

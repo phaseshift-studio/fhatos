@@ -24,16 +24,11 @@
 #include "../../../../lang/mmadt/compiler.hpp"
 #include "../../../../lang/obj.hpp"
 
-#define FOS_URI "/fos"
-
 namespace fhatos {
   using std::const_pointer_cast;
   inline thread_local ptr<ProgressBar> type_progress_bar_;
-  static const ID_p Q_PROC_FURI = id_p(FOS_URI "/q");
-  static const ID_p MESSAGE_FURI = id_p(FOS_URI "/q/sub/msg");
-  static const ID_p SUBSCRIPTION_FURI = id_p(FOS_URI "/q/sub/sub");
 
-  inline auto REGISTERED_MODULES = new Map<ID,Inst_p>();
+  inline auto REGISTERED_MODULES = new Map<ID, Inst_p>();
 
   class Typer final : public Obj {
   protected:

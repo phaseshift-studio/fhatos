@@ -485,7 +485,8 @@ namespace fhatos {
         comps.emplace_back("");
       } else {
         fURI x = comps.back();
-        fURI next = x.empty() ? fURI(this->sprefix_ ? "/" : "").append(this->path_[i]) : x.extend(this->path_[i]);
+        fURI next =
+            x.empty() ? fURI(i == 0 && this->sprefix_ ? "/" : "").append(this->path_[i]) : x.extend(this->path_[i]);
         comps.pop_back();
         comps.push_back(next);
       }
@@ -562,9 +563,7 @@ namespace fhatos {
     const bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
     return result;
   }
-  bool fURI::is_subpattern(const fURI &pattern) const {
-    return this->matches(pattern) && !pattern.matches(*this);
-  }
+  bool fURI::is_subpattern(const fURI &pattern) const { return this->matches(pattern) && !pattern.matches(*this); }
   bool fURI::bimatches(const fURI &other) const { return this->matches(other) || other.matches(*this); }
   bool fURI::matches(const fURI &pattern) const {
     // if (this->has_query() || pattern.has_query()) {
