@@ -41,54 +41,35 @@ namespace fhatos {
     LOG_WRITE(INFO, thread.get(), L("testing {}\n", thread->toString()));
     FOS_TEST_FURI_EQUAL(*THREAD_FURI, PROCESS("*z.type()")->uri_value());
     FOS_TEST_OBJ_EQUAL(Obj::to_bool(true), thread->obj_get("halt")); // ensure created thread starts off halted
-    // PROCESS("abc -> 0"); // TODO: remove this and figure out why thread.loop() is being executed 18 times
-    // FOS_TEST_OBJ_EQUAL(Obj::to_noobj(),
-    //                   PROCESS("*abc")); // should be noobj else loop() is being pre-executed (i.e. block failing)
+    FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), PROCESS("*abc")); // should be noobj else loop() is being pre-executed (i.e. block failing)
     int counter = 0;
     PROCESS("/sys/scheduler::spawn(@z)"); // prev: test thread structure pre-spawn;
     // post: test thread structure post-spawn
     Thread::delay(50); // give thread time to execute for a while
-    Thread::yield();
-    Scheduler::singleton()->loop();
-    Router::singleton()->loop();
-    // FOS_TEST_OBJ_EQUAL(Obj::to_lst({vri("z")}),Scheduler::singleton()->obj_get("spawn")); // ensure scheduler posted
+    FOS_TEST_OBJ_EQUAL(Obj::to_lst({vri("z")}),Scheduler::singleton()->obj_get("spawn")); // ensure scheduler posted
     // thread furi
     FOS_TEST_FURI_EQUAL(*INT_FURI, PROCESS("*abc.type()")->uri_value());
     FOS_TEST_OBJ_NOT_EQUAL(Obj::to_noobj(), thread);
     TEST_ASSERT_FALSE(thread->obj_get("halt")->bool_value()); // ensure spawned thread isn't halted
     TEST_ASSERT_FALSE(PROCESS("*z/halt")->bool_value()); // ensure spawned thread isn't halted
-    Thread::delay(50); // give thread time to execute for a while
-    Thread::yield();
     counter = PROCESS("*abc")->int_value();
     TEST_ASSERT_GREATER_THAN_INT(0, counter);
     for(int i = 0; i < 50; i++) {
       Thread::delay(10);
-      Thread::yield();
       TEST_ASSERT_GREATER_THAN_INT(counter, PROCESS("*abc")->int_value());
       counter = PROCESS("*abc")->int_value();
-      std::this_thread::yield();
-      Scheduler::singleton()->loop();
-      Router::singleton()->loop();
     }
     PROCESS("z/halt -> true");
-    Scheduler::singleton()->loop();
-    Router::singleton()->loop();
-    Thread::delay(20);
-    Thread::yield();
-    Scheduler::singleton()->loop();
-    Router::singleton()->loop();
    // TEST_ASSERT_TRUE(PROCESS("*abc")->is_int());
    // counter = PROCESS("*abc")->int_value();
-    while(!thread->obj_get("halt")->is_noobj() && !thread->obj_get("halt")->bool_value()) {
-      Thread::yield();
+    while(!thread->obj_get("halt")->bool_value() &&
+          /*!Scheduler::singleton()->obj_get("spawn")->lst_value()->empty()*/true) {
+      Thread::delay(10);
       Scheduler::singleton()->loop();
       Router::singleton()->loop();
     }
-    FOS_TEST_OBJ_EQUAL(Obj::to_lst(), Scheduler::singleton()->obj_get("spawn")); // ensure scheduler removed thread furi
-    //    TEST_ASSERT_TRUE(thread->obj_get("halt")->bool_value()); // ensure spawned thread is halted
-    // TEST_ASSERT_TRUE(PROCESS("*z/halt")->bool_value());
+    //FOS_TEST_OBJ_EQUAL(Obj::to_lst(), Scheduler::singleton()->obj_get("spawn")); // ensure scheduler removed thread furi
     //    TEST_ASSERT_EQUAL(counter,PROCESS("*abc")->int_value()); // make sure thread isn't continuing after halting
-    PROCESS("z/config -> noobj");
     // FOS_TEST_OBJ_EQUAL(thread,PROCESS("*z")); // TODO: uncomment when spawn halts at the obj
   }
 
