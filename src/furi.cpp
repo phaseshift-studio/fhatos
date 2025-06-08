@@ -338,6 +338,8 @@ namespace fhatos {
     }
   }
   fURI fURI::retract(const int steps) const {
+    if(0 == steps)
+      return *this;
     /// pathless clone
     auto new_uri = fURI(*this);
     new_uri.delete_path();
@@ -378,6 +380,8 @@ namespace fhatos {
     }
   }
   fURI fURI::pretract(const int steps) const {
+    if(0 == steps)
+      return *this;
     /// pathless clone
     auto new_uri = fURI(*this);
     new_uri.delete_path();
@@ -389,7 +393,7 @@ namespace fhatos {
         new_uri.path_[i - steps] = strdup(this->path_[i]);
       }
       new_uri.spostfix_ = this->spostfix_;
-      new_uri.sprefix_ = this->sprefix_;
+      new_uri.sprefix_ = false;
     } else {
       new_uri.spostfix_ = false;
       new_uri.sprefix_ = false;

@@ -64,10 +64,10 @@ namespace fhatos {
                       InstBuilder::build(ID(LLM_MODEL_TID).add_component("setup"))
                           ->inst_f([](const Uri_p &model_obj, const InstArgs &args) {
                             if(model_obj->vid) {
-                              Subscription::create(id_p(model_obj->vid),
-                                                   p_p(model_obj->vid->extend("#")),
+                              Subscription::create(id_p(model_obj->vid), p_p(model_obj->vid->extend("#")),
                                                    [&model_obj](const Obj_p &payload, const InstArgs &) {
-                                                     const Str_p response = Obj::load(model_obj->vid)->inst_apply("query", {payload});
+                                                     const Str_p response =
+                                                         Obj::load(model_obj->vid)->inst_apply("query", {payload});
                                                      Terminal::singleton()->STD_OUT_DIRECT(response);
                                                      return Obj::to_noobj();
                                                    })
@@ -85,12 +85,28 @@ namespace fhatos {
                                                                ->uri_value()
                                                                .toString();
                             try {
-                              return Obj::to_str(Ollama(server_endpoint)
-                                                     .generate(model_obj->rec_get("name")->uri_value().toString(),
-                                                               args->arg("message")->str_value())
-                                                     .as_simple_string());
+                              auto request = ollama::request(model_obj->rec_get("name")->uri_value().toString(),
+                                                             args->arg("message")->str_value(), ollama::json::parse(R"(
+  {
+    "tools": ["mmadt"]
+  }
+)"),
+                                                             true);
+                              const bool result =
+                                  Ollama(server_endpoint)
+                                      .generate(request, [](const ollama::response &response) -> bool {
+                                        Terminal::singleton()->STD_OUT_DIRECT(Obj::to_str(response.as_simple_string()));
+                                        return true;
+                                      });
+                              if(!result)
+                                throw fError("an error occurred while evaluating query %s",
+                                             args->arg("message")->toString().c_str());
+                              Terminal::singleton()->STD_OUT_DIRECT(Obj::to_str("\n"));
+                              return model_obj;
                             } catch(const ollama::exception &e) {
-                              throw fError("an ollama exception occurred: %s", e.what());
+                              throw fError("!yan ollama !rexception !yoccurred!!: %s", e.what());
+                            } catch(const nlohmann::detail::exception &e) {
+                              throw fError("!yan ollama !rjson exception !yoccurred!!: %s", e.what());
                             }
                           })
                           ->create()}});

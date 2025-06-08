@@ -2,9 +2,11 @@
 #include "../build/_deps/catch2-src/src/catch2/catch_test_macros.hpp"
 #include "../build/_deps/catch2-src/src/catch2/benchmark/catch_benchmark.hpp"
 #include "../src/lang/obj.hpp"
+#include "../src/util/print_helper.hpp"
 
 using namespace fhatos;
 TEST_CASE("basic int construction", "[basic_int]" ) {
+  PrintHelper::import();
   INFO("testing int");
   REQUIRE( jnt(1)->int_value() == 1 );
   REQUIRE( *jnt(1) == *jnt(1) );

@@ -352,32 +352,32 @@ namespace fhatos {
 
   void test_lst() {
     Typer::singleton()->save_type("/obj/ones", Obj::to_lst({jnt(1), jnt(1), jnt(1)}));
-    const Lst lstA = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
-    const Lst lstB = *Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
-    const Lst lstC = *Obj::to_lst({jnt(2), jnt(3), jnt(4)});
-    const Lst lstD = *Obj::to_lst({jnt(1), jnt(2), jnt(3)});
-    FOS_TEST_OBJ_EQUAL(&lstA, &lstB);
-    FOS_TEST_OBJ_EQUAL(&lstB, &lstA);
-    FOS_TEST_OBJ_NTEQL(&lstA, &lstC);
-    FOS_TEST_OBJ_NTEQL(&lstB, &lstC);
-    TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
-    TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
-    TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
-    lstD.lst_set(jnt(3), jnt(4));
-    FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
-    FOS_TEST_OBJ_EQUAL(&lstD, &lstA);
-    lstC.lst_set(4, jnt(5));
-    FOS_TEST_OBJ_EQUAL(Obj::to_lst({jnt(2), jnt(3), jnt(4), Obj::to_noobj(), jnt(5)}), &lstC);
-    FOS_TEST_OBJ_NTEQL(&lstC, &lstA);
+    const Lst_p lstA = Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
+    const Lst_p lstB = Obj::to_lst({jnt(1), jnt(2), jnt(3), jnt(4)});
+    const Lst_p lstC = Obj::to_lst({jnt(2), jnt(3), jnt(4)});
+    const Lst_p lstD = Obj::to_lst({jnt(1), jnt(2), jnt(3)});
+    FOS_TEST_OBJ_EQUAL(lstA.get(), lstB.get());
+    FOS_TEST_OBJ_EQUAL(lstB.get(), lstA.get());
+    FOS_TEST_OBJ_NTEQL(lstA.get(), lstC.get());
+    FOS_TEST_OBJ_NTEQL(lstB.get(), lstC.get());
+    TEST_ASSERT_EQUAL_INT(4, lstA->lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(4, lstB->lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(3, lstC->lst_value()->size());
+    lstD->lst_set(jnt(3), jnt(4));
+    FOS_TEST_OBJ_NTEQL(lstC.get(), lstA.get());
+    FOS_TEST_OBJ_EQUAL(lstD.get(), lstA.get());
+    lstC->lst_set(4, jnt(5));
+    FOS_TEST_OBJ_EQUAL(Obj::to_lst({jnt(2), jnt(3), jnt(4), Obj::to_noobj(), jnt(5)}).get(), lstC.get());
+    FOS_TEST_OBJ_NTEQL(lstC.get(), lstA.get());
     for(int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA.lst_get(jnt(i)));
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstB.lst_get(jnt(i)));
-      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstD.lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA->lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstB->lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstD->lst_get(jnt(i)));
     }
     const Lst_p lstE = Obj::to_lst({jnt(1), jnt(1), jnt(1)});
     FOS_TEST_OBJ_EQUAL(Obj::to_uri("/obj/ones"), Obj::to_uri(*(lstE->as(id_p("/obj/ones"))->tid)));
     try {
-      Obj_p x = lstA.as(id_p("ones"));
+      Obj_p x = lstA->as(id_p("ones"));
       LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
       TEST_FAIL_MESSAGE("should throw exception");
     } catch(const fError &) {

@@ -57,13 +57,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_printer(const ptr<Ansi<>> &ansi) {
-      Options::singleton()->printer<Ansi<>>(ansi);
-      return Kernel::build();
-    }
-
     static ptr<Kernel> with_ansi_color(const bool use_ansi) {
-      Options::singleton()->printer<Ansi<>>()->ansi_switch(use_ansi);
+      Ansi<>::singleton()->ansi_switch(use_ansi);
       return Kernel::build();
     }
 

@@ -59,7 +59,8 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
   public:
-    static ptr<Kernel> primary_boot(ArgvParser *args_parser) {
+    static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
+      PrintHelper::import();
       std::srand(std::time(nullptr));
       try {
 #ifdef CONFIG_SPIRAM_USE
@@ -68,7 +69,6 @@ namespace fhatos {
 #endif
         const ptr<Kernel> kp = Kernel::build()
                                    ->start_timer()
-                                   ->using_printer(Ansi<>::singleton())
                                    ->with_ansi_color(args_parser->option_bool("--ansi", true))
                                    ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
@@ -114,31 +114,8 @@ namespace fhatos {
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evalulating_setup()->stop_timer();
-        /*
-                    ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
-                    ->drop_config("log")
-                    ->mount(Heap<>::create("+/#", id_p("/mnt/cache")))
-                    ->mount(FS::create("/fs/#", id_p("/mnt/fs"), Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
-        "/fs")))
-                    ->drop_config("fs")
-        #ifdef ESP_PLATFORM
-                    ->mount(Heap<>::create("/sensor/#", id_p("/mnt/sensor")))
-                    ->display_note("!r.!go!bO !ycreating !bwifi !ymodel!! !bO!go!r.!!")
-                    ->install(
-                        *__(WIFIx::obj(Obj::to_rec({{"halt", dool(false)},
-                                                    {"config", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID
-        "/wifi")}}),
-                                       "/io/wifi"))
-                             .inst("connect")
-                             .compute()
-                             .begin())
-                    ->drop_config("wifi")
-                    /*->install(*__(OTA::obj({{"halt", dool(false)},
-                                             {"config", __().from(FOS_BOOT_CONFIG_VALUE_ID "/ota").compute().next()}},
-                                           "/io/ota")).inst("start").compute().begin())
-        // ->drop_config("ota")
-        // #endif
-         });*/
+        /* ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
+                    ->drop_config("log");*/
       } catch(const fError &e) {
         LOG_WRITE(ERROR, Obj::to_noobj().get(),
                   L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));

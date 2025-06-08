@@ -358,6 +358,10 @@ namespace fhatos {
     LOG(ERROR, "!RESOLVE_INST!! undefined at this point in bootstrap\n");
     return nullptr;
   };
+  inline BiFunction<const Obj_p &, const ObjPrinter *, string> PRINT_OBJ = [](const Obj_p &, const ObjPrinter *) {
+    LOG(ERROR, "!PRINT_OBJ!! undefined at this point in bootstrap\n");
+    return "";
+  };
   inline Runnable FEED_WATCHDOG = []() {
 #ifdef ESP_PLATFORM
     // esp_task_wdt_reset();
@@ -880,7 +884,7 @@ namespace fhatos {
       return this->rec_get(uri_key);
     }
 
-    [[nodiscard]] bool is_inst_stub() const { return this->is_noobj() || !this->has_inst_f(); }
+    [[nodiscard]] bool is_inst_stub() const { return this->is_noobj() || (this->is_inst() && !this->has_inst_f()); }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Obj_p &or_else = nullptr) const {
       if(!this->is_rec())
@@ -1454,203 +1458,7 @@ namespace fhatos {
 
     // TODO: make obj.cpp/hpp and then reference PrinterHelper for printing
     [[nodiscard]] string toString(const ObjPrinter *obj_printer = nullptr) const {
-      if(!obj_printer)
-        obj_printer = GLOBAL_PRINTERS.at(this->otype);
-      string obj_string;
-      if(this->is_noobj())
-        obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
-      else {
-        switch(this->otype) {
-          case OType::BOOL:
-            obj_string = this->bool_value() ? "!ytrue!!" : "!yfalse!!";
-            break;
-          case OType::INT:
-            obj_string = std::to_string(this->int_value());
-            break;
-          case OType::REAL:
-            obj_string = fmt::format("{:.5f}", this->real_value());
-            break;
-          case OType::URI:
-            obj_string = "!_" +
-                         (obj_printer->strict || this->uri_value().empty() ? "<" + this->uri_value().toString() + ">"
-                                                                           : this->uri_value().toString()) +
-                         "!!";
-            break;
-          case OType::STR:
-            obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
-            break;
-          case OType::LST: {
-            if(this->lst_value()->empty())
-              obj_string = "!m[]!!";
-            else {
-              obj_string = "!m[!!";
-              bool first = true;
-              for(const auto &obj: *this->lst_value()) {
-                if(first) {
-                  first = false;
-                } else {
-                  obj_string += "!m,!!";
-                }
-                obj_string += obj->toString(obj_printer->next());
-              }
-              obj_string += "!m]!!";
-            }
-            break;
-          }
-          case OType::REC: {
-            if(this->rec_value()->empty())
-              obj_string = "!m[!y=>!m]!!";
-            else {
-              obj_string = "!m[!!";
-              bool first = true;
-              for(const auto &[k, v]: *this->rec_value()) {
-                if(first) {
-                  first = false;
-                } else {
-                  obj_string += "!m,";
-                }
-                obj_string += "!c";
-                obj_string += k->toString(obj_printer->next()); // {ansi=false});
-                obj_string += "!y=>!!";
-                obj_string += v->toString(obj_printer->next());
-              }
-              obj_string += "!m]!!";
-            }
-            break;
-          }
-          case OType::INST: {
-            bool first = true;
-            for(const auto &[k, v]: *this->inst_args()->rec_value()) {
-              if(first) {
-                first = false;
-              } else {
-                obj_string += "!m,!!";
-              }
-              if(!k->is_indexed_arg()) {
-                obj_string += "!c";
-                obj_string += k->toString(obj_printer->next());
-                obj_string += "!g=>!!";
-              }
-              obj_string += v->toString();
-            }
-            break;
-          }
-          case OType::BCODE: {
-            if(this->bcode_value()->empty())
-              obj_string = "_";
-            else {
-              // objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
-              bool first = true;
-              for(const auto &inst: *this->bcode_value()) {
-                if(first) {
-                  first = false;
-                } else {
-                  obj_string += "!g.!!";
-                }
-                obj_string += inst->toString(GLOBAL_PRINTERS.at(OType::OBJ));
-              }
-              // objString += "!g]!!";
-            }
-            break;
-          }
-          case OType::OBJS: {
-            obj_string += "!m{!!";
-            bool first = true;
-            for(const auto &obj: *this->objs_value()) {
-              if(first) {
-                first = false;
-              } else {
-                obj_string += "!m,!!";
-              }
-              obj_string += obj->toString(obj_printer->next());
-            };
-            obj_string += "!m}!!";
-            break;
-          }
-          case OType::ERROR: {
-            obj_string = "!r<<!!";
-            obj_string += this->error_value().first->toString(obj_printer->next());
-            obj_string += "!r@!!";
-            obj_string += this->error_value().second->toString(obj_printer->next());
-            obj_string += "!r>>!!";
-            break;
-          }
-          case OType::NOOBJ: {
-            obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!"; // TODO: repeated above (is_noobj()) to skip the typing checks
-            break;
-          }
-          case OType::TYPE: {
-            obj_string = this->type_value()->toString();
-            break;
-          }
-          case OType::OBJ: {
-            obj_string = this->vid_or_tid()->toString();
-            break;
-          }
-          default:
-            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->otype).c_str());
-        }
-      }
-      if(!this->is_noobj() &&
-         (this->is_type() || this->is_inst() || (obj_printer->show_type && !this->is_base_type()))) {
-        string typing;
-        if(this->is_type())
-          typing += "!m[!!";
-        typing +=
-            this->is_base_type() && !this->is_inst() && !this->is_type() && !this->is_uri()
-                ? ""
-                : string("!b").append(obj_printer->strict ? this->tid->toString() : this->tid->name()).append("!!");
-        // TODO: remove base_type check
-        if(obj_printer->show_domain_range) {
-          const string dom_str = this->has_domain(1, 1) && !obj_printer->strict ? ""
-                                 : this->has_domain(0, 1)                       ? "?"
-                                 : this->has_domain(1, INT_MAX)                 ? "+"
-                                 : this->is_initial()                           ? "."
-                                 : this->is_gather()                            ? "*"
-                                                     : to_string(this->domain_coefficient().first)
-                                                           .append(",")
-                                                           .append(to_string(this->domain_coefficient().second));
-          const string rng_str = this->has_range(1, 1) && !obj_printer->strict ? ""
-                                 : this->has_range(0, 1)                       ? "?"
-                                 : this->has_range(1, INT_MAX)                 ? "+"
-                                 : this->is_terminal()                         ? "."
-                                 : this->is_scatter()                          ? "*"
-                                                      : to_string(this->range_coefficient().first)
-                                                            .append(",")
-                                                            .append(to_string(this->range_coefficient().second));
-
-          if(!dom_str.empty() || !rng_str.empty()) {
-            typing = typing.append("!m?!!")
-                         .append("!c")
-                         .append(obj_printer->strict ? this->range()->toString() : this->range()->name())
-                         .append(rng_str.empty() ? "" : string("!m{!c").append(rng_str).append("!m}!!"))
-                         .append("!m<=!!")
-                         .append("!c")
-                         .append(obj_printer->strict ? this->domain()->toString() : this->domain()->name())
-                         .append(dom_str.empty() ? "" : string("!m{!c").append(dom_str).append("!m}!!"));
-          }
-        }
-        if(this->is_type())
-          typing += "!m]!!";
-        obj_string = this->is_base_type() && !this->is_inst() && !this->is_type()
-                         ? typing.append(obj_string)
-                         : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
-                               .append(obj_string)
-                               .append(this->is_inst() ? "!g)!!" : "!g]!!");
-
-        if(this->is_inst() && this->has_inst_f()) {
-          obj_string =
-              obj_string.append("!g[!!")
-                  .append(std::holds_alternative<Obj_p>(this->inst_f()) ? std::get<Obj_p>(this->inst_f())->toString()
-                                                                        : "!ycpp!!")
-                  .append("!g]!!");
-        }
-      }
-      if(obj_printer->show_id && this->vid)
-        obj_string.append("!m@!b").append(this->vid->toString()).append("!!");
-
-      obj_string = obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
-      return std::move(obj_string);
+      return std::move(PRINT_OBJ(this->shared_from_this(), obj_printer));
     }
 
     [[nodiscard]] int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }

@@ -87,7 +87,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(Obj::to_str("hello"), PROCESS("'hello'.as(str)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_str("/a/b/c"), PROCESS("/a/b/c.as(str)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_str("fhat:/a/b/c?d=e"), PROCESS("<fhat:/a/b/c?d=e>.as(str)"));
-    FOS_TEST_OBJ_EQUAL(Obj::to_str("46.23000"), PROCESS("real[46.23].as(str)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_str("46.230000"), PROCESS("real[46.23].as(str)"));
   }
 
   void test_ref_inst() {

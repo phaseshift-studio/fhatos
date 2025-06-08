@@ -36,9 +36,9 @@ namespace fhatos {
   class Router final : public Rec {
   protected:
     const ptr<MutexDeque<Structure_p>> structures_;
-    std::vector<Uri_p> auto_prefixes_;
 
   public:
+    std::vector<Uri_p> auto_prefixes_;
     ~Router() override = default;
 
     explicit Router(const ID &id);
