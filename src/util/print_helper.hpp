@@ -320,8 +320,8 @@ namespace fhatos {
                 ss << "!m[!ycpp!!";
               }
               ss << "!m]!!";
-            } else
-              ss << "!m[!rnoobj!m]!!";
+            } /*else
+              ss << "!m[!rnoobj!m]!!";*/
             break;
           }
           case OType::BCODE: {
