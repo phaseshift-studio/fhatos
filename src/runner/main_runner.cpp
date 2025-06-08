@@ -51,7 +51,7 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 }
 
 int main(int arg, char **argsv) {
-  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());
+  PrintHelper::import();
   try {
     char *args[5];
     args[0] = "main_runner";
