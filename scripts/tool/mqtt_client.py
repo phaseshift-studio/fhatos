@@ -1,19 +1,23 @@
 """
 id: mqtt_client
-title: MQTT Client
+title: MQTT OpenWeb UI LLM Client Tool
 description: Enable an LLM to connect to an MQTT broker in order to publish messages and subscribe to topics.
 author: Dr. Stynx
 author_url: https://github.com/phaseshift-studio
 funding_url: https://github.com/sponsors/phaseshift-studio
 version: 0.0.1
 license: BSD 3.0
+requirements: paho-mqtt
 """
-from paho.mqtt import MQTTException
+from typing import Any, Callable, Optional
 from pydantic import BaseModel, Field
 import paho.mqtt.client as mqtt
+from paho.mqtt import MQTTException
 import json
 
-""" ANSI color codes """
+##############################
+###### ANSI Color Codes ######
+##############################
 BLACK = '\u001b[0;30m'
 RED = '\u001b[0;31m'
 GREEN = '\u001b[0;32m'
@@ -28,26 +32,93 @@ LIGHT_GREEN = '\u001b[1;32m'
 MUSTARD = '\u001b[1;33m'
 LIGHT_BLUE = '\u001b[1;34m'
 LIGHT_PURPLE = '\u001b[1;35m'
-# LIGHT_CYAN = "\u001b[1;36m"
-# LIGHT_WHITE = "\u001b[1;37m"
 BOLD = '\u001b[1m'
-# FAINT = "\u001b[2m"
-# ITALIC = "\u001b[3m"
-# UNDERLINE = "\u001b[4m"
-# BLINK = "\u001b[5m"
-# NEGATIVE = "\u001b[7m"
-# CROSSED = "\u001b[9m"
 NC = '\u001b[0m'
 
 
+##############################
+##############################
+
+
+# (EventEmitter class definition as provided in the template notes)
+class EventEmitter:
+    def __init__(self, event_emitter: Callable[[dict], Any] = None):
+        self.event_emitter = event_emitter
+
+    async def progress_update(self, description: str):
+        await self.emit_status("status", description)
+
+    async def error_update(self, description: str):
+        await self.emit_status("status", description, "error", True)
+
+    async def success_update(self, description: str):
+        await self.emit_status("status", description, "success", True)
+
+    async def notify(self, type: str = "info", content: str = ""):
+        await self.emit_notification(type, content)
+
+    async def emit_notification(
+            self,
+            type: str = "info",
+            content: str = "no content",
+    ):
+        if self.event_emitter:
+            await self.event_emitter(
+                {
+                    "type": "notification",
+                    "data": {
+                        "type": type,
+                        "content": content,
+                    },
+                }
+            )
+
+    async def emit_status(
+            self,
+            description: str = "no description",
+            status: str = "in_progress",
+            done: bool = False,
+    ):
+        if self.event_emitter:
+            await self.event_emitter(
+                {
+                    "type": "status",
+                    "data": {
+                        "status": status,
+                        "description": description,
+                        "done": done,
+                    },
+                }
+            )
+
+    async def append_message(
+            self,
+            content: str = "no content",
+    ):
+        if self.event_emitter:
+            await self.event_emitter(
+                {
+                    "type": "chat:message:delta",
+                    "data": {
+                        "content": content
+                    },
+                }
+            )
+
+
 class MqttHelper:
-    def on_connect(client: mqtt, userdata, flags, reason_code):
-        print(f"Connected with result code {reason_code}")
-        # Subscribe to the topic when connected
+    def __init__(self, event_emitter: EventEmitter):
+        self.event_emitter = event_emitter
+
+    def on_connect(self, client: mqtt, userdata, flags, reason_code):
+        if 0 == reason_code:
+            self.event_emitter.notify(type="info",
+                                      content="model connected to broker")
         client.subscribe("#")
 
-    def on_message(client: mqtt, userdata, msg):
+    def on_message(self, client: mqtt, userdata, msg):
         print(f"{msg.topic} {str(msg.payload)}")
+        self.event_emitter.emit_notification(type="info", content=f"{msg.topic} {str(msg.payload)}")
 
 
 class Tools:
@@ -69,25 +140,37 @@ class Tools:
             default="INFO",
             description=f"The string log level of the mqtt client; may be overridden by environment variable {_VALVE_OVERRIDE_ENVIRONMENT_VARIABLE_NAME_PREFIX}MQTT_CLIENT_LOG_LEVEL."
         )
+        OLLAMA_SERVER_URI: str = Field(
+            default="localhost",
+            description=f"The uri of the ollama server REST endpoint; may be overridden by environment variable {_VALVE_OVERRIDE_ENVIRONMENT_VARIABLE_NAME_PREFIX}OLLAMA_SERVER_URI."
+        )
+        OLLAMA_SERVER_PORT: int = Field(
+            default=11434,
+            description=f"The port of the ollama server REST endpoint; may be overridden by environment variable {_VALVE_OVERRIDE_ENVIRONMENT_VARIABLE_NAME_PREFIX}OLLAMA_PORT_URI."
+        )
 
     def __init__(self):
         self.valves = self.Valves()
         self.citation = True
+        self.helper = None
         self.client = mqtt.Client(
             client_id=self.valves.MQTT_CLIENT, protocol=mqtt.MQTTv311
         )
         self.client.enable_logger()
         self.client.logger.setLevel(self.valves.MQTT_CLIENT_LOG_LEVEL)
-        self.client.on_connect = MqttHelper.on_connect
-        self.client.on_message = MqttHelper.on_message
         pass
 
     #########################################################3
 
-    def connect(self, client_id: str | None = None) -> str:
+    async def connect(self, client_id: Optional[str] = None,
+                      __event_emitter__: Callable[[dict], Any] = None) -> str:
         """
         Connect to an MQTT broker
         """
+        event_emitter = EventEmitter(__event_emitter__)
+        self.helper = MqttHelper(event_emitter)
+        self.client.on_connect = self.helper.on_connect
+        self.client.on_message = self.helper.on_message
         if self.client.is_connected():
             return json.dumps(
                 {
@@ -108,6 +191,10 @@ class Tools:
             self.client.enable_logger()
             self.client.logger.setLevel(self.valves.MQTT_CLIENT_LOG_LEVEL)
         result = self.client.connect(self.valves.MQTT_BROKER_URI, self.valves.MQTT_BROKER_PORT)
+        await event_emitter.notify(type="success",
+                                   content="model is connected to broker {broker}:{port}".format(
+                                       broker=self.valves.MQTT_BROKER_URI,
+                                       port=self.valves.MQTT_BROKER_PORT))
         self.client.loop_start()
         return json.dumps(
             {
@@ -119,12 +206,13 @@ class Tools:
             }
         )
 
-    def publish(self, topic: str, message: str, retain: bool = True) -> str:
+    async def publish(self, topic: str, message: str, retain: bool = True,
+                      __event_emitter__: Callable[[dict], Any] = None) -> str:
         """
         Publish a message to a topic on the connected MQTT broker
         """
         if not self.client.is_connected():
-            self.connect()
+            await self.connect(client_id=None, __event_emitter__=__event_emitter__)
         self.client.logger.info(
             "[{G}MQTT_CLIENT TOOL{NC}] model is publishing %s to the topic %s at %s".format(G=GREEN, NC=NC),
             message,
@@ -133,6 +221,9 @@ class Tools:
         )
         try:
             result = self.client.publish(topic=topic, payload=message, retain=retain)
+            event_emitter = EventEmitter(__event_emitter__)
+            await event_emitter.notify(type="info", content="model published to {topic}: {payload}".format(topic=topic,
+                                                                                                           payload=message))
             result.wait_for_publish(5.0)  # wait for 5 seconds on publish
             return json.dumps(
                 {
@@ -161,12 +252,12 @@ class Tools:
                 }
             )
 
-    def subscribe(self, topic: str) -> str:
+    def subscribe(self, topic: str, __event_emitter__: Callable[[dict], Any] = None) -> str:
         """
         Subscribe to a topic on the connected MQTT broker
         """
         if not self.client.is_connected():
-            self.connect()
+            self.connect(client_id=None, __event_emitter__=__event_emitter__)
         self.client.logger.info(
             "[{G}MQTT_CLIENT TOOL{NC}] model is subscribing to the topic %s at %s".format(G=GREEN, NC=NC),
             topic,
