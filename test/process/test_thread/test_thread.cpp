@@ -47,7 +47,6 @@ namespace fhatos {
     // post: test thread structure post-spawn
     Thread::delay(50); // give thread time to execute for a while
     FOS_TEST_OBJ_EQUAL(Obj::to_lst({vri("z")}),Scheduler::singleton()->obj_get("spawn")); // ensure scheduler posted
-    // thread furi
     FOS_TEST_FURI_EQUAL(*INT_FURI, PROCESS("*abc.type()")->uri_value());
     FOS_TEST_OBJ_NOT_EQUAL(Obj::to_noobj(), thread);
     TEST_ASSERT_FALSE(thread->obj_get("halt")->bool_value()); // ensure spawned thread isn't halted
@@ -60,16 +59,15 @@ namespace fhatos {
       counter = PROCESS("*abc")->int_value();
     }
     PROCESS("z/halt -> true");
-   // TEST_ASSERT_TRUE(PROCESS("*abc")->is_int());
-   // counter = PROCESS("*abc")->int_value();
-    while(!thread->obj_get("halt")->bool_value() &&
-          /*!Scheduler::singleton()->obj_get("spawn")->lst_value()->empty()*/true) {
+    TEST_ASSERT_TRUE(PROCESS("*abc")->is_int());
+    counter = PROCESS("*abc")->int_value();
+    while(/*!thread->obj_get("halt")->bool_value() &&*/
+          !Scheduler::singleton()->obj_get("spawn")->lst_value()->empty()) {
       Thread::delay(10);
-      Scheduler::singleton()->loop();
       Router::singleton()->loop();
     }
     //FOS_TEST_OBJ_EQUAL(Obj::to_lst(), Scheduler::singleton()->obj_get("spawn")); // ensure scheduler removed thread furi
-    //    TEST_ASSERT_EQUAL(counter,PROCESS("*abc")->int_value()); // make sure thread isn't continuing after halting
+    //TEST_ASSERT_EQUAL(counter,PROCESS("*abc")->int_value()); // make sure thread isn't continuing after halting
     // FOS_TEST_OBJ_EQUAL(thread,PROCESS("*z")); // TODO: uncomment when spawn halts at the obj
   }
 

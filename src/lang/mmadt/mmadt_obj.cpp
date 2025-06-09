@@ -149,7 +149,7 @@ namespace mmadt {
 
               InstBuilder::build(MMADT_PREFIX "start")
                   ->domain_range(NOOBJ_FURI, {0, 0}, OBJS_FURI, {0, INT_MAX})
-                  ->inst_args(lst({Obj::to_bcode()}))
+                  ->inst_args_objs(__())
                   ->inst_f([](const Obj_p &, const InstArgs &args) {
                     return args->arg(0)->is_objs()
                                ? args->arg(0)->objs_value()->empty() ? Obj::to_noobj() : args->arg(0)

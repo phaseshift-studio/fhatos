@@ -206,4 +206,15 @@ FUNCTION(CREATE_TARGET TARGET_NAME)
     MESSAGE(CHECK_START "${.y}making cpp-peglib library${..}")
     MESSAGE(NOTICE "\t${.r}IMPORTANT${..}: ${.m}cpp-peglib${..} distributed w/ ${.FHATOS} via ${.b}language/util/peglib.h${..} (altered for microprocessor architectures).")
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ####################################
+    ####################################
+    ### AVAHI: A C++ MDNS CLIENT
+    MESSAGE(CHECK_START "${.y}making avahi-client library${..}")
+    FIND_LIBRARY(AVAHI_CLIENT_LIBRARY NAMES avahi-client)
+    FIND_LIBRARY(AVAHI_COMMON_LIBRARY NAMES avahi-common)
+    #FIND_PATH(AVAHI_CLIENT_INCLUDE_DIR avahi-client/client.h)
+    #FIND_PATH(AVAHI_INCLUDE_DIR NAMES avahi-common/watch.h)
+    FIND_LIBRARY(AVAHI_CLIENT_LIBRARY NAMES avahi-client)
+    TARGET_LINK_LIBRARIES(${TARGET_NAME} PUBLIC avahi-client avahi-common)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDFUNCTION()

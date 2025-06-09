@@ -207,8 +207,7 @@ namespace fhatos {
         else
           LOG_WRITE(INFO, this, L("!b{} !ytypes!! imported!!\n", pretracted_module_id));
       } else {
-        LOG_WRITE(ERROR, module.get(),
-                  L("!b{} !ymodule !rnot a rec!!: {}\n", module_furi.toString(), module->toString()));
+        LOG_WRITE(WARN, this, L("!b{} !ymodule(s) !rnot!! available\n", module_furi.toString()));
       }
     }
   }
@@ -243,15 +242,15 @@ namespace fhatos {
     }
   }
   void Typer::save_type(const ID &type_id, const Obj_p &type_def) const {
-   /* bool allow = nullptr == this->filters || this->filters->empty();
-    if(!allow) {
-      for(const fURI &furi: *this->filters) {
-        if(type_id.matches(furi)) {
-          allow = true;
-          break;
-        }
-      }
-    }*/
+    /* bool allow = nullptr == this->filters || this->filters->empty();
+     if(!allow) {
+       for(const fURI &furi: *this->filters) {
+         if(type_id.matches(furi)) {
+           allow = true;
+           break;
+         }
+       }
+     }*/
     if(true) {
       try {
         const Obj_p current = ROUTER_READ(type_id);

@@ -106,9 +106,7 @@ namespace fhatos {
             ->import_module("/fos/s/#") //  structures
             ->import_module("/fos/q") // query processors
             ->import_module("/fos/sys/#") //  sys
-#ifdef ESP_PLATFORM
             ->import_module("/fos/net/#") //  net
-#endif
             ->import_module("/fos/llm/#") // llm
             ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////

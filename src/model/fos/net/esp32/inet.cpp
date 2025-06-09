@@ -16,44 +16,26 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#pragma once
-#ifndef fhatos_fmutex_hpp
-#define fhatos_fmutex_hpp
-#include <any>
-#include "../../../../../fhatos.hpp"
-#include <shared_mutex>
+#ifdef ESP_PLATFORM
+#include "../inet.hpp"
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266mDNS.h>
+// #include <ESPAsyncTCP.h>
+#define WIFI_MULTI_CLIENT ESP8266WiFiMulti
+#elif defined(ESP32)
+#include <ESPmDNS.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#define WIFI_MULTI_CLIENT WiFiMulti
+#endif
 
 namespace fhatos {
-  using namespace std;
+  ID Inet::mdns() { return WiFi.isConnected() ? ID(MDNS.hostname(1).c_str()) : ""; }
+  Rec_p Inet::ip_addresses() {
+    return WiFi.isConnected() ? Obj::to_rec({{"wifi", vri(WiFi.localIP().toString().c_str())}}) : Obj::to_rec();
+  }
 
-  // calling lock twice from the same thread will deadlock
-  class Mutex final {
-  protected:
-    mutable std::any handler_;
-
-  public:
-    Mutex();
-
-    ~Mutex();
-
-    void lock_shared();
-
-    void unlock_shared();
-
-    void lock();
-
-    void unlock();
-  };
-
-  class LockGuard {
-    Mutex *mutex_;
-
-  public:
-    explicit LockGuard(Mutex &m) : mutex_(&m) {}
-
-    ~LockGuard() { this->mutex_->unlock(); }
-
-    LockGuard(const LockGuard &) = delete;
-  };
 } // namespace fhatos
 #endif

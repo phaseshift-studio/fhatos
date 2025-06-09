@@ -180,11 +180,7 @@ namespace fhatos {
     static Objs_p compute(const string &bcode) { return Processor::compute(OBJ_PARSER(bcode)); }
 
     static void register_module() {
-      BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p {
-        const Objs_p objs = Processor::compute(bcode);
-        return objs;
-        // return nullptr == objs ? Obj::to_noobj() : objs;
-      };
+      BCODE_PROCESSOR = [](const BCode_p &bcode) -> Objs_p { return Processor::compute(bcode); };
       REGISTERED_MODULES->insert_or_assign(
           PROCESSOR_TID, InstBuilder::build(Typer::singleton()->vid->add_component(PROCESSOR_TID))
                              ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})

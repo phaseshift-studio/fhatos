@@ -19,7 +19,7 @@ FhatOS: A Distributed Operating System
 #pragma once
 #ifndef fhatos_ollama_server_hpp
 #define fhatos_ollama_server_hpp
-
+#ifdef NATIVE
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/util/ollama.hpp"
 #include "../../../../util/helper.hpp"
@@ -125,4 +125,5 @@ namespace fhatos {
     }
   };
 } // namespace fhatos
+#endif
 #endif

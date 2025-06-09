@@ -24,6 +24,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../util/obj_helper.hpp"
 #include "../../sys/typer/typer.hpp"
 #include "../../sys/scheduler/thread/mutex.hpp"
+#include <shared_mutex>
 //
 #ifdef ARDUINO
 #include <Arduino.h>

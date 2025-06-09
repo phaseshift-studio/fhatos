@@ -25,6 +25,7 @@
 #include "../../lang/processor/processor.hpp"
 #include "io/gpio/gpio.hpp"
 #include "io/i2c/i2c.hpp"
+#include "net/inet.hpp"
 #include "s/dsm.hpp"
 #include "s/fs/fs.hpp"
 #include "s/heap.hpp"
@@ -68,8 +69,10 @@ namespace fhatos {
 #ifdef ESP_PLATFORM
       WIFIx::register_module();
 #endif
+      Inet::register_module();
       Time::register_module();
       Thread::register_module();
+      //////////////////////////////////////////////
       Typer::singleton()->start_progress_bar(5);
       Heap<>::register_module();
       DSM::register_module();
@@ -77,7 +80,9 @@ namespace fhatos {
       Memory::register_module();
       Typer::singleton()->end_progress_bar("!b/fos/s !ystructures!! installed");
       GPIO::register_module();
+#ifdef NATIVE
       OllamaServer::register_module();
+#endif
     }
 
     static void modules_fos_ui() {

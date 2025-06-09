@@ -25,7 +25,7 @@ basic boot_config obj
         /sys/router::mount(@/mnt/fs);]>-;
     dsm[[pattern=>/shared/#,config=>[
       broker=><mqtt://fhat.duckdns.org:1883>,
-      client=>*/sys/info/platform,
+      client=>/fos/net/inet/mdns(),
       async=>true]]]@/mnt/shared;
     /sys/router::mount(@/mnt/shared);
     /sys/typer::import(/fos/ui);

@@ -87,7 +87,7 @@ namespace fhatos {
                 break;
               }
             }
-            return Obj::to_noobj();
+            return;
           } catch(const fError &e) {
             LOG_WRITE(ERROR, thread_ptr->thread_obj_.get(), L("!rthread construction error!!: {}\n", e.what()));
           }
