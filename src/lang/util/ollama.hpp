@@ -34870,9 +34870,9 @@ namespace ollama
     static bool log_requests = false;      // Log raw requests to the Ollama server. Useful when debugging.
     static bool log_replies = false;       // Log raw replies from the Ollama server. Useful when debugging.
 
-    static void allow_exceptions(bool enable) {use_exceptions = enable;}
-    static void show_requests(bool enable) {log_requests = enable;}
-    static void show_replies(bool enable) {log_replies = enable;}
+   [[maybe_unused]] static void allow_exceptions(bool enable) {use_exceptions = enable;}
+   [[maybe_unused]] static void show_requests(bool enable) {log_requests = enable;}
+   [[maybe_unused]] static void show_replies(bool enable) {log_replies = enable;}
 
     enum class message_type { generation, chat, embedding };
 

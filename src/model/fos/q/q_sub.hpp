@@ -53,6 +53,7 @@ namespace fhatos {
       }
     }
 
+
     void write(const QProc::POSITION pos, const fURI &furi, const Obj_p &obj, const bool retain) override {
       const fURI furi_no_query = furi.no_query();
       if(retain && POSITION::PRE == pos) {
@@ -69,18 +70,18 @@ namespace fhatos {
             return removing;
           });
         } else {
-          if(obj->tid->equals(Q_SUB_TID)) {
-            this->subscriptions_->push_back(make_shared<Subscription>(obj));
-          } else {
-            this->subscriptions_->push_back(Subscription::create(
-                (Thread::current_thread().has_value() ? Thread::current_thread().value()->thread_obj_->vid
-                                                      : SCHEDULER_ID),
-                p_p(furi_no_query), obj));
-          }
+          const Subscription_p sub =
+              obj->tid->equals(SUBSCRIPTION_TID)
+                  ? make_shared<Subscription>(obj)
+                  : Subscription::create((Thread::current_thread().has_value()
+                                              ? Thread::current_thread().value()->thread_obj_->vid
+                                              : SCHEDULER_ID),
+                                         p_p(furi_no_query), obj);
+          this->subscriptions_->push_back(sub);
           LOG_WRITE(DEBUG, this,
                     L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
                       furi_no_query.toString()));
-          // NEEDS ACCESS TO STRUCTURE?? this->publish_retained(subscription);
+          // TODO: ROUTE TO NEW SUBSCRIPTION: const Obj_p result = ROUTER_READ(*sub->pattern());
         }
         LOG_WRITE(TRACE, this, L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));
       } else if(POSITION::Q_LESS == pos) {
@@ -90,13 +91,13 @@ namespace fhatos {
             const Obj_p source_obj = ROUTER_READ(*sub->source());
             const Message_p msg = Message::create(id_p(furi_no_query), obj, retain);
             const auto mail = Mail(sub, msg);
-            if(const auto source_mailbox = dynamic_cast<const Mailbox *>(source_obj.get())) {
-              LOG_WRITE(DEBUG, source_obj.get(),
-                        L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
-              source_mailbox->recv_mail(mail);
+            if(const auto source_mailbox = dynamic_cast<const Mailbox *>(source_obj->get_model<Obj>(false))) {
+              LOG_WRITE(INFO, source_obj.get(),
+                        L("!yrouting mail!! !b{}!! - {} !g[!mmailbox!g]!!\n", msg->toString(), sub->toString()));
+              source_mailbox->recv_mail(std::move(mail));
             } else {
-              LOG_WRITE(DEBUG, this, L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
-              this->recv_mail(mail);
+              LOG_WRITE(INFO, this, L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
+              this->recv_mail(std::move(mail));
             }
           }
         }

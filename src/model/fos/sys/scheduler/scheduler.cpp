@@ -4,7 +4,7 @@
 
 namespace fhatos {
   Scheduler::Scheduler(const ID &id) :
-      Rec(rmap({{"spawn", lst()}, {"bundle", lst()}}), OType::REC, REC_FURI, id_p(id)) {
+      Rec(rmap({{"spawn", lst()}, {"bundle", lst()}}), OType::REC, REC_FURI, id_p(id)), Mailbox() {
     SCHEDULER_ID = this->vid;
     LOG_WRITE(INFO, this, L("!gscheduler!! started\n"));
   }
@@ -103,6 +103,7 @@ namespace fhatos {
   }
 
   void *Scheduler::import() {
+   // MODEL_CREATOR2->insert_or_assign(*SCHEDULER_ID, [](const Obj_p &scheduler_obj) { return Scheduler::singleton(); });
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})

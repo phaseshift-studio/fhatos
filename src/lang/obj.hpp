@@ -979,8 +979,7 @@ namespace fhatos {
     }
 
     void obj_set_component(const fURI &key, const Obj_p &value) const {
-      const ID comp_key = ID(COMPONENT_SEPARATOR).extend(key);
-      this->obj_set(comp_key, value);
+      this->obj_set(ID(COMPONENT_SEPARATOR).extend(key), value);
     }
 
     template<typename T>
@@ -1865,8 +1864,8 @@ namespace fhatos {
     virtual void setup() {}
 
     template<typename T>
-    T *get_model() const {
-      static Function<Obj_p, ptr<void>> GET_OR_CREATE_MODEL = [](const Obj_p &model_obj) {
+    T *get_model(const bool throw_on_miss = true) const {
+      static Function<Obj_p, ptr<void>> GET_OR_CREATE_MODEL = [throw_on_miss](const Obj_p &model_obj) {
         if(model_obj->vid && MODEL_MAP->count(*model_obj->vid)) {
           return MODEL_MAP->at(*model_obj->vid);
         }
@@ -1885,9 +1884,14 @@ namespace fhatos {
           } else
             return model_any;
         }
-        throw fError("no model for %s", model_obj->tid->toString().c_str());
+        if(throw_on_miss)
+          throw fError("no model for %s", model_obj->tid->toString().c_str());
+        return ptr<void>(nullptr);
       };
-      T *t = static_cast<T *>(GET_OR_CREATE_MODEL(this->shared_from_this()).get());
+      const ptr<void> ppp = GET_OR_CREATE_MODEL(this->shared_from_this());
+      if(nullptr == ppp.get())
+        return nullptr;
+      T *t = static_cast<T*>(ppp.get());
       return t;
     }
 

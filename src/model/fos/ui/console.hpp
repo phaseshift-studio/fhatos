@@ -35,7 +35,7 @@
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class Console final : public Rec {
+  class Console final : public Rec, public Mailbox {
   protected:
     string line_;
     bool new_input_ = true;
@@ -127,6 +127,8 @@ namespace fhatos {
     static void *import() {
       MODEL_CREATOR2->insert_or_assign(*CONSOLE_FURI,
                                        [](const Obj_p &console_obj) { return make_shared<Console>(console_obj); });
+      MODEL_CREATOR2->insert_or_assign(CONSOLE_FURI->extend("mail"),
+                                       [](const Obj_p &console_obj) { return make_shared<Mailbox>(); });
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI,
@@ -141,6 +143,7 @@ namespace fhatos {
                                           printer()->println();
                                         }
                                         try {
+                                          console_state->Mailbox::loop();
                                           /// WRITE TO PROMPT
                                           if(!console_obj->rec_get("config/terminal/stdout")->is_noobj()) {
                                             if(console_state->new_input_)

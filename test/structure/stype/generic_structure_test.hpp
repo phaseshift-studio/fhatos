@@ -269,26 +269,30 @@ namespace fhatos {
 
     void test_subscribe() const {
       auto counter = new int(0);
-      ROUTER_WRITE(p("b/#").query("sub"),
-                   Subscription::create(id_p("tester"), p_p(p("b/#")),
-                                        [this, counter](const Obj_p &obj, const InstArgs &args) {
-                                          TEST_ASSERT_EQUAL_INT(3, args->rec_value()->size());
-                                          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("payload")));
-                                          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("target")));
-                                          TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("retain")));
-                                          TEST_ASSERT_EQUAL_INT(0, args->rec_value()->count(vri("other")));
-                                          FOS_TEST_OBJ_EQUAL(obj, args->arg("payload"));
-                                          TEST_ASSERT_TRUE(args->arg("retain")->bool_value());
-                                          TEST_ASSERT_GREATER_THAN_INT(obj->int_value(), counter);
-                                          FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), p("b/#"));
-                                          FOS_TEST_FURI_EQUAL(p((string("b/b").append(
-                                                                  std::to_string(args->arg("payload")->int_value())))),
-                                                              fURI(args->arg("target")->uri_value()));
+      const Subscription_p sub =  Subscription::create(id_p("/sys/scheduler"), p_p(p("b/#")),
+                                              [this, counter](const Obj_p &obj, const InstArgs &args) {
+                                                TEST_ASSERT_EQUAL_INT(3, args->rec_value()->size());
+                                                TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("payload")));
+                                                TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("target")));
+                                                TEST_ASSERT_EQUAL_INT(1, args->rec_value()->count(vri("retain")));
+                                                TEST_ASSERT_EQUAL_INT(0, args->rec_value()->count(vri("other")));
+                                                FOS_TEST_OBJ_EQUAL(obj, args->arg("payload"));
+                                                TEST_ASSERT_TRUE(args->arg("retain")->bool_value());
+                                                TEST_ASSERT_GREATER_THAN_INT(obj->int_value(), counter);
+                                                FOS_TEST_ASSERT_MATCH_FURI(args->arg("target")->uri_value(), p("b/#"));
+                                                FOS_TEST_FURI_EQUAL(p((string("b/b").append(
+                                                                        std::to_string(args->arg("payload")->int_value())))),
+                                                                    fURI(args->arg("target")->uri_value()));
 
-                                          *counter = *counter + 1;
-                                          return Obj::to_noobj();
-                                        }),
-                   true);
+                                                *counter = *counter + 1;
+                                                return Obj::to_noobj();
+                                              });
+        ROUTER_WRITE(p("b/#").query("sub"),sub, true);
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/a/#","sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/#","sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/c/c/c/c","sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b","sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("c","sub")));
       for(int i = 0; i < 25; i++) {
         ROUTER_WRITE(p(string("b/b").append(to_string(i))), jnt(i), true);
         Router::singleton()->loop();

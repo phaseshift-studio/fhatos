@@ -148,7 +148,13 @@ namespace fhatos {
     //  inst_vid
     if(inst_obj->is_inst_stub() && inst_obj->vid)
       inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
-    // obj field
+    // obj field (inst tid)
+    if(inst_obj->is_inst_stub()) {
+      if(const Obj_p code = lhs->obj_get(*inst->tid)->inst_bcode_obj(); !code->is_noobj()) {
+        inst_obj = convert_to_inst(lhs, inst, code);
+      }
+    }
+    // obj field (inst name)
     if(inst_obj->is_inst_stub()) {
       if(const Obj_p code = lhs->obj_get(inst->tid->name())->inst_bcode_obj(); !code->is_noobj()) {
         inst_obj = convert_to_inst(lhs, inst, code);

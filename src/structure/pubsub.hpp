@@ -87,7 +87,7 @@ namespace fhatos {
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
   using Message_p = ptr<Message>;
-  using Mail = Pair<const Subscription_p, const Message_p>;
+  using Mail = std::pair<const Subscription_p, const Message_p>;
 
   struct Subscription final : Rec {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {}
@@ -129,13 +129,15 @@ namespace fhatos {
   };
 
   class Mailbox {
-    ptr<MutexDeque<Mail>> mailbox_ = std::make_shared<MutexDeque<Mail>>();
+    ptr<MutexDeque<Mail>> mailbox_;
     // std::vector<Mail> mailbox_ = std::vector<Mail>();
 
   public:
-    Mailbox() = default;
+    Mailbox() : mailbox_(std::move(std::make_shared<MutexDeque<Mail>>())) {}
+    Mailbox(const Mailbox &other) : mailbox_(other.mailbox_) {}
+    Mailbox(Mailbox &&other) noexcept : mailbox_(std::move(other.mailbox_)) { other.mailbox_ = nullptr; }
     virtual ~Mailbox() = default;
-    void recv_mail(const Mail &mail) const { this->mailbox_->push_back(mail); }
+    void recv_mail(const Mail &&mail) const { this->mailbox_->push_back(mail); }
     bool empty() const { return this->mailbox_->empty(); }
     virtual void loop() {
       while(process_next_mail()) {
