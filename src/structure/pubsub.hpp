@@ -22,7 +22,11 @@
 #include "../fhatos.hpp"
 #include "../lang/mmadt/mmadt_obj.hpp"
 #include "../lang/obj.hpp"
+#include "../util/mutex_deque.hpp"
 #include "../util/obj_helper.hpp"
+
+#define SUBSCRIPTION_TID FOS_URI "/q/sub/sub"
+#define MESSAGE_TID FOS_URI "/q/sub/msg"
 
 namespace fhatos {
   using namespace mmadt;
@@ -63,7 +67,7 @@ namespace fhatos {
 
     explicit Message(const ID_p &target, const Obj_p &payload, const bool retain) :
         Rec(rmap({{"target", vri(target)}, {"payload", payload}, {"retain", dool(retain)}}), OType::REC,
-            id_p(FOS_URI "/q/sub/msg")) {}
+            id_p(MESSAGE_TID)) {}
 
     [[nodiscard]] ID_p target() const { return id_p(this->rec_get("target")->uri_value()); }
 
@@ -84,18 +88,6 @@ namespace fhatos {
   using Subscription_p = ptr<Subscription>;
   using Message_p = ptr<Message>;
   using Mail = Pair<const Subscription_p, const Message_p>;
-  using Mail_p = ptr<Mail>;
-
-  inline Mail_p mail_p(const Subscription_p &subscription, const Message_p &message) {
-    return make_shared<Mail>(subscription, message);
-  }
-
-  struct Mailbox {
-    virtual ~Mailbox() = default;
-
-    virtual bool recv_mail(const Mail_p &mail) = 0;
-  };
-
 
   struct Subscription final : Rec {
     explicit Subscription(const Rec_p &rec) : Rec(*rec) {}
@@ -135,6 +127,31 @@ namespace fhatos {
           [this, payload] { return this->on_recv()->apply(payload); });
     }
   };
+
+  class Mailbox {
+    ptr<MutexDeque<Mail>> mailbox_ = std::make_shared<MutexDeque<Mail>>();
+    // std::vector<Mail> mailbox_ = std::vector<Mail>();
+
+  public:
+    Mailbox() = default;
+    virtual ~Mailbox() = default;
+    void recv_mail(const Mail &mail) const { this->mailbox_->push_back(mail); }
+    bool empty() const { return this->mailbox_->empty(); }
+    virtual void loop() {
+      while(process_next_mail()) {
+        FEED_WATCHDOG();
+      }
+    }
+    bool process_next_mail() const {
+      if(const auto o = this->mailbox_->pop_front(); o.has_value()) {
+        o->first->apply(o->second);
+        return true;
+      }
+      return false;
+    }
+    std::optional<Mail> next_mail() const { return this->mailbox_->pop_front(); }
+  };
+
 } // namespace fhatos
 
 #endif

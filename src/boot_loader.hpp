@@ -102,12 +102,13 @@ namespace fhatos {
         kp->display_note("!yinstalling !bfos/mmadt !ymodules!!")
             ->display_memory()
             ->mount(Heap<>::create("/io/#", id_p("/mnt/io")))
-            ->import_module("/mmadt/#")
+            ->import_module("/mmadt/#") // mmadt lang, compiler, vm
             ->import_module("/fos/s/#") //  structures
             ->import_module("/fos/q") // query processors
+           // ->import_module("/fos/q/sub")
             ->import_module("/fos/sys/#") //  sys
             ->import_module("/fos/net/#") //  net
-            ->import_module("/fos/llm/#") // llm
+            ->import_module("/fos/llm/#") // ai llm
             ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////

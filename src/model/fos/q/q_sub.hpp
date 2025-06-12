@@ -25,11 +25,11 @@ FhatOS: A Distributed Operating System
 #include "../../../structure/q_proc.hpp"
 #include "../../../util/mutex_deque.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
+#define Q_SUB_TID FOS_URI "/q/sub"
 
 namespace fhatos {
-  class QSub final : public QProc {
+  class QSub final : public QProc, public Mailbox {
   protected:
-    ptr<MutexDeque<Mail>> outbox_ = std::make_shared<MutexDeque<Mail>>();
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
 
   public:
@@ -43,9 +43,9 @@ namespace fhatos {
     }
 
     void loop() const override {
-      while(!this->outbox_->empty()) {
+      while(!this->empty()) {
         FEED_WATCHDOG();
-        Option<Mail> mail = this->outbox_->pop_front();
+        Option<Mail> mail = this->next_mail();
         LOG_WRITE(
             TRACE, this,
             L("!yprocessing mail!! !b{}!! -> {}\n", mail.value().second->toString(), mail.value().first->toString()));
@@ -69,7 +69,7 @@ namespace fhatos {
             return removing;
           });
         } else {
-          if(obj->tid->equals("/fos/q/sub")) {
+          if(obj->tid->equals(Q_SUB_TID)) {
             this->subscriptions_->push_back(make_shared<Subscription>(obj));
           } else {
             this->subscriptions_->push_back(Subscription::create(
@@ -87,9 +87,17 @@ namespace fhatos {
         // publish
         for(const Subscription_p &sub: *this->subscriptions_) {
           if(furi_no_query.bimatches(*sub->pattern())) {
+            const Obj_p source_obj = ROUTER_READ(*sub->source());
             const Message_p msg = Message::create(id_p(furi_no_query), obj, retain);
-            LOG_WRITE(DEBUG, this, L("!ysending mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
-            this->outbox_->push_back(Mail(sub, msg));
+            const auto mail = Mail(sub, msg);
+            if(const auto source_mailbox = dynamic_cast<const Mailbox *>(source_obj.get())) {
+              LOG_WRITE(DEBUG, source_obj.get(),
+                        L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
+              source_mailbox->recv_mail(mail);
+            } else {
+              LOG_WRITE(DEBUG, this, L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
+              this->recv_mail(mail);
+            }
           }
         }
       }
@@ -113,6 +121,22 @@ namespace fhatos {
     [[nodiscard]] ON_RESULT is_pre_write() const override { return ON_RESULT::ONLY_Q; }
 
     [[nodiscard]] ON_RESULT is_q_less_write() const override { return ON_RESULT::IGNORE_Q; }
+
+    static void register_module() {
+      REGISTERED_MODULES->insert_or_assign(
+          Q_SUB_TID, InstBuilder::build(Typer::singleton()->vid->add_component(Q_SUB_TID))
+                         ->domain_range(NOOBJ_FURI, {0, 0}, REC_FURI, {1, 1})
+                         ->inst_f([](const Obj_p &, const InstArgs &) {
+                           return Obj::to_rec({{vri(MESSAGE_TID), Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
+                                                                               {"payload", Obj::to_bcode()},
+                                                                               {"retain", Obj::to_type(BOOL_FURI)}})},
+                                               {vri(SUBSCRIPTION_TID), Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
+                                                                                    {"pattern", Obj::to_type(URI_FURI)},
+                                                                                    {"on_recv", Obj::to_bcode()}})},
+                                               {vri(Q_SUB_TID), Obj::to_rec()}});
+                         })
+                         ->create());
+    }
 
     ///////////////////////////////////////////////////////////////////
 

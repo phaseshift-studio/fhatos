@@ -163,7 +163,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> install_module(const Pattern &pattern) {
+    static ptr<Kernel> register_module(const Pattern &pattern) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       for(auto it = REGISTERED_MODULES->begin(); it != REGISTERED_MODULES->end();) {
         if(it->first.matches(pattern)) {
@@ -192,7 +192,7 @@ namespace fhatos {
           Typer::singleton()->obj_get("config/module")->or_else(Obj::to_lst())->lst_value<Pattern>([](const Uri_p u) {
             return u->uri_value();
           })) {
-        Kernel::install_module(module_pattern);
+        Kernel::register_module(module_pattern);
       }
       LOG_WRITE(INFO, typer.get(),
                 L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", PrintHelper::pretty_print_obj(typer, 4, false)));

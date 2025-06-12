@@ -21,6 +21,7 @@ FhatOS: A Distributed Operating System
 #include "../../../../../fhatos.hpp"
 #include "../../../../../lang/mmadt/mmadt_obj.hpp"
 #include "../../../../../lang/obj.hpp"
+#include "../../../../../structure/pubsub.hpp"
 #include "../../../../fos/sys/router/memory/memory.hpp"
 #include "../../typer/typer.hpp"
 
@@ -30,7 +31,7 @@ namespace fhatos {
   static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p("/fos/sys/thread");
 
-  class Thread {
+  class Thread : public Mailbox {
   public:
     Consumer<Thread *> thread_function_;
     Any handler_;
@@ -64,7 +65,7 @@ namespace fhatos {
     void halt() const;
 
     explicit Thread(
-        const Obj_p &thread_obj, const Consumer<Thread *> &thread_function = [](const Thread *thread_ptr) {
+        const Obj_p &thread_obj, const Consumer<Thread *> &thread_function = [](Thread *thread_ptr) {
           try {
             thread_ptr->thread_obj_->obj_set("halt", dool(false));
             const Obj_p thread_loop_obj =
@@ -80,6 +81,7 @@ namespace fhatos {
                         Memory::singleton()->get_stack_size(thread_ptr->thread_obj_, "config/stack_size", 65536)));
             while(!thread_ptr->thread_obj_->obj_get("halt")->or_else_<bool>(false)) {
               try {
+                thread_ptr->Mailbox::loop();
                 thread_loop_inst->apply(thread_ptr->thread_obj_);
                 FEED_WATCHDOG();
               } catch(const fError &e) {

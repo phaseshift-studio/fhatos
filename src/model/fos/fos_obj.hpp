@@ -58,9 +58,9 @@ namespace fhatos {
   public:
     static void register_module() {
       modules_fos_q();
+      //QSub::register_module();
       modules_fos_io();
       modules_fos_ui();
-      // import_q_proc({});
       // import_io(patterns);
       //  import_sys(patterns);
       // import_sensor(patterns);
@@ -72,13 +72,10 @@ namespace fhatos {
       Inet::register_module();
       Time::register_module();
       Thread::register_module();
-      //////////////////////////////////////////////
-      Typer::singleton()->start_progress_bar(5);
       Heap<>::register_module();
       DSM::register_module();
       FS::register_module();
       Memory::register_module();
-      Typer::singleton()->end_progress_bar("!b/fos/s !ystructures!! installed");
       GPIO::register_module();
 #ifdef NATIVE
       OllamaServer::register_module();
@@ -129,24 +126,6 @@ namespace fhatos {
       //     OTA::import();
 #endif
     }
-
-    /* static void *import_q_proc(const std::vector<fURI> &patterns = {}) {
-       Typer::singleton()->start_progress_bar(5);
-       Typer::singleton()->set_filters(const_cast<std::vector<fURI> *>(&patterns));
-       Typer::singleton()->save_type(*MESSAGE_FURI, Obj::to_rec({{"target", Obj::to_type(URI_FURI)},
-                                                                 {"payload", Obj::to_bcode()},
-                                                                 {"retain", Obj::to_type(BOOL_FURI)}}));
-       Typer::singleton()->save_type(*SUBSCRIPTION_FURI, Obj::to_rec({{"source", Obj::to_type(URI_FURI)},
-                                                                      {"pattern", Obj::to_type(URI_FURI)},
-                                                                      {"on_recv", Obj::to_bcode()}}));
-       Typer::singleton()->save_type(*Q_PROC_FURI, Obj::to_rec());
-       Typer::singleton()->save_type(Q_PROC_FURI->extend("sub"), Obj::to_rec());
-       Typer::singleton()->save_type(Q_PROC_FURI->extend("doc"), Obj::to_rec());
-       Typer::singleton()->clear_filters();
-       Typer::singleton()->end_progress_bar(
-           format("\n\t\t!^u1^ !g[!b{} !yquery types!! imported!g]!! \n", FOS_URI "/q/+"));
-       return nullptr;
-     }*/
 
     /* static void *import_io(const std::vector<fURI> &patterns = {}) {
        Typer::singleton()->start_progress_bar(6);

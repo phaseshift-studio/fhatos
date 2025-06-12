@@ -27,7 +27,7 @@
 
 namespace fhatos {
 
-  class Scheduler final : public Rec {
+  class Scheduler final : public Rec, public Mailbox {
 
   protected:
     Mutex mutex = Mutex();
@@ -41,7 +41,7 @@ namespace fhatos {
 
     void stop();
 
-    void loop();
+    void loop() override;
 
     void spawn_thread(const Obj_p &thread_obj);
 

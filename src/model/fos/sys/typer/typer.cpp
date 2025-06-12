@@ -191,25 +191,23 @@ namespace fhatos {
 
   void Typer::import_module(const Pattern &module_furi) {
     const Objs_p x = ROUTER_READ(this->vid->add_component(module_furi));
+    const int size = x->is_objs() ? x->objs_value()->size() : 1;
+    const bool do_prog_bar = true || size > 5; // TODO: count the key/value pairs in each module match first?
+    if(do_prog_bar)
+      this->start_progress_bar(size);
     for(const Inst_p &module: x->is_objs() ? *x->objs_value() : std::vector<Obj_p>({x})) {
       if(const Rec_p mod = module->apply(Obj::to_noobj()); mod->is_rec()) {
-        const size_t size = mod->rec_value()->size();
-        const bool do_prog_bar = size > 5;
-        if(do_prog_bar)
-          this->start_progress_bar(size);
         for(const auto &[id, type_def]: *mod->rec_value()) {
           this->save_type(id->uri_value(), type_def);
         }
-        const fURI module_id = module->vid_or_tid()->no_query();
-        const string pretracted_module_id = module_id.pretract(this->vid->extend("::")).toString();
-        if(do_prog_bar)
-          this->end_progress_bar(format("\n\t\t!^u1^ !g[!b{} !ytypes!! imported!g]!!\n", pretracted_module_id));
-        else
-          LOG_WRITE(INFO, this, L("!b{} !ytypes!! imported!!\n", pretracted_module_id));
       } else {
         LOG_WRITE(WARN, this, L("!b{} !ymodule(s) !rnot!! available\n", module_furi.toString()));
       }
     }
+    if(do_prog_bar)
+      this->end_progress_bar(format("\n\t\t!^u1^ !g[!b{} !ytypes!! imported!g]!!\n", module_furi.toString()));
+    else
+      LOG_WRITE(INFO, this, L("!b{} !ytypes!! imported!!\n", module_furi.toString()));
   }
 
   void Typer::import() {
