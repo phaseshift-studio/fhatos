@@ -1816,10 +1816,18 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     //////////////////////////// APPLY //////////////////////////////
     /////////////////////////////////////////////////////////////////
-    void resolve() const {
+    void resolve(/*const Obj_p &lhs = nullptr*/) const {
       const auto f = fURI(*this->tid);
-      const ID r = ROUTER_RESOLVE(f);
-      const_cast<Obj *>(this)->tid = id_p(r);
+      ID r = ROUTER_RESOLVE(f);
+      /*if(lhs && f.equals(r)) {
+        if(!ROUTER_READ(lhs->tid->extend(r))->is_noobj())
+          r = lhs->tid->extend(r);
+        else if(!ROUTER_READ(lhs->tid->add_component(r))->is_noobj())
+          r = lhs->tid->add_component(r);
+      }*/
+      if(!f.equals(r))
+        const_cast<Obj *>(this)->tid = id_p(r);
+      ////////////////////////////////////////////////////////////////
       switch(this->otype) {
         case OType::REC: {
           for(const auto &[k, v]: *this->rec_value()) {
@@ -1891,7 +1899,7 @@ namespace fhatos {
       const ptr<void> ppp = GET_OR_CREATE_MODEL(this->shared_from_this());
       if(nullptr == ppp.get())
         return nullptr;
-      T *t = static_cast<T*>(ppp.get());
+      T *t = static_cast<T *>(ppp.get());
       return t;
     }
 

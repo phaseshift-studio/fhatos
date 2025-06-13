@@ -103,7 +103,8 @@ namespace fhatos {
   }
 
   void *Scheduler::import() {
-   // MODEL_CREATOR2->insert_or_assign(*SCHEDULER_ID, [](const Obj_p &scheduler_obj) { return Scheduler::singleton(); });
+    // MODEL_CREATOR2->insert_or_assign(*SCHEDULER_ID, [](const Obj_p &scheduler_obj) { return Scheduler::singleton();
+    // });
     InstBuilder::build(Scheduler::singleton()->vid->add_component("spawn"))
         ->inst_args(rec({{"thread", Obj::to_bcode()}}))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
@@ -120,6 +121,16 @@ namespace fhatos {
           const Obj_p fiber_obj = args->arg("fiber");
           Scheduler::singleton()->bundle_fiber(fiber_obj);
           return fiber_obj;
+        })
+        ->save();
+    InstBuilder::build(Scheduler::singleton()->vid->add_component("eval"))
+        ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
+        ->inst_args(rec({{"code", __()}, {"dest?uri", __()}}))
+        ->inst_f([](const Obj_p &, const InstArgs &args) {
+          const Obj_p code_obj = args->arg("code");
+          const Obj_p result = BCODE_PROCESSOR(mmADT::delift(code_obj));
+          ROUTER_WRITE(args->arg("dest")->uri_value(), result, true);
+          return result;
         })
         ->save();
     /* Subscription::create(Scheduler::singleton()->vid, p_p(Scheduler::singleton()->vid->extend("spawn")),

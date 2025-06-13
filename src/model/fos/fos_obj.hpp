@@ -31,6 +31,7 @@
 #include "s/heap.hpp"
 #include "sys/router/memory/memory.hpp"
 #include "sys/scheduler/thread/thread.hpp"
+#include "q/q_default.hpp"
 #include "sys/typer/typer.hpp"
 #include "ui/button/button.hpp"
 #include "ui/console.hpp"

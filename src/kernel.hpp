@@ -189,7 +189,7 @@ namespace fhatos {
       mmADT::register_module();
       fOS::register_module();
       for(const Pattern &module_pattern:
-          Typer::singleton()->obj_get("config/module")->or_else(Obj::to_lst())->lst_value<Pattern>([](const Uri_p u) {
+          Typer::singleton()->obj_get("config/import")->or_else(Obj::to_lst())->lst_value<Pattern>([](const Uri_p u) {
             return u->uri_value();
           })) {
         Kernel::register_module(module_pattern);

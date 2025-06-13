@@ -1,57 +1,60 @@
-===
-a standard boot config for fHaTOS
+=== A Standard fHaTOS Boot Config
   * common router prefixes
   * console w/ terminal spawned
   * mqtt-backed distributed shared memory mounted
+  ** furi read/write resolution across cluster
   ---
   * on esp32:
-  ** wifi configured and connected
-  ** mdns configured and connected
-  ** gpio ?q:default mounted
+  ** wifi config and connect
+  ** mdns config and connect
+  ** gpio pin ?q:default mounted
   * on native:
   ** local file system mounted
 ===
-[info     =>[name  =>fhat1]@/sys/info,
- scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
- router   =>[memory=>memory[[=>]],config=>[auto_prefix=>[<>,/mmadt/,/mmadt/ext/,/fos/,
-                                    /fos/sys/,/fos/s/,/fos/io/,
-                                    /fos/sensor/,/fos/ui/,/fos/util/,
-                                    /sys/]]]@/sys/router,
- typer    =>[config=>[module=>[/fos/q/#,/fos/#/,/fos/sys/router/#/,/mmadt/#/]]]@/sys/typer,
- -------------------------------------------------------------------------------------
- local => [
-   --- esp32 only
+[
+ ------------------------------- BOOT GLOBAL VARIABLES -------------------------------
+ params => [
+   host => fhat1,
+   --- esp32 only (native platforms must provide network connectivity)
    wifi => [ssid=><Rodkins-2G>,
             password=>'puppymama',
             mnds=>*/sys/info/platform],
    --- all platforms
    mqtt => [broker=><mqtt://chibi.local:1883>],
    net  => [mdns=>/fos/net/inet/mdns()]],
- -------------------------------------------------------------------------------------
+ ---------------------------------- KERNEL BOOT OBJS ----------------------------------
+ info     =>[name  =>*/boot/config/params/host]@/sys/info, --- add pairs as needed
+ scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
+ router   =>[config=>[auto_prefix=>[<>,/mmadt/ext/,/mmadt/,/sys/,/io/,/fos/s/]]]@/sys/router,
+ typer    =>[config=>[register=>[/mmadt/#,/fos/#],
+                      import=>[/mmadt/#,/fos/#]]]@/sys/typer,
+ ----------------------------------- USER BOOT SETUP -----------------------------------
  setup=>setup?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
-    /sys/router::mount(@/mnt/var);
-    *</sys/info/platform>-<
+    router::mount(@/mnt/var);
+    *<info/platform>-<
       [is(eq(esp32))=>  --- esp specific
-        /sys/typer::import(/fos/net/#);
+        typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
-          ssid=>*/boot/config/local/wifi/ssid,
-          password=>*/boot/config/local/wifi/password,
-          mdns=>*</sys/info/platform>]]]@/io/wifi;
+          ssid=>*/boot/config/params/wifi/ssid,
+          password=>*/boot/config/params/wifi/password,
+          mdns=>*<info/platform>]]]@/io/wifi;
         */io/wifi.connect();
-        /sys/typer::import(/fos/io/gpio);
+        typer::import(/fos/io/gpio);
         /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
        is(eq(native))=> --- native specific
         fs[[pattern=>/fs/#,config=>[root=><.>]]]@/mnt/fs;
-        /sys/router::mount(@/mnt/fs);]>-;
-    dsm[[pattern=>/shared/#,config=>[
-      broker=>*/boot/config/local/mqtt/broker,
-      client=>*/boot/config/local/net/mdns,
-      async=>true]]]@/mnt/shared;
-    /sys/router::mount(@/mnt/shared);
-    /sys/typer::import(/fos/ui);
-    terminal[[=>]]@/io/terminal;
-    console[[=>]]@/io/console;
+        router::mount(@/mnt/fs)]>-;
+    dsm[[pattern=>//+/#,config=>[
+         broker=>*/boot/config/params/mqtt/broker,
+         client=>*/boot/config/params/net/mdns,
+         async=>true]]]@/mnt/cluster;
+    router::mount(@/mnt/cluster);
+    //.plus(
+    typer::import(/fos/ui);
+    /fos/ui/terminal[[=>]]@/io/terminal;
+    /fos/ui/console[[=>]]@/io/console;
     /io/console/config/stack_size -> 81920;
-    /sys/scheduler::spawn(@/io/console);
+    scheduler::spawn(@/io/console);
+    --- /boot/# -> noobj
  ]]@/boot/config

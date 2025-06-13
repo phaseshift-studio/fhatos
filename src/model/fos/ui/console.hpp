@@ -127,8 +127,6 @@ namespace fhatos {
     static void *import() {
       MODEL_CREATOR2->insert_or_assign(*CONSOLE_FURI,
                                        [](const Obj_p &console_obj) { return make_shared<Console>(console_obj); });
-      MODEL_CREATOR2->insert_or_assign(CONSOLE_FURI->extend("mail"),
-                                       [](const Obj_p &console_obj) { return make_shared<Mailbox>(); });
       ////////////////////////// TYPE ////////////////////////////////
       Typer::singleton()->save_type(
           *CONSOLE_FURI,
