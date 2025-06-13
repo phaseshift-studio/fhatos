@@ -323,6 +323,19 @@ namespace fhatos {
       new_uri.spostfix_ = true;
       return new_uri;
     }
+    if(this->host_ && strlen(this->host_) == 0 && this->path_length_ == 0) {
+      auto new_furi = fURI(*this);
+      const std::vector<string> parts = StringHelper::tokenize('/', string(extension));
+      new_furi.host_ = strdup(parts.at(0).c_str());
+      if(parts.size() > 1)
+        new_furi.sprefix_ = true;
+      for(int i = 1; i < parts.size(); i++) {
+        new_furi = new_furi.extend(parts.at(i));
+      }
+      if(extension[strlen(extension) - 1] == '/')
+        new_furi.spostfix_ = true;
+      return new_furi;
+    }
     if(this->path().empty() || this->path() == "/") {
       fURI new_furi = this->path(extension);
       new_furi.sprefix_ = true;
@@ -727,6 +740,13 @@ namespace fhatos {
       this->path_length_ = 0;
       this->sprefix_ = false;
       this->spostfix_ = false;
+      return;
+    }
+    if(strcmp(uri_chars, "//") == 0) {
+      this->sprefix_ = false;
+      this->spostfix_ = false;
+      this->path_length_ = 0;
+      this->host_ = strdup("");
       return;
     }
     const char *dups = strdup(uri_chars);

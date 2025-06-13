@@ -1276,19 +1276,19 @@ namespace mmadt {
 
                 InstBuilder::build(string(MMADT_PREFIX "uri/" MMADT_INST_SCHEME "/").append(op).c_str())
                     ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
-                    ->inst_args(lst({__().isa(*URI_FURI)}))
+                    ->inst_args("other?uri",__())
                     ->inst_f([op](const Obj_p &lhs, const InstArgs &args) {
                       std::vector<std::pair<string, string>> values_a = lhs->uri_value().query_values();
-                      if(std::vector<std::pair<string, string>> values_b = args->arg(0)->uri_value().query_values();
+                      if(std::vector<std::pair<string, string>> values_b = args->arg("other")->uri_value().query_values();
                          values_b.empty())
                         values_a.insert(values_a.end(), values_b.begin(), values_b.end());
                       if(0 == strcmp(op, "plus"))
-                        return vri(lhs->uri_value().extend(args->arg(0)->uri_value()), lhs->tid, lhs->vid);
+                        return vri(lhs->uri_value().extend(args->arg("other")->uri_value()), lhs->tid, lhs->vid);
                       if(0 == strcmp(op, "mult"))
-                        return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()).query(values_a), lhs->tid,
+                        return vri(lhs->uri_value().resolve(args->arg("other")->uri_value()).query(values_a), lhs->tid,
                                    lhs->vid);
                       if(0 == strcmp(op, "minus"))
-                        return vri(lhs->uri_value().remove_subpath(args->arg(0)->uri_value().toString()), lhs->tid,
+                        return vri(lhs->uri_value().remove_subpath(args->arg("other")->uri_value().toString()), lhs->tid,
                                    lhs->vid);
                       throw fError("unknown op %s\n", op);
                     })

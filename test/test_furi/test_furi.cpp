@@ -231,7 +231,8 @@ namespace fhatos {
     FOS_TEST_FURI_EQUAL(fURI("//127.0.0.1/a"), fURI("/a").host("127.0.0.1"));
     FOS_TEST_FURI_EQUAL(fURI("//127.0.0.1/a/b/c"), fURI("/a/b/c").host("127.0.0.1"));
     FOS_TEST_FURI_EQUAL(fURI("//127.0.0.1/"), fURI("/").host("127.0.0.1"));
-    //
+    TEST_ASSERT_EQUAL_STRING("host", fURI("//host/a/b/c/").authority().c_str());
+    TEST_ASSERT_EQUAL_STRING("host", fURI("//").extend("host/a/b/c/").authority().c_str());
   }
 
   void test_uri_authority() {
@@ -259,12 +260,12 @@ namespace fhatos {
     FOS_TEST_FURI_EQUAL(fURI("//127.0.0.1"), fURI("").authority("127.0.0.1"));
     FOS_TEST_FURI_EQUAL(fURI("//fhat:os@127.0.0.1/a/"), fURI("/a/").authority("//fhat:os@127.0.0.1/"));
     FOS_TEST_FURI_EQUAL(fURI("//fhat:os@127.0.0.1/a/b/c"), fURI("a/b/c").authority("fhat:os@127.0.0.1"));
-    FOS_TEST_FURI_EQUAL(fURI(""), fURI("").authority(""));
+    FOS_TEST_FURI_EQUAL(fURI("//"), fURI("").authority(""));
     FOS_TEST_FURI_EQUAL(fURI("ftp://127.0.0.1"), fURI("ftp://localhost:10").authority("127.0.0.1"));
     FOS_TEST_FURI_EQUAL(fURI("ftp://127.0.0.1/abc"), fURI("ftp://localhost:10/abc").authority("127.0.0.1"));
     FOS_TEST_FURI_EQUAL(fURI("furi:"), fURI("furi://fhat@127.0.0.1").authority(""));
     FOS_TEST_FURI_EQUAL(fURI("//"), fURI("//fhat@127.0.0.1").authority(""));
-    FOS_TEST_FURI_EQUAL(fURI("/a/b/c"), fURI("//fhat@127.0.0.1/a/b/c").authority(""));
+    FOS_TEST_FURI_EQUAL(fURI("///a/b/c"), fURI("//fhat@127.0.0.1/a/b/c").authority(""));
     FOS_TEST_FURI_EQUAL(fURI("furi:/a/b/c"), fURI("furi://fhat@127.0.0.1/a/b/c").authority(""));
     /////
     FOS_TEST_FURI_EQUAL(fURI("furi://fhat@"), fURI("furi://fhat@127.0.0.1").host(""));
@@ -527,6 +528,17 @@ namespace fhatos {
     // FOS_TEST_FURI_EQUAL(fURI("/a/b//c/"), fURI("/a/b/").extend("/c/"));
     /////
     FOS_TEST_FURI_EQUAL(fURI("abc/:loop"), fURI("abc").extend(":loop"));
+    /////
+    TEST_ASSERT_EQUAL_STRING("//", fURI("//").toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("", fURI("//").host());
+    TEST_ASSERT_EQUAL_STRING("", fURI("//").path().c_str());
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path"), fURI("//").extend("host").extend("and/path"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path"), fURI("//").extend("host/and/path"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path"), fURI("//host").extend("and/path"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path"), fURI("//host").extend("/and/path"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path"), fURI("//host").extend("/and").extend("path"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path/"), fURI("//host").extend("/and").extend("path/"));
+    FOS_TEST_FURI_EQUAL(fURI("//host/and/path/"), fURI("//host").extend("/and/").extend("path/"));
   }
 
   void test_uri_pretract() {

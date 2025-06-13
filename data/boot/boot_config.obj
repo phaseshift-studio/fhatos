@@ -50,11 +50,15 @@
          client=>*/boot/config/params/net/mdns,
          async=>true]]]@/mnt/cluster;
     router::mount(@/mnt/cluster);
-    --- //.plus( TODO: fix furi plus bug
     typer::import(/fos/ui);
     /fos/ui/terminal[[=>]]@/io/terminal;
     /fos/ui/console[[=>]]@/io/console;
+    /io/terminal/netio?q:sub -> |(print('!y==>!!{{_}}\n'));
+    *</boot/config/params/host>.<//{{_}}/info>.-<[
+            ->*|/sys/info,
+            <{{_.<<(1)}}/#?q:sub>]
+       .<1>->|(/sys/scheduler::eval(_,/io/terminal/netio));
     /io/console/config/stack_size -> 81920;
     scheduler::spawn(@/io/console);
-    --- /boot/# -> noobj
+    --- /boot/# -> noobj;
  ]]@/boot/config

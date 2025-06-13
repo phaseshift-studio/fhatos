@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <strong class="yellow">f</strong>​<strong class="blue">H</strong>​<strong class="fuchsia">a</strong>​<span class="lime">T</span>​<span class="red">O</span>​<span class="aqua">S</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <span class="yellow">f</span>​<strong class="lime">h</strong>​<strong class="fuchsia">A</strong>​<strong class="aqua">t</strong>​<span class="blue">o</span>​<strong class="red">s</strong>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;15986688,free=&gt;15984800,used=&gt;0.011808]
+[INFO]  main [total=&gt;15986688,free=&gt;15984832,used=&gt;0.011611]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -831,7 +831,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [WARN]  [/sys/router] no mounted structure for dsm
 [WARN]  [/sys/router] no mounted structure for /io/terminal
 [WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 2349 bytes]
+[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 2415 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config]
    [
@@ -1008,7 +1008,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] proc rec type defined
 [WARN]  [/sys/typer] /fos/q/sub module(s) not available
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;17338368,free=&gt;17335808,used=&gt;0.014764]
+[INFO]  [/sys/router/memory] main [total=&gt;17338368,free=&gt;17335840,used=&gt;0.014579]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup?obj{?}&lt;=obj{.}()
@@ -1018,11 +1018,11 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt chibi connected
 [INFO]  [/mnt/cluster] structure pattern //+/# subscribed
 [INFO]  [/sys/router] dsm /mnt/cluster spanning //+/# mounted
-[INFO]  [/io/console] [native] thread spawned: lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]) [cpu:8]
+[INFO]  [/io/console] [native] thread spawned: lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]) [cpu:2]
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/mnt/io/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;/io/console/halt,payload=&gt;false,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;/io/console/halt,on_recv=&gt;inst?obj&lt;=obj(target=&gt;from(block(target),noobj),payload=&gt;from(block(payload),noobj),retain=&gt;from(block(retain),noobj))[cpp]]]
 [INFO]  [/io/console] [fhatos] thread spawned: /fos/sys/thread/loop?obj{?}&lt;=console()[cpp] [stack size:65536]
-[INFO]  [/boot/config] boot time: 0.123208483 seconds</code></pre>
+[INFO]  [/boot/config] boot time: 0.220665581 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -4929,7 +4929,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-06-13 12:27:12 -0600
+Last updated 2025-06-13 17:18:06 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>

@@ -31,7 +31,7 @@ namespace fhatos {
   class MqttClient final : Rec {
   public:
     std::any handler_;
-    Runnable on_connect = []() {};
+    Runnable on_connect = [] {};
     uptr<MutexDeque<ID>> clients_ = make_unique<MutexDeque<ID>>();
     uptr<MutexDeque<Subscription_p>> subscriptions_ = make_unique<MutexDeque<Subscription_p>>();
     Consumer<Message_p> on_recv = [this](const Message_p &message) {
@@ -95,8 +95,7 @@ namespace fhatos {
     static ptr<MqttClient> get_or_create(const fURI &broker, const fURI &client) {
       if(CLIENTS.count(broker))
         return CLIENTS.at(broker);
-      auto mqtt =
-          make_shared<MqttClient>(Obj::to_rec({{"broker", vri(broker)}, {"client", vri(client)}}));
+      auto mqtt = make_shared<MqttClient>(Obj::to_rec({{"broker", vri(broker)}, {"client", vri(client)}}));
       CLIENTS.insert_or_assign(broker, mqtt);
       return mqtt;
     }
