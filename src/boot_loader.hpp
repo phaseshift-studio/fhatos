@@ -112,7 +112,7 @@ namespace fhatos {
             ->import_module("/fos/ui"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evalulating_setup()->stop_timer();
+        kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evaluate_setup()->stop_timer();
         /* ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
                     ->drop_config("log");*/
       } catch(const fError &e) {

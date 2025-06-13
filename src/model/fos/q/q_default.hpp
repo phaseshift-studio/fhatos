@@ -17,54 +17,69 @@ FhatOS: A Distributed Operating System
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_q_sub_hpp
-#define fhatos_q_sub_hpp
+#ifndef fhatos_q_default_hpp
+#define fhatos_q_default_hpp
 
 #include "../../../fhatos.hpp"
-#include "../../../structure/pubsub.hpp"
+#include "../../../furi.hpp"
 #include "../../../structure/q_proc.hpp"
-#include "../../../util/mutex_map.hpp"
+
+#define Q_DEFAULT_TID FOS_URI "/q/default"
 
 namespace fhatos {
   class QDefault final : public QProc {
-  protected:
-    uptr<MutexMap<fURI,  Obj_p>> data_ = make_unique<MutexMap<fURI,  Obj_p>>();
+  public:
+    /*
+    /sys/# -> /shared/comp
+    */
+
+    ptr<std::map<fURI, Obj_p>> read_map = std::make_shared<std::map<fURI, Obj_p>>();
 
   public:
-    explicit QDefault(const ID_p &value_id = nullptr) :
-      QProc(REC_FURI, value_id) {
+    explicit QDefault(const ID_p &value_id = nullptr) : QProc(id_p(Q_DEFAULT_TID), value_id) {
       this->Obj::rec_set("pattern", vri("default"));
     }
 
-    static ptr<QDefault> create(const ID_p &value_id = nullptr) {
-      //TYPE_SAVER("/fos/q/q_sub", Obj::to_rec());
-      return make_shared<QDefault>(value_id);
+    void loop() const override {
+      // do nothing
     }
 
-    void write(const QProc::POSITION pos, const fURI &furi, const  Obj_p &obj, const bool retain) override {
-      const fURI furi_no_query = furi.no_query();
-      this->data_->insert_or_assign(furi_no_query, std::move(obj));
+    static ptr<QDefault> create(const ID &value_id) {
+      return make_shared<QDefault>(value_id.empty() ? nullptr : id_p(value_id));
+    }
+
+    void write(const QProc::POSITION pos, const fURI &furi, const Obj_p &obj, const bool retain) override {
+      if(POSITION::PRE == pos) {
+        // mirror writes
+        this->read_map->insert_or_assign(furi.no_query(), obj);
+      }
     }
 
     Obj_p read(const QProc::POSITION pos, const fURI &furi, const Obj_p &post_read) const override {
       const fURI furi_no_query = furi.no_query();
-      if(post_read->is_noobj()) {
-        for(const auto &[k,v]: *this->data_) {
-          if(furi_no_query.bimatches(k)) {
-            return v;
+      const Obj_p results = Objs::to_objs();
+      /// pre-read
+      if(POSITION::Q_LESS == pos && post_read->none_one_all()->is_noobj()) {
+        for(const auto &[u, o]: *this->read_map) {
+          if(furi_no_query.bimatches(u)) {
+            results->add_obj(o->apply(vri(furi)));
+          }
+        }
+      } else if(POSITION::PRE == pos) {
+        for(const auto &[u, o]: *this->read_map) {
+          if(furi_no_query.bimatches(u)) {
+            results->add_obj(o);
           }
         }
       }
-      return Obj::to_noobj();
+      return results;
     }
 
-    [[nodiscard]] ON_RESULT is_q_less_read() const override {
-      return ON_RESULT::INCLUDE_Q;
-    }
+    [[nodiscard]] ON_RESULT is_pre_read() const override { return ON_RESULT::ONLY_Q; }
 
-    [[nodiscard]] ON_RESULT is_pre_write() const override {
-      return ON_RESULT::ONLY_Q;
-    }
+    [[nodiscard]] ON_RESULT is_pre_write() const override { return ON_RESULT::ONLY_Q; }
+
+    [[nodiscard]] ON_RESULT is_q_less_read() const override { return ON_RESULT::INCLUDE_Q; }
   };
-}
+} // namespace fhatos
 #endif

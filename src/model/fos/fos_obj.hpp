@@ -58,7 +58,7 @@ namespace fhatos {
   public:
     static void register_module() {
       modules_fos_q();
-      //QSub::register_module();
+      // QSub::register_module();
       modules_fos_io();
       modules_fos_ui();
       // import_io(patterns);
@@ -113,7 +113,8 @@ namespace fhatos {
                                                                              {"on_recv", Obj::to_bcode()}})},
                                     {vri(FOS_URI "/q"), Obj::to_rec()},
                                     {vri(FOS_URI "/q/sub"), Obj::to_rec()},
-                                    {vri(FOS_URI "/q/doc"), Obj::to_rec()}});
+                                    {vri(FOS_URI "/q/doc"), Obj::to_rec()},
+                                    {vri(FOS_URI "/q/default"), Obj::to_rec()}});
               })
               ->create());
     }

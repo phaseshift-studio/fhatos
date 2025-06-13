@@ -152,6 +152,7 @@ namespace fhatos {
     try {
       const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
       int counter = 0;
+      LOG_WRITE(INFO, this, L("!yattempting !b{} !ymqtt!! connection\n", this->broker().toString()));
       while(counter < FOS_MQTT_MAX_RETRIES) {
         if(!h->connect(this->client().toString().c_str())) {
           if(++counter > FOS_MQTT_MAX_RETRIES)

@@ -1,5 +1,15 @@
 ===
-basic boot_config obj
+a standard boot config for fHaTOS
+  * common router prefixes
+  * console w/ terminal spawned
+  * mqtt-backed distributed shared memory mounted
+  ---
+  * on esp32:
+  ** wifi configured and connected
+  ** mdns configured and connected
+  ** gpio ?q:default mounted
+  * on native:
+  ** local file system mounted
 ===
 [info     =>[name  =>fhat1]@/sys/info,
  scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
@@ -7,7 +17,16 @@ basic boot_config obj
                                     /fos/sys/,/fos/s/,/fos/io/,
                                     /fos/sensor/,/fos/ui/,/fos/util/,
                                     /sys/]]]@/sys/router,
- typer    =>[config=>[module=>[/fos/#/,/fos/sys/router/#/,/mmadt/#/]]]@/sys/typer,
+ typer    =>[config=>[module=>[/fos/q/#,/fos/#/,/fos/sys/router/#/,/mmadt/#/]]]@/sys/typer,
+ -------------------------------------------------------------------------------------
+ local => [
+   --- esp32 only
+   wifi => [ssid=><Rodkins-2G>,
+            password=>'puppymama',
+            mnds=>*/sys/info/platform],
+   --- all platforms
+   mqtt => [broker=><mqtt://chibi.local:1883>],
+   net  => [mdns=>/fos/net/inet/mdns()]],
  -------------------------------------------------------------------------------------
  setup=>setup?obj{?}<=obj{.}()[
     heap[[pattern=><+/#>]]@/mnt/var;
@@ -16,16 +35,18 @@ basic boot_config obj
       [is(eq(esp32))=>  --- esp specific
         /sys/typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
-          ssid=><Rodkins-2G>,
-          password=>'puppymama',
+          ssid=>*/boot/config/local/wifi/ssid,
+          password=>*/boot/config/local/wifi/password,
           mdns=>*</sys/info/platform>]]]@/io/wifi;
-        */io/wifi.connect(),
+        */io/wifi.connect();
+        /sys/typer::import(/fos/io/gpio);
+        /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
        is(eq(native))=> --- native specific
         fs[[pattern=>/fs/#,config=>[root=><.>]]]@/mnt/fs;
         /sys/router::mount(@/mnt/fs);]>-;
     dsm[[pattern=>/shared/#,config=>[
-      broker=><mqtt://fhat.duckdns.org:1883>,
-      client=>/fos/net/inet/mdns(),
+      broker=>*/boot/config/local/mqtt/broker,
+      client=>*/boot/config/local/net/mdns,
       async=>true]]]@/mnt/shared;
     /sys/router::mount(@/mnt/shared);
     /sys/typer::import(/fos/ui);

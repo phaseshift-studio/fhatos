@@ -24,6 +24,7 @@
 #include "../../../../lang/obj.hpp"
 #include "../../../../structure/pubsub.hpp"
 #include "../../../../structure/q_proc.hpp"
+#include "../../q/q_default.hpp"
 #include "../../q/q_sub.hpp"
 
 
@@ -63,13 +64,15 @@ namespace fhatos {
         Rec(config->rec_value()->empty()
                 ? Obj::to_rec({
                                   {"pattern", vri(span)},
-                                  {"q_proc", rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
+                                  {"q_proc", rec({{"default", QDefault::create(vid ? vid->extend("q/default") : "")},
+                                                  {"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
                                                   {"#", QType::create()}})},
                               })
                       ->rec_value()
                 : Obj::to_rec({{"pattern", vri(span)},
-                               {"q_proc",
-                                rec({{"sub", QSub::create(vid ? vid->extend("q/sub") : "")}, {"#", QType::create()}})},
+                               {"q_proc", rec({{"default", QDefault::create(vid ? vid->extend("q/default") : "")},
+                                               {"sub", QSub::create(vid ? vid->extend("q/sub") : "")},
+                                               {"#", QType::create()}})},
                                {"config", config->clone()}})
                       ->rec_value(),
             OType::REC, tid, vid),
@@ -139,13 +142,25 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] std::pair<QProc::ON_RESULT, Obj_p> process_query_read(const QProc::POSITION pos, const fURI &furi,
                                                                         const Obj_p &obj) const {
-      if(furi.has_query()) {
-        const Objs_p results = Obj::to_objs();
-        bool found = false;
+      const Objs_p results = Obj::to_objs();
+      bool found = false;
+      if(!furi.has_query() && QProc::POSITION::Q_LESS == pos) {
         for(const auto &[k, o]: *this->q_procs_->rec_value()) {
-          QProc *q = (QProc *) o.get();
-          const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
-          if(QProc::ON_RESULT::NO_Q != on_result &&
+          const auto q = (QProc *) o.get();
+          if(const QProc::ON_RESULT on_result = q->is_q_less_read(); QProc::ON_RESULT::NO_Q != on_result) {
+            found = true;
+            Obj_p result = q->read(pos, furi, obj);
+            if(QProc::ON_RESULT::ONLY_Q == on_result)
+              return {QProc::ON_RESULT::ONLY_Q, result};
+            if(QProc::ON_RESULT::INCLUDE_Q == on_result)
+              results->add_obj(result);
+          }
+        }
+      } else if(furi.has_query()) {
+        for(const auto &[k, o]: *this->q_procs_->rec_value()) {
+          const auto q = (QProc *) o.get();
+          if(const QProc::ON_RESULT on_result = QProc::POSITION::PRE == pos ? q->is_pre_read() : q->is_post_read();
+             QProc::ON_RESULT::NO_Q != on_result &&
              (furi.has_query(q->q_key().toString().c_str()) || q->q_key().toString() == "#")) {
             found = true;
             const Obj_p q_obj = q->read(pos, furi, obj);
@@ -156,18 +171,18 @@ namespace fhatos {
           }
           FEED_WATCHDOG();
         }
-        if(!found) {
-          // TODO: should a non-find qproc read just fail silently (WARN message)?
-          if(!furi.has_query(FOS_DOMAIN) && !furi.has_query(FOS_RANGE)) {
-            LOG_WRITE(WARN, this, L("!rno query processor!! for !y%s!! on read\n", furi.query()));
-            /* throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
-                                  furi.query());*/
-          }
-        }
-        return {QProc::ON_RESULT::INCLUDE_Q, results->none_one_all()};
       } else {
         return {QProc::ON_RESULT::NO_Q, obj};
       }
+      if(!found) {
+        // TODO: should a non-find qproc read just fail silently (WARN message)?
+        if(!furi.has_query(FOS_DOMAIN) && !furi.has_query(FOS_RANGE)) {
+          LOG_WRITE(WARN, this, L("!rno query processor!! for !y%s!! on read\n", furi.query()));
+          /* throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
+                                furi.query());*/
+        }
+      }
+      return {QProc::ON_RESULT::INCLUDE_Q, results->none_one_all()};
     }
 
     [[nodiscard]] QProc::ON_RESULT process_query_write(const QProc::POSITION position, const fURI &furi,
@@ -209,24 +224,25 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   // virtual Obj_p read(const ID &source, const fURI &pattern);
+    // virtual Obj_p read(const ID &source, const fURI &pattern);
 
     virtual Obj_p read(const fURI &furi);
 
-   // virtual void write(const ID &source, const fURI &target, const Obj_p &obj);
+    // virtual void write(const ID &source, const fURI &target, const Obj_p &obj);
 
     virtual void write(const fURI &furi, const Obj_p &obj, bool retain);
 
     virtual void append(const fURI &furi, const Obj_p &obj);
 
     /////////////////////////////////////////////////////////////////////////////
-    Option<Pair<ID, Poly_p>> locate_base_poly(const fURI &furi) {
+    Option<Pair<ID, Poly_p>>
+    locate_base_poly(const fURI &furi, const Predicate<Obj_p> &poly_filter = [](const Poly_p &) { return true; }) {
       auto old_furi = fURI(furi);
       auto pc_furi = make_unique<fURI>(old_furi); // force it to be a node. good or bad?
       Obj_p obj = Obj::to_noobj();
       while(pc_furi->path_length() > 0) {
         obj = this->read_internal(*pc_furi);
-        if(!obj->is_noobj()) // obj->is_poly() || obj->is_objs() || obj->is_code())
+        if(!obj->is_noobj() && poly_filter(obj)) // obj->is_poly() || obj->is_objs() || obj->is_code())
           break;
         const fURI new_furi = pc_furi->retract().as_node();
         auto pc_new_furi = make_unique<fURI>(new_furi);

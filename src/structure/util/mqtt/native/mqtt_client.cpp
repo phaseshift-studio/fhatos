@@ -147,6 +147,7 @@ namespace fhatos {
       }
       const connect_options connect_options_ = pre_connection_options.finalize();
       int counter = 0;
+      LOG_WRITE(INFO, this, L("!yattempting !b{} !ymqtt!! connection\n", this->broker().toString()));
       while(counter < FOS_MQTT_MAX_RETRIES) {
         if(!std::any_cast<ptr<async_client>>(this->handler_)->connect(connect_options_)->wait_for(5000)) {
           if(++counter > FOS_MQTT_MAX_RETRIES)

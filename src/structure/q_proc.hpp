@@ -33,10 +33,10 @@ namespace fhatos {
     };
 
     enum class ON_RESULT {
-      NO_Q,
-      IGNORE_Q,
-      INCLUDE_Q,
-      ONLY_Q
+      NO_Q, // do nothing
+      IGNORE_Q, // ignore result from qproc
+      INCLUDE_Q, // include result from qproc
+      ONLY_Q // only return result from qproc
     };
 
     explicit QProc(const ID_p &type_id, const ID_p &value_id = nullptr): Obj(make_shared<RecMap<>>(),

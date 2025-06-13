@@ -48,7 +48,6 @@ namespace fhatos {
           InstBuilder::build(module_id)
               ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
               ->inst_f([](const Obj_p &, const InstArgs &) {
-             //   return ([]() -> Rec_p {
                   return Obj::to_rec(
                       {{vri(GPIO_FURI), Obj::to_type(INT_FURI)},
                        {vri(GPIO_FURI->add_component("scan")),

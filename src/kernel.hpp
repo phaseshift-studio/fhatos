@@ -72,7 +72,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> evalulating_setup() {
+    static ptr<Kernel> evaluate_setup() {
       BOOTING = false;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, Kernel::boot().get(),
