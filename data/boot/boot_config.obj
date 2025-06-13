@@ -50,7 +50,7 @@
          client=>*/boot/config/params/net/mdns,
          async=>true]]]@/mnt/cluster;
     router::mount(@/mnt/cluster);
-    //.plus(
+    --- //.plus( TODO: fix furi plus bug
     typer::import(/fos/ui);
     /fos/ui/terminal[[=>]]@/io/terminal;
     /fos/ui/console[[=>]]@/io/console;
