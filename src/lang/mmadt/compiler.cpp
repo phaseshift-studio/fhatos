@@ -112,29 +112,27 @@ namespace fhatos {
   }
 
   Inst_p Compiler::convert_to_inst(const Obj_p &lhs, const Inst_p &provided_inst, const Obj_p &resolved_inst) const {
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // LOG_WRITE(INFO, lhs.get(),
+    //           L("\n\t\tlhs\tprovided\tresolved\n\t\t{}\t{}\t{}\n", lhs->toString(), provided_inst->toString(),
+    //             resolved_inst->toString()));
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(resolved_inst->is_noobj())
       return Obj::to_noobj();
     // TODO: obj{*} fails tests (fix)
     if(!resolved_inst->is_gather() && !Compiler(false).type_check(lhs, *resolved_inst->domain()))
       return Obj::to_noobj();
-    const Inst_p resolved = Obj::to_inst(
+    Inst_p resolved = Obj::to_inst(
         InstValue(resolved_inst->is_inst() ? resolved_inst->inst_args() : provided_inst->inst_args(), // args
                   resolved_inst->is_inst() ? resolved_inst->inst_f() : resolved_inst, // inst_f
                   resolved_inst->is_inst() ? resolved_inst->inst_seed_supplier() : Obj::to_noobj()), // seed
         resolved_inst->is_inst() ? resolved_inst->tid : provided_inst->tid); // tid
-    const bool good = match_inst_args(provided_inst->inst_args(), resolved->inst_args());
     if(dt)
       dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved->vid_or_tid()->no_query()), resolved);
-    return good ? resolved : Obj::to_noobj();
-    /* const Inst_p inst = InstBuilder::build(provided_inst->vid_or_tid()->name())
-                             ->inst_args(provided_inst->inst_args())
-                             ->inst_f(resolved_inst)
-                             ->domain_range(resolved_inst->domain(), resolved_inst->domain_coefficient(),
-                                            resolved_inst->range(), resolved_inst->range_coefficient())
-                             ->create();
-     //LOG_WRITE(TRACE, resolved_inst.get(), L("converting {} to inst {}\n", resolved_inst->toString(),
-     inst->toString()));
-     ///return inst;*/
+    // necessary for reference instructions that simply redirect to another instruction
+    if(resolved->is_inst_stub() && resolved->tid->name()  != provided_inst->tid->name())
+      resolved = this->resolve_inst(lhs, resolved);
+    return match_inst_args(provided_inst->inst_args(), resolved->inst_args()) ? resolved : Obj::to_noobj();
   }
 
   Inst_p Compiler::resolve_inst(const Obj_p &lhs, const Inst_p &inst) const {
@@ -209,7 +207,7 @@ namespace fhatos {
       if(dt)
         this->print_derivation_tree(&derivation_string);
       else {
-        DerivationTree* d = new DerivationTree();
+        DerivationTree *d = new DerivationTree();
         const auto c = Compiler(false).with_derivation_tree(d);
         c.resolve_inst(lhs, inst);
         c.print_derivation_tree(&derivation_string);

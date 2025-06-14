@@ -288,6 +288,8 @@ namespace fhatos {
                                                    .propagate = false};
   static auto DEFAULT_INST_PRINTER = new ObjPrinter{
       .show_id = true, .show_type = true, .show_domain_range = true, .strict = false, .ansi = true, .propagate = false};
+  static auto FULL_OBJ_PRINTER = new ObjPrinter{
+      .show_id = true, .show_type = true, .show_domain_range = true, .strict = true, .ansi = true, .propagate = true};
   static auto DEFAULT_BCODE_PRINTER = new ObjPrinter{
       .show_id = true, .show_type = true, .show_domain_range = true, .strict = false, .ansi = true, .propagate = false};
   static auto DEFAULT_NOOBJ_PRINTER = new ObjPrinter{.show_id = false,
@@ -2536,6 +2538,12 @@ namespace fhatos {
 
     static Objs_p to_objs(const ID_p &type_id = OBJS_FURI, const ID_p &value_id = nullptr) {
       return to_objs(make_shared<List<Obj_p>>(), type_id, value_id);
+    }
+
+    static Objs_p as_objs(const Obj_p &obj, const ID_p &type_id = OBJS_FURI, const ID_p &value_id = nullptr) {
+      const Objs_p objs = Obj::to_objs(type_id, value_id);
+      objs->add_obj(obj);
+      return objs;
     }
 
     static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {

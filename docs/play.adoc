@@ -1,0 +1,26 @@
+=== A Peer-to-Peer Remote Evaluation Module
+
+`p2p_eval` leverages `q:sub` and `dsm` to enable remote `obj` evaluation.
+The module data flow is diagrammed below.
+
+[ditaa]
+----
+
++-------+       +-----+
+|cBLU   |
+|remote +-->|local|
++-------+       +-----+
+
+
+
+[remote    ]---?q:sub-->[dsm/input ]
+[local     ]---?q:sub-->[dsm/output]
+[local     ]---write--->[dsm/input ]
+[dsm/input ]--on_recv-->[remote    ]
+                 \__eval----->[dsm/input ]
+                  \_publish-->[dsm/output]
+[dsm/output]--on_recv-->[local     ]
+                \__???
+----
+
+===

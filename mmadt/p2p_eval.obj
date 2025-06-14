@@ -1,0 +1,38 @@
+=== A Peer-to-Peer Remote Evaluation Module
+
+`p2p_eval` leverages `q:sub` and `dsm` to enable remote `obj` evaluation.
+The module data flow is diagrammed below.
+
+[source,mmadt]
+----
+[remote    ]---?q:sub-->[dsm/input ]
+[local     ]---?q:sub-->[dsm/output]
+[local     ]---write--->[dsm/input ]
+[dsm/input ]--on_recv-->[remote    ]
+                 \__eval----->[dsm/input ]
+                  \_publish-->[dsm/output]
+[dsm/output]--on_recv-->[local     ]
+                \__???
+----
+
+===
+/fos/p2p_eval -> |/fos/p2p_eval?rec<=obj{?}()[[
+  /fos/p2p_eval -> |[input?uri=>_,
+                    output?uri=>_,
+                    at_input=>else(/sys/scheduler::eval(_,*output)),
+                    at_output=>else(print('==>{{_}}\n'))]
+  /fos/p2p_eval/::/setup -> |setup?obj{?}<=/fos/p2p_eval(p2p=>_)[
+                                                *p2p.<{{input}}?q:sub>  -> /fos/q/sub/sub[[source=>remote,pattern=>input,on_recv=>at_input]];
+                                                *p2p.<{{output}}?q:sub> -> /fos/q/sub/sub[[source=>local,pattern=>output,on_recv=>at_output]];
+                                              ]
+
+===
+--- /sys/typer/::/register(/fos/p2p_eval)
+--- /sys/typer/::/import(/fos/p2p_eval)
+/fos/p2p_eval[[input=>abc/input,output=>abc/output,at_input=>|to(|abc/input),at_output=>|print('yea: {{_}}')]]@/sys/router/p2p
+@/sys/router/p2p.setup(_)
+
+p2p -> *|/sys/router/p2p
+*p2p.<{{input}}?q:sub>  -> /fos/q/sub/sub[[source=>remote,pattern=>input,on_recv=>at_input]];
+                                                *p2p.<{{output}}?q:sub> -> /fos/q/sub/sub[[source=>local,pattern=>output,on_recv=>at_output]];
+===

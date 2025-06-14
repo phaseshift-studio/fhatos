@@ -124,11 +124,21 @@ namespace fhatos {
 
   void test_inst_resolution() {
     const Compiler compiler = Compiler().with_derivation_tree();
-    FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
+    /*FOS_TEST_FURI_EQUAL(INT_FURI->add_component(MMADT_SCHEME "/plus"),
                         compiler.resolve_inst(jnt(1),Obj::to_inst({jnt(10)}, id_p("plus")))->tid->no_query());
     string ds;
     compiler.print_derivation_tree(&ds);
-    LOG_WRITE(INFO, jnt(10).get(), L("%s\n", ds.c_str()));
+    LOG_WRITE(INFO, jnt(10).get(), L("%s\n", ds.c_str()));*/
+
+    // testing instruction resolution through redirection
+    PROCESS("/compiler/z -> |plus(5)");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(57),PROCESS("52./compiler/z()"));
+    PROCESS("/compiler/zz -> |(plus(5).mult(2))");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(114),PROCESS("52./compiler/zz()"));
+    PROCESS("/compiler/zzz -> |/compiler/zzz?int<=int(arg?int=>_)[plus(*arg)]");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(104),PROCESS("52./compiler/zzz(_)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(152),PROCESS("52./compiler/zzz(100)"));
+   // TODO: should throw with no arg match FOS_TEST_ERROR("52./compiler/zzz()"); // args don't match
   }
 
   void test_derived_type_inst_resolution() {
@@ -154,7 +164,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_type_check_derived_poly_types); //
       FOS_RUN_TEST(test_type_definitions); //
       FOS_RUN_TEST(test_rec_type_constructors); //
-      // FOS_RUN_TEST(test_inst_resolution); //
+      FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
      // FOS_RUN_TEST(test_anonymous_inst); //
       )

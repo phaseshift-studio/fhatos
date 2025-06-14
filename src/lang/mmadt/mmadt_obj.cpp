@@ -987,7 +987,6 @@ namespace mmadt {
               for(const auto &i: {"gt", "gte", "lt", "lte"}) {
                 InstBuilder::build(MMADT_ID->extend(i))
                     ->domain_range(OBJ_FURI, {0, 1}, BOOL_FURI, {1, 1})
-                    // ->inst_f([](const Obj_p&, const InstArgs&) { return dool(false); })
                     ->save();
                 for(const auto &t: {INT_FURI, REAL_FURI, STR_FURI, URI_FURI}) {
                   InstBuilder *builder = InstBuilder::build(t->resolve(string(MMADT_INST_SCHEME).append("/").append(i)))
