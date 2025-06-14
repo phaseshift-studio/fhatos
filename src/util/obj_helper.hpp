@@ -26,30 +26,6 @@ namespace fhatos {
   using std::make_pair;
   using std::vector;
 
-  class ObjHelper {
-  public:
-    ObjHelper() = delete;
-
-    static bool check_noobj(const ID_p &type_id);
-    static IntCoefficient calculate_domain(const BCode_p &bcode);
-  };
-
-  class OBJ_PROXY {
-    ID_p vid;
-
-  public:
-    explicit OBJ_PROXY(const Obj_p &local) : vid{local->vid} {}
-
-    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Obj_p &or_else = nullptr) const {
-      return ROUTER_READ(this->vid->extend(uri_key))->or_else(or_else);
-    }
-
-    template<typename T>
-    [[nodiscard]] T get(const fURI &key) const {
-      return std::any_cast<T>(ROUTER_READ(this->vid->extend(key))->value_);
-    }
-  };
-
   class InstBuilder {
     explicit InstBuilder(TypeO_p type);
 
@@ -66,7 +42,7 @@ namespace fhatos {
     static InstBuilder *build(const fURI_p &type_id = INST_FURI);
 
     InstBuilder *inst_args_objs(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
-                           const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr);
+                                const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr);
 
     InstBuilder *inst_args(const char *arg1_name, const Obj_p &arg1_obj, const char *arg2_name = nullptr,
                            const Obj_p &arg2_obj = nullptr, const char *arg3_name = nullptr,

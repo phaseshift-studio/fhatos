@@ -138,7 +138,21 @@ namespace fhatos {
     PROCESS("/compiler/zzz -> |/compiler/zzz?int<=int(arg?int=>_)[plus(*arg)]");
     FOS_TEST_OBJ_EQUAL(Obj::to_int(104),PROCESS("52./compiler/zzz(_)"));
     FOS_TEST_OBJ_EQUAL(Obj::to_int(152),PROCESS("52./compiler/zzz(100)"));
-   // TODO: should throw with no arg match FOS_TEST_ERROR("52./compiler/zzz()"); // args don't match
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(104),PROCESS("52./compiler/zzz()"));
+    PROCESS("/compiler/zzzz -> |/compiler/zzzz?int<=int(arg?int=>15)[plus(*arg)]");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz()"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz(arg=>_)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz(7)")); // arg is not a default (no else)
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz('hello')")); // arg is not a default (no else)
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz(arg=>'hello')")); // arg is not a default (no else)
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(20),PROCESS("5./compiler/zzzz(arg?str=>'hello')")); // arg is not a default (no else)
+    PROCESS("/compiler/zzzzz -> |/compiler/zzzzz?int<=int(arg?int=>else(map(100)))[plus(*arg)]");
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(144),PROCESS("44./compiler/zzzzz()"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(50),PROCESS("44./compiler/zzzzz(arg=>6)"));
+    FOS_TEST_OBJ_EQUAL(Obj::to_int(51),PROCESS("44./compiler/zzzzz(arg?int=>7)"));
+    FOS_TEST_ERROR("5./compiler/zzzzz(arg=>'hello')"); // arg types don't match
+    FOS_TEST_ERROR("5./compiler/zzzzz(arg?int=>'hello')"); // arg types don't match
+    FOS_TEST_ERROR("5./compiler/zzzzz(arg?str=>'hello')"); // arg types don't match
   }
 
   void test_derived_type_inst_resolution() {
@@ -154,7 +168,13 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("10.(a=>_,b=>_)[plus(*a).plus(*b)]"));
     FOS_TEST_OBJ_EQUAL(jnt(30), PROCESS("10.(_,_)[plus(*<0>).plus(*<1>)]"));
     FOS_TEST_OBJ_EQUAL(jnt(50), PROCESS("10.(a=>_,b=>plus(10))[plus(*a).plus(*b)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(55), PROCESS("10.(a=>_,b=>plus(10),c=>5)[plus(*a).plus(*b).plus(*c)]"));
+    FOS_TEST_OBJ_EQUAL(jnt(55), PROCESS("10.?int<=int(a=>_,b=>plus(10),c=>5)[plus(*a).plus(*b).plus(*c)]"));
+    FOS_TEST_ERROR("10.?int<=str(a=>_,b=>plus(10),c=>5)[plus(*a).plus(*b).plus(*c)]"); // bad domain
+    FOS_TEST_ERROR("10.?str<=int(a=>_,b=>plus(10),c=>5)[plus(*a).plus(*b).plus(*c)]"); // bad range
+    FOS_TEST_ERROR("10.?str<=str(a=>_,b=>plus(10),c=>5)[plus(*a).plus(*b).plus(*c)]"); // bad domain/range
     FOS_TEST_ERROR("10.()[plus(*a).plus(*b)]");
+    FOS_TEST_ERROR("10.()[plus(*<0>).plus(*<1>)]");
     FOS_TEST_ERROR("10.()[plus(*<0>).plus(*<1>)]");
   }
 
@@ -166,7 +186,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_rec_type_constructors); //
       FOS_RUN_TEST(test_inst_resolution); //
       FOS_RUN_TEST(test_derived_type_inst_resolution); //
-     // FOS_RUN_TEST(test_anonymous_inst); //
+      FOS_RUN_TEST(test_anonymous_inst); //
       )
 } // namespace fhatos
 

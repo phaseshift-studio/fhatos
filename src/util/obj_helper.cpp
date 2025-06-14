@@ -22,18 +22,6 @@ namespace fhatos {
   using std::make_pair;
   using std::vector;
 
-  IntCoefficient ObjHelper::calculate_domain(const BCode_p &bcode) {
-    if(bcode->is_bcode() && !bcode->bcode_value()->empty()) {
-      return bcode->bcode_value()->front()->domain_coefficient();
-    } else
-      return bcode->domain_coefficient();
-  }
-
-  bool ObjHelper::check_noobj(const ID_p &type_id) {
-    const vector<string> coef = type_id->query_values(FOS_RNG_COEF);
-    return coef.empty() || stoi(coef.front()) == 0;
-  }
-
   InstBuilder::InstBuilder(TypeO_p type) : type_(std::move(type)), args_(Obj::to_rec()), seed_(nullptr) {}
 
 

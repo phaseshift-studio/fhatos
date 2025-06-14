@@ -1967,19 +1967,15 @@ namespace fhatos {
             return Obj::create(body, OType::TYPE, inst->range(), lhs->vid);
           }
           const Inst_p inst = Compiler().resolve_inst(lhs, this->shared_from_this());
-          return ROUTER_EXEC_WITHIN_FRAME("#", inst->inst_args(), [this, inst, lhs]() {
+          // TODO: type check should take coefficients into consideration
+          //////////////////////////////////// DOMAIN TYPE CHECK ////////////////////////////////////
+          if(!lhs->is_noobj() || !inst->range_coefficient().first == 0)
+            Compiler(true).with_derivation_tree().type_check(lhs, *inst->domain());
+          Obj_p result = ROUTER_EXEC_WITHIN_FRAME("#", inst->inst_args(), [this, inst, lhs]() {
             try {
-              if(!inst->has_inst_f()) {
-                throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
-                             lhs->tid->name().c_str(), lhs->toString().c_str());
-              }
-              const Obj_p result = std::holds_alternative<Obj_p>(inst->inst_f())
-                                       ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
-                                       : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
-              // TODO: type check should take coefficients into consideration
-              // if(!result->is_noobj() || !inst->range_coefficient().first == 0)
-              //  Compiler(false).with_derivation_tree().type_check(result, *inst->range());
-              return result;
+              return std::holds_alternative<Obj_p>(inst->inst_f())
+                         ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
+                         : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());
             } catch(const fError &e) {
               const string error_message =
                   fmt::format("{}\n\t  !rthrown at !yinst!! {} !g=>!! {} {}", e.what(), lhs->toString(),
@@ -1987,6 +1983,10 @@ namespace fhatos {
               throw fError("%s", error_message.c_str());
             }
           });
+          //////////////////////////////////// RANGE TYPE CHECK ////////////////////////////////////
+          if(!result->is_noobj() || !inst->range_coefficient().first == 0)
+            Compiler(true).with_derivation_tree().type_check(result, *inst->range());
+          return result;
         }
         case OType::BCODE: {
           if(this->is_empty_bcode())
