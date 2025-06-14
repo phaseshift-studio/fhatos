@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <span class="yellow">f</span>​<strong class="lime">h</strong>​<strong class="fuchsia">A</strong>​<strong class="aqua">t</strong>​<span class="blue">o</span>​<strong class="red">s</strong>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <span class="lime">f</span>​<strong class="red">H</strong>​<span class="aqua">A</span>​<span class="fuchsia">t</span>​<span class="blue">o</span>​<span class="yellow">s</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;15986688,free=&gt;15984832,used=&gt;0.011611]
+[INFO]  main [total=&gt;15990784,free=&gt;15988896,used=&gt;0.011808]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -831,7 +831,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [WARN]  [/sys/router] no mounted structure for dsm
 [WARN]  [/sys/router] no mounted structure for /io/terminal
 [WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 2415 bytes]
+[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 2608 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config]
    [
@@ -882,10 +882,10 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
      ]
     ]@/sys/typer
      setup=&gt;setup?obj{?}&lt;=obj{.}()
-  	[start({heap[[pattern=&gt;+/#]]@/mnt/var})./mmadt/end().router/::/mount(at(/mnt/var))./mmadt/end()./mmadt/from(info/platform)./mmadt/split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#)./mmadt/end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;/mmadt/from(/boot/config/params/wifi/ssid),password=&gt;/mmadt/from(/boot/config/params/wifi/password),mdns=&gt;/mmadt/from(info/platform)]]]@/io/wifi})./mmadt/end()./mmadt/from(/io/wifi).connect()./mmadt/end().typer/::/import(/fos/io/gpio)./mmadt/end().start({/io/gpio/+?q:default})./mmadt/ref(/mmadt/block(/mmadt/lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs})./mmadt/end().router/::/mount(at(/mnt/fs))])./mmadt/merge()./mmadt/end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;/mmadt/from(/boot/config/params/mqtt/broker),client=&gt;/mmadt/from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster})./mmadt/end().router/::/mount(at(/mnt/cluster))./mmadt/end().typer/::/import(/fos/ui)./mmadt/end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal})./mmadt/end().start({/fos/ui/console[[=&gt;]]@/io/console})./mmadt/end().start({/io/console/config/stack_size})./mmadt/ref(81920)./mmadt/end().scheduler/::/spawn(at(/io/console))./mmadt/end()]
+  	[start({heap[[pattern=&gt;+/#]]@/mnt/var})./mmadt/end().router/::/mount(at(/mnt/var))./mmadt/end()./mmadt/from(info/platform)./mmadt/split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#)./mmadt/end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;/mmadt/from(/boot/config/params/wifi/ssid),password=&gt;/mmadt/from(/boot/config/params/wifi/password),mdns=&gt;/mmadt/from(info/platform)]]]@/io/wifi})./mmadt/end()./mmadt/from(/io/wifi).connect()./mmadt/end().typer/::/import(/fos/io/gpio)./mmadt/end().start({/io/gpio/+?q:default})./mmadt/ref(/mmadt/block(/mmadt/lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs})./mmadt/end().router/::/mount(at(/mnt/fs))])./mmadt/merge()./mmadt/end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;/mmadt/from(/boot/config/params/mqtt/broker),client=&gt;/mmadt/from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster})./mmadt/end().router/::/mount(at(/mnt/cluster))./mmadt/end().typer/::/import(/fos/ui)./mmadt/end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal})./mmadt/end().start({/fos/ui/console[[=&gt;]]@/io/console})./mmadt/end().start({/io/terminal/netio?q:sub})./mmadt/ref(/mmadt/block(print('==&gt;{{_}}\n')))./mmadt/end()./mmadt/from(/boot/config/params/host).map(//{{_}}/info)./mmadt/split([/mmadt/ref(/mmadt/from(/mmadt/block(/sys/info))),{{_.&lt;&lt;(1)}}/#?q:sub]).map(1)./mmadt/ref(/mmadt/block(/sys/scheduler/::/eval(_,/io/terminal/netio)))./mmadt/end().start({/io/console/config/stack_size})./mmadt/ref(81920)./mmadt/end().scheduler/::/spawn(at(/io/console))./mmadt/end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;16797696,free=&gt;16795328,used=&gt;0.014096]
+[INFO]  [/sys/router/memory] main [total=&gt;16801792,free=&gt;16799392,used=&gt;0.014281]
 [INFO]  [/boot/config] info boot config dropped
 [INFO]  [/sys/router] router configured
              [
@@ -912,6 +912,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
  ]@/sys/router
 [INFO]  [/boot/config] router boot config dropped
 [INFO]  [/sys/typer] typer started
+[INFO]  [/sys/typer] /fos/module inst type defined
 [INFO]  [/sys/typer] /mmadt/base inst module registered
 [INFO]  [/sys/typer] /mmadt/ext inst module registered
 [INFO]  [/sys/typer] /mmadt/inst inst module registered
@@ -943,7 +944,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
    ]
   ]
    ::=&gt;[
-    register=&gt;typer/::/register?obj{?}&lt;=obj{?}(module_id?uri=&gt;_,module?inst=&gt;_)[cpp]
+    register=&gt;typer/::/register?inst&lt;=obj{?}(module_id?uri=&gt;_)[cpp]
     import=&gt;typer/::/import?obj{?}&lt;=obj{?}(modules=&gt;_)[cpp]
     mmadt=&gt;[
      base=&gt;typer/::/mmadt/base?rec&lt;=obj{?}()[cpp]
@@ -998,7 +999,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
  ]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
       .oO installing fos/mmadt modules Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;16797696,free=&gt;16795328,used=&gt;0.014096]
+[INFO]  [/sys/router/memory] main [total=&gt;16801792,free=&gt;16799392,used=&gt;0.014281]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [WARN]  [/sys/router] no mounted structure for parser
 [WARN]  [/sys/router] no mounted structure for parser
@@ -1006,23 +1007,59 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [WARN]  [/sys/router] no mounted structure for proc
 [WARN]  [/sys/router] no mounted structure for proc
 [INFO]  [/sys/typer] proc rec type defined
-[WARN]  [/sys/typer] /fos/q/sub module(s) not available
+[INFO]  [/sys/typer] /fos/q/sub/msg rec type defined
+[INFO]  [/sys/typer] /fos/q/sub/sub rec type defined
+[INFO]  [/sys/typer] /fos/q rec type defined
+[INFO]  [/sys/typer] /fos/q/sub rec type defined
+[INFO]  [/sys/typer] /fos/q/doc rec type defined
+[INFO]  [/sys/typer] /fos/q/default rec type defined
+[INFO]  [/sys/typer] /fos/q types imported
+[INFO]  [/sys/typer] /fos/q/sub types imported
+[INFO]  [/sys/typer] /fos/net/inet rec type defined
+[INFO]  [/sys/typer] /fos/net/# types imported
+[INFO]  [/sys/typer] /fos/llm/ollama rec type defined
+[INFO]  [/sys/typer] /fos/llm/ollama/::/setup inst type defined
+[INFO]  [/sys/typer] /fos/llm/model rec type defined
+[INFO]  [/sys/typer] /fos/llm/model/::/setup inst type defined
+[INFO]  [/sys/typer] /fos/llm/model/::/query inst type defined
+[INFO]  [/sys/typer] /fos/llm/# types imported
+[INFO]  [/sys/typer] /fos/ui/button rec type defined
+[INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
+[INFO]  [/sys/typer] /fos/ui/terminal rec type defined
+[INFO]  [/sys/typer] /fos/ui/terminal/::/stdout inst type defined
+[INFO]  [/sys/typer] /fos/ui/terminal/::/stdin inst type defined
+[INFO]  [/sys/typer] /fos/ui/terminal/::/loop inst type defined
+[INFO]  [/sys/typer] /fos/ui/console rec type defined
+[INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
+[INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
+[INFO]  [/sys/typer] /fos/ui types imported
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;17338368,free=&gt;17335840,used=&gt;0.014579]
+[INFO]  [/sys/router/memory] main [total=&gt;17342464,free=&gt;17339968,used=&gt;0.014395]
 [INFO]  [/boot/config] exiting boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup?obj{?}&lt;=obj{.}()
-	[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().router/::/mount(at(/mnt/var)).end().from(info/platform).split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#).end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;from(/boot/config/params/wifi/ssid),password=&gt;from(/boot/config/params/wifi/password),mdns=&gt;from(info/platform)]]]@/io/wifi}).end().from(/io/wifi).connect().end().typer/::/import(/fos/io/gpio).end().start({/io/gpio/+?q:default}).ref(block(lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs}).end().router/::/mount(at(/mnt/fs))]).merge().end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;from(/boot/config/params/mqtt/broker),client=&gt;from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster}).end().router/::/mount(at(/mnt/cluster)).end().typer/::/import(/fos/ui).end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal}).end().start({/fos/ui/console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(81920).end().scheduler/::/spawn(at(/io/console)).end()]
+	[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().router/::/mount(at(/mnt/var)).end().from(info/platform).split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#).end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;from(/boot/config/params/wifi/ssid),password=&gt;from(/boot/config/params/wifi/password),mdns=&gt;from(info/platform)]]]@/io/wifi}).end().from(/io/wifi).connect().end().typer/::/import(/fos/io/gpio).end().start({/io/gpio/+?q:default}).ref(block(lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs}).end().router/::/mount(at(/mnt/fs))]).merge().end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;from(/boot/config/params/mqtt/broker),client=&gt;from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster}).end().router/::/mount(at(/mnt/cluster)).end().typer/::/import(/fos/ui).end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal}).end().start({/fos/ui/console[[=&gt;]]@/io/console}).end().start({/io/terminal/netio?q:sub}).ref(block(print('==&gt;{{_}}\n'))).end().from(/boot/config/params/host).map(//{{_}}/info).split([ref(from(block(/sys/info))),{{_.&lt;&lt;(1)}}/#?q:sub]).map(1).ref(block(scheduler/::/eval(_,/io/terminal/netio))).end().start({/io/console/config/stack_size}).ref(81920).end().scheduler/::/spawn(at(/io/console)).end()]
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
 [INFO]  [/mmadt/rec] attempting mqtt://chibi.local:1883 mqtt connection
 [INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt chibi connected
 [INFO]  [/mnt/cluster] structure pattern //+/# subscribed
 [INFO]  [/sys/router] dsm /mnt/cluster spanning //+/# mounted
+[WARN]  [/sys/typer] /fos/ui/button rec type [pin=&gt;_,on_push=&gt;_,::=&gt;[loop=&gt;/fos/ui/button/::/loop?obj{?}&lt;=button()[cpp]]] overwritten
+[INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
+[WARN]  [/sys/typer] /fos/ui/terminal rec type [::=&gt;[stdout=&gt;/fos/ui/terminal/::/stdout?obj{.}&lt;=terminal{?}(output?str=&gt;_)[cpp],stdin=&gt;/fos/ui/terminal/::/stdin?str{?}&lt;=terminal{?}(until?str=&gt;else('
+'))[cpp],loop=&gt;/fos/ui/terminal/::/loop?obj{?}&lt;=terminal()[cpp]]] overwritten
+[INFO]  [/sys/typer] /fos/ui/terminal/::/stdout inst type defined
+[INFO]  [/sys/typer] /fos/ui/terminal/::/stdin inst type defined
+[INFO]  [/sys/typer] /fos/ui/terminal/::/loop inst type defined
+[WARN]  [/sys/typer] /fos/ui/console rec type [loop=&gt;lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]),halt=&gt;else(false),config=&gt;else([nest=&gt;2,prompt=&gt;'fhatos&gt; ',stack_trace=&gt;true,strict=&gt;false,log=&gt;INFO,ellipsis=&gt;50,terminal=&gt;[stdout=&gt;/io/terminal/::/stdout,stdin=&gt;/io/terminal/::/stdin]]),::=&gt;[clear=&gt;/fos/ui/console/::/clear?console&lt;=console()[cpp],eval=&gt;/fos/ui/console/::/eval?obj{?}&lt;=console(code=&gt;_)[cpp]]] overwritten
+[INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
+[INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
+[INFO]  [/sys/typer] /fos/ui types imported
 [INFO]  [/io/console] [native] thread spawned: lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]) [cpu:2]
 [INFO]  [/sys/scheduler] /io/console thread spawned
 [INFO]  [/mnt/io/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;/io/console/halt,payload=&gt;false,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;/io/console/halt,on_recv=&gt;inst?obj&lt;=obj(target=&gt;from(block(target),noobj),payload=&gt;from(block(payload),noobj),retain=&gt;from(block(retain),noobj))[cpp]]]
 [INFO]  [/io/console] [fhatos] thread spawned: /fos/sys/thread/loop?obj{?}&lt;=console()[cpp] [stack size:65536]
-[INFO]  [/boot/config] boot time: 0.220665581 seconds</code></pre>
+[INFO]  [/boot/config] boot time: 0.238177144 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1203,7 +1240,7 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ==&gt;]
 =&gt;]
 ==&gt;::=&gt;[
-===&gt;register=&gt;typer/::/register?obj{?}&lt;=obj{?}(module_id?uri=&gt;_,module?inst=&gt;_)[cpp]
+===&gt;register=&gt;typer/::/register?inst&lt;=obj{?}(module_id?uri=&gt;_)[cpp]
 ===&gt;import=&gt;typer/::/import?obj{?}&lt;=obj{?}(modules=&gt;_)[cpp]
 ===&gt;fos=&gt;[
 ====&gt;io=&gt;[
@@ -4929,7 +4966,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-06-13 17:18:06 -0600
+Last updated 2025-06-14 13:18:24 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
