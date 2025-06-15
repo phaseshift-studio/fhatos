@@ -77,11 +77,11 @@ namespace fhatos {
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, Kernel::boot().get(),
                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
-      const Inst_p main_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
+      const Inst_p setup_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      std::holds_alternative<Obj_p>(main_inst->inst_f())
-          ? std::get<Obj_p>(main_inst->inst_f())->apply(Obj::to_noobj())
-          : (*std::get<Cpp_p>(main_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
+      std::holds_alternative<Obj_p>(setup_inst->inst_f())
+          ? std::get<Obj_p>(setup_inst->inst_f())->apply(Obj::to_noobj())
+          : (*std::get<Cpp_p>(setup_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
       return Kernel::build();
     }
 

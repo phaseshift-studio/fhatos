@@ -30,6 +30,7 @@
                       import=>[/mmadt/#,/fos/#]]]@/sys/typer,
  ----------------------------------- USER BOOT SETUP -----------------------------------
  setup=>setup?obj{?}<=obj{.}()[
+    */sys/info.[_=>_];
     heap[[pattern=><+/#>]]@/mnt/var;
     router::mount(@/mnt/var);
     *<info/platform>-<
@@ -42,7 +43,7 @@
         */io/wifi.connect();
         typer::import(/fos/io/gpio);
         /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
-       is(eq(native))=> --- native specific
+      is(eq(native))=> --- native specific
         fs[[pattern=>/fs/#,config=>[root=><.>]]]@/mnt/fs;
         router::mount(@/mnt/fs)]>-;
     dsm[[pattern=>//+/#,config=>[
@@ -50,14 +51,11 @@
          client=>*/boot/config/params/net/mdns,
          async=>true]]]@/mnt/cluster;
     router::mount(@/mnt/cluster);
-    typer::import(/fos/ui);
     /fos/ui/terminal[[=>]]@/io/terminal;
     /fos/ui/console[[=>]]@/io/console;
-    /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
-    *</boot/config/params/host>.<//{{_}}/info>.-<[
-            ->*|/sys/info,
-            <{{_.<<(1)}}/#?q:sub>]
-       .<1>->|(/sys/scheduler::eval(_,/io/terminal/netio));
+    *</boot/config>.|(</io/terminal/netio?q:sub>) -> ^(*/io/console.output(*|payload));
+    --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
+    *</boot/config/params/host>.<//{{_}}?q:sub> -> ^(/sys/scheduler::eval(_,/io/terminal/netio));
     /io/console/config/stack_size -> 81920;
     scheduler::spawn(@/io/console);
     --- /boot/# -> noobj;

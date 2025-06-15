@@ -16,22 +16,27 @@ The module data flow is diagrammed below.
 ----
 
 ===
-/fos/p2p_eval -> |/fos/p2p_eval?rec<=obj{.}()[[
+/fos/p2p_eval -> |/sys/typer/::/fos/p2p_eval?rec<=obj{.}()[[
   /fos/p2p_eval => |[input?uri=>_,
                     output?uri=>_,
                     at_input=>else(^(/sys/scheduler::eval(_,*output))),
-                    at_output=>else(^(print('==>{{_}}\n')))]]]
-  /fos/p2p_eval::setup ->  |setup?obj{?}<=/fos/p2p_eval(p2p=>_)[
+                    at_output=>else(^(print('==>{{_}}\n')))],
+  /fos/p2p_eval::setup =>  |setup?obj{?}<=/fos/p2p_eval(p2p=>_)[
                                                 1.<{{*p2p/input}}?q:sub>  -> /fos/q/sub/sub[[source=>remote,pattern=>*p2p/input,on_recv=>*p2p/at_input]];
                                                 1.<{{*p2p/output}}?q:sub> -> /fos/q/sub/sub[[source=>local,pattern=>*p2p/output,on_recv=>*p2p/at_output]];
-                                              ]
-
-
+                                              ]]]
 
 /sys/typer/::/register(/fos/p2p_eval)
 /sys/typer/::/import(/fos/p2p_eval)
 /fos/p2p_eval[[input=>abc/input,output=>abc/output,at_input=>^to(|abc/input),at_output=>^print('yea: {{_}}')]]@/sys/router/p2p
-@/sys/router/p2p.setup()
+
+/fos/p2p_eval[[input=>//fhat1/input,output=>abc/output,at_input=>^to(|abc/output),at_output=>^print('yea: {{_}}')]]@/sys/router/p2p
+1.<{{*p2p/input}}?q:sub>  -> /fos/q/sub/sub[[source=>remote,pattern=>*p2p/input,on_recv=>*p2p/at_input]];
+1.<{{*p2p/output}}?q:sub> -> /fos/q/sub/sub[[source=>local,pattern=>*p2p/output,on_recv=>*p2p/at_output]]
+
+
+
+*/sys/router/p2p.setup()
 
 p2p -> *|/sys/router/p2p
 *p2p.<{{input}}?q:sub>  -> /fos/q/sub/sub[[source=>remote,pattern=>input,on_recv=>at_input]];
