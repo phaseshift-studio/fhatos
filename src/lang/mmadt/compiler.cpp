@@ -130,7 +130,7 @@ namespace fhatos {
     if(dt)
       dt->emplace_back(id_p(lhs->vid_or_tid()->no_query()), id_p(resolved->vid_or_tid()->no_query()), resolved);
     // necessary for reference instructions that simply redirect to another instruction
-    if(resolved->is_inst_stub() && resolved->tid->name()  != provided_inst->tid->name())
+    if(resolved->is_inst_stub() && resolved->tid->name() != provided_inst->tid->name())
       resolved = this->resolve_inst(lhs, resolved);
     return match_inst_args(provided_inst->inst_args(), resolved->inst_args()) ? resolved : Obj::to_noobj();
   }
@@ -213,8 +213,9 @@ namespace fhatos {
         c.print_derivation_tree(&derivation_string);
         delete d;
       }
-      throw fError(FURI_WRAP_C(m) " !b%s!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
-                   inst->vid_or_tid()->toString().c_str(), derivation_string.c_str());
+      throw fError(FURI_WRAP_C(m) " !b%s!g(%s!g)!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
+                   inst->vid_or_tid()->toString().c_str(), inst->inst_args()->toString().c_str(),
+                   derivation_string.c_str());
     }
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }

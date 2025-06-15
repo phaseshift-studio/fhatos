@@ -243,7 +243,7 @@ namespace fhatos {
 #define XSTR(a) #a
 #define L(a, ...) [=]() { return fmt::format((string((a))), ##__VA_ARGS__); }
 #define FURI_WRAP "!g[!b%s!g]!!"
-#define FURI_WRAP_C(color) STR(!g[!color % s !g] !!)
+#define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
 #define SCHEDULER_FURI_WRAP "!g[!y%s!g]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) (a)) / (1024.0f * 1024.0f))

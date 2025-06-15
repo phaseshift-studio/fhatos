@@ -32,6 +32,8 @@
 #include <cpptrace/cpptrace.hpp>
 #endif
 
+#define CONSOLE_TID FOS_URI "/ui/console"
+
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
@@ -81,7 +83,6 @@ namespace fhatos {
       //}
     }
 
-
     void print_exception(const std::exception &ex) const {
       this->write_stdout(str(fmt::format("!r[ERROR]!! {}\n", ex.what())));
     }
@@ -91,7 +92,13 @@ namespace fhatos {
       this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::strip(prompt).length()) : prompt));
     }
 
-    void process_line(string line) const {
+    void process_output(const Obj_p &result) const {
+      std::stringbuf to_out;
+      PrintHelper::pretty_print_obj(result, 0, this->obj_get("config/nest")->or_else_<int>(2), false, &to_out);
+      this->write_stdout(str(to_out.str()));
+    }
+
+    void process_input(string line) const {
       /////////////////////////////////////////////////////////////
       ////////////// EXPERIMENTING WITH ANSI MOVEMENT /////////////
       if(line == "TEST") {
@@ -118,114 +125,129 @@ namespace fhatos {
         result = __().inst(proc->uri_value().add_component("eval"), str(line)).compute().to_objs();
       else
         result = Processor::compute(line);
-      std::stringbuf to_out;
-      FEED_WATCHDOG();
-      PrintHelper::pretty_print_obj(result, 0, this->obj_get("config/nest")->or_else_<int>(2), false, &to_out);
-      this->write_stdout(str(to_out.str()));
+      this->process_output(result);
     }
 
-    static void *import() {
-      MODEL_CREATOR2->insert_or_assign(*CONSOLE_FURI,
-                                       [](const Obj_p &console_obj) { return make_shared<Console>(console_obj); });
-      ////////////////////////// TYPE ////////////////////////////////
-      Typer::singleton()->save_type(
-          *CONSOLE_FURI,
-          Obj::to_rec(
-              {{"loop", __().lift(InstBuilder::build(THREAD_FURI->extend("loop"))
-                                      ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
-                                      ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-                                        Console *console_state = console_obj->get_model<Console>();
-                                        if(console_state->first) {
-                                          console_state->first = false;
-                                          Thread::delay(300);
-                                          printer()->println();
+    static void register_module() {
+      Typer::singleton()->register_module(
+          CONSOLE_TID,
+          InstBuilder::build(Typer::singleton()->vid->add_component(CONSOLE_TID))
+              ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
+              ->inst_f([](const Obj_p &, const InstArgs &) {
+                // TODO: move to its own module?
+                Terminal::import();
+                MODEL_CREATOR2->insert_or_assign(
+                    CONSOLE_TID, [](const Obj_p &console_obj) { return make_shared<Console>(console_obj); });
+                return Obj::to_rec(
+                    {{vri(CONSOLE_FURI),
+                      Obj::to_rec(
+                          {{vri("loop"),
+                            __().lift(
+                                InstBuilder::build(THREAD_FURI->extend("loop"))
+                                    ->domain_range(id_p(CONSOLE_TID), {1, 1}, OBJ_FURI, {0, 1})
+                                    ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
+                                      Console *console_state = console_obj->get_model<Console>();
+                                      if(console_state->first) {
+                                        console_state->first = false;
+                                        Thread::delay(300);
+                                        printer()->println();
+                                      }
+                                      try {
+                                        console_state->Mailbox::loop();
+                                        /// WRITE TO PROMPT
+                                        if(!console_obj->rec_get("config/terminal/stdout")->is_noobj()) {
+                                          if(console_state->new_input_)
+                                            console_state->print_prompt(!console_state->line_.empty());
+                                          console_state->new_input_ = false;
                                         }
-                                        try {
-                                          console_state->Mailbox::loop();
-                                          /// WRITE TO PROMPT
-                                          if(!console_obj->rec_get("config/terminal/stdout")->is_noobj()) {
-                                            if(console_state->new_input_)
-                                              console_state->print_prompt(!console_state->line_.empty());
-                                            console_state->new_input_ = false;
-                                          }
-                                          if(!console_obj->rec_get("config/terminal/stdin")->is_noobj()) {
-                                            //// READ FROM PROMPT
-                                            if(const string x = console_state->read_stdin('\n')->str_value();
-                                               x.find(":clear") == 0) {
-                                              console_state->clear();
-                                              return noobj();
+                                        if(!console_obj->rec_get("config/terminal/stdin")->is_noobj()) {
+                                          //// READ FROM PROMPT
+                                          if(const string x = console_state->read_stdin('\n')->str_value();
+                                             x.find(":clear") == 0) {
+                                            console_state->clear();
+                                            return noobj();
+                                          } else {
+                                            console_state->tracker_.track(x);
+                                            if(console_state->tracker_.closed()) {
+                                              console_state->new_input_ = true;
+                                              console_state->line_ += x;
                                             } else {
-                                              console_state->tracker_.track(x);
-                                              if(console_state->tracker_.closed()) {
-                                                console_state->new_input_ = true;
-                                                console_state->line_ += x;
-                                              } else {
-                                                console_state->line_ += x;
-                                                return Obj::to_noobj();
-                                              }
-                                              StringHelper::trim(console_state->line_);
-                                              if(console_state->line_.empty() ||
-                                                 console_state->line_[console_state->line_.length() - 1] == ';' ||
-                                                 // specific to end-step and imperative simulation
-                                                 !console_state->tracker_.closed()) {
-                                                ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
-                                                return noobj();
-                                              }
+                                              console_state->line_ += x;
+                                              return Obj::to_noobj();
                                             }
-                                            // prepare the user input for processing
-                                            console_state->tracker_.clear();
-                                            console_state->process_line(console_state->line_);
-                                            console_state->line_.clear();
-                                          }
-                                        } catch(const fError &e) {
-                                          console_state->print_exception(e);
-#ifdef NATIVE
-                                          if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
-                                            console_state->write_stdout(
-                                                str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
-                                            string response = console_state->read_stdin('\0')->str_value();
-                                            StringHelper::lower_case(response);
-                                            if(response[0] == 'y') {
-                                              const cpptrace::stacktrace st = cpptrace::generate_trace();
-                                              console_state->write_stdout(str(st.to_string(true).append("\n")));
+                                            StringHelper::trim(console_state->line_);
+                                            if(console_state->line_.empty() ||
+                                               console_state->line_[console_state->line_.length() - 1] == ';' ||
+                                               // specific to end-step and imperative simulation
+                                               !console_state->tracker_.closed()) {
+                                              ///////// DO NOTHING ON OPEN EXPRESSION (i.e. multi-line expressions)
+                                              return noobj();
                                             }
                                           }
-#endif
-                                          console_state->clear();
+                                          // prepare the user input for processing
+                                          console_state->tracker_.clear();
+                                          console_state->process_input(console_state->line_);
+                                          console_state->line_.clear();
                                         }
-                                        return Obj::to_noobj();
-                                      })
-                                      ->create())},
-               {"halt", __().else_(dool(false))},
-               {"config", __().else_(Obj::to_rec(
-                              {{"nest", jnt(2)},
-                               {"prompt", str("!mfhatos!g>!! ")},
-                               {"stack_trace", dool(true)},
-                               {"strict", dool(false)},
-                               {"log", vri(LOG_TYPES.to_chars(INFO))},
-                               {"ellipsis", jnt(50)},
-                               {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/::/stdout")},
-                                                         {"stdin", Obj::to_uri("/io/terminal/::/stdin")}})}}))}}));
-      InstBuilder::build(CONSOLE_FURI->add_component("clear"))
-          ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
-          ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
-            Console *console_state = console_obj->get_model<Console>();
-            console_state->clear();
-            return console_obj;
-          })
-          ->save();
-      InstBuilder::build(CONSOLE_FURI->add_component("eval"))
-          ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
-          ->inst_args(rec({{"code", Obj::to_bcode()}}))
-          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
-            string code = args->arg("code")->str_value();
-            StringHelper::replace(&code, "\\'", "\'"); // unescape quotes (should this be part of str?)
-            const Console *console_state = console_obj->get_model<Console>();
-            console_state->process_line(code);
-            return Obj::to_noobj();
-          })
-          ->save();
-      return nullptr;
+                                      } catch(const fError &e) {
+                                        console_state->print_exception(e);
+#ifdef NATIVE
+                                        if(console_obj->rec_get("config/stack_trace", dool(false))->bool_value()) {
+                                          console_state->write_stdout(
+                                              str("\t!yprint stack trace!! !m[!gy!m/!gN!m]!y?!! "));
+                                          string response = console_state->read_stdin('\0')->str_value();
+                                          StringHelper::lower_case(response);
+                                          if(response[0] == 'y') {
+                                            const cpptrace::stacktrace st = cpptrace::generate_trace();
+                                            console_state->write_stdout(str(st.to_string(true).append("\n")));
+                                          }
+                                        }
+#endif
+                                        console_state->clear();
+                                      }
+                                      return Obj::to_noobj();
+                                    })
+                                    ->create())},
+                           {vri("halt"), __().else_(dool(false))},
+                           {vri("config"),
+                            __().else_(Obj::to_rec(
+                                {{"nest", jnt(2)},
+                                 {"prompt", str("!mfhatos!g>!! ")},
+                                 {"stack_trace", dool(true)},
+                                 {"strict", dool(false)},
+                                 {"log", vri(LOG_TYPES.to_chars(INFO))},
+                                 {"ellipsis", jnt(50)},
+                                 {"terminal", Obj::to_rec({{"stdout", Obj::to_uri("/io/terminal/::/stdout")},
+                                                           {"stdin", Obj::to_uri("/io/terminal/::/stdin")}})}}))}})},
+                     {vri(CONSOLE_FURI->add_component("clear")),
+                      InstBuilder::build(CONSOLE_FURI->add_component("clear"))
+                          ->domain_range(CONSOLE_FURI, {1, 1}, CONSOLE_FURI, {1, 1})
+                          ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
+                            Console *console_state = console_obj->get_model<Console>();
+                            console_state->clear();
+                            return console_obj;
+                          })
+                          ->create()},
+                     {vri(CONSOLE_FURI->add_component("eval")),
+                      InstBuilder::build(CONSOLE_FURI->add_component("eval"))
+                          ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                          ->inst_args(rec({{"code", Obj::to_bcode()}}))
+                          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
+                            console_obj->get_model<Console>()->process_input(args->arg("code")->str_value());
+                            return Obj::to_noobj();
+                          })
+                          ->create()},
+                     {vri(CONSOLE_FURI->add_component("output")),
+                      InstBuilder::build(CONSOLE_FURI->add_component("output"))
+                          ->domain_range(CONSOLE_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                          ->inst_args(rec({{"obj", Obj::to_bcode()}}))
+                          ->inst_f([](const Obj_p &console_obj, const InstArgs &args) {
+                            console_obj->get_model<Console>()->process_output(args->arg("obj"));
+                            return Obj::to_noobj();
+                          })
+                          ->create()}});
+              })
+              ->create());
     }
   };
 

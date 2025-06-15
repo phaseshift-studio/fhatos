@@ -53,7 +53,7 @@
     typer::import(/fos/ui);
     /fos/ui/terminal[[=>]]@/io/terminal;
     /fos/ui/console[[=>]]@/io/console;
-    /io/terminal/netio?q:sub -> |(print('!y==>!!{{_}}\n'));
+    /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
     *</boot/config/params/host>.<//{{_}}/info>.-<[
             ->*|/sys/info,
             <{{_.<<(1)}}/#?q:sub>]

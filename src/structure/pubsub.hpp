@@ -124,7 +124,7 @@ namespace fhatos {
       ROUTER_EXEC_WITHIN_FRAME(
           "#",
           Obj::to_rec({{"target", vri(message->target())}, {"payload", payload}, {"retain", dool(message->retain())}}),
-          [this, payload] { return this->on_recv()->apply(payload); });
+          [this, payload] { return mmADT::delift(this->on_recv())->apply(payload); });
     }
   };
 

@@ -61,9 +61,9 @@ namespace fhatos {
       modules_fos_q();
       // QSub::register_module();
       modules_fos_io();
-      modules_fos_ui();
+      // modules_fos_ui();
       // import_io(patterns);
-      //  import_sys(patterns);
+      // import_sys(patterns);
       // import_sensor(patterns);
       // import_ui({});
       // import_util({});
@@ -78,6 +78,7 @@ namespace fhatos {
       FS::register_module();
       Memory::register_module();
       GPIO::register_module();
+      Console::register_module();
 #ifdef NATIVE
       OllamaServer::register_module();
 #endif
@@ -90,7 +91,6 @@ namespace fhatos {
                                                ->inst_f([](const Obj_p &, const InstArgs &) {
                                                  Button::import();
                                                  Terminal::import();
-                                                 Console::import();
 #ifdef ARDUINO
                                                  RGBLED::import();
                                                  OLED::register_module();

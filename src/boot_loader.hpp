@@ -109,7 +109,7 @@ namespace fhatos {
             ->import_module("/fos/sys/#") //  sys
             ->import_module("/fos/net/#") //  net
             ->import_module("/fos/llm/#") // ai llm
-            ->import_module("/fos/ui"); //  user interface
+            ->import_module("/fos/ui/#"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
         kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evaluate_setup()->stop_timer();

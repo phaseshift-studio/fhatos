@@ -2018,6 +2018,8 @@ namespace fhatos {
       if(type_obj->is_empty_bcode())
         return true;
       if(type_obj->is_type()) {
+        if(this->is_code() && !type_obj->is_code())
+          return true; /// TODO: check range
         const bool result = OTYPE_FURI.at(this->otype)->equals(*type_obj->tid);
         if(!result && fail_reason) {
           fail_reason->push(
@@ -2025,6 +2027,7 @@ namespace fhatos {
         }
         return result;
       }
+
       if(type_obj->is_code() && !this->is_code()) {
         try {
           const Obj_p result = type_obj->apply(this->clone());
