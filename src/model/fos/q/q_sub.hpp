@@ -28,12 +28,12 @@ FhatOS: A Distributed Operating System
 #define Q_SUB_TID FOS_URI "/q/sub"
 
 namespace fhatos {
-  class QSub final : public QProc, public Mailbox {
-  protected:
-    ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
+  class QSub final : public QProc {
 
   public:
-    explicit QSub(const ID_p &value_id = nullptr) : QProc(id_p("/fos/q/sub"), value_id) {
+    ptr<Post> post_;
+    explicit QSub(const ID_p &value_id = nullptr) :
+        QProc(id_p("/fos/q/sub"), value_id), post_(make_shared<LocalPost>()) {
       this->Obj::rec_set("pattern", vri("sub"));
     }
 
@@ -43,14 +43,12 @@ namespace fhatos {
     }
 
     void loop() const override {
-      while(!this->empty()) {
+      /*while(!this->empty()) {
         FEED_WATCHDOG();
         Option<Mail> mail = this->next_mail();
-        LOG_WRITE(
-            TRACE, this,
-            L("!yprocessing mail!! !b{}!! -> {}\n", mail.value().second->toString(), mail.value().first->toString()));
         mail.value().first->apply(mail.value().second);
-      }
+      }*/
+      this->post_->loop();
     }
 
 
@@ -61,14 +59,7 @@ namespace fhatos {
         const ID source_id =
             Thread::current_thread().has_value() ? *Thread::current_thread().value()->thread_obj_->vid : *SCHEDULER_ID;
         if(obj->is_noobj()) {
-          this->subscriptions_->remove_if([this, &furi_no_query, &source_id](const Subscription_p &sub) {
-            const bool removing = sub->source()->equals(source_id) && (sub->pattern()->matches(furi_no_query));
-            if(removing)
-              LOG_WRITE(
-                  DEBUG, this,
-                  L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", sub->source()->toString(), furi_no_query.toString()));
-            return removing;
-          });
+          this->post_->unsubscribe(source_id, furi_no_query);
         } else {
           const Subscription_p sub =
               obj->tid->equals(SUBSCRIPTION_TID)
@@ -77,30 +68,12 @@ namespace fhatos {
                                               ? Thread::current_thread().value()->thread_obj_->vid
                                               : SCHEDULER_ID),
                                          p_p(furi_no_query), obj);
-          this->subscriptions_->push_back(sub);
-          LOG_WRITE(DEBUG, this,
-                    L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
-                      furi_no_query.toString()));
-          // TODO: ROUTE TO NEW SUBSCRIPTION: const Obj_p result = ROUTER_READ(*sub->pattern());
+          this->post_->subscribe(sub);
         }
         LOG_WRITE(TRACE, this, L("!ypre-wrote!! !b{}!! -> {}\n", furi_no_query.toString(), obj->toString()));
       } else if(POSITION::Q_LESS == pos) {
         // publish
-        for(const Subscription_p &sub: *this->subscriptions_) {
-          if(furi_no_query.bimatches(*sub->pattern())) {
-            const Obj_p source_obj = ROUTER_READ(*sub->source());
-            const Message_p msg = Message::create(id_p(furi_no_query), obj, retain);
-            const auto mail = Mail(sub, msg);
-            if(const auto source_mailbox = dynamic_cast<const Mailbox *>(source_obj->get_model<Obj>(false))) {
-              LOG_WRITE(INFO, source_obj.get(),
-                        L("!yrouting mail!! !b{}!! - {} !g[!mmailbox!g]!!\n", msg->toString(), sub->toString()));
-              source_mailbox->recv_mail(std::move(mail));
-            } else {
-              LOG_WRITE(INFO, this, L("!yreceiving mail!! !b{}!! -> {}\n", msg->toString(), sub->toString()));
-              this->recv_mail(std::move(mail));
-            }
-          }
-        }
+        this->post_->publish(Message::create(id_p(furi_no_query), obj, retain));
       }
     }
 
@@ -108,7 +81,7 @@ namespace fhatos {
       /// pre-read
       const fURI furi_no_query = furi.no_query();
       const Objs_p subs = Obj::to_objs();
-      for(const Subscription_p &sub: *this->subscriptions_) {
+      for(const Subscription_p &sub: *this->post_->subscriptions_) {
         if(furi_no_query.matches(*sub->pattern())) {
           subs->add_obj(sub);
         }
@@ -138,25 +111,6 @@ namespace fhatos {
                          })
                          ->create());
     }
-
-    ///////////////////////////////////////////////////////////////////
-
-    /*virtual void distribute_to_subscribers(const Message_p &message) {
-      this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
-        if(message->target()->matches(*subscription->pattern()))
-          this->outbox_->push_back(mail_p(subscription, message));
-      });
-    }
-
-    bool has_equal_subscription_pattern(const fURI &topic, const ID &source = "") const {
-      return this->subscriptions_->exists([source,topic](const Subscription_p &sub) {
-        if(source.empty() && !source.equals(*sub->source()))
-          return false;
-        if(topic.equals(*sub->pattern()))
-          return true;
-        return false;
-      });
-    }*/
   };
 } // namespace fhatos
 #endif

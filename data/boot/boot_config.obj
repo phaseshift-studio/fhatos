@@ -14,7 +14,7 @@
 [
  ------------------------------- BOOT GLOBAL VARIABLES -------------------------------
  params => [
-   host => fhat1,
+   host => f,
    --- esp32 only (native platforms must provide network connectivity)
    wifi => [ssid=><Rodkins-2G>,
             password=>'puppymama',
@@ -23,40 +23,60 @@
    mqtt => [broker=><mqtt://chibi.local:1883>],
    net  => [mdns=>/fos/net/inet/mdns()]],
  ---------------------------------- KERNEL BOOT OBJS ----------------------------------
- info     =>[name  =>*/boot/config/params/host]@/sys/info, --- add pairs as needed
+ info     =>[host  =>*/boot/config/params/host]@/sys/info, --- add pairs as needed
  scheduler=>[config=>[def_stack_size=>65536]]@/sys/scheduler,
  router   =>[config=>[auto_prefix=>[<>,/mmadt/ext/,/mmadt/,/sys/,/io/,/fos/s/]]]@/sys/router,
  typer    =>[config=>[register=>[/mmadt/#,/fos/#],
                       import=>[/mmadt/#,/fos/#]]]@/sys/typer,
  ----------------------------------- USER BOOT SETUP -----------------------------------
+ cluster=>cluster?obj{?}<=obj{.}()[
+  print('\t!g!_loading !ycluster!!\n');
+  /boot/config/mdns -> *</sys/info/platform>-<
+                                             [is(eq(esp32))=>*/io/wifi/config/mdns,
+                                              is(eq(native))=>*/boot/config/params/net/mdns]>-;
+  dsm[[pattern=>//+/#,
+       config=>[
+        broker=>*/boot/config/params/mqtt/broker,
+        client=>*/boot/config/name,
+        async=>true]]]@/mnt/cluster;
+  router::mount(@/mnt/cluster);
+  *</boot/config/name>.<//{{_}}> -> *|/sys/info;
+  --- [input,output]>-.-<[<//{{*/boot/config/mdns}}/{{_}}>]>-.ref('remote i/o')
+  *</boot/config/name>.<//{{_}}/output?q:sub> -> ^(*/io/console.output(*|payload));
+  --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
+  *</boot/config/name>.<//{{_}}/input?q:sub> ->
+    /fos/q/sub/sub[[source=>/io/console,
+                    pattern=>//{{*/boot/config/name}}/input,
+                    on_recv=>^/sys/scheduler::eval(*payload,<{{*(target).<<(1)}}/output>)]]
+ ],
  setup=>setup?obj{?}<=obj{.}()[
     */sys/info.[_=>_];
+    /boot/config/name -> <{{*</boot/config/params/host>}}{{*</sys/info/platform>}}>;
     heap[[pattern=><+/#>]]@/mnt/var;
     router::mount(@/mnt/var);
-    *<info/platform>-<
-      [is(eq(esp32))=>  --- esp specific
+    *</sys/info/platform>-<
+      [is(eq(esp32))=>{  --- esp specific
+        print('\t!g!_esp32 !yspecific boot!!\n');
         typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
-          ssid=>*/boot/config/params/wifi/ssid,
-          password=>*/boot/config/params/wifi/password,
-          mdns=>*<info/platform>]]]@/io/wifi;
+                ssid=>*/boot/config/params/wifi/ssid,
+                password=>*/boot/config/params/wifi/password,
+                mdns=>*/boot/config/name,
+                on_connect=>^(/boot/config/cluster())
+          ]]]@/io/wifi;
         */io/wifi.connect();
-        typer::import(/fos/io/gpio);
-        /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
-      is(eq(native))=> --- native specific
+        typer::import(/fos/io/gpio)
+        --- /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
+      },
+      is(eq(native))=>{ --- native specific
+        print('\t!g!_native !yspecific boot!!\n');
         fs[[pattern=>/fs/#,config=>[root=><.>]]]@/mnt/fs;
-        router::mount(@/mnt/fs)]>-;
-    dsm[[pattern=>//+/#,config=>[
-         broker=>*/boot/config/params/mqtt/broker,
-         client=>*/boot/config/params/net/mdns,
-         async=>true]]]@/mnt/cluster;
-    router::mount(@/mnt/cluster);
+        router::mount(@/mnt/fs);
+        /boot/config/cluster()
+      }]>-;
     /fos/ui/terminal[[=>]]@/io/terminal;
     /fos/ui/console[[=>]]@/io/console;
-    *</boot/config>.|(</io/terminal/netio?q:sub>) -> ^(*/io/console.output(*|payload));
-    --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
-    *</boot/config/params/host>.<//{{_}}?q:sub> -> ^(/sys/scheduler::eval(_,/io/terminal/netio));
-    /io/console/config/stack_size -> 81920;
+    /io/console/config/stack_size -> 61440;
     scheduler::spawn(@/io/console);
     --- /boot/# -> noobj;
  ]]@/boot/config

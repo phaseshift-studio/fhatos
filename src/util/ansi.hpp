@@ -122,8 +122,8 @@ namespace fhatos {
     std::string buffer_ = std::string();
     StringPrinter printer_ = StringPrinter(&buffer_);
     uint16_t *slots[10] = {};
-    bool ansi_on_ = true;
-    bool printer_on_ = true;
+    bool ansi_on_;
+    bool printer_on_;
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
@@ -142,9 +142,18 @@ namespace fhatos {
       for(uint16_t i = 0; i < buffer_length; i++) {
         if(buffer[i] > 126)
           continue;
-        if(buffer[i] == '!') {
-          const char j = buffer[i + 1];
-          if('!' == j)
+        if(buffer[i] == '\\') {
+          if(const char j = buffer[i + 1]; 'n' == j) {
+            this->new_line();
+          } else if('t' == j) {
+            this->htab();
+          } else {
+            this->printer_.print(buffer[i]);
+            this->printer_.print(j);
+          }
+          i++;
+        } else if(buffer[i] == '!') {
+          if(const char j = buffer[i + 1]; '!' == j)
             this->normal();
           ////////////////////////////////// POSITION !^d = down
           else if('^' == j) {
@@ -244,7 +253,7 @@ namespace fhatos {
 
     explicit Ansi(string *str) : Ansi(StringPrinter(str)) {}
 
-    explicit Ansi(const PRINTER &printer) : printer(printer) {
+    explicit Ansi(const PRINTER &printer) : ansi_on_(true), printer(printer), printer_on_(true), buffer_(string()) {
       for(auto &slot: this->slots) {
         uint16_t t[2] = {0, 0};
         slot = t;
@@ -357,6 +366,20 @@ namespace fhatos {
         this->print("\033[2K");
     }
 
+    void new_line() {
+      if(this->ansi_on_)
+        this->print('\n');
+      else
+        this->print("\n");
+    }
+
+    void htab() {
+      if(this->ansi_on_)
+        this->print('\t');
+      else
+        this->print("\t");
+    }
+
     // void background() {
     //   if (this->_on)
     //     this->print("\033[40m");
@@ -406,9 +429,6 @@ namespace fhatos {
     void right(const uint16_t columns = 1) { this->move('C', columns); }
 
     void down(const uint16_t rows = 1) {
-      /*for (int i = 0; i < rows; i++) {
-        this->print('\n');
-      }*/
       this->move('B', rows);
     }
 
@@ -575,8 +595,9 @@ namespace fhatos {
       if(percentage >= 100) {
         percentage = 100;
         this->ansi_->clear_line();
-      //  if(this->current_dropped_ > 0)
-         // this->ansi_->printf("!^d1^           \\_!g[!rdropped!!: %i !yout of!! %i!g]!!!^u1^", this->current_dropped_, this->total_counts_);
+        //  if(this->current_dropped_ > 0)
+        // this->ansi_->printf("!^d1^           \\_!g[!rdropped!!: %i !yout of!! %i!g]!!!^u1^", this->current_dropped_,
+        // this->total_counts_);
       }
       if(this->ansi_->is_ansi_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();

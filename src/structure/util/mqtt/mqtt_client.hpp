@@ -28,24 +28,11 @@ namespace fhatos {
   class MqttClient;
   static auto CLIENTS = Map<fURI, ptr<MqttClient>>();
 
-  class MqttClient final : Rec {
+  class MqttClient final : public Rec, public Post {
   public:
     std::any handler_;
     Runnable on_connect = [] {};
     uptr<MutexDeque<ID>> clients_ = make_unique<MutexDeque<ID>>();
-    uptr<MutexDeque<Subscription_p>> subscriptions_ = make_unique<MutexDeque<Subscription_p>>();
-    Consumer<Message_p> on_recv = [this](const Message_p &message) {
-      this->subscriptions_->forEach([this, &message](const Subscription_p &sub) {
-        /* if(this->clients_->find([this,sub](const ID &client) {
-           return sub->source()->equals(client);
-         }).has_value()) {*/
-        if(message->target()->matches(*sub->pattern())) {
-          if(sub->on_recv().get())
-            sub->apply(message);
-        }
-        // }
-      });
-    };
 
     explicit MqttClient(const Rec_p &config);
 
@@ -54,12 +41,6 @@ namespace fhatos {
     [[nodiscard]] ID client() const { return this->rec_get("client")->uri_value(); }
 
     [[nodiscard]] bool is_connected() const;
-
-    void subscribe(const Subscription_p &subscription, bool async = true) const;
-
-    void unsubscribe(const ID &source, const fURI &pattern, bool async = true) const;
-
-    void publish(const Message_p &message, bool async = true) const;
 
     Obj_p query(const fURI &pattern) {
       const Objs_p results;
@@ -77,9 +58,11 @@ namespace fhatos {
 
     [[nodiscard]] bool connect(const ID &source) const;
 
-    [[nodiscard]] bool disconnect(const ID &source, bool async = true) const;
+    [[nodiscard]] bool disconnect(const ID &source, bool async = true);
 
-    void loop();
+    void loop() override {
+      this->Mailbox::loop();
+    }
 
     static BObj_p make_bobj(const Obj_p &payload, const bool retain) {
       const Lst_p lst = Obj::to_lst({payload, dool(retain)});
@@ -99,6 +82,10 @@ namespace fhatos {
       CLIENTS.insert_or_assign(broker, mqtt);
       return mqtt;
     }
+    void subscribe(const Subscription_p &subscription, bool async = true) override;
+    void unsubscribe(const ID &source, const Pattern &pattern, bool async = true) override;
+    void publish(const Message_p &message, bool async = true) const override;
+    //void receive(const Message_p &message, bool async = true) const override;
   };
 } // namespace fhatos
 #endif

@@ -39,6 +39,7 @@
 #include "model/fos/io/i2c/i2c.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "model/fos/ui/console.hpp"
+#include "model/fos/net/wifi.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_PLATFORM)
 #include "model/fos/io/pwm/pwm.hpp"
@@ -112,7 +113,10 @@ namespace fhatos {
             ->import_module("/fos/ui/#"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evaluate_setup()->stop_timer();
+        kp->display_note("!yevaluating !bsetup !yinst!!")
+        ->display_memory()
+        ->evaluate_setup()
+        ->stop_timer();
         /* ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
                     ->drop_config("log");*/
       } catch(const fError &e) {

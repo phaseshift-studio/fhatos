@@ -1820,14 +1820,13 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     void resolve(/*const Obj_p &lhs = nullptr*/) const {
       const auto f = fURI(*this->tid);
-      ID r = ROUTER_RESOLVE(f);
       /*if(lhs && f.equals(r)) {
         if(!ROUTER_READ(lhs->tid->extend(r))->is_noobj())
           r = lhs->tid->extend(r);
         else if(!ROUTER_READ(lhs->tid->add_component(r))->is_noobj())
           r = lhs->tid->add_component(r);
       }*/
-      if(!f.equals(r))
+      if(ID r = ROUTER_RESOLVE(f); !f.equals(r))
         const_cast<Obj *>(this)->tid = id_p(r);
       ////////////////////////////////////////////////////////////////
       switch(this->otype) {
@@ -1909,6 +1908,10 @@ namespace fhatos {
       if(MODEL_MAP->count(*this->vid)) {
         MODEL_MAP->erase(*this->vid);
       }
+    }
+
+    virtual bool recv_payload(const void * payload) {
+      return false;
     }
 
     [[nodiscard]] std::vector<Obj_p> values() const {

@@ -58,7 +58,7 @@ namespace fhatos {
   class WIFIx : public Model<WIFIx> {
 
   public:
-    static Obj_p connect_inst(const Obj_p &wifi_obj, const InstArgs &) {
+    static Obj_p connect(const Obj_p &wifi_obj, const InstArgs &) {
 
       if(!WiFi.isConnected())
         WIFIx::connect_to_wifi_station(wifi_obj);
@@ -88,38 +88,29 @@ namespace fhatos {
                      {vri(WIFI_FURI), Obj::to_rec({{vri("halt"), __().else_(dool(true))},
                                                    {vri("config"), Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
                                                                                 {"password", Obj::to_type(STR_FURI)},
-                                                                                {"mdns", __().else_(vri("none"))}})}})},
+                                                                                {"mdns", __().else_(vri("none"))},
+                                                                                {"on_connect", __().else_(__())}})}})},
                      {vri(WIFI_FURI->add_component("connect")),
                       InstBuilder::build(WIFI_FURI->add_component("connect"))
                           ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
                           ->inst_f([](const Obj_p &wifi_obj, const InstArgs &args) {
                             Scheduler::singleton()->for_scheduler.push_back([wifi_obj, args] {
-                              WIFIx::connect_inst(wifi_obj, args);
+                              WIFIx::connect(wifi_obj, args);
                               wifi_obj->obj_set("halt", dool(false));
                               return wifi_obj;
                             });
-                            LOG_WRITE(INFO, wifi_obj.get(), L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!!"));
-                            Thread::yield();
-                            Thread::delay(2000);
-                            Thread::yield();
-                            //while(wifi_obj->obj_get("halt")->bool_value()) {
-                              //Ansi<>::singleton()->print(".");
-                             // Thread::yield();
-                              //Thread::delay(2000);
+                            LOG_WRITE(INFO, wifi_obj.get(),
+                                      L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!! (!ypushed to scheduler loop!!)\n"));
+                            // while(wifi_obj->obj_get("halt")->bool_value()) {
+                            // Ansi<>::singleton()->print(".");
+                            // Thread::yield();
+                            // Thread::delay(2000);
                             //}
                             return wifi_obj;
                           })
                           ->create()}});
               })
               ->create());
-      /*
-            if(wifi_config && !wifi_config->is_noobj()) {
-                    const Obj_p &wifi_obj = WIFIx::obj({{"halt", dool(false)}, {"config", wifi_config->clone()}},
-         "/io/wifi"); LOG_OBJ(INFO, wifi_obj, "!ywifi connection!! attempt: !b%s!!\n",
-                            wifi_config->rec_get("ssid")->uri_value().toString().c_str());
-                    WIFIx::connect_inst(wifi_obj, Obj::to_inst_args());
-                  }
-       */
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +173,11 @@ namespace fhatos {
       StringHelper::prefix_each_line(FOS_TAB_1, &wifi_str);
       WiFi.begin();
       LOG_OBJ(INFO, wifi_obj, "\n%s\n", wifi_str.c_str());
+      /////////////// ON_CONNECT CALLBACK ////////////////
+      const Obj_p on_connect = config->rec_get("on_connect");
+      if(!on_connect->is_noobj()) {
+        mmADT::delift(on_connect)->apply(wifi_obj);
+      }
       return true;
     }
 

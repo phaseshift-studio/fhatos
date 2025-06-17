@@ -151,34 +151,34 @@ namespace fhatos {
 
     static string replace_groups(std::string *s, const std::string &left_delim, const std::string &right_delim,
                                  const std::function<string(string)> &replace_function) {
-      size_t left_pos = 0;
-      size_t right_pos = 0;
-      size_t temp_pos = 0;
-      string new_string;
-      while(left_pos != std::string::npos) {
-        left_pos = s->find(left_delim, left_pos);
-        if(left_pos != std::string::npos) {
-          new_string += s->substr(right_pos, left_pos);
-          temp_pos = left_pos + left_delim.length();
-          if(right_pos = s->find(right_delim, left_pos + left_delim.length()); right_pos != std::string::npos) {
-            temp_pos = right_pos + right_delim.length();
-            // calculate the length of the substring to be replaced
-            const size_t length_to_replace = right_pos - left_pos - right_delim.size(); // - left_delim.length();
-            // replace the content between delimiters
-            const string to_replace = s->substr(left_pos + left_delim.size(), length_to_replace);
-            const string new_replace = replace_function(to_replace);
-            new_string += new_replace;
-            left_pos += new_replace.length();
-          } else {
-            new_string += s->substr(temp_pos, s->length() - temp_pos);
-            break;
-          }
-        } else {
-          new_string += s->substr(temp_pos, s->length() - temp_pos);
-          break;
+      auto ss = string(*s);
+      size_t start_pos = 0;
+      while(true) {
+        // Find the start delimiter
+        start_pos = ss.find(left_delim, start_pos);
+        if(start_pos == std::string::npos) {
+          break; // No more delimiters found
         }
+
+        // Find the end delimiter
+        size_t end_pos = ss.find(right_delim, start_pos + left_delim.length());
+        if(end_pos == std::string::npos) {
+          break; // No matching end delimiter found
+        }
+
+        // Extract the substring between the delimiters
+        std::string substring = ss.substr(start_pos + left_delim.length(), end_pos - (start_pos + left_delim.length()));
+
+        // Apply the replacement function
+        std::string replacement = replace_function(substring);
+
+        // Replace the substring in the original string
+        ss.replace(start_pos, end_pos - start_pos + right_delim.length(), replacement);
+
+        // Update the start position to continue scanning
+        start_pos = start_pos + replacement.length();
       }
-      return new_string;
+      return ss;
     }
 
     static void ltrim(std::string &s) {

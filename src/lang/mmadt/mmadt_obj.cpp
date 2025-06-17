@@ -186,13 +186,9 @@ namespace mmadt {
                   ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
                   ->inst_args(lst({Obj::to_bcode()}))
                   ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                    const string new_line =
+                    const string to_print =
                         args->arg(0)->is_str() ? args->arg(0)->str_value() : args->arg(0)->toString(NO_ANSI_PRINTER);
-                    if(new_line.length() > 1 && new_line[new_line.length() - 1] == 'n' &&
-                       new_line[new_line.length() - 2] == '\\')
-                      printer()->println(new_line.substr(0, new_line.length() - 2).c_str());
-                    else
-                      printer()->print(new_line.c_str());
+                    printer()->print(to_print.c_str());
                     return lhs;
                   })
                   ->save();
@@ -985,9 +981,7 @@ namespace mmadt {
 
               /////////////////////////// RELATIONAL PREDICATE INSTS ///////////////////////////
               for(const auto &i: {"gt", "gte", "lt", "lte"}) {
-                InstBuilder::build(MMADT_ID->extend(i))
-                    ->domain_range(OBJ_FURI, {0, 1}, BOOL_FURI, {1, 1})
-                    ->save();
+                InstBuilder::build(MMADT_ID->extend(i))->domain_range(OBJ_FURI, {0, 1}, BOOL_FURI, {1, 1})->save();
                 for(const auto &t: {INT_FURI, REAL_FURI, STR_FURI, URI_FURI}) {
                   InstBuilder *builder = InstBuilder::build(t->resolve(string(MMADT_INST_SCHEME).append("/").append(i)))
                                              ->domain_range(t, BOOL_FURI)
@@ -1275,10 +1269,11 @@ namespace mmadt {
 
                 InstBuilder::build(string(MMADT_PREFIX "uri/" MMADT_INST_SCHEME "/").append(op).c_str())
                     ->domain_range(URI_FURI, {1, 1}, URI_FURI, {1, 1})
-                    ->inst_args("other?uri",__())
+                    ->inst_args("other?uri", __())
                     ->inst_f([op](const Obj_p &lhs, const InstArgs &args) {
                       std::vector<std::pair<string, string>> values_a = lhs->uri_value().query_values();
-                      if(std::vector<std::pair<string, string>> values_b = args->arg("other")->uri_value().query_values();
+                      if(std::vector<std::pair<string, string>> values_b =
+                             args->arg("other")->uri_value().query_values();
                          values_b.empty())
                         values_a.insert(values_a.end(), values_b.begin(), values_b.end());
                       if(0 == strcmp(op, "plus"))
@@ -1287,8 +1282,8 @@ namespace mmadt {
                         return vri(lhs->uri_value().resolve(args->arg("other")->uri_value()).query(values_a), lhs->tid,
                                    lhs->vid);
                       if(0 == strcmp(op, "minus"))
-                        return vri(lhs->uri_value().remove_subpath(args->arg("other")->uri_value().toString()), lhs->tid,
-                                   lhs->vid);
+                        return vri(lhs->uri_value().remove_subpath(args->arg("other")->uri_value().toString()),
+                                   lhs->tid, lhs->vid);
                       throw fError("unknown op %s\n", op);
                     })
                     ->save();

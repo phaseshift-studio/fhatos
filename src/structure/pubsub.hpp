@@ -154,6 +154,61 @@ namespace fhatos {
     std::optional<Mail> next_mail() const { return this->mailbox_->pop_front(); }
   };
 
+  class Post : public Mailbox {
+  public:
+    ptr<MutexDeque<Subscription_p>> subscriptions_;
+    explicit Post() : Mailbox(), subscriptions_(make_shared<MutexDeque<Subscription_p>>()) {};
+    Post(const Post &other) : Mailbox(other), subscriptions_(other.subscriptions_) {}
+    Post(Post &&other) noexcept : Mailbox(other) {
+      this->subscriptions_ = std::move(other.subscriptions_);
+      other.subscriptions_ = nullptr;
+    }
+    ~Post() override = default;
+    virtual void subscribe(const Subscription_p &subscription, bool async = true) = 0;
+    virtual void unsubscribe(const ID &source, const Pattern &pattern, bool async = true) = 0;
+    virtual void publish(const Message_p &message, bool async = true) const = 0;
+    virtual void receive(const Message_p &message, bool async = true) const {
+      for(const Subscription_p &sub: *this->subscriptions_) {
+        if(message->target()->bimatches(*sub->pattern())) {
+          const Obj_p source_obj = ROUTER_READ(*sub->source());
+          const auto mail = Mail(sub, message);
+          if(const auto source_mailbox = source_obj->get_model<Obj>(false);
+             source_mailbox && source_mailbox->recv_payload(&mail)) {
+            LOG_WRITE(DEBUG, source_obj.get(),
+                      L("!yrouting mail!! !b{}!! - {} !g[!mmailbox!g]!!\n", message->toString(), sub->toString()));
+          } else {
+            LOG_WRITE(DEBUG, source_obj.get(),
+                      L("!yreceiving mail!! !b{}!! -> {}\n", message->toString(), sub->toString()));
+            this->recv_mail(std::move(mail));
+          }
+        }
+      }
+    }
+  };
+
+  class LocalPost final : public Post {
+  public:
+    explicit LocalPost() {};
+    void publish(const Message_p &message, const bool async) const override { this->receive(message, async); }
+    void subscribe(const Subscription_p &subscription, const bool async) override {
+      this->subscriptions_->push_back(subscription);
+      LOG_WRITE(DEBUG, Obj::to_noobj().get(),
+                L("!m[!b{}!m]=!gsubscribe!m=>[!b{}!m]!!\n", "", /*subscription->source()->toString()*/
+                  subscription->pattern()->toString()));
+      // TODO: ROUTE TO NEW SUBSCRIPTION: const Obj_p result = ROUTER_READ(*sub->pattern()); }
+    }
+
+    void unsubscribe(const ID &source, const Pattern &pattern, const bool async) override {
+      this->subscriptions_->remove_if([this, &pattern, &source](const Subscription_p &sub) {
+        const bool removing = sub->source()->equals(source) && (sub->pattern()->matches(pattern));
+        if(removing)
+          LOG_WRITE(DEBUG, ROUTER_READ(source).get(),
+                    L("!m[!b{}!m]=!gunsubscribe!m=>[!b{}!m]!!\n", sub->source()->toString(), pattern.toString()));
+        return removing;
+      });
+    }
+  };
+
 } // namespace fhatos
 
 #endif

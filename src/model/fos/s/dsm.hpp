@@ -87,7 +87,9 @@ namespace fhatos {
     }
 
     void setup() override {
+      const auto q_sub = static_cast<const QSub *>(this->q_procs_->rec_get("sub").get());
       this->mqtt = MqttClient::get_or_create(this->get<fURI>("config/broker"), this->get<fURI>("config/client"));
+      const_cast<QSub *>(q_sub)->post_ = this->mqtt;
       this->mqtt->on_connect = [this]() {
         LOG_WRITE(INFO, this, L("!ystructure pattern !b{}!! subscribed\n", this->pattern->toString()));
         this->mqtt->subscribe(generate_sync_subscription(*this->pattern), true);
@@ -120,7 +122,7 @@ namespace fhatos {
 
     void write_raw_pairs(const ID &id, const Obj_p &obj, const bool retain) override {
       this->write_raw_raw_pairs(id, obj, retain);
-      this->mqtt->publish(Message::create(id_p(id), obj, retain), this->async);
+      //this->mqtt->publish(Message::create(id_p(id), obj, retain), this->async);
     }
 
     IdObjPairs read_raw_pairs(const fURI &match) override {

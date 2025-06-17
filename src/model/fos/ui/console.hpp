@@ -23,7 +23,9 @@
 #include "../../../fhatos.hpp"
 #include "../../../lang/mmadt/parser.hpp"
 #include "../../../lang/obj.hpp"
+#include "../../../structure/pubsub.hpp"
 #include "../../../util/print_helper.hpp"
+#include "../../module.hpp"
 #include "../sys/scheduler/scheduler.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
 #include "../sys/typer/typer.hpp"
@@ -37,7 +39,7 @@
 namespace fhatos {
   const ID_p CONSOLE_FURI = id_p(FOS_URI "/ui/console");
 
-  class Console final : public Rec, public Mailbox {
+  class Console final : public Rec, Mailbox {
   protected:
     string line_;
     bool new_input_ = true;
@@ -47,9 +49,9 @@ namespace fhatos {
   public:
     explicit Console(const Obj_p &console_obj) : Rec(*console_obj) {}
 
-    static Obj_p create(const ID &id, const Rec_p &console_config) {
+    /*static Obj_p create(const ID &id, const Rec_p &console_config) {
       return Obj::to_rec({{"config", console_config}}, CONSOLE_FURI, id_p(id));
-    }
+    }*/
 
     static ptr<Console> create_state(const Obj_p &console_obj) {
       const auto console_state = make_shared<Console>(console_obj);
@@ -60,6 +62,11 @@ namespace fhatos {
       this->tracker_.clear();
       this->line_.clear();
       this->new_input_ = true;
+    }
+
+    virtual bool recv_payload(const void *payload) override {
+      this->recv_mail(std::move(Mail(*(Mail *) payload)));
+      return true;
     }
 
     ///// printers

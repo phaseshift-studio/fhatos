@@ -63,8 +63,8 @@ namespace fhatos {
     }
   }
 
-  MqttClient::MqttClient(const Rec_p &config) :
-      Rec(std::move(config->rec_value()), OType::REC, REC_FURI), handler_(nullptr) {
+  MqttClient::MqttClient(const Rec_p &config, const ptr<MutexDeque<Subscription_p>> subscriptions) :
+      Rec(std::move(config->rec_value()), OType::REC, REC_FURI), handler_(nullptr), subscriptions_(subscriptions) {
     //// MQTT MESSAGE CALLBACK]
     const char *host = strdup(this->broker().host()); // TODO: get this off the heap
     const int port = this->broker().port();

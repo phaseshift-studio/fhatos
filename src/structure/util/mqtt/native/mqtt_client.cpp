@@ -34,9 +34,6 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mqtt;
 
-
-  void MqttClient::loop() {}
-
   MqttClient::MqttClient(const Rec_p &config) :
       Rec(std::move(config->rec_value()), OType::REC, REC_FURI),
       handler_(std::make_shared<async_client>(config->get<fURI>("broker").toString(),
@@ -56,7 +53,7 @@ namespace fhatos {
                     L("!b{} !ymqtt message!! received: {}\n", mqtt_message->get_topic().c_str(),
                       mqtt_message->get_payload().c_str()));
           const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
-          this->on_recv(message);
+          this->receive(message);
         });
     /// MQTT CONNECTION ESTABLISHED CALLBACK
     std::any_cast<ptr<async_client>>(this->handler_)->set_connected_handler([this](const string &) {
@@ -65,7 +62,7 @@ namespace fhatos {
     });
   }
 
-  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) const {
+  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) {
     this->subscriptions_->push_back(subscription);
     const mqtt::token_ptr result =
         std::any_cast<ptr<async_client>>(this->handler_)->subscribe(subscription->pattern()->toString(), 1);
@@ -74,7 +71,7 @@ namespace fhatos {
     LOG_WRITE(DEBUG, this, L("!b{} !ymqtt!! {} subscribe\n", this->broker().toString(), subscription->toString()));
   }
 
-  void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
+  void MqttClient::unsubscribe(const ID &source, const Pattern &pattern, const bool async) {
     this->subscriptions_->remove_if([this, &source, &pattern, async](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
@@ -102,7 +99,16 @@ namespace fhatos {
       result->wait();
   }
 
-  bool MqttClient::disconnect(const ID &source, const bool async) const {
+  /*void MqttClient::receive(const Message_p &message, const bool async) const {
+    this->subscriptions_->forEach([this, &message](const Subscription_p &sub) {
+      if(message->target()->bimatches(*sub->pattern())) {
+        sub->apply(message);
+      }
+    });
+  }*/
+
+
+  bool MqttClient::disconnect(const ID &source, const bool async) {
     this->clients_->remove(source);
     this->unsubscribe(source, "#", async);
     if(this->clients_->empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
