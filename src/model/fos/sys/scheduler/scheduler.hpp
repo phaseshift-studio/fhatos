@@ -41,7 +41,7 @@ namespace fhatos {
 
     void stop();
 
-    void loop() override;
+    void loop();
 
     void spawn_thread(const Obj_p &thread_obj);
 

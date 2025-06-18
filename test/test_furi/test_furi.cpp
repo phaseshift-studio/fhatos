@@ -371,6 +371,19 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("?a=2&b=3").no_query().empty());
   }
 
+void test_uri_query_prefix() {
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?").has_query_prefix("x"));
+    TEST_ASSERT_TRUE(fURI("foi://127.0.0.1?x:abc=23").has_query_prefix("x"));
+    TEST_ASSERT_TRUE(fURI("foi://127.0.0.1?x:abc").has_query_prefix("x"));
+    TEST_ASSERT_TRUE(fURI("foi://127.0.0.1?x:").has_query_prefix("x"));
+    TEST_ASSERT_TRUE(fURI("foi://127.0.0.1?x:=13").has_query_prefix("x"));
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?abc=23").has_query_prefix("x"));
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?abc").has_query_prefix("x"));
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?xabc=23").has_query_prefix("x"));
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?xa:bc=23").has_query_prefix("x"));
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?:x=23").has_query_prefix("x"));
+}
+
   void test_uri_query_value() {
     TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?").query_value("x").has_value());
     TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?z=123").query_value("x").has_value());
@@ -982,6 +995,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_coefficient); //
       FOS_RUN_TEST(test_uri_query); //
       FOS_RUN_TEST(test_uri_query_value); //
+      FOS_RUN_TEST(test_uri_query_prefix); //
       FOS_RUN_TEST(test_uri_scheme_path); //
       FOS_RUN_TEST(test_uri_colon_path); //
       FOS_RUN_TEST(test_uri_ends_with); //

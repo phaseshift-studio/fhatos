@@ -44,7 +44,7 @@ namespace fhatos {
   }
   void Scheduler::loop() {
     try {
-      this->Mailbox::loop();
+      this->process_all_mail();
       if(!this->for_scheduler.empty())
         this->for_scheduler.pop_front().value()();
       Thread::current_thread() = std::nullopt;

@@ -184,10 +184,25 @@ namespace mmadt {
 
               InstBuilder::build(MMADT_PREFIX "print")
                   ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
-                  ->inst_args(lst({Obj::to_bcode()}))
+                  ->inst_args("pobj", __().else_(__()), "strip?bool", __().else_(dool(false)))
                   ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                     const string to_print =
-                        args->arg(0)->is_str() ? args->arg(0)->str_value() : args->arg(0)->toString(NO_ANSI_PRINTER);
+                        args->arg("pobj")->is_str()
+                            ? args->arg("pobj")->str_value()
+                            : args->arg("pobj")->toString(args->arg("strip")->bool_value() ? NO_ANSI_PRINTER
+                                                                                           : DEFAULT_OBJ_PRINTER);
+                    printer()->print(to_print.c_str());
+                    return lhs;
+                  })
+                  ->save();
+
+              InstBuilder::build(MMADT_PREFIX "pprint")
+                  ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})
+                  ->inst_args("pobj", __().else_(__()), "strip?bool", __().else_(dool(false)))
+                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                    string to_print = PrintHelper::pretty_print_obj(args->arg("pobj"), 0);
+                    if(args->arg("strip")->bool_value())
+                      to_print = printer()->strip(to_print);
                     printer()->print(to_print.c_str());
                     return lhs;
                   })

@@ -31,7 +31,7 @@ namespace fhatos {
   static auto this_thread = atomic<Thread *>(nullptr);
   static ID_p THREAD_FURI = id_p("/fos/sys/thread");
 
-  class Thread : public Mailbox {
+  class Thread {
   public:
     Consumer<Thread *> thread_function_;
     Any handler_;
@@ -81,7 +81,6 @@ namespace fhatos {
                         Memory::singleton()->get_stack_size(thread_ptr->thread_obj_, "config/stack_size", 65536)));
             while(!thread_ptr->thread_obj_->obj_get("halt")->or_else_<bool>(false)) {
               try {
-                thread_ptr->Mailbox::loop();
                 thread_loop_inst->apply(thread_ptr->thread_obj_);
                 FEED_WATCHDOG();
               } catch(const fError &e) {

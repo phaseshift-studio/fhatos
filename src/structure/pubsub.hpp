@@ -139,7 +139,7 @@ namespace fhatos {
     virtual ~Mailbox() = default;
     void recv_mail(const Mail &&mail) const { this->mailbox_->push_back(mail); }
     bool empty() const { return this->mailbox_->empty(); }
-    virtual void loop() {
+    void process_all_mail() const {
       while(process_next_mail()) {
         FEED_WATCHDOG();
       }
@@ -164,10 +164,11 @@ namespace fhatos {
       other.subscriptions_ = nullptr;
     }
     ~Post() override = default;
-    virtual void subscribe(const Subscription_p &subscription, bool async = true) = 0;
-    virtual void unsubscribe(const ID &source, const Pattern &pattern, bool async = true) = 0;
-    virtual void publish(const Message_p &message, bool async = true) const = 0;
-    virtual void receive(const Message_p &message, bool async = true) const {
+    virtual void subscribe(const Subscription_p &subscription, bool async) = 0;
+    virtual void unsubscribe(const ID &source, const Pattern &pattern, bool async) = 0;
+    virtual void publish(const Message_p &message, bool async) const = 0;
+    virtual void loop() {};
+    virtual void receive(const Message_p &message, bool async) const {
       for(const Subscription_p &sub: *this->subscriptions_) {
         if(message->target()->bimatches(*sub->pattern())) {
           const Obj_p source_obj = ROUTER_READ(*sub->source());
@@ -176,6 +177,7 @@ namespace fhatos {
              source_mailbox && source_mailbox->recv_payload(&mail)) {
             LOG_WRITE(DEBUG, source_obj.get(),
                       L("!yrouting mail!! !b{}!! - {} !g[!mmailbox!g]!!\n", message->toString(), sub->toString()));
+            FEED_WATCHDOG();
           } else {
             LOG_WRITE(DEBUG, source_obj.get(),
                       L("!yreceiving mail!! !b{}!! -> {}\n", message->toString(), sub->toString()));
@@ -189,6 +191,7 @@ namespace fhatos {
   class LocalPost final : public Post {
   public:
     explicit LocalPost() {};
+    void loop() override { this->process_all_mail(); }
     void publish(const Message_p &message, const bool async) const override { this->receive(message, async); }
     void subscribe(const Subscription_p &subscription, const bool async) override {
       this->subscriptions_->push_back(subscription);

@@ -18,15 +18,6 @@ FhatOS: A Distributed Operating System
 #ifdef NATIVE
 #include "../mqtt_client.hpp"
 #include <mqtt/async_client.h>
-#include <unistd.h>
-
-/*
-#include <avahi-client/client.h>
-#include <avahi-client/lookup.h>
-#include <avahi-common/simple-watch.h>
-#include <avahi-common/malloc.h>
-#include <avahi-common/error.h>
-*/
 
 #define FOS_MQTT_MAX_RETRIES 10
 #define FOS_MQTT_RETRY_WAIT 2000
@@ -34,6 +25,7 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mqtt;
 
+  bool disconnecting = false;
   MqttClient::MqttClient(const Rec_p &config) :
       Rec(std::move(config->rec_value()), OType::REC, REC_FURI),
       handler_(std::make_shared<async_client>(config->get<fURI>("broker").toString(),
@@ -53,13 +45,18 @@ namespace fhatos {
                     L("!b{} !ymqtt message!! received: {}\n", mqtt_message->get_topic().c_str(),
                       mqtt_message->get_payload().c_str()));
           const Message_p message = Message::create(id_p(mqtt_message->get_topic().c_str()), payload, retained);
-          this->receive(message);
+          this->receive(message,false);
         });
     /// MQTT CONNECTION ESTABLISHED CALLBACK
     std::any_cast<ptr<async_client>>(this->handler_)->set_connected_handler([this](const string &) {
       LOG_WRITE(INFO, this, L("!b{} !ymqtt!! {} connected\n", this->broker().toString(), this->client().toString()));
       this->on_connect();
     });
+  }
+
+  void MqttClient::loop() {
+    if(!disconnecting)
+      this->process_all_mail();
   }
 
   void MqttClient::subscribe(const Subscription_p &subscription, const bool async) {
@@ -88,11 +85,11 @@ namespace fhatos {
     mqtt::token_ptr result;
     if(message->payload()->is_noobj()) {
       result = std::any_cast<ptr<async_client>>(this->handler_)
-                   ->publish(message->target()->toString().c_str(), const_cast<char *>(""), 0, 0, message->retain());
+                   ->publish(message->target()->toString().c_str(), const_cast<char *>(""), 0, 1, message->retain());
     } else {
       const BObj_p source_payload = make_bobj(message->payload(), message->retain());
       result = std::any_cast<ptr<async_client>>(this->handler_)
-                   ->publish(message->target()->toString(), source_payload->second, source_payload->first, 0,
+                   ->publish(message->target()->toString(), source_payload->second, source_payload->first, 1,
                              message->retain());
     }
     if(!async)
@@ -109,15 +106,17 @@ namespace fhatos {
 
 
   bool MqttClient::disconnect(const ID &source, const bool async) {
-    this->clients_->remove(source);
     this->unsubscribe(source, "#", async);
+    this->loop();
+    disconnecting = true;
+    LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n", this->broker().toString()));
+    this->clients_->remove(source);
     if(this->clients_->empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
       const token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
-      if(!async)
-        result->wait();
+      // if(!async)
+      //   result->wait_for(1000);
       CLIENTS.erase(this->broker());
     }
-    LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n", this->broker().toString()));
     return true;
   }
 
@@ -130,6 +129,8 @@ namespace fhatos {
 
 
   bool MqttClient::connect(const ID &source) const {
+    if(disconnecting)
+      return false;
     if(this->is_connected()) {
       if(!this->clients_->exists(source))
         this->clients_->push_back(source);

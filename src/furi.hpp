@@ -150,6 +150,8 @@ namespace fhatos {
 
     [[nodiscard]] bool has_query(const char *key = nullptr) const;
 
+    [[nodiscard]] bool has_query_prefix(const char *prefix) const;
+
     [[nodiscard]] fURI query(const char *query) const;
 
     [[nodiscard]] fURI no_query() const;
@@ -255,7 +257,7 @@ namespace fhatos {
 
     [[nodiscard]] virtual bool is_pattern() const;
 
-    [[nodiscard]] virtual bool is_subpattern(const fURI& pattern) const;
+    [[nodiscard]] virtual bool is_subpattern(const fURI &pattern) const;
 
     [[nodiscard]] virtual bool bimatches(const fURI &other) const;
 

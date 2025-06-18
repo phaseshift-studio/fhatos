@@ -42,27 +42,11 @@ namespace fhatos {
 
     [[nodiscard]] bool is_connected() const;
 
-    Obj_p query(const fURI &pattern) {
-      const Objs_p results;
-      const ID_p source = Thread::current_thread().value()->thread_obj_->vid;
-      this->subscribe(Subscription::create(source, p_p(pattern), [&results](const Obj_p &obj, const InstArgs &) {
-        results->add_obj(obj);
-        return Obj::to_noobj();
-      }));
-      this->loop();
-      Thread::current_thread().value()->delay(this->obj_get("query_delay")->or_else_<int>(500));
-      this->loop();
-      this->unsubscribe(*source, pattern);
-      return results;
-    }
+    virtual void loop() override;
 
     [[nodiscard]] bool connect(const ID &source) const;
 
     [[nodiscard]] bool disconnect(const ID &source, bool async = true);
-
-    void loop() override {
-      this->Mailbox::loop();
-    }
 
     static BObj_p make_bobj(const Obj_p &payload, const bool retain) {
       const Lst_p lst = Obj::to_lst({payload, dool(retain)});
@@ -82,10 +66,10 @@ namespace fhatos {
       CLIENTS.insert_or_assign(broker, mqtt);
       return mqtt;
     }
-    void subscribe(const Subscription_p &subscription, bool async = true) override;
-    void unsubscribe(const ID &source, const Pattern &pattern, bool async = true) override;
-    void publish(const Message_p &message, bool async = true) const override;
-    //void receive(const Message_p &message, bool async = true) const override;
+    void subscribe(const Subscription_p &subscription, bool async) override;
+    void unsubscribe(const ID &source, const Pattern &pattern, bool async) override;
+    void publish(const Message_p &message, bool async) const override;
+    // void receive(const Message_p &message, bool async = true) const override;
   };
 } // namespace fhatos
 #endif

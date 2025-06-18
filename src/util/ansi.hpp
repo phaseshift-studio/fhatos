@@ -145,14 +145,15 @@ namespace fhatos {
         if(buffer[i] == '\\') {
           if(const char j = buffer[i + 1]; 'n' == j) {
             this->new_line();
+            i++;
           } else if('t' == j) {
             this->htab();
+            i++;
           } else {
             this->printer_.print(buffer[i]);
-            this->printer_.print(j);
           }
-          i++;
         } else if(buffer[i] == '!') {
+          bool decr = false;
           if(const char j = buffer[i + 1]; '!' == j)
             this->normal();
           ////////////////////////////////// POSITION !^d = down
@@ -211,7 +212,7 @@ namespace fhatos {
             this->home();
           else if(!isalpha(j)) {
             this->printer_.print(buffer[i]);
-            this->printer_.print(j);
+            decr = true;
           } else {
             ////////////////////////////// COLOR
             if(isupper(j))
@@ -235,10 +236,11 @@ namespace fhatos {
               this->black();
             else {
               this->printer_.print(buffer[i]);
-              this->printer_.print(j);
+              decr = true;
             }
           }
-          i++;
+          if(!decr)
+            i++;
         } else {
           this->printer_.print(buffer[i]);
         }
@@ -428,9 +430,7 @@ namespace fhatos {
 
     void right(const uint16_t columns = 1) { this->move('C', columns); }
 
-    void down(const uint16_t rows = 1) {
-      this->move('B', rows);
-    }
+    void down(const uint16_t rows = 1) { this->move('B', rows); }
 
     void up(const uint16_t rows = 1) { this->move('A', rows); }
 

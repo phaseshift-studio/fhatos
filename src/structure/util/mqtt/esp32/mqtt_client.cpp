@@ -18,18 +18,11 @@ FhatOS: A Distributed Operating System
 #ifdef ARDUINO
 #include "../mqtt_client.hpp"
 #include <PubSubClient.h>
-#include <WiFiClient.h>
+#include <WiFi.h>
 
 // #ifndef MQTT_MAX_PACKET_SIZE
-#define MQTT_MAX_PACKET_SIZE 512
+#define MQTT_MAX_PACKET_SIZE 2048
 // #endif
-/*
-#include <avahi-client/client.h>
-#include <avahi-client/lookup.h>
-#include <avahi-common/simple-watch.h>
-#include <avahi-common/malloc.h>
-#include <avahi-common/error.h>
-*/
 
 #define FOS_MQTT_MAX_RETRIES 10
 #define FOS_MQTT_RETRY_WAIT 2500
@@ -49,22 +42,26 @@ namespace fhatos {
 
 
   void MqttClient::loop() {
-    const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
-    if(!h->connected()) {
-      LOG_WRITE(WARN, this, L("!yreconnecting to !b{}!!: !r{}!!\n", this->broker().toString(), MQTT_STATE_CODES.at(h->state())));
-      while(!h->connect(this->client().toString().c_str())) {
-        Thread::delay(FOS_MQTT_RETRY_WAIT);
-        Thread::yield();
+    if(this->handler_.has_value()) {
+      const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
+      if(!h->connected()) {
+        LOG_WRITE(WARN, this,
+                  L("!yreconnecting to !b{}!!: !r{}!!\n", this->broker().toString(), MQTT_STATE_CODES.at(h->state())));
+        while(!h->connect(this->client().toString().c_str())) {
+          Thread::delay(FOS_MQTT_RETRY_WAIT);
+          Thread::yield();
+        }
+        this->on_connect();
       }
-      this->on_connect();
-    }
-    if(!h->loop()) {
-      LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
+      if(!h->PubSubClient::loop()) {
+        LOG_WRITE(ERROR, this, L("mqtt processing loop failure: !r{}!!\n", MQTT_STATE_CODES.at(h->state())));
+      }
+      this->process_all_mail();
     }
   }
 
-  MqttClient::MqttClient(const Rec_p &config, const ptr<MutexDeque<Subscription_p>> subscriptions) :
-      Rec(std::move(config->rec_value()), OType::REC, REC_FURI), handler_(nullptr), subscriptions_(subscriptions) {
+  MqttClient::MqttClient(const Rec_p &config) :
+      Rec(std::move(config->rec_value()), OType::REC, REC_FURI), handler_(nullptr) {
     //// MQTT MESSAGE CALLBACK]
     const char *host = strdup(this->broker().host()); // TODO: get this off the heap
     const int port = this->broker().port();
@@ -74,25 +71,25 @@ namespace fhatos {
     h->setServer(host, port);
     h->setBufferSize(MQTT_MAX_PACKET_SIZE);
     h->setSocketTimeout(100);
-    h->setKeepAlive(100);
+    h->setKeepAlive(60);
     h->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
       ((char *) data)[length] = '\0';
       const auto bobj = make_shared<BObj>(length, const_cast<fbyte *>(data));
       const auto [payload, retained] = make_payload(bobj);
       const Message_p message = Message::create(id_p(topic), payload, retained);
-      this->on_recv(message);
+      this->receive(message,false);
     });
   }
 
-  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) const {
+  void MqttClient::subscribe(const Subscription_p &subscription, const bool async) {
     this->subscriptions_->push_back(subscription);
     const auto h = std::any_cast<ptr<PubSubClient>>(this->handler_);
-    h->subscribe(subscription->pattern()->toString().c_str(), 1);
+    h->subscribe(subscription->pattern()->toString().c_str(), 0);
     FEED_WATCHDOG();
     h->loop();
   }
 
-  void MqttClient::unsubscribe(const ID &source, const fURI &pattern, const bool async) const {
+  void MqttClient::unsubscribe(const ID &source, const Pattern &pattern, const bool async) {
     this->subscriptions_->remove_if([this, &source, &pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
@@ -118,8 +115,8 @@ namespace fhatos {
     h->loop();
   }
 
-  bool MqttClient::disconnect(const ID &source, const bool async) const {
-    this->unsubscribe(source, "#");
+  bool MqttClient::disconnect(const ID &source, const bool async) {
+    this->unsubscribe(source, "#", false);
     this->clients_->remove(source);
     const ptr<PubSubClient> h = std::any_cast<ptr<PubSubClient>>(this->handler_);
     if(this->clients_->empty() && h->connected()) {
@@ -163,6 +160,7 @@ namespace fhatos {
         if(h->connected()) {
           this->clients_->push_back(source);
           this->on_connect();
+          h->loop();
           return true;
         }
       }

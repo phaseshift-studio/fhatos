@@ -267,6 +267,20 @@ namespace fhatos {
     return new_uri;
   }
   const char *fURI::query() const { return this->query_ ? this->query_ : ""; }
+
+  bool fURI::has_query_prefix(const char *prefix) const {
+    if(!this->query_ || 0 == strlen(this->query_))
+      return false;
+    if(nullptr == prefix)
+      return true;
+    const size_t length = strlen(prefix);
+    const std::vector<std::pair<string, string>> qv = this->query_values();
+    for(const auto &[k, v]: qv) {
+      if(k.length() >= length + 1 && k.substr(0, length) == prefix && k[length] == ':')
+        return true;
+    }
+    return false;
+  }
   bool fURI::has_query(const char *key) const {
     if(!this->query_ || 0 == strlen(this->query_))
       return false;

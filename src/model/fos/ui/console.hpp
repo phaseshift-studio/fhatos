@@ -153,6 +153,10 @@ namespace fhatos {
                                 InstBuilder::build(THREAD_FURI->extend("loop"))
                                     ->domain_range(id_p(CONSOLE_TID), {1, 1}, OBJ_FURI, {0, 1})
                                     ->inst_f([](const Obj_p &console_obj, const InstArgs &) {
+                                      /////////////////////////////////// NO CONSOLE I/O DURING BOOT
+                                      if(BOOTING)
+                                        return Obj::to_noobj();
+                                      ///////////////////////////////////
                                       Console *console_state = console_obj->get_model<Console>();
                                       if(console_state->first) {
                                         console_state->first = false;
@@ -160,7 +164,7 @@ namespace fhatos {
                                         printer()->println();
                                       }
                                       try {
-                                        console_state->Mailbox::loop();
+                                        console_state->process_all_mail();
                                         /// WRITE TO PROMPT
                                         if(!console_obj->rec_get("config/terminal/stdout")->is_noobj()) {
                                           if(console_state->new_input_)
