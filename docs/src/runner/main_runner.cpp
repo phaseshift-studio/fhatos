@@ -21,7 +21,7 @@
 
 #include <chrono>
 #include <thread>
-#include "../../../src/boot_loader.hpp"
+#include "../../../src/boot.hpp"
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
 #include "../../../src/lang/mmadt/mmadt_obj.hpp"
@@ -63,7 +63,7 @@ int main(int arg, char **argsv) {
     argv_parser->init(5, args);
     printer()->printer_switch(false);
     printer()->ansi_switch(false);
-    BootLoader::primary_boot(argv_parser);
+    Boot::kernel(argv_parser);
     Router::singleton()->write("/io/console/config/terminal", Obj::to_noobj(), true);
     Router::singleton()->write("/io/console/config/stack_trace", dool(false), true);
 
@@ -82,7 +82,7 @@ int main(int arg, char **argsv) {
         // StringHelper::replace(&x, "'", "\\'"); // escape quotes
         // StringHelper::replace(&x, "{", "{");
         // StringHelper::replace(&x, "}", "}");
-        console->process_line(x);
+        console->process_input(x);
         // TODO: using this access point as issues with {} in print() being intercepted by fmt package
         // Processor::compute(string("*/io/console.eval('").append(x).append("')"));
         Router::singleton()->loop();

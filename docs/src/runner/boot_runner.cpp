@@ -22,7 +22,7 @@
 #include "../../../src/fhatos.hpp"
 #include "../../../src/kernel.hpp"
 #include "../../../src/util/ansi.hpp"
-#include "../../../src/boot_loader.hpp"
+#include "../../../src/boot.hpp"
 
 using namespace fhatos;
 using namespace std;
@@ -38,7 +38,7 @@ int main(int, char **) {
     auto* argv_parser = new ArgvParser();
     argv_parser->init(5,args);
     printer()->ansi_switch(false);
-    BootLoader::primary_boot(argv_parser);
+    Boot::kernel(argv_parser);
     std::this_thread::sleep_for(chrono::milliseconds(1000));
     return 0;
   } catch (const std::exception &e) {

@@ -26,7 +26,7 @@
  boot     =>[drop  =>true],
  info     =>[host  =>*/boot/config/params/host]@/sys/info, --- add pairs as needed
  scheduler=>[config=>[def_stack_size=>32768]]@/sys/scheduler,
- router   =>[config=>[auto_prefix=>[<>,/mmadt/ext/,/mmadt/,/sys/,/io/,/fos/s/]]]@/sys/router,
+ router   =>[config=>[auto_prefix=>[<>,/mmadt/ext/,/mmadt/,/sys/,/io/,/fos/s/,/fos/sys/]]]@/sys/router,
  typer    =>[config=>[register=>[/mmadt/#,/fos/#],
                       import=>[/mmadt/#,/fos/#]]]@/sys/typer,
  ----------------------------------- USER BOOT SETUP -----------------------------------

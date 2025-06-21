@@ -751,7 +751,7 @@ In general, <strong class="red">f</strong>​<span class="lime">H</span>​<span
 <h2 id="_fhatos_boot_loader">FhatOS Boot Loader</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To boot <span class="lime">f</span>​<strong class="red">H</strong>​<span class="aqua">A</span>​<span class="fuchsia">t</span>​<span class="blue">o</span>​<span class="yellow">s</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
+<p>To boot <strong class="red">F</strong>​<strong class="blue">h</strong>​<span class="aqua">a</span>​<strong class="fuchsia">T</strong>​<span class="yellow">o</span>​<span class="lime">S</span>​, the environmental variable <code>FHATOS_HOME</code> must be set to the root directory of the distribution and <code>$FHATOS_HOME/bin</code> must be added to the shell environment&#8217;s <code>PATH</code> variable. This is required for all boot processes as well as development processes afforded by <code>bin/fhat-dev</code>. See <code>fhatos --help</code> for more information.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -812,7 +812,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
     fhatos-0.1-alpha &gt; linux-6.8.0-60-generic &gt; x86_64
        [x86_64]
       .oO mounting kernel structures Oo.
-[INFO]  main [total=&gt;15990784,free=&gt;15988896,used=&gt;0.011808]
+[INFO]  main [total=&gt;15994880,free=&gt;15993024,used=&gt;0.011605]
 [INFO]  [/sys/router] router started
 [INFO]  [/sys/router] heap &lt;none&gt; spanning /mnt/# mounted
 [WARN]  [/sys/router] no mounted structure for /sys/router
@@ -831,30 +831,33 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [WARN]  [/sys/router] no mounted structure for dsm
 [WARN]  [/sys/router] no mounted structure for /io/terminal
 [WARN]  [/sys/router] no mounted structure for /io/console
-[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 2608 bytes]
+[INFO]  [/sys/router] boot_config.hpp boot config header loaded [size: 3666 bytes]
 [INFO]  [/boot/config] boot loader config:
 [INFO]  [/boot/config]
    [
      params=&gt;[
-      host=&gt;fhat1
+      host=&gt;f
       wifi=&gt;[
        ssid=&gt;Rodkins-2G
        password=&gt;'puppymama'
        mnds=&gt;/mmadt/from(/sys/info/platform)
      ]
       mqtt=&gt;[
-       broker=&gt;mqtt://chibi.local:1883
+       broker=&gt;mqtt://192.168.10.126:1883
      ]
       net=&gt;[
        mdns=&gt;/fos/net/inet/mdns()
      ]
     ]
+     boot=&gt;[
+      drop=&gt;true
+    ]
      info=&gt;[
-      name=&gt;/mmadt/from(/boot/config/params/host)
+      host=&gt;/mmadt/from(/boot/config/params/host)
     ]@/sys/info
      scheduler=&gt;[
       config=&gt;[
-       def_stack_size=&gt;65536
+       def_stack_size=&gt;32768
      ]
     ]@/sys/scheduler
      router=&gt;[
@@ -866,6 +869,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
         /sys/
         /io/
         /fos/s/
+        /fos/sys/
       ]
      ]
     ]@/sys/router
@@ -882,10 +886,14 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
      ]
     ]@/sys/typer
      setup=&gt;setup?obj{?}&lt;=obj{.}()
-  	[start({heap[[pattern=&gt;+/#]]@/mnt/var})./mmadt/end().router/::/mount(at(/mnt/var))./mmadt/end()./mmadt/from(info/platform)./mmadt/split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#)./mmadt/end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;/mmadt/from(/boot/config/params/wifi/ssid),password=&gt;/mmadt/from(/boot/config/params/wifi/password),mdns=&gt;/mmadt/from(info/platform)]]]@/io/wifi})./mmadt/end()./mmadt/from(/io/wifi).connect()./mmadt/end().typer/::/import(/fos/io/gpio)./mmadt/end().start({/io/gpio/+?q:default})./mmadt/ref(/mmadt/block(/mmadt/lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs})./mmadt/end().router/::/mount(at(/mnt/fs))])./mmadt/merge()./mmadt/end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;/mmadt/from(/boot/config/params/mqtt/broker),client=&gt;/mmadt/from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster})./mmadt/end().router/::/mount(at(/mnt/cluster))./mmadt/end().typer/::/import(/fos/ui)./mmadt/end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal})./mmadt/end().start({/fos/ui/console[[=&gt;]]@/io/console})./mmadt/end().start({/io/terminal/netio?q:sub})./mmadt/ref(/mmadt/block(print('==&gt;{{_}}\n')))./mmadt/end()./mmadt/from(/boot/config/params/host).map(//{{_}}/info)./mmadt/split([/mmadt/ref(/mmadt/from(/mmadt/block(/sys/info))),{{_.&lt;&lt;(1)}}/#?q:sub]).map(1)./mmadt/ref(/mmadt/block(/sys/scheduler/::/eval(_,/io/terminal/netio)))./mmadt/end().start({/io/console/config/stack_size})./mmadt/ref(81920)./mmadt/end().scheduler/::/spawn(at(/io/console))./mmadt/end()]
+  	[/mmadt/from(/sys/info).map([_=&gt;_])./mmadt/end().start({/boot/config/name})./mmadt/ref({{*&lt;/boot/config/params/host&gt;}}{{*&lt;/sys/info/platform&gt;}})./mmadt/end().start({heap[[pattern=&gt;+/#]]@/mnt/var})./mmadt/end().router/::/mount(at(/mnt/var))./mmadt/end()./mmadt/from(/sys/info/platform)./mmadt/split([is(eq(esp32))=&gt;{print('	esp32 specific boot
+')./mmadt/end().typer/::/import(/fos/net/#)./mmadt/end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;/mmadt/from(/boot/config/params/wifi/ssid),password=&gt;/mmadt/from(/boot/config/params/wifi/password),mdns=&gt;/mmadt/from(/boot/config/name),on_connect=&gt;/mmadt/lift(print('wifi connected
+'))]]]@/io/wifi})./mmadt/end()./mmadt/from(/io/wifi).connect()./mmadt/end().typer/::/import(/fos/io/gpio)./mmadt/end().start({/io/gpio/+?q:default})./mmadt/ref(/mmadt/block([read=&gt;/mmadt/lift(/mmadt/lshift(2).as(int).as(/fos/io/gpio).read())]))./mmadt/end()},is(eq(native))=&gt;{print('	native specific boot
+')./mmadt/end().start({/sys/router/memory})./mmadt/ref(/mmadt/block(/fos/sys/memory[[=&gt;]]))./mmadt/end().start({/sys/router/memory/main?q:default})./mmadt/ref(/mmadt/block([read=&gt;/mmadt/lift(/mmadt/from(/sys/router/memory).main())]))./mmadt/end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs})./mmadt/end().router/::/mount(at(/mnt/fs))./mmadt/end()}])./mmadt/merge()./mmadt/end().print('	cluster specific boot
+')./mmadt/end().start({/boot/config/mdns})./mmadt/ref(/mmadt/from(/sys/info/platform))./mmadt/split([is(eq(esp32))=&gt;/mmadt/from(/io/wifi/config/mdns),is(eq(native))=&gt;/mmadt/from(/boot/config/params/net/mdns)])./mmadt/merge()./mmadt/end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;/mmadt/from(/boot/config/params/mqtt/broker),client=&gt;/mmadt/from(/boot/config/name),async=&gt;true,cache_size=&gt;10]]]@/mnt/cluster})./mmadt/end().router/::/mount(at(/mnt/cluster))./mmadt/end()./mmadt/from(/boot/config/name).map(//{{_}})./mmadt/ref(/mmadt/from(/mmadt/block(/sys/info)))./mmadt/end()./mmadt/from(/boot/config/name).map(//{{_}}/input?q:sub)./mmadt/ref(/mmadt/lift(/sys/scheduler/::/eval(/mmadt/from(payload),{{*(target).&lt;&lt;(1)}}/output)))./mmadt/end()./mmadt/from(/sys/info/platform)./mmadt/split([is(eq(native))=&gt;{start({/fos/ui/terminal[[=&gt;]]@/io/terminal})./mmadt/end().start({/fos/ui/console[[=&gt;]]@/io/console})./mmadt/end().start({/io/console/config/stack_size})./mmadt/ref(16384)./mmadt/end().scheduler/::/spawn(at(/io/console))./mmadt/end()}])./mmadt/merge()./mmadt/end()]
    ]@/boot/config
       .oO configuring kernel objs Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;16801792,free=&gt;16799392,used=&gt;0.014281]
+[INFO]  [/sys/router/memory] main [total=&gt;17076224,free=&gt;17073792,used=&gt;0.014240]
 [INFO]  [/boot/config] info boot config dropped
 [INFO]  [/sys/router] router configured
              [
@@ -904,6 +912,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
      /sys/
      /io/
      /fos/s/
+     /fos/sys/
    ]
   ]
    ::=&gt;[
@@ -913,6 +922,7 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/boot/config] router boot config dropped
 [INFO]  [/sys/typer] typer started
 [INFO]  [/sys/typer] /fos/module inst type defined
+[INFO]  [/sys/typer] /fos/ui/console inst module registered
 [INFO]  [/sys/typer] /mmadt/base inst module registered
 [INFO]  [/sys/typer] /mmadt/ext inst module registered
 [INFO]  [/sys/typer] /mmadt/inst inst module registered
@@ -927,7 +937,6 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/s/heap inst module registered
 [INFO]  [/sys/typer] /fos/sys/memory inst module registered
 [INFO]  [/sys/typer] /fos/sys/thread inst module registered
-[INFO]  [/sys/typer] /fos/ui inst module registered
 [INFO]  [/sys/typer] /fos/util/time inst module registered
 [INFO]  [/sys/typer] typer configured
              [
@@ -946,16 +955,10 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
    ::=&gt;[
     register=&gt;typer/::/register?inst&lt;=obj{?}(module_id?uri=&gt;_)[cpp]
     import=&gt;typer/::/import?obj{?}&lt;=obj{?}(modules=&gt;_)[cpp]
-    mmadt=&gt;[
-     base=&gt;typer/::/mmadt/base?rec&lt;=obj{?}()[cpp]
-     ext=&gt;typer/::/mmadt/ext?rec&lt;=obj{?}()[cpp]
-     inst=&gt;typer/::/mmadt/inst?rec&lt;=obj{?}()[cpp]
-     util=&gt;[
-      parser=&gt;typer/::/mmadt/util/parser?obj&lt;=obj()[cpp]
-      proc=&gt;typer/::/mmadt/util/proc?rec&lt;=obj{?}()[cpp]
-    ]
-   ]
     fos=&gt;[
+     ui=&gt;[
+      console=&gt;typer/::/fos/ui/console?rec&lt;=obj{?}()[cpp]
+    ]
      io=&gt;[
       gpio=&gt;typer/::/fos/io/gpio?rec&lt;=obj{?}()[cpp]
     ]
@@ -975,9 +978,17 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
       memory=&gt;typer/::/fos/sys/memory?rec&lt;=obj{?}()[cpp]
       thread=&gt;typer/::/fos/sys/thread?rec&lt;=obj{?}()[cpp]
     ]
-     ui=&gt;typer/::/fos/ui?rec&lt;=noobj{.}()[cpp]
      util=&gt;[
       time=&gt;typer/::/fos/util/time?rec&lt;=obj{?}()[cpp]
+    ]
+   ]
+    mmadt=&gt;[
+     base=&gt;typer/::/mmadt/base?rec&lt;=obj{?}()[cpp]
+     ext=&gt;typer/::/mmadt/ext?rec&lt;=obj{?}()[cpp]
+     inst=&gt;typer/::/mmadt/inst?rec&lt;=obj{?}()[cpp]
+     util=&gt;[
+      parser=&gt;typer/::/mmadt/util/parser?obj&lt;=obj()[cpp]
+      proc=&gt;typer/::/mmadt/util/proc?rec&lt;=obj{?}()[cpp]
     ]
    ]
   ]
@@ -994,12 +1005,12 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
    bundle=&gt;[
   ]
    config=&gt;[
-    def_stack_size=&gt;65536
+    def_stack_size=&gt;32768
   ]
  ]@/sys/scheduler
 [INFO]  [/boot/config] scheduler boot config dropped
       .oO installing fos/mmadt modules Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;16801792,free=&gt;16799392,used=&gt;0.014281]
+[INFO]  [/sys/router/memory] main [total=&gt;17076224,free=&gt;17073792,used=&gt;0.014240]
 [INFO]  [/sys/router] heap /mnt/io spanning /io/# mounted
 [WARN]  [/sys/router] no mounted structure for parser
 [WARN]  [/sys/router] no mounted structure for parser
@@ -1023,8 +1034,6 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/llm/model/::/setup inst type defined
 [INFO]  [/sys/typer] /fos/llm/model/::/query inst type defined
 [INFO]  [/sys/typer] /fos/llm/# types imported
-[INFO]  [/sys/typer] /fos/ui/button rec type defined
-[INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
 [INFO]  [/sys/typer] /fos/ui/terminal rec type defined
 [INFO]  [/sys/typer] /fos/ui/terminal/::/stdout inst type defined
 [INFO]  [/sys/typer] /fos/ui/terminal/::/stdin inst type defined
@@ -1032,34 +1041,31 @@ If this is the desired boot configuration, then calling <code>fhatos</code> with
 [INFO]  [/sys/typer] /fos/ui/console rec type defined
 [INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
 [INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
-[INFO]  [/sys/typer] /fos/ui types imported
+[INFO]  [/sys/typer] /fos/ui/console/::/output inst type defined
+[INFO]  [/sys/typer] /fos/ui/# types imported
       .oO evaluating setup inst Oo.
-[INFO]  [/sys/router/memory] main [total=&gt;17342464,free=&gt;17339968,used=&gt;0.014395]
-[INFO]  [/boot/config] exiting boot state: stricter type checking enabled
+[INFO]  [/sys/router/memory] main [total=&gt;17481728,free=&gt;17479168,used=&gt;0.014645]
+[INFO]  [/boot/config] exiting kernel boot state: stricter type checking enabled
 [INFO]  [/boot/config] applying setup inst
             setup?obj{?}&lt;=obj{.}()
-	[start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().router/::/mount(at(/mnt/var)).end().from(info/platform).split([is(eq(esp32))=&gt;typer/::/import(/fos/net/#).end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;from(/boot/config/params/wifi/ssid),password=&gt;from(/boot/config/params/wifi/password),mdns=&gt;from(info/platform)]]]@/io/wifi}).end().from(/io/wifi).connect().end().typer/::/import(/fos/io/gpio).end().start({/io/gpio/+?q:default}).ref(block(lshift(2).as(int).as(gpio).read())),is(eq(native))=&gt;start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs}).end().router/::/mount(at(/mnt/fs))]).merge().end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;from(/boot/config/params/mqtt/broker),client=&gt;from(/boot/config/params/net/mdns),async=&gt;true]]]@/mnt/cluster}).end().router/::/mount(at(/mnt/cluster)).end().typer/::/import(/fos/ui).end().start({/fos/ui/terminal[[=&gt;]]@/io/terminal}).end().start({/fos/ui/console[[=&gt;]]@/io/console}).end().start({/io/terminal/netio?q:sub}).ref(block(print('==&gt;{{_}}\n'))).end().from(/boot/config/params/host).map(//{{_}}/info).split([ref(from(block(/sys/info))),{{_.&lt;&lt;(1)}}/#?q:sub]).map(1).ref(block(scheduler/::/eval(_,/io/terminal/netio))).end().start({/io/console/config/stack_size}).ref(81920).end().scheduler/::/spawn(at(/io/console)).end()]
+	[from(/sys/info).map([_=&gt;_]).end().start({/boot/config/name}).ref({{*&lt;/boot/config/params/host&gt;}}{{*&lt;/sys/info/platform&gt;}}).end().start({heap[[pattern=&gt;+/#]]@/mnt/var}).end().router/::/mount(at(/mnt/var)).end().from(/sys/info/platform).split([is(eq(esp32))=&gt;{print('	esp32 specific boot
+').end().typer/::/import(/fos/net/#).end().start({/fos/net/wifi[[config=&gt;[ssid=&gt;from(/boot/config/params/wifi/ssid),password=&gt;from(/boot/config/params/wifi/password),mdns=&gt;from(/boot/config/name),on_connect=&gt;lift(print('wifi connected
+'))]]]@/io/wifi}).end().from(/io/wifi).connect().end().typer/::/import(/fos/io/gpio).end().start({/io/gpio/+?q:default}).ref(block([read=&gt;lift(lshift(2).as(int).as(/fos/io/gpio).read())])).end()},is(eq(native))=&gt;{print('	native specific boot
+').end().start({/sys/router/memory}).ref(block(memory[[=&gt;]])).end().start({/sys/router/memory/main?q:default}).ref(block([read=&gt;lift(from(/sys/router/memory).main())])).end().start({fs[[pattern=&gt;/fs/#,config=&gt;[root=&gt;.]]]@/mnt/fs}).end().router/::/mount(at(/mnt/fs)).end()}]).merge().end().print('	cluster specific boot
+').end().start({/boot/config/mdns}).ref(from(/sys/info/platform)).split([is(eq(esp32))=&gt;from(/io/wifi/config/mdns),is(eq(native))=&gt;from(/boot/config/params/net/mdns)]).merge().end().start({dsm[[pattern=&gt;//+/#,config=&gt;[broker=&gt;from(/boot/config/params/mqtt/broker),client=&gt;from(/boot/config/name),async=&gt;true,cache_size=&gt;10]]]@/mnt/cluster}).end().router/::/mount(at(/mnt/cluster)).end().from(/boot/config/name).map(//{{_}}).ref(from(block(/sys/info))).end().from(/boot/config/name).map(//{{_}}/input?q:sub).ref(lift(scheduler/::/eval(from(payload),{{*(target).&lt;&lt;(1)}}/output))).end().from(/sys/info/platform).split([is(eq(native))=&gt;{start({/fos/ui/terminal[[=&gt;]]@/io/terminal}).end().start({/fos/ui/console[[=&gt;]]@/io/console}).end().start({/io/console/config/stack_size}).ref(16384).end().scheduler/::/spawn(at(/io/console)).end()}]).merge().end()]
 [INFO]  [/sys/router] heap /mnt/var spanning +/# mounted
-[INFO]  [/mmadt/rec] attempting mqtt://chibi.local:1883 mqtt connection
-[INFO]  [/mmadt/rec] mqtt://chibi.local:1883 mqtt chibi connected
+	native specific boot
+[INFO]  [/mnt/fs] data/fs location mounted
+[INFO]  [/sys/router] fs /mnt/fs spanning /fs/# mounted
+	cluster specific boot
+[INFO]  [/mmadt/rec] attempting mqtt://192.168.10.126:1883 mqtt connection
+[INFO]  [/mmadt/rec] mqtt://192.168.10.126:1883 mqtt fnative connected
 [INFO]  [/mnt/cluster] structure pattern //+/# subscribed
 [INFO]  [/sys/router] dsm /mnt/cluster spanning //+/# mounted
-[WARN]  [/sys/typer] /fos/ui/button rec type [pin=&gt;_,on_push=&gt;_,::=&gt;[loop=&gt;/fos/ui/button/::/loop?obj{?}&lt;=button()[cpp]]] overwritten
-[INFO]  [/sys/typer] /fos/ui/button/::/loop inst type defined
-[WARN]  [/sys/typer] /fos/ui/terminal rec type [::=&gt;[stdout=&gt;/fos/ui/terminal/::/stdout?obj{.}&lt;=terminal{?}(output?str=&gt;_)[cpp],stdin=&gt;/fos/ui/terminal/::/stdin?str{?}&lt;=terminal{?}(until?str=&gt;else('
-'))[cpp],loop=&gt;/fos/ui/terminal/::/loop?obj{?}&lt;=terminal()[cpp]]] overwritten
-[INFO]  [/sys/typer] /fos/ui/terminal/::/stdout inst type defined
-[INFO]  [/sys/typer] /fos/ui/terminal/::/stdin inst type defined
-[INFO]  [/sys/typer] /fos/ui/terminal/::/loop inst type defined
-[WARN]  [/sys/typer] /fos/ui/console rec type [loop=&gt;lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]),halt=&gt;else(false),config=&gt;else([nest=&gt;2,prompt=&gt;'fhatos&gt; ',stack_trace=&gt;true,strict=&gt;false,log=&gt;INFO,ellipsis=&gt;50,terminal=&gt;[stdout=&gt;/io/terminal/::/stdout,stdin=&gt;/io/terminal/::/stdin]]),::=&gt;[clear=&gt;/fos/ui/console/::/clear?console&lt;=console()[cpp],eval=&gt;/fos/ui/console/::/eval?obj{?}&lt;=console(code=&gt;_)[cpp]]] overwritten
-[INFO]  [/sys/typer] /fos/ui/console/::/clear inst type defined
-[INFO]  [/sys/typer] /fos/ui/console/::/eval inst type defined
-[INFO]  [/sys/typer] /fos/ui types imported
-[INFO]  [/io/console] [native] thread spawned: lift(/fos/sys/thread/loop?obj{?}&lt;=console()[cpp]) [cpu:2]
+[INFO]  [/io/console] [native] thread spawned: lift(thread/loop?obj{?}&lt;=console()[cpp]) [cpu:2]
 [INFO]  [/sys/scheduler] /io/console thread spawned
-[INFO]  [/mnt/io/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;/io/console/halt,payload=&gt;false,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;/io/console/halt,on_recv=&gt;inst?obj&lt;=obj(target=&gt;from(block(target),noobj),payload=&gt;from(block(payload),noobj),retain=&gt;from(block(retain),noobj))[cpp]]]
-[INFO]  [/io/console] [fhatos] thread spawned: /fos/sys/thread/loop?obj{?}&lt;=console()[cpp] [stack size:65536]
-[INFO]  [/boot/config] boot time: 0.238177144 seconds</code></pre>
+[INFO]  [/io/console] [fhatos] thread spawned: thread/loop?obj{?}&lt;=console()[cpp] [stack size:65536]
+[INFO]  [/boot/config] boot time: 0.205894434 seconds</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1243,6 +1249,9 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 ===&gt;register=&gt;typer/::/register?inst&lt;=obj{?}(module_id?uri=&gt;_)[cpp]
 ===&gt;import=&gt;typer/::/import?obj{?}&lt;=obj{?}(modules=&gt;_)[cpp]
 ===&gt;fos=&gt;[
+====&gt;ui=&gt;[
+=====&gt;console=&gt;typer/::/fos/ui/console?rec&lt;=obj{?}()[cpp]
+===&gt;]
 ====&gt;io=&gt;[
 =====&gt;gpio=&gt;typer/::/fos/io/gpio?rec&lt;=obj{?}()[cpp]
 ===&gt;]
@@ -1262,7 +1271,6 @@ In mmADT, these resources are called <code>obj</code> (objects).</p>
 =====&gt;memory=&gt;typer/::/fos/sys/memory?rec&lt;=obj{?}()[cpp]
 =====&gt;thread=&gt;typer/::/fos/sys/thread?rec&lt;=obj{?}()[cpp]
 ===&gt;]
-====&gt;ui=&gt;typer/::/fos/ui?rec&lt;=noobj{.}()[cpp]
 ====&gt;util=&gt;[
 =====&gt;time=&gt;typer/::/fos/util/time?rec&lt;=obj{?}()[cpp]
 ===&gt;]
@@ -1695,7 +1703,7 @@ This captures the notion of <a href="https://en.wikipedia.org/wiki/Evaluation_st
 fhatos&gt; --- char['a']@a
 fhatos&gt; --- char['b']@b
 fhatos&gt; @a + @b
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+[ERROR] [/mmadt/obj] /mmadt/plus([0=&gt;_]) inst unresolved
 	         lhs id      inst id        resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
 fhatos&gt; *a
@@ -1728,14 +1736,16 @@ fhatos&gt; nat[12]
 ==&gt;nat[12]
 fhatos&gt; nat[-30]
 [ERROR] [/mmadt/parser] -30 is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_nat[-30] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 fhatos&gt; nat[12]@a
 ==&gt;nat[12]@a
 fhatos&gt; @a.minus(11)
 ==&gt;nat[1]@a
 fhatos&gt; @a.minus(2)
-[ERROR] [/mmadt/parser] -1@a is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_nat[-1]@a is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+[ERROR] [/mmadt/parser] -1 is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst nat[1]@a =&gt; int/::/mmadt/minus?int&lt;=int(0?int=&gt;2)[cpp] [0=&gt;2]
 fhatos&gt; *a
 ==&gt;nat[1]@a</code></pre>
@@ -1763,7 +1773,8 @@ fhatos&gt; C[274.0]
 ==&gt;C[274.000000]
 fhatos&gt; C[-274.0]
 [ERROR] [/mmadt/parser] -274.000000 is not a C as defined by C?real&lt;=real()[is(gte(-273.149994))]
-		 \_C[-274.000000] is not applicable with /mmadt/ext/C?dom=/mmadt/real&amp;dc=1,1&amp;rng=/mmadt/real&amp;rc=1,1</code></pre>
+		 \_[/mmadt/parser] noobj is not a /mmadt/real as defined by [real][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/real</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -1895,7 +1906,7 @@ fhatos&gt; 3.band(2,8)                           <i class="conum" data-value="1"
 fhatos&gt; 3.band(max=&gt;8,min=&gt;2)                 <i class="conum" data-value="2"></i><b>(2)</b>
 ==&gt;3
 fhatos&gt; 'abc'.band(2,8)                       <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [ /mmadt/str ]  band inst unresolved
+[ERROR] [/mmadt/str] band([0=&gt;2,1=&gt;8]) inst unresolved
 	         lhs id  inst id    resolve obj</code></pre>
 </div>
 </div>
@@ -1989,7 +2000,8 @@ fhatos&gt; 15.band(10,20)              <i class="conum" data-value="1"></i><b>(1
 ==&gt;15
 fhatos&gt; -15.band(-20,-10)           <i class="conum" data-value="2"></i><b>(2)</b>
 [ERROR] [/mmadt/parser] -20 is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_-20 is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1</code></pre>
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -2329,14 +2341,10 @@ fhatos&gt; *a
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |to(b)
 ==&gt;to(b)
 fhatos&gt; *a?sub
-&gt;sub[
-==&gt;source=&gt;/sys/scheduler
-==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;to(b)
-&gt;]
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mmadt/parser] sub is an undefined type
 fhatos&gt; *b
 fhatos&gt; a-&gt;12
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;12,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;to(b)]]
 ==&gt;12
 fhatos&gt; *a
 ==&gt;12
@@ -2477,7 +2485,8 @@ thread[[loop=>^( /
           from(|c,0).print('c: {_}').
           plus(1).to(c).
           gt(10).to(t/halt).
-          is(_).print('\n'))]]@t
+          is(_).print('
+'))]]@t
 [ERROR] [/mmadt/parser] thread is an undefined type
 fhatos&gt; /sys/scheduler::spawn(@t)</code></pre>
 </div>
@@ -2558,7 +2567,7 @@ a -> int8[126]                       --- <2>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /sys/router/config/resolve/auto_prefix -&gt;
           *(_) + |[/mmadt/ext/]             <i class="conum" data-value="1"></i><b>(1)</b>
-[ERROR] [ /mmadt/obj ]  /mmadt/plus inst unresolved
+[ERROR] [/mmadt/obj] /mmadt/plus([0=&gt;_]) inst unresolved
 	         lhs id      inst id        resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/plus =&gt; plus(_)
 fhatos&gt; a -&gt; int8[126]                       <i class="conum" data-value="2"></i><b>(2)</b>
@@ -2568,9 +2577,10 @@ fhatos&gt; @a + 1
 fhatos&gt; @a + 1
 ==&gt;int8[128]@a
 fhatos&gt; @a + 1                               <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [/mmadt/parser] 129@a is not a /mmadt/ext/int8 as defined by uint8?int&lt;=int()
+[ERROR] [/mmadt/parser] 129 is not a /mmadt/ext/int8 as defined by uint8?int&lt;=int()
 	[is(gte(-127)).is(lte(128))]
-		 \_int8[129]@a is not applicable with /mmadt/ext/uint8?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst int8[128]@a =&gt; int/::/mmadt/plus?int&lt;=int(0?int=&gt;1)[cpp] [0=&gt;1]</code></pre>
 </div>
 </div>
@@ -3198,9 +3208,8 @@ fhatos&gt; true.[false=&gt;0,true=&gt;1]
 ==&gt;true=&gt;1
 &gt;]
 fhatos&gt; true.i?bool&lt;=bool(_)[and(_,*&lt;0&gt;)]
-[ERROR] [/mmadt/parser] noobj is not a lst as defined by [lst][[_]]
-		 \_/mmadt/noobj is not a subtype of /mmadt/lst
-	  thrown at inst noobj =&gt; true.i?bool&lt;=bool(noobj)[and(_,from(0))] [0=&gt;noobj]
+[ERROR] [/mmadt/parser] noobj is not a /mmadt/bool as defined by [bool][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/bool
 fhatos&gt; true.plus(false)
 ==&gt;true</code></pre>
 </div>
@@ -3248,10 +3257,8 @@ fhatos&gt; person[[name=&gt;'marko',age=&gt;29]]
 &gt;]
 fhatos&gt; person[[name=&gt;'lili',age=&gt;129]]
 [ERROR] [/mmadt/parser] noobj is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_[ /mmadt/obj ]  /mmadt/gte?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
-	         lhs id      inst id       resolve obj
-	  -&gt;[/mmadt/obj] /mmadt/gte =&gt; gte()
-	  thrown at inst noobj =&gt; nat?int&lt;=int()[is(gte(0))] [=&gt;]</code></pre>
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int</code></pre>
 </div>
 </div>
 <!-- 🐓 -->
@@ -3333,11 +3340,11 @@ For instance, <code>if</code> is implemented with a two entry <code>rec</code>, 
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; /io/console/config/nest -&gt; 0                  <i class="conum" data-value="1"></i><b>(1)</b>
 ==&gt;0
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]          <i class="conum" data-value="2"></i><b>(2)</b>
-[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+[ERROR] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1([=&gt;]) inst unresolved
 	         lhs id      inst id      resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt()
 fhatos&gt; {1,2,3}.[is(gt(2)) =&gt; _, _ =&gt; noobj]&gt;-        <i class="conum" data-value="3"></i><b>(3)</b>
-[ERROR] [ /mmadt/obj ]  /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1 inst unresolved
+[ERROR] [/mmadt/obj] /mmadt/gt?dom=/mmadt/obj&amp;dc=0,1&amp;rng=/mmadt/bool&amp;rc=1,1([=&gt;]) inst unresolved
 	         lhs id      inst id      resolve obj
 	  -&gt;[/mmadt/obj] /mmadt/gt =&gt; gt()</code></pre>
 </div>
@@ -3724,10 +3731,10 @@ a -> age[45]
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; a?sub -&gt; |print(_)
 ==&gt;print(_)
 fhatos&gt; a -&gt; 12
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;12,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;print(_)]]
 ==&gt;12
 12fhatos&gt; @a.inspect()
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;12@a,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;print(_)]]
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mmadt/parser] sub is an undefined type
 &gt;[
 ==&gt;type=&gt;[
 ===&gt;id=&gt;/mmadt/int
@@ -3740,18 +3747,10 @@ fhatos&gt; a -&gt; 12
 ===&gt;obj=&gt;12
 ===&gt;encoding=&gt;int32_t
 =&gt;]
-==&gt;sub=&gt;[
-===&gt;source=&gt;/sys/scheduler
-===&gt;pattern=&gt;a
-===&gt;on_recv=&gt;print(_)
-=&gt;]
 &gt;]
 12@afhatos&gt; @a.plus(1)
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;13@a,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;print(_)]]
 ==&gt;13@a
 13@afhatos&gt; @a.plus(1).plus(1)
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;14@a,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;print(_)]]
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;15@a,retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;print(_)]]
 ==&gt;15@a</code></pre>
 </div>
 </div>
@@ -3787,12 +3786,14 @@ fhatos&gt; nat[6]
 ==&gt;nat[6]
 fhatos&gt; nat[-6]
 [ERROR] [/mmadt/parser] -6 is not a nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 fhatos&gt; nat[3].plus(2)
 ==&gt;nat[5]
 fhatos&gt; nat[3].mult(-2)
 [ERROR] [/mmadt/parser] -6 is not a /mmadt/ext/nat as defined by nat?int&lt;=int()[is(gte(0))]
-		 \_nat[-6] is not applicable with /mmadt/ext/nat?dom=/mmadt/int&amp;dc=1,1&amp;rng=/mmadt/int&amp;rc=1,1
+		 \_[/mmadt/parser] noobj is not a /mmadt/int as defined by [int][[_]]
+		 \_/mmadt/noobj is not a subtype of /mmadt/int
 	  thrown at inst nat[3] =&gt; int/::/mmadt/mult?int&lt;=int(0?int=&gt;-2)[cpp] [0=&gt;-2]</code></pre>
 </div>
 </div>
@@ -3926,13 +3927,9 @@ fhatos&gt; *a                         <i class="conum" data-value="2"></i><b>(2)
 fhatos&gt; a?sub -&gt; |to(b)            <i class="conum" data-value="3"></i><b>(3)</b>
 ==&gt;to(b)
 fhatos&gt; *a?sub                     <i class="conum" data-value="4"></i><b>(4)</b>
-&gt;sub[
-==&gt;source=&gt;/sys/scheduler
-==&gt;pattern=&gt;a
-==&gt;on_recv=&gt;to(b)
-&gt;]
+[ERROR] [/sys/router] unable to read from a?sub
+	 [/mmadt/parser] sub is an undefined type
 fhatos&gt; a -&gt; 'meangirl'            <i class="conum" data-value="5"></i><b>(5)</b>
-[INFO]  [/mnt/var/q/sub] receiving mail /fos/q/sub/msg[[target=&gt;a,payload=&gt;'meangirl',retain=&gt;true]] -&gt; /fos/q/sub/sub[[source=&gt;/sys/scheduler,pattern=&gt;a,on_recv=&gt;to(b)]]
 ==&gt;'meangirl'
 fhatos&gt; *b                         <i class="conum" data-value="6"></i><b>(6)</b>
 ==&gt;'meangirl'</code></pre>
@@ -4966,7 +4963,7 @@ The more <code>/</code> in the fURI prefix, the more distributed the fURI repeat
 <div id="footer" style="max-width: 75%;">
 <div id="footer-text">
 0.1-alpha 0.1<br>
-Last updated 2025-06-14 13:18:24 -0600
+Last updated 2025-06-21 14:50:33 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
