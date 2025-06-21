@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include "boot_loader.hpp"
+#include "boot.hpp"
 #include "fhatos.hpp"
 #include "kernel.hpp"
 #include "util/argv_parser.hpp"
@@ -25,16 +25,19 @@
 
 using fhatos::Ansi;
 using fhatos::ArgvParser;
-using fhatos::BootLoader;
+using fhatos::Boot;
+using fhatos::Kernel;
 auto *args_parser = new ArgvParser();
+Kernel *kernel;
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void setup() { fhatos::BootLoader::primary_boot(args_parser)->done(); }
-
-void loop() {
-  // do nothing -- all looping handled by FhatOS scheduler
+void setup() {
+  kernel = Boot::kernel(args_parser);
+  kernel->setup();
 }
+
+void loop() { kernel->loop(); }
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////

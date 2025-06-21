@@ -139,7 +139,7 @@ namespace fhatos {
       file.close();
       FOS_FS.end();
       FS_MOUNTED = false;
-      return Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_parser")
+      return Memory::singleton()->use_custom_stack(InstBuilder::build("boot_config_parser")
                                                        ->inst_f([](const Obj_p &obj, const InstArgs &) {
                                                          const auto proto = make_unique<mmadt::Parser>();
                                                          const Obj_p boot_obj = proto->parse(obj->str_value().c_str());

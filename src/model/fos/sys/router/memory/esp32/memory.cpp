@@ -21,6 +21,8 @@ FhatOS: A Distributed Operating System
 #include <semphr.h>
 #include <esp_expression_with_stack.h>
 
+#define FOS_ESP_THREAD_STACK_SIZE 16384
+
 namespace fhatos {
   static thread_local auto CUSTOM_STACK = new std::stack<Obj_p>();
 
@@ -97,6 +99,7 @@ namespace fhatos {
                                       CUSTOM_STACK->pop();
                                       const Inst_p inst = CUSTOM_STACK->top();
                                       CUSTOM_STACK->pop();
+
                                       const Obj_p rhs = std::holds_alternative<Obj_p>(inst->inst_f())
                                       ? std::get<Obj_p>(inst->inst_f())->apply(lhs)
                                       : (*std::get<Cpp_p>(inst->inst_f()))(lhs, inst->inst_args()->clone());

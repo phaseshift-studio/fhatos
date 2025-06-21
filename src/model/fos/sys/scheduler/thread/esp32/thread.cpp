@@ -39,7 +39,7 @@ namespace fhatos {
       return;
     }
     try {
-      int stack_size = Memory::get_stack_size(fthread->thread_obj_, "config/stack_size", 65536);
+      int stack_size = Memory::get_stack_size(fthread->thread_obj_, "config/stack_size", 32768);
       THREAD_PTR = fthread;
       Memory::singleton()->use_custom_stack(InstBuilder::build("thread_stack")
                                                 ->inst_f([](const Obj_p &, const InstArgs &) {
@@ -65,7 +65,7 @@ namespace fhatos {
                                 this->get_handler<TaskHandle_t *>(), // task handle
                                 tskNO_AFFINITY); // processor core
     if(pdPASS != threadResult)
-      throw fError("unable to spawn thread: %s", this->thread_obj_->toString().c_str());
+      throw fError("unable to spawn thread: %s !r[!yout of memory!r]!!", this->thread_obj_->toString().c_str());
     LOG_WRITE(INFO, thread_obj.get(),
               L("!g[!besp32!g] !ythread!! spawned: {} !m[!ythread container size:!!{}!m]!!\n",
                 thread_obj_->obj_get("loop")->toString(), FOS_PRE_PSRAM_THREAD_STACK_SIZE));

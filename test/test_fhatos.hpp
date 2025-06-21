@@ -31,7 +31,7 @@
 #define FOS_MAX_PATH_SEGMENTS 15
 
 #include "../build/_deps/unity-src/src/unity.h"
-#include "../src/boot_loader.hpp"
+#include "../src/boot.hpp"
 #include "../src/fhatos.hpp"
 #include "../src/furi.hpp"
 #include "../src/kernel.hpp"
@@ -72,7 +72,7 @@ using namespace fhatos;
     try {                                                                                                              \
       ArgvParser *args_parser = new ArgvParser();                                                                      \
       args_parser->set_option("--boot:config", "/boot/test_boot_config.obj");                                          \
-      fhatos::BootLoader::primary_boot(args_parser)                                                                    \
+      fhatos::Boot::kernel(args_parser)                                                                          \
           ->mount(Heap<>::create(STR(FOS_DEPLOY_SHARED_MEMORY), id_p("/mnt/var")));                                    \
       BOOTING = false;                                                                                                 \
       UNITY_BEGIN();                                                                                                   \

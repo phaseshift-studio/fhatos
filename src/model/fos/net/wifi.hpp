@@ -49,17 +49,21 @@
 #define FOS_WIFI_SUBNET_MASK id_p(pattern->resolve("./subnet_mask"))
 #define FOS_WIFI_DNS_ADDR id_p(pattern->resolve("./dns_addr"))*/
 
+#define WIFI_ATTEMPTS 50
+#define WIFI_TID FOS_URI "/net/wifi"
+
 namespace fhatos {
 
   const ID_p WIFI_FURI = id_p(FOS_URI "/net/wifi");
-  const ID_p MAC_FURI = id_p(FOS_URI "/net/mac");
+  // const ID_p MAC_FURI = id_p(FOS_URI "/net/mac");
   const ID_p IP_FURI = id_p(FOS_URI "/net/ip");
 
-  class WIFIx : public Model<WIFIx> {
+  class WIFIx : public Rec {
 
   public:
-    static Obj_p connect(const Obj_p &wifi_obj, const InstArgs &) {
+    explicit WIFIx(const Rec_p &wifi_obj) : Rec(*wifi_obj) {}
 
+    static Obj_p connect(const Obj_p &wifi_obj) {
       if(!WiFi.isConnected())
         WIFIx::connect_to_wifi_station(wifi_obj);
       else
@@ -67,23 +71,14 @@ namespace fhatos {
       return wifi_obj;
     }
 
-    static Rec_p obj(const std::initializer_list<Pair<const string, Obj_p>> &map, const ID &value_id) {
-      return Obj::to_rec(map, WIFI_FURI, id_p(value_id));
-    }
-
-    static Rec_p obj(const Rec_p &config, const ID &value_id) {
-      return Obj::to_rec(config->rec_value(), WIFI_FURI, id_p(value_id));
-    }
-
     static void register_module() {
-      //////////////////////
       REGISTERED_MODULES->insert_or_assign(
           *WIFI_FURI,
           InstBuilder::build(Typer::singleton()->vid->add_component(*WIFI_FURI))
               ->domain_range(OBJ_FURI, {0, 1}, REC_FURI, {1, 1})
               ->inst_f([](const Obj_p &, const InstArgs &) {
                 return Obj::to_rec(
-                    {{vri(MAC_FURI), Obj::to_type(URI_FURI)},
+                    {/*{vri(MAC_FURI), Obj::to_type(URI_FURI)},*/
                      {vri(IP_FURI), Obj::to_type(URI_FURI)},
                      {vri(WIFI_FURI), Obj::to_rec({{vri("halt"), __().else_(dool(true))},
                                                    {vri("config"), Obj::to_rec({{"ssid", Obj::to_type(URI_FURI)},
@@ -94,18 +89,7 @@ namespace fhatos {
                       InstBuilder::build(WIFI_FURI->add_component("connect"))
                           ->domain_range(WIFI_FURI, {1, 1}, WIFI_FURI, {1, 1})
                           ->inst_f([](const Obj_p &wifi_obj, const InstArgs &args) {
-                            Scheduler::singleton()->for_scheduler.push_back([wifi_obj, args] {
-                              WIFIx::connect(wifi_obj, args);
-                              wifi_obj->obj_set("halt", dool(false));
-                              return wifi_obj;
-                            });
-                            LOG_WRITE(INFO, wifi_obj.get(),
-                                      L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!! (!ypushed to scheduler loop!!)\n"));
-                            // while(wifi_obj->obj_get("halt")->bool_value()) {
-                            // Ansi<>::singleton()->print(".");
-                            // Thread::yield();
-                            // Thread::delay(2000);
-                            //}
+                            WIFIx::connect(wifi_obj);
                             return wifi_obj;
                           })
                           ->create()}});
@@ -113,57 +97,56 @@ namespace fhatos {
               ->create());
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-
   private:
-    static bool connect_to_wifi_station(const Obj_p &wifi_obj) {
+    static void connect_to_wifi_station(const Obj_p &wifi_obj) {
+      const ID_p wifi_obj_id = wifi_obj->vid;
       const Obj_p config = wifi_obj->rec_get("config");
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(wifi_obj_id) {
+        WiFi.onEvent(
+            [wifi_obj_id](WiFiEvent_t event, WiFiEventInfo_t info) {
+              const Obj_p wifi_obj = ROUTER_READ(wifi_obj_id->query(WIFI_TID));
+              LOG_WRITE(ERROR, wifi_obj.get(), L("reconnecting to wifi: %s", info.wifi_sta_disconnected.reason));
+              WiFi.disconnect();
+              WiFi.reconnect();
+            },
+            WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+        /* WiFi.onEvent(
+             [wifi_obj_id](WiFiEvent_t event, WiFiEventInfo_t info) {
+               const Obj_p wifi_obj = ROUTER_READ(wifi_obj_id->query(WIFI_TID));
+               const Obj_p on_connect = wifi_obj->rec_get("config/on_connect");
+               if(!on_connect->is_noobj()) {
+                 FEED_WATCHDOG();
+                 mmADT::delift(on_connect)->apply(wifi_obj);
+               }
+             },
+             WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);*/
+      }
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      LOG_WRITE(INFO, wifi_obj.get(), L("!gc!yo!mn!rn!ge!yc!bt!ci!rn!mg!!"));
+      uint8_t counter = 0;
       WiFi.mode(WIFI_STA);
       WiFi.setAutoReconnect(true);
-      const char *delim = ":";
-      char *ssidsTemp = strdup(config->rec_get("ssid")->uri_value().toString().c_str());
-      char *ssid = strtok(ssidsTemp, delim);
-      int i = 0;
-      char *ssids_parsed[10];
-      // LOG_STRUCTURE(DEBUG, this, "\tWiFi SSIDs:\n");
-      while(ssid != nullptr) {
-        // LOG_STRUCTURE(DEBUG, this, "\t\t%s\n", ssid);
-        ssids_parsed[i++] = ssid;
-        ssid = strtok(nullptr, delim);
+      WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+      WiFi.setHostname(config->rec_get("mdns")->uri_value().toString().c_str());
+      WiFi.begin(config->rec_get("ssid")->uri_value().toString().c_str(),
+                 config->rec_get("password")->str_value().c_str());
+      while(WiFi.status() != WL_CONNECTED) {
+        Thread::delay(500);
+        FEED_WATCHDOG();
+        Ansi<>::singleton()->print(".");
+        if(++counter > WIFI_ATTEMPTS)
+          throw fError("!runable!y to create !bwifi connection!y after %d attempts!!", WIFI_ATTEMPTS);
       }
-      i = 0;
-      char passwordsTemp[50];
-      sprintf(passwordsTemp, "%s", config->rec_get("password")->str_value().c_str());
-      char *passwords_parsed[10];
-      char *password = strtok(passwordsTemp, delim);
-      while(password != nullptr) {
-        passwords_parsed[i++] = password;
-        password = strtok(nullptr, delim);
+      Ansi<>::singleton()->print("\n");
+      if(const bool mdns_status = MDNS.begin(config->rec_get("mdns")->uri_value().toString().c_str()); !mdns_status) {
+        LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", config->rec_get("mdns")->uri_value().toString().c_str());
       }
-      WIFI_MULTI_CLIENT multi;
-      for(int j = 0; j < i; j++) {
-        multi.addAP(ssids_parsed[j], passwords_parsed[j]);
-      }
-      WiFi.hostname(config->rec_get("mdns")->uri_value().toString().c_str());
-      uint8_t attempts = 0;
-      while(attempts < 10) {
-        attempts++;
-        if(multi.run() == WL_CONNECTED) {
-          const string mdns_name = config->rec_get("mdns")->uri_value().toString();
-          if(const bool mdns_status = MDNS.begin(mdns_name.c_str()); !mdns_status) {
-            LOG_OBJ(WARN, wifi_obj, "unable to create mDNS hostname %s\n", mdns_name.c_str());
-            Thread::delay(3000);
-          }
-          LOG_OBJ(DEBUG, wifi_obj, "connection attempts: %i\n", attempts);
-          attempts = 100;
-        }
-        Thread::delay(3000);
-      }
-      if(attempts != 100) {
-        LOG_OBJ(ERROR, wifi_obj, "unable to connect to WIFI after %i attempts\n", attempts);
-        return false;
-      }
-      wifi_obj->rec_set("mac", vri(WiFi.macAddress().c_str(), MAC_FURI));
+      FEED_WATCHDOG();
+      wifi_obj->obj_set("halt", dool(false));
+      // wifi_obj->rec_set("mac", vri(WiFi.macAddress().c_str(), MAC_FURI));
       wifi_obj->rec_set("ip", vri(WiFi.localIP().toString().c_str(), IP_FURI));
       wifi_obj->rec_set("host", vri(WiFi.getHostname()));
       wifi_obj->rec_set("gateway", vri(WiFi.gatewayIP().toString().c_str(), IP_FURI));
@@ -171,41 +154,17 @@ namespace fhatos {
       wifi_obj->rec_set("dns", vri(WiFi.dnsIP().toString().c_str(), IP_FURI));
       string wifi_str = PrintHelper::pretty_print_obj(wifi_obj, 3);
       StringHelper::prefix_each_line(FOS_TAB_1, &wifi_str);
-      WiFi.begin();
       LOG_OBJ(INFO, wifi_obj, "\n%s\n", wifi_str.c_str());
-      /////////////// ON_CONNECT CALLBACK ////////////////
+      /////////////////////////////////
+      Thread::yield();
+      FEED_WATCHDOG();
+      Thread::delay(1000);
       const Obj_p on_connect = config->rec_get("on_connect");
       if(!on_connect->is_noobj()) {
+        FEED_WATCHDOG();
         mmADT::delift(on_connect)->apply(wifi_obj);
       }
-      return true;
     }
-
-    /*void setAccessPoint(const char *ssid, const char *password,
-                    const bool hideSSID = false,
-                    const uint8_t maxConnections = 8) {
- WiFi.mode(WIFI_AP_STA);
- // WiFi.onSoftAPModeStationConnected(onNewStation);
- // WiFi.softAPConfig();
- if (!WiFi.softAP(ssid, password, hideSSID, maxConnections)) {
-   LOG_ACTOR(ERROR, this, "Unable to create access point: %s\n", ssid);
- } else {
-   LOG_ACTOR(INFO, this,
-       "\n[WIFI Access Point Configuration]\n"
-       "\t!yID:              !m%s\n"
-       "\t!ySSID:            !m%s\n"
-       "\t!yLocal IP:        !m%s\n"
-       "\t!yMac Address:     !m%s\n"
-       "\t!yBroadcast:       !m%s\n"
-       "\t!yChannel:         !m%i\n"
-       "\t!yMax connections: !m%i!!\n",
-       this->vid->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
-       WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
-       WiFi.channel(), maxConnections);
- }
-
- WiFi.enableAP(true);
-}*/
   };
 } // namespace fhatos
 #endif

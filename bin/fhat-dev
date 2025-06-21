@@ -31,7 +31,7 @@ help_menu() {
     fhat-dev test native test_scheduler
     fhat-dev build esp32 fhatos
     fhat-dev upload esp32
-    fhat-dev upload esp32 --skip_fs
+    fhat-dev upload esp32 fs=skip os=skip
     fhat-dev build docs
     fhat-dev test"
 }
@@ -62,7 +62,6 @@ else
    echo -e "  ${MAGENTA}${KEY} = ${YELLOW}${VALUE}${NC}"
   done
   echo -e " ${RB}"
-
   if [[ -z $j ]]; then
     export j=6
   fi
@@ -210,7 +209,9 @@ edit_partition() {
 }
 
 build_native() {
-  if [[ $platform == "native" || -z "${platform}"  ]]; then
+  if [ "${os}" == "skip" ]; then
+      echo "skipping os build"
+  elif [[ $platform == "native" || -z "${platform}"  ]]; then
     shift
     shift
     local extra_args=${@:1}
@@ -229,7 +230,9 @@ build_native() {
 }
 
 build_esp32() {
-  if [[ $platform == esp32* || -z "${platform}" ]]; then
+  if [ "${os}" == "skip" ]; then
+    echo "${YELLOW}skipping os build${NC}"
+  elif [[ $platform == esp32* || -z "${platform}" ]]; then
     shift
     shift
     local extra_args=${@:1}
@@ -301,20 +304,24 @@ test_esp32() {
 }
 
 build_boot_config() {
-  pushd .
-    cd "${FHATOS_HOME}"/data/boot || exit 1;
-  popd
-  if [[ -z $boot ]]; then
-    boot="data/boot/boot_config.obj"
+  if [ "${fs}" == "skip" ]; then
+      echo "${YELLOW}skipping boot build${NC}"
+  else
+    pushd .
+      cd "${FHATOS_HOME}"/data/boot || exit 1;
+    popd
+    if [[ -z $boot ]]; then
+      boot="data/boot/boot_config.obj"
+    fi
+    echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
+    printf '%b\n' "$(cat ${boot})\n"
+    pushd .
+    cd "$(dirname ${boot})" || exit 1;
+      xxd -i "$(basename ${boot})" > "${FHATOS_HOME}"/src/boot_config.hpp
+    popd
+    status_check $? "generated boot_config.hpp (header encoding)"
+    status_check $? "boot_config"
   fi
-  echo -e "\n${FHATOS} ${BLUE}boot_loader configuration${NC}\n"
-  printf '%b\n' "$(cat ${boot})\n"
-  pushd .
-  cd "$(dirname ${boot})" || exit 1;
-    xxd -i "$(basename ${boot})" > "${FHATOS_HOME}"/src/boot_config.hpp
-  popd
-  status_check $? "generated boot_config.hpp (header encoding)"
-  status_check $? "boot_config"
 }
 
 build_rlwrap_completions() {
@@ -371,20 +378,26 @@ elif [[ $1 == "upload" ]]; then
   build_boot_config
   build_esp32
   # clean_esp32
-  if [[ -z ${fs} ]]; then
+  if [ -z ${fs} ] && [ "${fs}" != "skip" ]; then
     echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}flash memory partition${NC}\n"
     printf '%b\n' "$(cat board/partition/large_code.csv)\n"
     platformio run ${environ} --target buildfs
     status_check $? "pio buildfs"
     platformio run ${environ} --target uploadfs
     status_check $? "pio uploadfs"
-  else
+  elif [ "${fs}" != "skip" ]; then
     status_check -1 "pio buildfs"
     status_check -1 "pio uploadfs"
+  else
+    echo "skipping boot upload"
   fi
-  platformio run ${environ} --target upload
-  status_check $? "pio upload"
-  build_rlwrap_completions
+  if [ "${os}" == "skip" ]; then
+    echo "${YELLOW}skipping os upload${NC}"
+  else
+    platformio run ${environ} --target upload
+    status_check $? "pio upload"
+    build_rlwrap_completions
+  fi
 else
   help_menu "${@}"
 fi

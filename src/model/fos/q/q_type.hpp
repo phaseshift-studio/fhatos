@@ -23,7 +23,7 @@ FhatOS: A Distributed Operating System
 #include "../../../fhatos.hpp"
 #include "../../../furi.hpp"
 #include "../../../lang/mmadt/compiler.hpp"
-#include "../../../structure/q_proc.hpp"
+#include "q_proc.hpp"
 
 namespace fhatos {
   class QType final : public QProc {

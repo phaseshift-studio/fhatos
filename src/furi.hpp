@@ -156,6 +156,8 @@ namespace fhatos {
 
     [[nodiscard]] fURI no_query() const;
 
+    [[nodiscard]] bool host_is_ip() const;
+
     [[nodiscard]] fURI query(const List<Pair<string, string>> &key_values) const;
 
     [[nodiscard]] std::vector<Pair<string, string>> query_values() const;

@@ -42,17 +42,16 @@ namespace fhatos {
 
   class Compiler {
   public:
-
     enum class Algorithm { SINGLE_PASS, INST_RESOLUTION, OPTIMIZE };
 
     using DerivationTree = vector<tuple<ID_p, ID_p, Obj_p>>;
     ///////////////////////////////////////////////////////
     bool throw_on_miss;
-    DerivationTree* dt;
+    DerivationTree *dt;
 
     explicit Compiler(bool throw_on_miss = true);
 
-    Compiler& with_derivation_tree(DerivationTree* dt = nullptr);
+    Compiler &with_derivation_tree(DerivationTree *dt = nullptr);
 
     // Obj_p compile(const Obj_p& starts, const BCode_p& bcode, const Algorithm compilation_algo);
     // Obj_p rewrite(const Obj_p& starts, const BCode_p& bcode, const vector<Inst_p>& rewrite_rules);
@@ -95,6 +94,12 @@ namespace fhatos {
 
     [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID &type_id) const {
       return this->type_check(value_obj.get(), type_id);
+    }
+
+    [[nodiscard]] bool type_check(const Obj_p &value_obj, const ID &type_id, const fError &on_error) const {
+      if(!this->type_check(value_obj.get(), type_id))
+        throw on_error;
+      return true;
     }
 
     [[nodiscard]] Obj_p super_type(const Obj_p &value_obj) const;

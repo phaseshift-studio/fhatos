@@ -23,8 +23,8 @@
 #include "../../../../fhatos.hpp"
 #include "../../../../lang/obj.hpp"
 #include "../../../../structure/pubsub.hpp"
-#include "../../../../structure/q_proc.hpp"
 #include "../../q/q_default.hpp"
+#include "../../q/q_proc.hpp"
 #include "../../q/q_sub.hpp"
 
 
@@ -174,10 +174,10 @@ namespace fhatos {
       } else {
         return {QProc::ON_RESULT::NO_Q, obj};
       }
-      if(!found) {
+      if(!found && furi.has_query()) {
         // TODO: should a non-find qproc read just fail silently (WARN message)?
         if(!furi.has_query(FOS_DOMAIN) && !furi.has_query(FOS_RANGE)) {
-          LOG_WRITE(WARN, this, L("!rno query processor!! for !y%s!! on read\n", furi.query()));
+          LOG_WRITE(WARN, this, L("!rno query processor !yfor %s!! on read\n", furi.query()));
           /* throw fError::create(this->vid_or_tid()->toString(), "!rno query processor!! for !y%s!! on read",
                                 furi.query());*/
         }

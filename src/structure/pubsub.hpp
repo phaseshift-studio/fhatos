@@ -137,7 +137,7 @@ namespace fhatos {
     Mailbox(const Mailbox &other) : mailbox_(other.mailbox_) {}
     Mailbox(Mailbox &&other) noexcept : mailbox_(std::move(other.mailbox_)) { other.mailbox_ = nullptr; }
     virtual ~Mailbox() = default;
-    void recv_mail(const Mail &&mail) const { this->mailbox_->push_back(mail); }
+    void recv_mail(const Mail &&mail) const { this->mailbox_->push_back(std::move(mail)); }
     bool empty() const { return this->mailbox_->empty(); }
     void process_all_mail() const {
       while(process_next_mail()) {
@@ -156,8 +156,8 @@ namespace fhatos {
 
   class Post : public Mailbox {
   public:
-    ptr<MutexDeque<Subscription_p>> subscriptions_;
-    explicit Post() : Mailbox(), subscriptions_(make_shared<MutexDeque<Subscription_p>>()) {};
+    ptr<MutexDeque<Subscription_p>> subscriptions_ = make_shared<MutexDeque<Subscription_p>>();
+    explicit Post() : Mailbox() {};
     Post(const Post &other) : Mailbox(other), subscriptions_(other.subscriptions_) {}
     Post(Post &&other) noexcept : Mailbox(other) {
       this->subscriptions_ = std::move(other.subscriptions_);
@@ -171,9 +171,9 @@ namespace fhatos {
     virtual void receive(const Message_p &message, bool async) const {
       for(const Subscription_p &sub: *this->subscriptions_) {
         if(message->target()->bimatches(*sub->pattern())) {
-          const Obj_p source_obj = ROUTER_READ(*sub->source());
           const auto mail = Mail(sub, message);
-          if(const auto source_mailbox = source_obj->get_model<Obj>(false);
+/*        const Obj_p source_obj = ROUTER_READ(*sub->source());
+           if(const auto source_mailbox = source_obj->get_model<Obj>(false);
              source_mailbox && source_mailbox->recv_payload(&mail)) {
             LOG_WRITE(DEBUG, source_obj.get(),
                       L("!yrouting mail!! !b{}!! - {} !g[!mmailbox!g]!!\n", message->toString(), sub->toString()));
@@ -181,8 +181,9 @@ namespace fhatos {
           } else {
             LOG_WRITE(DEBUG, source_obj.get(),
                       L("!yreceiving mail!! !b{}!! -> {}\n", message->toString(), sub->toString()));
-            this->recv_mail(std::move(mail));
-          }
+*/
+          this->recv_mail(std::move(mail));
+          //        }
         }
       }
     }

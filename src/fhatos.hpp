@@ -256,7 +256,13 @@ namespace fhatos {
 #define FOS_RNG_COEF "rc"
 #define FOS_CONFIG "config"
 #define FOS_PRE_ALLOCATED_ELEMENT_LIST_SIZE 5
-
+#define KB1 1024
+#define KB2 2048
+#define KB3 4096
+#define KB4 8192
+#define KB5 16384
+#define KB6 32768
+#define KB7 65536
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)

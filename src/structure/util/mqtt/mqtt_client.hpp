@@ -30,6 +30,7 @@ namespace fhatos {
 
   class MqttClient final : public Rec, public Post {
   public:
+    ID_p source_;
     std::any handler_;
     Runnable on_connect = [] {};
     uptr<MutexDeque<ID>> clients_ = make_unique<MutexDeque<ID>>();
@@ -44,7 +45,7 @@ namespace fhatos {
 
     virtual void loop() override;
 
-    [[nodiscard]] bool connect(const ID &source) const;
+    [[nodiscard]] bool connect(const ID &source);
 
     [[nodiscard]] bool disconnect(const ID &source, bool async = true);
 

@@ -86,7 +86,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
       const Objs_p results = Obj::to_objs();
-      if(furi.has_query()) {
+      if(furi.has_query_prefix("q")) {
         auto [on_result, q_obj] = this->process_query_read(QProc::POSITION::PRE, furi, nullptr);
         if(on_result == QProc::ON_RESULT::ONLY_Q)
           return q_obj;
@@ -134,12 +134,15 @@ namespace fhatos {
           results->add_obj(objs);
         }
       }
+
       const Obj_p new_results = Obj::to_objs();
       new_results->add_obj(
-          furi.has_query() ? this->process_query_read(QProc::POSITION::POST, furi, results).second->none_one_all()
-                           : this->process_query_read(QProc::POSITION::Q_LESS, furi, results).second->none_one_all());
+          furi.has_query_prefix("q")
+              ? this->process_query_read(QProc::POSITION::POST, furi, results).second->none_one_all()
+              : this->process_query_read(QProc::POSITION::Q_LESS, furi, results).second->none_one_all());
       new_results->add_obj(results);
       return new_results->none_one_all();
+
     } catch(const std::exception &e) {
       throw fError("unable to read from %s\n\t %s", furi.toString().c_str(), e.what());
     }
@@ -150,7 +153,7 @@ namespace fhatos {
       throw fError::create(this->vid_or_tid()->toString(), "!yunable to write!! %s to !b%s!!", obj->toString().c_str(),
                            furi.toString().c_str());
     }
-    if(furi.has_query()) {
+    if(furi.has_query()) {// furi.has_query_prefix("q")) {
       if(const QProc::ON_RESULT result = this->process_query_write(QProc::POSITION::PRE, furi, obj, retain);
          result == QProc::ON_RESULT::ONLY_Q)
         return;

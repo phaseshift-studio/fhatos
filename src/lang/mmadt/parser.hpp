@@ -210,11 +210,10 @@ namespace mmadt {
     void initialize() {
       OBJ_PARSER = [](const string &obj_string) {
         // StringHelper::replace(const_cast<string *>(&obj_string), "\\\'", "\'");
-        const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(0));
+        const Int_p stack_size = Parser::singleton()->obj_get("config/stack_size")->or_else(jnt(KB6));
         const int int_stack_size =
-            stack_size->is_code()  ? BOOTING ? 32384 : mmADT::delift(stack_size)->apply(str(obj_string))->int_value()
-             : stack_size->is_int() ? stack_size->int_value()
-                                   : 0;
+            stack_size->is_code() ? (BOOTING ? KB6 : mmADT::delift(stack_size)->apply(str(obj_string))->int_value())
+                                  : (stack_size->is_int() ? stack_size->int_value() : 0);
 
         return Memory::singleton()->use_custom_stack(InstBuilder::build("custom_parse_stack")
                                                          ->inst_f([](const Str_p &source, const InstArgs &) {

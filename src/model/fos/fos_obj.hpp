@@ -79,6 +79,7 @@ namespace fhatos {
       Memory::register_module();
       GPIO::register_module();
       Console::register_module();
+      Memory::register_module();
 #ifdef NATIVE
       OllamaServer::register_module();
 #endif

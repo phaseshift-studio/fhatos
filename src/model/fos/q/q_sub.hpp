@@ -22,9 +22,9 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include "../../../structure/pubsub.hpp"
-#include "../../../structure/q_proc.hpp"
 #include "../../../util/mutex_deque.hpp"
 #include "../sys/scheduler/thread/thread.hpp"
+#include "q_proc.hpp"
 #define Q_SUB_TID FOS_URI "/q/sub"
 
 namespace fhatos {
@@ -43,12 +43,12 @@ namespace fhatos {
     }
 
     void loop() const override {
-      /*while(!this->empty()) {
-        FEED_WATCHDOG();
-        Option<Mail> mail = this->next_mail();
-        mail.value().first->apply(mail.value().second);
-      }*/
       this->post_->loop();
+    }
+
+    template <typename T>
+    void set_post(const Supplier<ptr<T>> supplier) {
+      this->post_ = supplier();
     }
 
 

@@ -37,9 +37,9 @@
 //// FOS MODELS
 #include "model/fos/io/gpio/gpio.hpp"
 #include "model/fos/io/i2c/i2c.hpp"
+#include "model/fos/net/wifi.hpp"
 #include "model/fos/sys/scheduler/scheduler.hpp"
 #include "model/fos/ui/console.hpp"
-#include "model/fos/net/wifi.hpp"
 ////////////////////////////////////////
 #elif defined(ESP_PLATFORM)
 #include "model/fos/io/pwm/pwm.hpp"
@@ -55,23 +55,23 @@
 ////////////////////////////////////////
 
 namespace fhatos {
-  class BootLoader {
+  class Boot {
     /////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
   public:
-    static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
+    static Kernel *kernel(const ArgvParser *args_parser) {
       PrintHelper::import();
       std::srand(std::time(nullptr));
+      const auto kp = new Kernel();
       try {
 #ifdef CONFIG_SPIRAM_USE
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
-        const ptr<Kernel> kp = Kernel::build()
-                                   ->start_timer()
-                                   ->with_ansi_color(args_parser->option_bool("--ansi", true))
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
+        kp->start_timer()
+            ->with_ansi_color(args_parser->option_bool("--ansi", true))
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
         if(args_parser->option_bool("--headers", true)) {
           kp->display_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
               ->display_reset_reason()
@@ -113,10 +113,7 @@ namespace fhatos {
             ->import_module("/fos/ui/#"); //  user interface
         //////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
-        kp->display_note("!yevaluating !bsetup !yinst!!")
-        ->display_memory()
-        ->evaluate_setup()
-        ->stop_timer();
+        kp->display_note("!yevaluating !bsetup !yinst!!")->display_memory()->evaluate_setup()->stop_timer();
         /* ->install(Log::create("/io/log", Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID "/log")))
                     ->drop_config("log");*/
       } catch(const fError &e) {
@@ -124,7 +121,7 @@ namespace fhatos {
                   L("[{}] !rcritical!! !mFhat!gOS!! !rerror!!: {}\n", Ansi<>::silly_print("shutting down"), e.what()));
         Ansi<>::singleton()->println("");
       }
-      return Kernel::build();
+      return kp;
     }
   };
 } // namespace fhatos

@@ -268,6 +268,14 @@ namespace fhatos {
   }
   const char *fURI::query() const { return this->query_ ? this->query_ : ""; }
 
+  bool fURI::host_is_ip() const {
+    if(3 != StringHelper::count_substring(this->host(), "."))
+      return false;
+    auto host = string(this->host_);
+    StringHelper::replace(&host, ".", "");
+    return StringHelper::is_integer(host);
+  }
+
   bool fURI::has_query_prefix(const char *prefix) const {
     if(!this->query_ || 0 == strlen(this->query_))
       return false;

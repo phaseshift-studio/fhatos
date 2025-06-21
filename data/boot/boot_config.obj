@@ -20,9 +20,10 @@
             password=>'puppymama',
             mnds=>*/sys/info/platform],
    --- all platforms
-   mqtt => [broker=><mqtt://chibi.local:1883>],
+   mqtt => [broker=><mqtt://192.168.10.126:1883>],
    net  => [mdns=>/fos/net/inet/mdns()]],
  ---------------------------------- KERNEL BOOT OBJS ----------------------------------
+ boot     =>[drop  =>true],
  info     =>[host  =>*/boot/config/params/host]@/sys/info, --- add pairs as needed
  scheduler=>[config=>[def_stack_size=>32768]]@/sys/scheduler,
  router   =>[config=>[auto_prefix=>[<>,/mmadt/ext/,/mmadt/,/sys/,/io/,/fos/s/]]]@/sys/router,
@@ -39,20 +40,22 @@
         print('\t!g!_esp32 !y!_specific boot!!\n');
         typer::import(/fos/net/#);
         /fos/net/wifi[[config=>[
-                ssid=>*/boot/config/params/wifi/ssid,
-                password=>*/boot/config/params/wifi/password,
-                mdns=>*/boot/config/name,
-                on_connect=>^(print('!gwifi connected!!\n'))
+            ssid=>*/boot/config/params/wifi/ssid,
+            password=>*/boot/config/params/wifi/password,
+            mdns=>*/boot/config/name,
+            on_connect=>^(print('!gwifi connected!!\n'))
         ]]]@/io/wifi;
-        */io/wifi.connect()
-        --- typer::import(/fos/io/gpio)
-        --- /io/gpio/+?q:default -> |(<<(2).as(int).as(gpio).read()),
-      },
+        */io/wifi.connect();
+        typer::import(/fos/io/gpio);
+        /io/gpio/+?q:default -> |[read => ^(<<(2).as(int).as(/fos/io/gpio).read())];
+       },
        is(eq(native))=>{ --- native specific
         print('\t!g!_native !y!_specific boot!!\n');
+        /sys/router/memory -> |/fos/sys/memory[[=>]];
+        /sys/router/memory/main?q:default -> |[read => ^(*/sys/router/memory.main())];
         fs[[pattern=>/fs/#,config=>[root=><.>]]]@/mnt/fs;
-        router::mount(@/mnt/fs)
-    }]>-;
+        router::mount(@/mnt/fs);
+       }]>-;
     print('\t!g!_cluster !y!_specific boot!!\n');
     /boot/config/mdns -> *</sys/info/platform>-<
                             [is(eq(esp32))=>*/io/wifi/config/mdns,
@@ -67,12 +70,10 @@
     --- *</boot/config/name>.<//{{_}}/output?q:sub> -> ^(*/io/console.output(*|payload));
     --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
     *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload,<{{*(target).<<(1)}}/output>));
-    --- only native platforms launch a console (save memory -- comms still available through dsm)
     *</sys/info/platform>-<[is(eq(native))=>{
       /fos/ui/terminal[[=>]]@/io/terminal;
       /fos/ui/console[[=>]]@/io/console;
-      /io/console/config/stack_size -> 32768;
-      scheduler::spawn(@/io/console)
-    }]>-
-    --- /boot/# -> noobj;
+      /io/console/config/stack_size -> 16384;
+      scheduler::spawn(@/io/console);
+    }]>-;
  ]]@/boot/config

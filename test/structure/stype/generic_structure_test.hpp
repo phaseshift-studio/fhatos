@@ -83,21 +83,27 @@ namespace fhatos {
       for(int i = 0; i < 50; i++) {
         structure_->write(p(string("a/a").append(to_string(i))), jnt(i * 10), true);
       }
+      TEST_MESSAGE("writing complete");
       for(int i = 0; i < 50; i++) {
         FOS_TEST_OBJ_EQUAL(jnt(i * 10), structure_->read(p(string("a/a").append(to_string(i)))));
       }
+      TEST_MESSAGE("reading forward complete");
       for(int i = 49; i >= 0; i--) {
         FOS_TEST_OBJ_EQUAL(jnt(i * 10), structure_->read(p(string("a/a").append(to_string(i)))));
       }
+      TEST_MESSAGE("reading backward complete");
       for(int i = 0; i < 50; i++) {
         structure_->write(p(string("a/a").append(to_string(i))), Obj::to_noobj(), true);
       }
+      TEST_MESSAGE("deleteing complete");
       for(int i = 0; i < 50; i++) {
         FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("a/a").append(to_string(i)))));
       }
+      TEST_MESSAGE("reading existence foreward complete");
       for(int i = 49; i >= 0; i--) {
         FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), structure_->read(p(string("a/a").append(to_string(i)))));
       }
+      TEST_MESSAGE("reading existence backwards complete");
       this->detach();
     }
 
@@ -204,10 +210,10 @@ namespace fhatos {
       // Structure::add_qproc(structure_, QSub::create(structure_->vid->extend("q/sub")));
       const Subscription_p subscription =
           Subscription::create(id_p("/boot/scheduler"), p_p(p("abc")), __().to(p("bcd")));
-      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "sub")));
-      ROUTER_WRITE(p("abc", "sub"), __().to(p("bcd")), true);
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "q:sub")));
+      ROUTER_WRITE(p("abc", "q:sub"), __().to(p("bcd")), true);
       Router::singleton()->loop();
-      // FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "sub")));
+      // FOS_TEST_OBJ_EQUAL(subscription, ROUTER_READ(p("abc", "q:sub")));
       ////////// transient
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("bcd")));
@@ -227,9 +233,9 @@ namespace fhatos {
       FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       ////////// unsubscribe
-      ROUTER_WRITE(p("abc", "sub"), Obj::to_noobj(), true);
+      ROUTER_WRITE(p("abc", "q:sub"), Obj::to_noobj(), true);
       Router::singleton()->loop();
-      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "sub")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "q:sub")));
       FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("abc")));
       FOS_TEST_OBJ_EQUAL(str("little fhatty pig"), ROUTER_READ(p("bcd")));
       ////////// transient (no sub)
@@ -251,19 +257,19 @@ namespace fhatos {
 
     void test_q_doc() const {
       Structure::add_qproc(structure_, QDoc::create(structure_->vid->extend("q/doc")));
-      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "doc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "q:doc")));
       ROUTER_WRITE(p("abc"), str("no docs"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "doc")));
-      ROUTER_WRITE(p("abc", "doc"), str("these are the docs"), true);
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "q:doc")));
+      ROUTER_WRITE(p("abc", "q:doc"), str("these are the docs"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(str("these are the docs"), ROUTER_READ(p("abc", "doc")));
-      ROUTER_WRITE(p("abc", "doc"), str("docs updated"), true);
+      FOS_TEST_OBJ_EQUAL(str("these are the docs"), ROUTER_READ(p("abc", "q:doc")));
+      ROUTER_WRITE(p("abc", "q:doc"), str("docs updated"), true);
       FOS_TEST_OBJ_EQUAL(str("no docs"), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(str("docs updated"), ROUTER_READ(p("abc", "doc")));
+      FOS_TEST_OBJ_EQUAL(str("docs updated"), ROUTER_READ(p("abc", "q:doc")));
       ROUTER_WRITE(p("abc"), Obj::to_noobj(), true);
       FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc")));
-      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "doc")));
+      FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("abc", "q:doc")));
       this->detach();
     }
 
@@ -287,18 +293,18 @@ namespace fhatos {
                                                 *counter = *counter + 1;
                                                 return Obj::to_noobj();
                                               });
-        ROUTER_WRITE(p("b/#").query("sub"),sub, true);
-        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/a/#","sub"))); // ensure subscription obj is stored
-        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/#","sub"))); // ensure subscription obj is stored
-        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/c/c/c/c","sub"))); // ensure subscription obj is stored
-        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b","sub"))); // ensure subscription obj is stored
-        FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("c","sub")));
+        ROUTER_WRITE(p("b/#").query("q:sub"),sub, true);
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/a/#","q:sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/#","q:sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b/c/c/c/c","q:sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(sub,ROUTER_READ(p("b","q:sub"))); // ensure subscription obj is stored
+        FOS_TEST_OBJ_EQUAL(Obj::to_noobj(), ROUTER_READ(p("c","q:sub")));
       for(int i = 0; i < 25; i++) {
         ROUTER_WRITE(p(string("b/b").append(to_string(i))), jnt(i), true);
         Router::singleton()->loop();
       }
       TEST_ASSERT_EQUAL_INT(25, *counter);
-      ROUTER_WRITE(p("b/#").query("sub"), Obj::to_noobj(), true);
+      ROUTER_WRITE(p("b/#").query("q:sub"), Obj::to_noobj(), true);
       for(int i = 0; i < 25; i++) {
         ROUTER_WRITE(p(string("b/b").append(to_string(i))), jnt(i), true);
         Router::singleton()->loop();

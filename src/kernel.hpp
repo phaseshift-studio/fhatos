@@ -40,52 +40,48 @@ namespace fs = std::filesystem;
 
 
 namespace fhatos {
+
   class Kernel {
   public:
     Obj_p boot_config = Obj::to_rec();
     chrono::steady_clock::time_point boot_start_time;
 
-    static ptr<Kernel> build() {
-      static auto kernel_p = make_shared<Kernel>();
-      return kernel_p;
-    }
+    Obj_p &boot() { return this->boot_config; }
 
-    static Obj_p &boot() { return Kernel::build().get()->boot_config; }
-
-    static ptr<Kernel> with_log_level(const LOG_TYPE level) {
+    Kernel *with_log_level(const LOG_TYPE level) {
       LOG_LEVEL = level;
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> with_ansi_color(const bool use_ansi) {
+    Kernel *with_ansi_color(const bool use_ansi) {
       Ansi<>::singleton()->ansi_switch(use_ansi);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> display_splash(const char *splash) {
+    Kernel *display_splash(const char *splash) {
       printer<>()->print(splash);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> display_note(const char *note) {
+    Kernel *display_note(const char *note) {
       printer<>()->printf(FOS_TAB_6 "!r.!go!bO!! %s !bO!go!r.!!\n", note);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> evaluate_setup() {
+    Kernel *evaluate_setup() {
       BOOTING = false;
-      LOG_WRITE(INFO, Kernel::boot().get(), L("!yexiting !bboot !ystate!!: !rstricter!! type checking !genabled!!\n"));
-      LOG_WRITE(INFO, Kernel::boot().get(),
+      LOG_WRITE(INFO, this->boot().get(), L("!yexiting !bkernel boot !ystate!!: !rstricter!! type checking !genabled!!\n"));
+      LOG_WRITE(INFO, this->boot().get(),
                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
       const Inst_p setup_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       std::holds_alternative<Obj_p>(setup_inst->inst_f())
           ? std::get<Obj_p>(setup_inst->inst_f())->apply(Obj::to_noobj())
           : (*std::get<Cpp_p>(setup_inst->inst_f()))(Obj::to_noobj(), Obj::to_inst_args());
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> display_architecture() {
+    Kernel *display_architecture() {
       string fhatos = STR(FOS_NAME) "-" STR(FOS_VERSION);
       string machine_sub_os = STR(FOS_MACHINE_SUBOS);
       string machine_arch = STR(FOS_MACHINE_ARCH);
@@ -98,22 +94,22 @@ namespace fhatos {
                           machine_arch.c_str());
       if(!machine_model.empty())
         printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> start_timer() {
-      Kernel::build()->boot_start_time = chrono::steady_clock::now();
-      return Kernel::build();
+    Kernel *start_timer() {
+      this->boot_start_time = chrono::steady_clock::now();
+      return this;
     }
 
-    static ptr<Kernel> stop_timer() {
+    Kernel *stop_timer() {
       const auto endTime = std::chrono::steady_clock::now();
-      const auto duration = std::chrono::duration<double>(endTime - Kernel::build()->boot_start_time);
-      LOG_WRITE(INFO, Kernel::boot().get(), L("!yboot time!!: {} !gseconds!!\n", duration.count()));
-      return Kernel::build();
+      const auto duration = std::chrono::duration<double>(endTime - this->boot_start_time);
+      LOG_WRITE(INFO, this->boot().get(), L("!yboot time!!: {} !gseconds!!\n", duration.count()));
+      return this;
     }
 
-    static ptr<Kernel> display_reset_reason() {
+    Kernel *display_reset_reason() {
 #ifdef ESP_PLATFORM
       const esp_reset_reason_t reason = esp_reset_reason();
       string r;
@@ -148,22 +144,22 @@ namespace fhatos {
       }
       printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n", r.c_str());
 #endif
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> display_memory() {
+    Kernel *display_memory() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Memory::singleton()->log_memory_stats();
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> import_module(const Pattern &pattern) {
+    Kernel *import_module(const Pattern &pattern) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Typer::singleton()->import_module(pattern);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> register_module(const Pattern &pattern) {
+    Kernel *register_module(const Pattern &pattern) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       for(auto it = REGISTERED_MODULES->begin(); it != REGISTERED_MODULES->end();) {
         if(it->first.matches(pattern)) {
@@ -173,10 +169,10 @@ namespace fhatos {
           ++it;
         }
       }
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_typer(const ID &type_config_id) {
+    Kernel *using_typer(const ID &type_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p typer_obj = Kernel::boot()->rec_get(type_config_id);
       if(!typer_obj->is_rec())
@@ -196,10 +192,10 @@ namespace fhatos {
       }
       LOG_WRITE(INFO, typer.get(),
                 L("!gtyper!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", PrintHelper::pretty_print_obj(typer, 4, false)));
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_scheduler(const ID &scheduler_config_id) {
+    Kernel *using_scheduler(const ID &scheduler_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p scheduler_obj = Kernel::boot()->rec_get(scheduler_config_id);
       if(!scheduler_obj->is_rec())
@@ -213,10 +209,10 @@ namespace fhatos {
       LOG_WRITE(INFO, scheduler.get(),
                 L("!gscheduler!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n",
                   PrintHelper::pretty_print_obj(scheduler, 4, false)));
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_router(const ID &router_config_id) {
+    Kernel *using_router(const ID &router_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       const Obj_p router_obj = Kernel::boot()->rec_get(router_config_id);
       if(!router_obj->is_rec())
@@ -230,61 +226,61 @@ namespace fhatos {
       LOG_WRITE(
           INFO, router.get(),
           L("!grouter!! configured\n" FOS_TAB_8 FOS_TAB_4 "{}\n", PrintHelper::pretty_print_obj(router, 4, false)));
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> drop_config(const ID &id) {
+    Kernel *drop_config(const ID &id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Kernel::boot()->obj_set(id, Obj::to_noobj());
       LOG_WRITE(INFO, Kernel::boot().get(), L("!b{} !yboot config!! dropped\n", id.toString()));
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> import(const void *) {
+    Kernel *import(const void *) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // TODO: arg should take a tid
       // LOG_KERNEL_OBJ(INFO, Router::singleton(), "!b%s!! !ytype!! imported\n", obj->vid->toString().c_str());
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> mount(const Structure_p &structure) {
+    Kernel *mount(const Structure_p &structure) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Router::singleton()->attach(structure);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> install(const Obj_p &obj) {
+    Kernel *install(const Obj_p &obj) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       if(obj->vid) {
         Router::singleton()->write(*obj->vid, obj, RETAIN);
         LOG_WRITE(INFO, Router::singleton().get(), L("!b{}!! !yobj!! loaded\n", obj->vid->toString()));
       }
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> process(const Obj_p &thread) {
+    Kernel *process(const Obj_p &thread) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       Scheduler::singleton()->spawn_thread(thread);
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> eval(const Runnable &runnable) {
+    Kernel *eval(const Runnable &runnable) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       runnable();
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_boot_config(const Obj_p &boot_config) {
+    Kernel *using_boot_config(const Obj_p &boot_config) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
-      Kernel::build().get()->boot_config = boot_config;
+      this->boot_config = boot_config;
       LOG_WRITE(INFO, Kernel::boot().get(), L("!yboot loader config!!:\n"));
       string boot_str = PrintHelper::pretty_print_obj(boot_config, 4);
       StringHelper::prefix_each_line(FOS_TAB_2, &boot_str);
       LOG_WRITE(INFO, Kernel::boot().get(), L("\n{}\n", boot_str));
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_info(const ID &info_config_id) {
+    Kernel *using_info(const ID &info_config_id) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const bool plat = true;
@@ -296,14 +292,13 @@ namespace fhatos {
                               {"arch", vri(STR(FOS_MACHINE_ARCH))},
                               {"model", vri(STR(FOS_MACHINE_MODEL))},
                               {"subos", vri(STR(FOS_MACHINE_SUBOS))}}));
-        //  ROUTER_WRITE("/sys/info", info, true);
         info->save();
       }
       ///////////////////////////////////////////////////////////////////////////////
-      return Kernel::build();
+      return this;
     }
 
-    static ptr<Kernel> using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
+    Kernel *using_boot_config(const fURI &boot_config_loader = fURI(FOS_BOOT_CONFIG_HEADER_URI)) {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
 #ifdef NATIVE
       const string boot_dir = fs::current_path().string();
@@ -324,15 +319,13 @@ namespace fhatos {
           boot_config_obj_copy_len = boot_config_obj_len;
         }
         if(boot_config_obj_copy && boot_config_obj_copy_len > 0) {
-          config_obj = Memory::singleton()->use_custom_stack(InstBuilder::build("boot_loader_stack")
+          config_obj = Memory::singleton()->use_custom_stack(InstBuilder::build("boot_config_stack")
                                                                  ->inst_f([](const Obj_p &, const InstArgs &) {
-                                                                   string temp = string((char *) boot_config_obj_copy);
+                                                                   auto temp = string((char *) boot_config_obj_copy);
                                                                    StringHelper::trim(temp);
                                                                    const Obj_p ret =
                                                                        mmadt::Parser::singleton()->parse(temp.c_str());
                                                                    return ret;
-                                                                   //  return
-                                                                   //  Router::singleton()->read(FOS_BOOT_CONFIG_VALUE_ID);
                                                                  })
                                                                  ->create(),
                                                              Obj::to_noobj(), FOS_BOOT_CONFIG_MEM_USAGE);
@@ -348,26 +341,22 @@ namespace fhatos {
       return Kernel::using_boot_config(config_obj);
     }
 
-    static void done() {
+    void setup() {
       FEED_WATCHDOG(); // ensure watchdog doesn't fail during boot
       // Router::singleton()->write(string(FOS_BOOT_CONFIG_VALUE_ID), noobj());
       // LOG_WRITE(INFO, Router::singleton().get(), L("!b# !yboot config!! dropped\n"));
       LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! started\n", "main"));
       // booting complete, tighter type constraints enforced
       delete REGISTERED_MODULES;
-      BOOTING = false;
-      Kernel::display_memory();
-      while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
-        Kernel::loop();
+      if(this->boot()->rec_get("boot/drop")->or_else_<bool>(true)) {
+        LOG_WRITE(INFO, this->boot().get(), L("!ydropping !bboot config!y obj!!\n"));
+        Router::singleton()->loop();
+        ROUTER_WRITE("/mnt/boot", Obj::to_noobj(), true);
+        Router::singleton()->loop();
+        this->boot_config.reset();
       }
-      LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
-      Scheduler::singleton()->stop();
-      printer()->printf("\n" FOS_TAB_8 "%s\n\n", Ansi<>::silly_print("Fare thee well FhatOS...").c_str());
-#ifdef ESP_PLATFORM
-      esp_restart();
-#else
-      exit(EXIT_SUCCESS);
-#endif
+      this->display_memory();
+      BOOTING = false;
     }
 
 #ifdef ESP_PLATFORM
@@ -383,14 +372,30 @@ namespace fhatos {
       }*/
 #endif
 
-    static void loop() {
-      Scheduler::singleton()->loop();
-      Router::singleton()->loop();
-#ifdef ESP_PLATFORM
-      vTaskDelay(500); // feeds the watchdog for the task
+    void loop() const {
+#ifdef NATIVE
+      while(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
 #else
-      FEED_WATCHDOG();
+      if(!Scheduler::singleton()->obj_get("halt")->or_else_(false)) {
 #endif
+        Scheduler::singleton()->loop();
+        FEED_WATCHDOG();
+        Router::singleton()->loop();
+      }
+#ifdef NATIVE
+      {
+#else
+      else {
+#endif
+        LOG_WRITE(INFO, Scheduler::singleton().get(), L("!mscheduler <!y{}!m>-loop!! ended\n", "main"));
+        Scheduler::singleton()->stop();
+        printer()->printf("\n" FOS_TAB_8 "%s\n\n", Ansi<>::silly_print("Fare thee well FhatOS...").c_str());
+#ifdef ESP_PLATFORM
+        esp_restart();
+#else
+        exit(EXIT_SUCCESS);
+#endif
+      }
     }
   };
 } // namespace fhatos

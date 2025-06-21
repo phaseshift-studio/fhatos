@@ -22,7 +22,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../../fhatos.hpp"
 #include "../../../furi.hpp"
-#include "../../../structure/q_proc.hpp"
+#include "q_proc.hpp"
 
 #define Q_DEFAULT_TID FOS_URI "/q/default"
 #define WRITE_KEY "write"
@@ -80,7 +80,7 @@ namespace fhatos {
       if(POSITION::Q_LESS == pos && post_read->none_one_all()->is_noobj()) {
         for(const auto &[u, o]: *this->read_map) {
           if(furi_no_query.bimatches(u)) {
-            results->add_obj(o->rec_get(READ_KEY)->apply(vri(furi)));
+            results->add_obj(mmADT::delift(o->rec_get(READ_KEY))->apply(vri(furi)));
           }
         }
       } else if(POSITION::PRE == pos) {
