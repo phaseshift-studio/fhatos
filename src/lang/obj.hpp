@@ -426,7 +426,7 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    explicit Obj(Any value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
+    explicit Obj(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
         Typed(type_id), Valued(value_id), otype(otype), value_(value) {}
 
     Obj(Obj &&other) noexcept : Obj(std::move(other.value_), other.otype, std::move(other.tid), std::move(other.vid)) {
@@ -536,7 +536,7 @@ namespace fhatos {
                   plain_type_obj = make_shared<Obj>(type_obj->value_, type_obj->otype, OTYPE_FURI.at(type_obj->otype));
                 }
                 const Obj_p plain_obj = make_shared<Obj>(this->value_, this->otype, OTYPE_FURI.at(this->otype));
-                // TODO: localize code for uniquness with no_query on inst arg keys
+                // TODO: localize code for uniqueness with no_query on inst arg keys
                 if(plain_obj->is_rec() && plain_type_obj->is_rec()) {
                   for(const auto &[k1, v1]: *plain_type_obj->rec_value()) {
                     for(const auto &[k2, v2]: *plain_obj->rec_value()) {

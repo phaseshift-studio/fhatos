@@ -61,6 +61,9 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////
   public:
     static Kernel *kernel(const ArgvParser *args_parser) {
+#ifdef ESP_PLATFORM
+      vTaskPrioritySet(nullptr, 2); // set main loop priority higher
+#endif
       PrintHelper::import();
       std::srand(std::time(nullptr));
       const auto kp = new Kernel();

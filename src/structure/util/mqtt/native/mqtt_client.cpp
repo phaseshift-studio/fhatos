@@ -108,9 +108,9 @@ namespace fhatos {
     LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n", this->broker().toString()));
     this->clients_->remove(source);
     if(this->clients_->empty() && std::any_cast<ptr<async_client>>(this->handler_)->is_connected()) {
-       const token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
-       result->wait_for(1000);
-       CLIENTS.erase(this->broker());
+      const token_ptr result = std::any_cast<ptr<async_client>>(this->handler_)->disconnect();
+      result->wait_for(1000);
+      CLIENTS.erase(this->broker());
     }
     return true;
   }

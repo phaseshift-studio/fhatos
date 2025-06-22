@@ -63,13 +63,14 @@
     dsm[[pattern=>//+/#, config=>[broker=>*/boot/config/params/mqtt/broker,
                                   client=>*/boot/config/name,
                                   async=>true,
-                                  cache_size=>10]]]@/mnt/cluster;
+                                  cache_size=>*</sys/info/platform>-|[is(eq(esp32))=>0,_=>100]>-]]]@/mnt/cluster;
     router::mount(@/mnt/cluster);
     *</boot/config/name>.<//{{_}}> -> *|/sys/info;
     --- [input,output]>-.-<[<//{{*/boot/config/mdns}}/{{_}}>]>-.ref('remote i/o')
     --- *</boot/config/name>.<//{{_}}/output?q:sub> -> ^(*/io/console.output(*|payload));
     --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
-    *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload,<{{*(target).<<(1)}}/output>));
+    --- *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload,<{{*(target).<<(1)}}/output>));
+    *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload));
     *</sys/info/platform>-<[is(eq(native))=>{
       /fos/ui/terminal[[=>]]@/io/terminal;
       /fos/ui/console[[=>]]@/io/console;

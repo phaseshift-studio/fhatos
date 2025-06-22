@@ -125,11 +125,12 @@ namespace fhatos {
         ->save();
     InstBuilder::build(Scheduler::singleton()->vid->add_component("eval"))
         ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {1, 1})
-        ->inst_args(rec({{"code", __()}, {"dest?uri", __()}}))
+        ->inst_args(rec({{"code", __()}, {"dest", __().else_(Obj::to_noobj())}}))
         ->inst_f([](const Obj_p &, const InstArgs &args) {
           const Obj_p code_obj = args->arg("code");
           const Obj_p result = BCODE_PROCESSOR(mmADT::delift(code_obj));
-          ROUTER_WRITE(args->arg("dest")->uri_value(), result, true);
+          if(!args->arg("dest")->is_noobj())
+            ROUTER_WRITE(args->arg("dest")->uri_value(), result, true);
           return result;
         })
         ->save();

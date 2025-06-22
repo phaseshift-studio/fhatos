@@ -93,10 +93,12 @@ namespace fhatos {
         return MqttClient::get_or_create(this->obj_get("config/broker")->uri_value(),
                                          this->obj_get("config/client")->uri_value());
       });
-      this->mqtt->on_connect = [this]() {
-        LOG_WRITE(INFO, this, L("!ystructure pattern !b{}!! subscribed\n", this->pattern->toString()));
-        this->mqtt->subscribe(generate_sync_subscription(*this->pattern), true);
-      };
+      if(this->cache_size_ > 0) {
+        this->mqtt->on_connect = [this]() {
+          LOG_WRITE(INFO, this, L("!ystructure pattern !b{}!! subscribed\n", this->pattern->toString()));
+          this->mqtt->subscribe(generate_sync_subscription(*this->pattern), true);
+        };
+      }
       if(!this->mqtt->connect(*this->vid))
         LOG_WRITE(WARN, this, L("!runable!y to connect to !b{}!!\n", this->get<fURI>("config/broker").toString()));
       Structure::setup();

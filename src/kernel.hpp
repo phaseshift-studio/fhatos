@@ -70,7 +70,8 @@ namespace fhatos {
 
     Kernel *evaluate_setup() {
       BOOTING = false;
-      LOG_WRITE(INFO, this->boot().get(), L("!yexiting !bkernel boot !ystate!!: !rstricter!! type checking !genabled!!\n"));
+      LOG_WRITE(INFO, this->boot().get(),
+                L("!yexiting !bkernel boot !ystate!!: !rstricter!! type checking !genabled!!\n"));
       LOG_WRITE(INFO, this->boot().get(),
                 L("!yapplying !bsetup !yinst!!\n" FOS_TAB_12 "{}\n", Kernel::boot()->rec_get("setup")->toString()));
       const Inst_p setup_inst = mmADT::delift(Kernel::boot()->rec_get("setup"))->inst_bcode_obj();

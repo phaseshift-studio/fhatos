@@ -24,12 +24,14 @@ FhatOS: A Distributed Operating System
 
 #include "../mqtt_client.hpp"
 #include <WiFi.h>
-#include <espMqttClient.h>
 #include "../../../../lang/mmadt/parser.hpp"
-
 #define FOS_MQTT_MAX_RETRIES 10
 #define FOS_MQTT_RETRY_WAIT 2500
-#define FOS_MQTT_LOOP_TASK false
+#define FOS_MQTT_ASYNC false
+#define FOS_MQTT_ASYNC_PRIORITY 1
+#define FOS_MQTT_ASYNC_CORE 1
+#define ESP_CLIENT_NAME espMqttClient
+#include <espMqttClient.h>
 
 namespace fhatos {
   const Map<int8_t, string> MQTT_STATE_CODES = {{{-4, "MQTT_CONNECTION_TIMEOUT"},
@@ -45,17 +47,15 @@ namespace fhatos {
 
 
   void MqttClient::loop() {
-    const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+    const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
     if(this->is_connected()) {
-      if(!FOS_MQTT_LOOP_TASK) {
+      if(!FOS_MQTT_ASYNC) {
         h->loop();
-        // FEED_WATCHDOG();
       }
       while(true) {
         std::optional<Mail> m = this->next_mail();
         if(m.has_value()) {
-          Mail *mp = &m.value();
-          LOG_WRITE(INFO, this, L("message received: {}\n", mp->second->toString()));
+          LOG_WRITE(INFO, this, L("message received: {}\n", m->second->toString()));
           /*Memory::singleton()->use_custom_stack(InstBuilder::build("process_custom_stack")
                                                    ->inst_f([mp](const Obj_p &, const InstArgs &) {
                                                      mp->first->apply(mp->second);
@@ -64,7 +64,7 @@ namespace fhatos {
                                                    ->create(),
                                                Obj::to_noobj(), 16000);*/
           // TODO: get this in a custom stack
-          mp->first->apply(mp->second);
+          m->first->apply(m->second);
         } else
           break;
       }
@@ -76,12 +76,13 @@ namespace fhatos {
   uint8_t *payloadbuffer = nullptr;
   size_t payloadbufferSize = 0;
   size_t payloadbufferIndex = 0;
+  // Mutex mutex = Mutex();
 
   MqttClient::MqttClient(const Rec_p &config) :
       Rec(std::move(config->rec_value()), OType::REC, REC_FURI), Post(), handler_(nullptr), source_(nullptr) {
-    this->handler_ = std::any(
-        make_shared<espMqttClient>(FOS_MQTT_LOOP_TASK)); // bool internalTask = true, uint8_t priority = 1, uint8_t core = 1
-    const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+    // bool internalTask = true || uint8_t priority = 1, uint8_t core = 1
+    this->handler_ = std::any(make_shared<ESP_CLIENT_NAME>(FOS_MQTT_ASYNC));
+    const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
     if(this->broker().host_is_ip()) {
       IPAddress ipaddr = IPAddress();
       ipaddr.fromString(this->broker().host());
@@ -91,17 +92,29 @@ namespace fhatos {
     // char *client_id = strdup(this->client().toString().c_str());
     // h->setClientId(client_id);
     h->onDisconnect([this](espMqttClientTypes::DisconnectReason reason) {
-      this->disconnect(*this->source_, false);
+      // this->disconnect(*this->source_, false);
+      bool first = true;
+      while(!WiFi.isConnected()) {
+        if(first) {
+          LOG_WRITE(WARN, this, L("!ywaiting for !bwifi!! connection"));
+          first = false;
+        }
+        Ansi<>::singleton()->print('.');
+        Thread::yield();
+        Thread::delay(1000);
+      }
+      Ansi<>::singleton()->print('\n');
       this->connect(*this->source_);
     });
     h->onMessage([this](const espMqttClientTypes::MessageProperties &properties, const char *topic, const uint8_t *data,
                         size_t len, size_t index, size_t total) {
       if(total > MQTT_MAX_PACKET_SIZE)
         throw fError("mqtt message too large: %d > %d", total, MQTT_MAX_PACKET_SIZE);
+      // auto lock = std::lock_guard(mutex);
       // start new packet, increase buffer size if necessary
       if(index == 0) {
         if(total > payloadbufferSize) {
-          delete[] payloadbuffer;
+          //delete[] payloadbuffer;
           payloadbufferSize = total;
           payloadbuffer =
               static_cast<uint8_t *>(ps_malloc(payloadbufferSize)); // new(std::nothrow) uint8_t[payloadbufferSize];
@@ -134,7 +147,7 @@ namespace fhatos {
 
   void MqttClient::subscribe(const Subscription_p &subscription, const bool async) {
     this->subscriptions_->push_back(subscription);
-    const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+    const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
     h->subscribe(subscription->pattern()->toString().c_str(), 0);
     h->loop();
   }
@@ -143,9 +156,8 @@ namespace fhatos {
     this->subscriptions_->remove_if([this, &source, &pattern](const Subscription_p &sub) {
       const bool remove = pattern.bimatches(*sub->pattern()) && sub->source()->equals(source);
       if(remove) {
-        const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+        const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
         h->unsubscribe(pattern.toString().c_str());
-        FEED_WATCHDOG();
         h->loop();
       }
       return remove;
@@ -154,7 +166,7 @@ namespace fhatos {
 
   void MqttClient::publish(const Message_p &message, const bool async) const {
     // const char* topic, uint8_t qos, bool retain, const char* payload
-    const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+    const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
     if(message->payload()->is_noobj()) {
       h->publish(message->target()->toString().c_str(), 0, message->retain(), nullptr, 0);
     } else {
@@ -162,18 +174,17 @@ namespace fhatos {
       h->publish(message->target()->toString().c_str(), 0, message->retain(), source_payload->second,
                  source_payload->first);
     }
-    // FEED_WATCHDOG();
     h->loop();
   }
 
   bool MqttClient::disconnect(const ID &source, const bool async) {
-    const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
+    const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
     h->disconnect();
+    h->clearQueue();
     this->clients_->remove(source);
     if(this->clients_->empty()) {
       CLIENTS.erase(this->broker());
     }
-    h->clearQueue();
     LOG_WRITE(INFO, this, L("!ydisconnecting!! from !g[!y{}!g]!!\n", this->broker().toString()));
     return true;
   }
@@ -182,7 +193,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   bool MqttClient::is_connected() const {
-    return this->handler_.has_value() && std::any_cast<ptr<espMqttClient>>(this->handler_)->connected();
+    return this->handler_.has_value() && std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_)->connected();
   }
 
   bool MqttClient::connect(const ID &source) {
@@ -194,36 +205,32 @@ namespace fhatos {
       return true;
     }
     try {
-      const auto h = std::any_cast<ptr<espMqttClient>>(this->handler_);
-      int counter = 0;
+      const auto h = std::any_cast<ptr<ESP_CLIENT_NAME>>(this->handler_);
       LOG_WRITE(
           INFO, this,
           L("!yattempting !b{} !ymqtt!! connection as !b{}!!", this->broker().toString(), this->client().toString()));
-      h->disconnect();
-      if(h->connect()) {
-        int counter = 0;
-        while(!this->is_connected()) {
-          // h->loop();
-          Thread::delay(750);
-          Ansi<>::singleton()->print('.');
-          Thread::yield();
-          if(counter++ > 20) {
-            Ansi<>::singleton()->print('\n');
-            return false;
-          }
+      h->connect();
+      int counter = 0;
+      while(!this->is_connected()) {
+        Thread::delay(1000);
+        Ansi<>::singleton()->print('.');
+        Thread::yield();
+        if(counter++ > 20) {
+          Ansi<>::singleton()->print('\nrestarting due to failed connection\n');
+          esp_restart();
+          Ansi<>::singleton()->print('\n');
+          return false;
         }
-        Ansi<>::singleton()->print('\n');
-        if(!this->subscriptions_->empty()) {
-          LOG_WRITE(INFO, this,
-                    L("!yresubscribing to subscription(s) !g[!msize:{}!g]!!\n", this->subscriptions_->size()));
-          for(const auto &sub: *this->subscriptions_) {
-            h->subscribe(sub->pattern()->toString().c_str(), 0);
-          }
-        }
-      } else {
-        return false;
       }
-      // FEED_WATCHDOG();
+      h->loop();
+      Ansi<>::singleton()->print('\n');
+      if(!this->subscriptions_->empty()) {
+        LOG_WRITE(INFO, this,
+                  L("!yresubscribing to subscription(s) !g[!msize:{}!g]!!\n", this->subscriptions_->size()));
+        for(const auto &sub: *this->subscriptions_) {
+          h->subscribe(sub->pattern()->toString().c_str(), 0);
+        }
+      }
       // this->on_connect();
     } catch(const std::exception &e) {
       return false;

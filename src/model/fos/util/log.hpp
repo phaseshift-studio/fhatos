@@ -115,6 +115,11 @@ namespace fhatos {
         printer()->print(fmt::format(OBJ_ID_WRAP, source->vid_or_tid()->toString()).c_str());
       else
         printer()->print(fmt::format(NONE_ID_WRAP, "<none>").c_str());
+#ifdef ESP_PLATFORM
+      printer()->print("[");
+      printer()->print((char) xPortGetCoreID());
+      printer()->print("] ");
+#endif
       printer()->print(message().c_str());
     }
 
@@ -141,14 +146,14 @@ namespace fhatos {
       MODEL_CREATOR2->insert_or_assign(*LOG_FURI, [](const Obj_p &log_obj) { return make_shared<Log>(log_obj); });
       ////////////////////////// TYPE ////////////////////////////////
       TYPER_SAVE_TYPE(LOG_FURI->extend("level"),
-                 __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)
-                     .is(__().or_(__().eq(vri("INFO")), __().eq(vri("ERROR")), __().eq(vri("DEBUG")),
-                                  __().eq(vri("WARN")), __().eq(vri("TRACE")))));
+                      __(LOG_FURI->extend("level"), *URI_FURI, *URI_FURI)
+                          .is(__().or_(__().eq(vri("INFO")), __().eq(vri("ERROR")), __().eq(vri("DEBUG")),
+                                       __().eq(vri("WARN")), __().eq(vri("TRACE")))));
       TYPER_SAVE_TYPE(*LOG_FURI, Obj::to_rec({{"config", __().else_(rec({{"INFO", __().else_(lst({vri("#")}))},
-                                                                    {"ERROR", __().else_(lst({vri("#")}))},
-                                                                    {"DEBUG", __().else_(lst())},
-                                                                    {"WARN", __().else_(lst())},
-                                                                    {"TRACE", __().else_(lst())}}))}}));
+                                                                         {"ERROR", __().else_(lst({vri("#")}))},
+                                                                         {"DEBUG", __().else_(lst())},
+                                                                         {"WARN", __().else_(lst())},
+                                                                         {"TRACE", __().else_(lst())}}))}}));
       ////////////////////////// INSTS ////////////////////////////////
       InstBuilder::build(LOG_FURI->add_component("log"))
           ->domain_range(OBJ_FURI, {0, 1}, OBJ_FURI, {0, 1})

@@ -108,7 +108,7 @@ namespace fhatos {
                      OType::INST, this->type_, root ? id_p(root->vid->extend(*value_id)) : value_id);
     // if(!this->doc_.empty())
     // inst->doc_write(this->doc_);
-    auto to_delete = unique_ptr<const InstBuilder>(this);
+    [[maybe_unused]] auto to_delete = unique_ptr<const InstBuilder>(this);
     return inst;
   }
 } // namespace fhatos
