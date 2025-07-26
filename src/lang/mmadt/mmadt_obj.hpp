@@ -48,10 +48,7 @@ namespace mmadt {
 
   class mmADT {
   public:
-
-    static Obj_p isa_arg(const ID_p &id) {
-      return __().isa(*id);
-    }
+    static Obj_p isa_arg(const ID_p &id) { return __().isa(*id); }
 
     static void register_module();
 
@@ -64,19 +61,16 @@ namespace mmadt {
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
-      //const Obj_p type = ROUTER_READ(*lhs->tid);
+      // const Obj_p type = ROUTER_READ(*lhs->tid);
       const Rec_p rec = Obj::to_rec();
       // rec->rec_set("parent", lhs->parent_ ? lhs->parent_->shared_from_this() : Obj::to_noobj());
       rec->rec_set("type/id", vri(lhs->tid));
       rec->rec_set("type/obj", Obj::to_type(lhs->tid));
       rec->rec_set("type/dom/id", vri(lhs->domain()));
-      rec->rec_set("type/dom/coeff", lst({
-                       jnt(lhs->domain_coefficient().first),
-                       jnt(lhs->domain_coefficient().second)}));
+      rec->rec_set("type/dom/coeff",
+                   lst({jnt(lhs->domain_coefficient().first), jnt(lhs->domain_coefficient().second)}));
       rec->rec_set("type/rng/id", vri(lhs->range()));
-      rec->rec_set("type/rng/coeff", lst({
-                       jnt(lhs->range_coefficient().first),
-                       jnt(lhs->range_coefficient().second)}));
+      rec->rec_set("type/rng/coeff", lst({jnt(lhs->range_coefficient().first), jnt(lhs->range_coefficient().second)}));
       if(lhs->vid)
         rec->rec_set("value/id", vri(lhs->vid));
       rec->rec_set("value/obj", Obj::create(lhs->value_, lhs->otype, OTYPE_FURI.at(lhs->otype)));
@@ -85,6 +79,10 @@ namespace mmadt {
           rec->rec_set("sub", subs);
       return rec;
     }
+
+    ////////////////////////////////////////////////////////
+
+    static Inst_p resolve(const Obj_p &lhs, const Inst_p &inst);
   };
 } // namespace mmadt
 #endif

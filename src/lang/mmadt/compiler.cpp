@@ -141,81 +141,87 @@ namespace fhatos {
       return inst;
     // if(!lhs->is_noobj() && !this->coefficient_check(lhs->range_coefficient(), inst->domain_coefficient()))
     // return Obj::to_noobj();
-    Obj_p inst_obj = inst->inst_bcode_obj();
-    inst_obj->resolve();
-    //  inst_vid
-    if(inst_obj->is_inst_stub() && inst_obj->vid)
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
-    // obj field (inst tid)
-    if(inst_obj->is_inst_stub()) {
-      if(const Obj_p code = lhs->obj_get(*inst->tid)->inst_bcode_obj(); !code->is_noobj()) {
-        inst_obj = convert_to_inst(lhs, inst, code);
-      }
-    }
-    // obj field (inst name)
-    if(inst_obj->is_inst_stub()) {
-      if(const Obj_p code = lhs->obj_get(inst->tid->name())->inst_bcode_obj(); !code->is_noobj()) {
-        inst_obj = convert_to_inst(lhs, inst, code);
-      }
-    }
-    if(inst_obj->is_inst_stub() && inst_obj->vid) {
-      if(const Obj_p code = lhs->obj_get(*inst->vid)->inst_bcode_obj(); code->is_code())
-        inst_obj = convert_to_inst(lhs, inst, code);
-    }
 
-    // /obj_vid/::/inst_tid
-    if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query()))->inst_bcode_obj());
-    // /obj_tid/::/inst_tid
-    if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->inst_bcode_obj());
-    // /obj_vid/::/resolved/inst_tid
-    const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
-    if(inst_obj->is_inst_stub() && lhs->vid)
-      inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved))->inst_bcode_obj());
-    // /obj_tid/::/resolved/inst_tid
-    if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(
-          lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved))->inst_bcode_obj());
-    // /resolved/inst_tid
-    if(inst_obj->is_inst_stub())
-      inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved)->inst_bcode_obj());
-    // obj_tid/obj_tid (recurse)
-    if(inst_obj->is_inst_stub()) {
-      if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
-        inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
+    Obj_p inst_obj = mmADT::resolve(lhs, inst);
+    if(!inst_obj->is_noobj())
+      inst_obj = convert_to_inst(lhs, inst, inst_obj);
+    else {
+      inst_obj = inst->inst_bcode_obj();
+      inst_obj->resolve();
+      //  inst_vid
+      if(inst_obj->is_inst_stub() && inst_obj->vid)
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(*inst->vid));
+      // obj field (inst tid)
+      if(inst_obj->is_inst_stub()) {
+        if(const Obj_p code = lhs->obj_get(*inst->tid)->inst_bcode_obj(); !code->is_noobj()) {
+          inst_obj = convert_to_inst(lhs, inst, code);
+        }
       }
-    }
-    if(inst_obj->is_inst_stub()) {
-      if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
-        inst_obj =
-            convert_to_inst(lhs, inst,
-                            this->resolve_inst(Router::singleton()
-                                                   ->read(Router::singleton()
-                                                              ->read(Router::singleton()->resolve(lhs->tid->no_query()))
-                                                              ->domain()
-                                                              ->no_query())
-                                                   ->inst_bcode_obj(),
-                                               inst_obj));
+      // obj field (inst name)
+      if(inst_obj->is_inst_stub()) {
+        if(const Obj_p code = lhs->obj_get(inst->tid->name())->inst_bcode_obj(); !code->is_noobj()) {
+          inst_obj = convert_to_inst(lhs, inst, code);
+        }
       }
-    }
-    if(this->throw_on_miss && inst_obj->is_inst_stub()) {
-      string derivation_string;
-      if(dt)
-        this->print_derivation_tree(&derivation_string);
-      else {
-        DerivationTree *d = new DerivationTree();
-        const auto c = Compiler(false).with_derivation_tree(d);
-        c.resolve_inst(lhs, inst);
-        c.print_derivation_tree(&derivation_string);
-        delete d;
+      if(inst_obj->is_inst_stub() && inst_obj->vid) {
+        if(const Obj_p code = lhs->obj_get(*inst->vid)->inst_bcode_obj(); code->is_code())
+          inst_obj = convert_to_inst(lhs, inst, code);
       }
-      throw fError(FURI_WRAP_C(m) " !b%s!g(%s!g)!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
-                   inst->vid_or_tid()->toString().c_str(), inst->inst_args()->toString().c_str(),
-                   derivation_string.c_str());
+
+      // /obj_vid/::/inst_tid
+      if(inst_obj->is_inst_stub() && lhs->vid)
+        inst_obj = convert_to_inst(
+            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst->tid->no_query()))->inst_bcode_obj());
+      // /obj_tid/::/inst_tid
+      if(inst_obj->is_inst_stub())
+        inst_obj = convert_to_inst(
+            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst->tid->no_query()))->inst_bcode_obj());
+      // /obj_vid/::/resolved/inst_tid
+      const ID inst_type_id_resolved = Router::singleton()->resolve(inst->tid->no_query());
+      if(inst_obj->is_inst_stub() && lhs->vid)
+        inst_obj = convert_to_inst(
+            lhs, inst, Router::singleton()->read(lhs->vid->add_component(inst_type_id_resolved))->inst_bcode_obj());
+      // /obj_tid/::/resolved/inst_tid
+      if(inst_obj->is_inst_stub())
+        inst_obj = convert_to_inst(
+            lhs, inst, Router::singleton()->read(lhs->tid->add_component(inst_type_id_resolved))->inst_bcode_obj());
+      // /resolved/inst_tid
+      if(inst_obj->is_inst_stub())
+        inst_obj = convert_to_inst(lhs, inst, Router::singleton()->read(inst_type_id_resolved)->inst_bcode_obj());
+      // obj_tid/obj_tid (recurse)
+      if(inst_obj->is_inst_stub()) {
+        if(const Obj_p parent = this->super_type(lhs); !parent->is_noobj()) {
+          inst_obj = convert_to_inst(lhs, inst, resolve_inst(parent, inst));
+        }
+      }
+      if(inst_obj->is_inst_stub()) {
+        if(!Router::singleton()->resolve(lhs->tid->no_query()).equals(*OBJ_FURI)) {
+          inst_obj =
+              convert_to_inst(lhs, inst,
+                              this->resolve_inst(Router::singleton()
+                                                     ->read(Router::singleton()
+                                                                ->read(Router::singleton()->resolve(lhs->tid->no_query()))
+                                                                ->domain()
+                                                                ->no_query())
+                                                     ->inst_bcode_obj(),
+                                                 inst_obj));
+        }
+      }
+      if(this->throw_on_miss && inst_obj->is_inst_stub()) {
+        string derivation_string;
+        if(dt)
+          this->print_derivation_tree(&derivation_string);
+        else {
+          DerivationTree *d = new DerivationTree();
+          const auto c = Compiler(false).with_derivation_tree(d);
+          c.resolve_inst(lhs, inst);
+          c.print_derivation_tree(&derivation_string);
+          delete d;
+        }
+        throw fError(FURI_WRAP_C(m) " !b%s!g(%s!g)!! !yinst!! unresolved %s", lhs->vid_or_tid()->toString().c_str(),
+                     inst->vid_or_tid()->toString().c_str(), inst->inst_args()->toString().c_str(),
+                     derivation_string.c_str());
+      }
     }
     return inst_obj->is_inst() ? this->merge_inst(lhs, inst, inst_obj) : inst;
   }

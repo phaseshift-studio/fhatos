@@ -27,6 +27,46 @@
 namespace mmadt {
   using namespace fhatos;
 
+  Inst_p mmADT::resolve(const Obj_p &lhs, const Inst_p &inst) {
+    const ID_p resolved_id =
+        inst->tid->starts_with(MMADT_PREFIX) ? inst->tid : id_p(ID(MMADT_PREFIX).extend(*inst->tid));
+    const InstBuilder *builder = nullptr;
+    if(lhs->is_int() && resolved_id->equals(MMADT_PREFIX "plus")) {
+      builder = InstBuilder::build(MMADT_PREFIX "plus")
+                    ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {1, 1})
+                    ->inst_args(lst({Obj::to_bcode()}))
+                    ->inst_f([](const Int_p &lhs, const InstArgs &args) {
+                      return Obj::to_int(lhs->int_value() + args->arg(0)->int_value(), lhs->tid, lhs->vid);
+                    });
+    } else if(resolved_id->equals(MMADT_PREFIX "not")) {
+      builder = InstBuilder::build(MMADT_PREFIX "not")
+                    ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                    ->inst_args(lst({Obj::to_bcode()}))
+                    ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                      return args->arg(0)->apply(lhs)->is_noobj() ? lhs : Obj::to_noobj();
+                    });
+    } else if(resolved_id->equals(MMADT_PREFIX "isa")) {
+      builder = InstBuilder::build(MMADT_PREFIX "isa")
+                    ->domain_range(OBJ_FURI, {1, 1}, OBJ_FURI, {0, 1})
+                    ->inst_args(rec({{"type?uri", Obj::to_bcode()}}))
+                    ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                      std::stack<string> fail_reason;
+                      const fURI type_furi = args->arg("type")->uri_value();
+                      Obj_p result = lhs->match(ROUTER_READ(type_furi), &fail_reason) ? lhs : Obj::to_noobj();
+                      if(result->is_noobj())
+                        LOG_WRITE(DEBUG, lhs.get(),
+                                  L("isa({}) mismatch {}\n", args->arg(0)->toString(),
+                                    PrintHelper::print_fail_reason(fail_reason)));
+                      return result;
+                    });
+    }
+    if(builder) {
+      //LOG_WRITE(INFO, proto_inst.get(), L("mmadt resolution\n"));
+      return builder->create(inst->vid);
+    }
+    return Obj::to_noobj();
+  }
+
   void mmADT::register_module() {
     Parser::register_module();
     Processor::register_module();

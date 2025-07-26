@@ -20,7 +20,7 @@
             password=>'puppymama',
             mnds=>*/sys/info/platform],
    --- all platforms
-   mqtt => [broker=><mqtt://192.168.10.126:1883>],
+   mqtt => [broker=><mqtt://localhost:1883>],
    net  => [mdns=>/fos/net/inet/mdns()]],
  ---------------------------------- KERNEL BOOT OBJS ----------------------------------
  boot     =>[drop  =>true],
@@ -71,10 +71,10 @@
     --- total hack for one eval. should be: /io/terminal/netio?q:sub -> ^(*/io/console.output(*|payload));
     --- *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload,<{{*(target).<<(1)}}/output>));
     *</boot/config/name>.<//{{_}}/input?q:sub> -> ^(/sys/scheduler::eval(*payload));
-    *</sys/info/platform>-<[is(eq(native))=>{
+    ---*</sys/info/platform>-<[is(eq(native))=>{
       /fos/ui/terminal[[=>]]@/io/terminal;
       /fos/ui/console[[=>]]@/io/console;
       /io/console/config/stack_size -> 16384;
       scheduler::spawn(@/io/console);
-    }]>-;
+    ---}]>-;
  ]]@/boot/config
